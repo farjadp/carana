@@ -1,3 +1,9 @@
+// ============================================================================
+// Source: components/inner-page.tsx
+// Version: 1.2.0 — 2026-08-11
+// Why: Provide a consistent wrapper for interior marketing and legal pages.
+// Env / Identity: Shared page scaffold, no secret usage.
+// ============================================================================
 import type { ReactNode } from "react";
 
 import { PageShell } from "@/components/page-shell";

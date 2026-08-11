@@ -1,3 +1,9 @@
+// ============================================================================
+// Source: app/how-it-works/page.tsx
+// Version: 1.2.0 — 2026-08-11
+// Why: Explain the discovery and conversion flow for directory users.
+// Env / Identity: Static product-explainer page for čārana.
+// ============================================================================
 import type { Metadata } from "next";
 
 import { InnerPage } from "@/components/inner-page";

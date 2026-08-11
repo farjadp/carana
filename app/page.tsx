@@ -1,7 +1,14 @@
+// ============================================================================
+// Source: app/page.tsx
+// Version: 1.2.0 — 2026-08-11
+// Why: Render the homepage for the Iranian-Canadian business directory.
+// Env / Identity: Uses shared brand content and Supabase readiness status only.
+// ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PageShell } from "@/components/page-shell";
+import { SupabaseStatus } from "@/components/supabase-status";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -119,6 +126,10 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section>
+          <SupabaseStatus />
+        </section>
+
         <section className="section-stack">
           <div className="section-heading">
             <p className="eyebrow">نقشه محتوا</p>
@@ -140,6 +151,11 @@ export default function HomePage() {
                 "/how-it-works",
                 "چطور کار می‌کند",
                 "مسیر کاربر از جست‌وجوی کسب‌وکار تا تماس، انتخاب و دیده‌شدن برندها.",
+              ],
+              [
+                "/architecture",
+                "معماری کاربری",
+                "مدل نقش‌ها، پنل‌ها، سطح دسترسی و منطق claim برای کاربران و صاحبان بیزینس.",
               ],
               [
                 "/trust",

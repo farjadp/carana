@@ -1,3 +1,9 @@
+// ============================================================================
+// Source: components/site-header.tsx
+// Version: 1.2.0 — 2026-08-11
+// Why: Render the shared navigation, grouped menus, and auth CTAs.
+// Env / Identity: Shared navigation shell for čārana.
+// ============================================================================
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -57,6 +63,11 @@ export function SiteHeader({ currentSection, currentPath }: SiteHeaderProps) {
               currentPath={currentPath}
             />
             <NavMenuLink href="/trust" label="اعتماد و امنیت" currentPath={currentPath} />
+            <NavMenuLink
+              href="/architecture"
+              label="معماری کاربری"
+              currentPath={currentPath}
+            />
           </div>
         </div>
 
@@ -78,11 +89,11 @@ export function SiteHeader({ currentSection, currentPath }: SiteHeaderProps) {
       </nav>
 
       <div className="header-actions">
-        <Link className="text-link" href="/contact">
-          نسخه کسب‌وکار
+        <Link className="text-link" href="/auth/login">
+          ورود
         </Link>
         <Button asChild variant="solid">
-          <Link href="/contact">ثبت کسب‌وکار</Link>
+          <Link href="/auth/signup">ثبت‌نام کسب‌وکار</Link>
         </Button>
       </div>
     </header>

@@ -1,3 +1,9 @@
+// ============================================================================
+// Source: app/story/page.tsx
+// Version: 1.2.0 — 2026-08-11
+// Why: Explain the linguistic and brand meaning behind the name čārana.
+// Env / Identity: Static brand-story page for čārana.
+// ============================================================================
 import type { Metadata } from "next";
 
 import { InnerPage } from "@/components/inner-page";

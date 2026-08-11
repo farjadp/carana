@@ -1,3 +1,9 @@
+// ============================================================================
+// Source: app/contact/page.tsx
+// Version: 1.2.0 — 2026-08-11
+// Why: Present contact channels for users, businesses, and partnerships.
+// Env / Identity: Static contact page with placeholder business contact data.
+// ============================================================================
 import type { Metadata } from "next";
 
 import { InnerPage } from "@/components/inner-page";

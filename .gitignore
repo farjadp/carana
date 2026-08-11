@@ -6,3 +6,6 @@ coverage
 pnpm-lock.yaml
 AGENTS.md
 CLAUDE.md
+.env
+.env.local
+.env.*.local

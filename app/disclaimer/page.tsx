@@ -1,3 +1,9 @@
+// ============================================================================
+// Source: app/disclaimer/page.tsx
+// Version: 1.2.0 — 2026-08-11
+// Why: Hold the directory disclaimer placeholder content.
+// Env / Identity: Static legal page for čārana.
+// ============================================================================
 import type { Metadata } from "next";
 
 import { InnerPage } from "@/components/inner-page";

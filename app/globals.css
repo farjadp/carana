@@ -1,3 +1,9 @@
+/* ============================================================================
+ * Source: app/globals.css
+ * Version: 1.2.0 — 2026-08-11
+ * Why: Global visual system, layout rules, and branded utility classes.
+ * Env / Identity: Pure styling layer for čārana.
+ * ========================================================================= */
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -255,6 +261,97 @@ a {
 .contact-layout {
   display: grid;
   gap: 34px;
+}
+
+.auth-card,
+.dashboard-hero {
+  padding: 30px;
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: rgba(255, 252, 246, 0.82);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+}
+
+.auth-copy {
+  max-width: 680px;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 24px 0 20px;
+}
+
+.auth-tabs a {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(0, 71, 171, 0.06);
+  color: var(--muted-text);
+}
+
+.auth-tabs a[aria-current="page"] {
+  background: rgba(0, 71, 171, 0.12);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.auth-form {
+  display: grid;
+  gap: 16px;
+  max-width: 560px;
+}
+
+.auth-message {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 18px;
+  font-size: 0.95rem;
+}
+
+.auth-message.is-error {
+  background: rgba(128, 0, 0, 0.08);
+  color: #7a1111;
+}
+
+.auth-message.is-success {
+  background: rgba(24, 169, 87, 0.1);
+  color: #10683a;
+}
+
+.auth-meta {
+  max-width: 620px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.auth-meta strong,
+.dashboard-hero strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.auth-meta p,
+.dashboard-hero p {
+  margin: 0;
+  color: var(--muted-text);
+  line-height: 1.9;
+}
+
+.role-grid,
+.access-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.role-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.access-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .hero {
@@ -714,6 +811,42 @@ section {
   line-height: 1.9;
 }
 
+.supabase-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 252, 246, 0.72);
+  box-shadow: var(--shadow);
+}
+
+.supabase-status strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.supabase-status p {
+  margin: 0;
+  color: var(--muted-text);
+  line-height: 1.8;
+}
+
+.status-dot {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  border-radius: 999px;
+  background: rgba(128, 0, 0, 0.7);
+  box-shadow: 0 0 0 8px rgba(128, 0, 0, 0.08);
+}
+
+.status-dot.is-live {
+  background: #18a957;
+  box-shadow: 0 0 0 8px rgba(24, 169, 87, 0.12);
+}
+
 @media (max-width: 1080px) {
   .site-header,
   .hero,
@@ -723,7 +856,9 @@ section {
   .trust-principles,
   .info-grid,
   .process-steps,
-  .contact-layout {
+  .contact-layout,
+  .role-grid,
+  .access-grid {
     grid-template-columns: 1fr;
   }
 

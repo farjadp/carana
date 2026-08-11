@@ -1,3 +1,9 @@
+// ============================================================================
+// Source: components/site-footer.tsx
+// Version: 1.2.0 — 2026-08-11
+// Why: Render the legal footer and branded copyright copy.
+// Env / Identity: Uses shared legal link metadata only.
+// ============================================================================
 import Link from "next/link";
 
 import { legalLinks } from "@/lib/site-content";

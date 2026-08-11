@@ -1,3 +1,9 @@
+// ============================================================================
+// Source: app/categories/page.tsx
+// Version: 1.2.0 — 2026-08-11
+// Why: Explain the business-category taxonomy for the directory.
+// Env / Identity: Static directory structure page for čārana.
+// ============================================================================
 import type { Metadata } from "next";
 
 import { InnerPage } from "@/components/inner-page";

@@ -1,3 +1,9 @@
+// ============================================================================
+// Source: app/about/page.tsx
+// Version: 1.2.0 — 2026-08-11
+// Why: Present the brand mission, positioning, and placeholder founder content.
+// Env / Identity: Static brand page for čārana.
+// ============================================================================
 import type { Metadata } from "next";
 
 import { InnerPage } from "@/components/inner-page";

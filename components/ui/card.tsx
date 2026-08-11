@@ -1,3 +1,9 @@
+// ============================================================================
+// Source: components/ui/card.tsx
+// Version: 1.2.0 — 2026-08-11
+// Why: Shared branded card primitive for surfaces across the app.
+// Env / Identity: Pure UI primitive, no runtime secrets.
+// ============================================================================
 import * as React from "react";
 
 import { cn } from "@/lib/utils";

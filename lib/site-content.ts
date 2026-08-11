@@ -1,3 +1,9 @@
+// ============================================================================
+// Source: lib/site-content.ts
+// Version: 1.2.0 — 2026-08-11
+// Why: Hold shared legal links and footer identity copy.
+// Env / Identity: Static shared content for čārana.
+// ============================================================================
 export type NavSection = "home" | "business" | "brand";
 
 export const legalLinks = [

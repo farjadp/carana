@@ -1,3 +1,9 @@
+// ============================================================================
+// Source: components/ui/button.tsx
+// Version: 1.2.0 — 2026-08-11
+// Why: Shared branded button primitive built in shadcn style.
+// Env / Identity: Pure UI primitive, no runtime secrets.
+// ============================================================================
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
