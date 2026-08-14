@@ -21,3 +21,6 @@ export * from "./import-normalize";
 
 // URL slugs that survive Persian input.
 export * from "./slug";
+
+// Province taxonomy for the province -> city browse hierarchy.
+export * from "./provinces";

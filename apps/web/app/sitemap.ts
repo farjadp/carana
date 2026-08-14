@@ -8,7 +8,7 @@
 // ============================================================================
 import type { MetadataRoute } from "next";
 
-import { PUBLIC_STATUSES } from "@charana/core";
+import { PROVINCES, PUBLIC_STATUSES } from "@charana/core";
 import { cityConfigs } from "@/lib/data/cities";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -25,6 +25,7 @@ const STATIC_PATHS = [
   "/contact",
   "/categories",
   "/cities",
+  "/provinces",
   "/terms",
   "/privacy",
   "/disclaimer",
@@ -40,6 +41,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: path === "" ? "daily" : "monthly",
     priority: path === "" ? 1 : 0.5,
   }));
+
+  for (const province of PROVINCES) {
+    entries.push({
+      url: `${base}/provinces/${province.slug}`,
+      changeFrequency: "weekly",
+      priority: 0.75,
+    });
+  }
 
   for (const city of cityConfigs) {
     entries.push({

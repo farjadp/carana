@@ -43,7 +43,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="cities"
         options={{
-          title: "شهرها",
+          title: "موقعیت",
           tabBarIcon: ({ color, size }) => <MapPin color={color} size={size} />,
         }}
       />

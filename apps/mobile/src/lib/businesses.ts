@@ -5,7 +5,7 @@
 // Env / Identity: Anon client. RLS decides what comes back — this file adds no
 //      authorization of its own and must not be trusted to.
 // ============================================================================
-import { PUBLIC_STATUSES } from "@charana/core";
+import { PUBLIC_STATUSES, resolveProvince, type Province } from "@charana/core";
 
 import { supabase } from "./supabase";
 
@@ -163,4 +163,67 @@ export async function getBusinessBySlug(slug: string): Promise<BusinessDetail | 
 
   if (error) throw error;
   return (data ?? null) as unknown as BusinessDetail | null;
+}
+
+// ---------------------------------------------------------------------------
+// Geography: province → city
+// ---------------------------------------------------------------------------
+const UNKNOWN_CITY = "نامشخص";
+
+export type ProvinceSummary = {
+  province: Province;
+  total: number;
+  cities: { city: string; count: number }[];
+};
+
+/**
+ * One query, rolled up in memory. The table is small enough that a round trip
+ * per province would cost more than fetching the two columns outright.
+ */
+export async function listProvinces(): Promise<ProvinceSummary[]> {
+  const { data, error } = await supabase
+    .from("businesses")
+    .select("province, city")
+    .in("status", PUBLIC_STATUSES);
+
+  if (error) throw error;
+
+  const byProvince = new Map<string, ProvinceSummary>();
+
+  for (const row of (data ?? []) as { province: string | null; city: string | null }[]) {
+    const province = resolveProvince(row.province);
+    if (!province) continue;
+
+    let entry = byProvince.get(province.slug);
+    if (!entry) {
+      entry = { province, total: 0, cities: [] };
+      byProvince.set(province.slug, entry);
+    }
+    entry.total += 1;
+
+    if (row.city && row.city !== UNKNOWN_CITY) {
+      const found = entry.cities.find((c) => c.city === row.city);
+      if (found) found.count += 1;
+      else entry.cities.push({ city: row.city, count: 1 });
+    }
+  }
+
+  for (const entry of byProvince.values()) {
+    entry.cities.sort((a, b) => b.count - a.count);
+  }
+
+  return [...byProvince.values()].sort((a, b) => b.total - a.total);
+}
+
+export async function listBusinessesByProvince(provinceNameEn: string, limit = 60) {
+  const { data, error } = await supabase
+    .from("businesses")
+    .select(CARD_COLUMNS)
+    .eq("province", provinceNameEn)
+    .in("status", PUBLIC_STATUSES)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as BusinessCard[];
 }

@@ -17,8 +17,9 @@ export function BusinessCardView({
   business: Business;
   categoryLabel?: string;
 }) {
+  // "نامشخص" is the placeholder city on imported rows with no location.
   const meta = [business.city, categoryLabel ?? business.category]
-    .filter(Boolean)
+    .filter((v) => v && v !== "نامشخص")
     .join(" · ");
 
   const initial = business.name.trim().charAt(0);
