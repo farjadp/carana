@@ -25,7 +25,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "restaurant-cafe",
     name: "رستوران، کافه و غذا",
     icon: "☕️",
-    imageUrl: "/images/categories/cat_restaurant.png",
+    imageUrl: "/images/categories/restaurant-cafe.svg",
     description: "معرفی بهترین رستوران‌های ایرانی، کافه‌ها، شیرینی‌فروشی‌ها و خدمات کترینگ در شهرها و استان‌های کانادا.",
     subcategories: [
       { slug: "kabab", label: "کبابی و سنتی" },
@@ -84,7 +84,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "medical-clinic",
     name: "پزشکی، دندانپزشکی و سلامت",
     icon: "🩺",
-    imageUrl: "/images/categories/cat_medical.png",
+    imageUrl: "/images/categories/medical-clinic.svg",
     description: "دایرکتوری پزشکان خانواده، دندانپزشکان، روانشناسان و کلینیک‌های سلامت فارسی‌زبان در کانادا.",
     subcategories: [
       { slug: "family_doc", label: "پزشک خانواده" },
@@ -141,7 +141,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "legal-immigration",
     name: "حقوقی و وکالت",
     icon: "⚖️",
-    imageUrl: "/images/categories/cat_legal.png",
+    imageUrl: "/images/categories/legal-immigration.svg",
     description: "وکلا و مشاوران رسمی مهاجرت کانادا (RCIC)، وکلای دادگستری، حقوق تجارت، خانواده و املاک.",
     subcategories: [
       { slug: "immigration_lawyer", label: "وکیل مهاجرت" },
@@ -198,7 +198,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "real-estate-mortgage",
     name: "املاک و وام",
     icon: "🏠",
-    imageUrl: "/images/categories/cat_realestate.png",
+    imageUrl: "/images/categories/real-estate-mortgage.svg",
     description: "مشاوران املاک باسابقه، متخصصان وام مسکن (Mortgage Specialists)، اجاره و املاک تجاری در کانادا.",
     subcategories: [
       { slug: "realtor", label: "مشاور خرید و فروش املاک" },
@@ -246,7 +246,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "accounting-tax",
     name: "مالی، حسابداری و بیمه",
     icon: "📊",
-    imageUrl: "/images/categories/cat_financial.png",
+    imageUrl: "/images/categories/accounting-tax.svg",
     description: "حسابداران رسمی (CPA)، مشاوران مالیاتی شخصی و شرکتی، دفاتر بیمه عمر و سرمایه‌گذاری.",
     subcategories: [
       { slug: "personal_tax", label: "مالیات شخصی (Personal Tax)" },
@@ -294,7 +294,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "beauty-wellness",
     name: "آرایشگری و زیبایی",
     icon: "✨",
-    imageUrl: "/images/categories/cat_beauty.png",
+    imageUrl: "/images/categories/beauty-wellness.svg",
     description: "سالن‌های زیبایی، آرایشگاه‌های زنانه و مردانه، خدمات پوست، ناخن، لیزر و ماساژ.",
     subcategories: [
       { slug: "hair_salon", label: "آرایشگاه و کوپ مو" },
@@ -325,7 +325,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "iranian-grocery",
     name: "فروشگاه و خرده‌فروشی",
     icon: "🛒",
-    imageUrl: "/images/categories/cat_grocery.png",
+    imageUrl: "/images/categories/iranian-grocery.svg",
     description: "سوپرمارکت‌های ایرانی، کتاب‌فروشی، صنایع دستی، خشکبار و فروشگاه‌های آنلاین بسته‌های ایرانی.",
     subcategories: [
       { slug: "supermarket", label: "سوپرمارکت مواد غذایی" },
@@ -354,7 +354,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "education",
     name: "آموزش و تدریس",
     icon: "📚",
-    imageUrl: "/images/categories/cat_education.png",
+    imageUrl: "/images/categories/education.svg",
     description: "آموزش زبان انگلیسی و فرانسوی، آموزش موسیقی، کنکور، ریاضیات و کلاس‌های تقویتی کودکان.",
     subcategories: [
       { slug: "language", label: "آموزش زبان (IELTS / CELPIP)" },
@@ -383,7 +383,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "skilled-trades",
     name: "ساختمان و تاسیسات",
     icon: "🔧",
-    imageUrl: "/images/categories/cat_trades.png",
+    imageUrl: "/images/categories/skilled-trades.svg",
     description: "خدمات لوله‌کشی، برق‌کاری، بازسازی منزل، نقاشی ساختمان و خدمات فنی فوری.",
     subcategories: [
       { slug: "renovation", label: "بازسازی و دکوراسیون" },
@@ -413,7 +413,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "events",
     name: "رویدادها و تشریفات",
     icon: "🎟️",
-    imageUrl: "/images/categories/cat_events.png",
+    imageUrl: "/images/categories/events.svg",
     description: "کنسرت‌ها، جُنگ‌های خنده، همایش‌های تجاری، نمایشگاه‌ها و شب‌های شعر ایرانی در کانادا.",
     subcategories: [
       { slug: "concert", label: "کنسرت و اجرای زنده" },
@@ -444,7 +444,7 @@ export function getCategoryDetail(slug: string): CategoryDetailConfig {
     slug: slug,
     name: "دسته‌بندی مشاغل",
     icon: "🏢",
-    imageUrl: "/images/categories/cat_trades.png",
+    imageUrl: "/images/categories/skilled-trades.svg",
     description: "لیست جامع کسب‌وکارهای ایرانیان کانادا در این دسته‌بندی.",
     subcategories: [
       { slug: "general", label: "خدمات عمومی" },
