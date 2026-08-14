@@ -1,6 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
 
+  "crons": [
+    {
+      "path": "/api/cron/verification-reminders",
+      "schedule": "0 13 * * *"
+    }
+  ],
+
   "headers": [
     {
       "source": "/.well-known/apple-app-site-association",

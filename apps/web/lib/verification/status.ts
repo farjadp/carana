@@ -156,6 +156,50 @@ export function getVerificationStatus(
   };
 }
 
+// ----------------------------------------------------------------------------
+// Renewal reminders
+// ----------------------------------------------------------------------------
+
+/**
+ * The reminder stages, in the order they fire. Descending, which is what makes
+ * "have we already sent this one?" a comparison rather than a lookup table.
+ *
+ * Three is deliberate. One reminder is missable; a daily nag trains people to
+ * filter the sender, and the sender is also how we deliver verification codes.
+ */
+export const REMINDER_STAGES = [30, 7, 0] as const;
+
+export type ReminderStage = (typeof REMINDER_STAGES)[number];
+
+/**
+ * Which reminder a listing is due for, or null when it is outside the window.
+ *
+ * Note that 0 means "lapsed", not "lapses today" — a badge that has already
+ * gone grey is the most urgent case, not the least.
+ */
+export function reminderStageFor(daysRemaining: number): ReminderStage | null {
+  if (daysRemaining <= 0) return 0;
+  if (daysRemaining <= 7) return 7;
+  if (daysRemaining <= 30) return 30;
+  return null;
+}
+
+/**
+ * True when this stage has not been sent yet for the current cycle.
+ *
+ * Stages descend, so a lower bucket than the one on record is always new.
+ * Equality means "already sent", which is what stops a daily job repeating
+ * itself for four weeks.
+ */
+export function reminderIsDue(
+  stage: ReminderStage | null,
+  lastSentStage: number | null | undefined
+): stage is ReminderStage {
+  if (stage === null) return false;
+  if (lastSentStage === null || lastSentStage === undefined) return true;
+  return stage < lastSentStage;
+}
+
 /** The expiry to write when a verification succeeds right now. */
 export function nextExpiry(from: Date = new Date()): Date {
   const out = new Date(from);

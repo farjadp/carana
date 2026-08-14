@@ -112,3 +112,48 @@ export function contactMessageEmail(input: {
     text: `از: ${input.name} <${input.email}>\nموضوع: ${input.subject}\n\n${input.message}`,
   };
 }
+
+/**
+ * The six-month renewal reminder.
+ *
+ * Tone shifts with urgency rather than repeating one message louder. At 30
+ * days this is housekeeping; at 7 it is a deadline; once lapsed the badge is
+ * already gone from the public page and the mail has to say so plainly rather
+ * than imply it.
+ */
+export function verificationRenewalEmail(input: {
+  name: string;
+  daysRemaining: number;
+  stage: 30 | 7 | 0;
+}) {
+  const url = "https://charana.ca/dashboard/business";
+  const fa = (n: number) =>
+    String(Math.abs(n)).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
+
+  const lapsed = input.stage === 0;
+
+  const subject = lapsed
+    ? `تایید «${input.name}» منقضی شد`
+    : input.stage === 7
+      ? `${fa(input.daysRemaining)} روز تا انقضای تایید «${input.name}»`
+      : `تمدید تایید «${input.name}» — ${fa(input.daysRemaining)} روز مانده`;
+
+  const lead = lapsed
+    ? `نشان تایید <strong>${input.name}</strong> منقضی شده و از صفحه‌ی عمومی آن برداشته شده است. کسب‌وکار همچنان در دایرکتوری هست، اما بدون نشان تایید.`
+    : `تایید <strong>${input.name}</strong> تا ${fa(input.daysRemaining)} روز دیگر منقضی می‌شود.`;
+
+  return {
+    subject,
+    html: shell(`
+      <p style="margin:0 0 14px;">سلام،</p>
+      <p style="margin:0 0 18px;">${lead}</p>
+      <p style="margin:0 0 18px;">چارانا هر شش ماه یک‌بار شماره تماس و ایمیل هر کسب‌وکار را دوباره تایید می‌کند. این کاری است که باعث می‌شود نشان تایید معنا داشته باشد: کاربری که آن را می‌بیند مطمئن است اطلاعات تماس همین چند ماه اخیر بررسی شده، نه یک بار در گذشته.</p>
+      <p style="margin:0 0 18px;">تمدید چند ثانیه طول می‌کشد و از داشبورد انجام می‌شود.</p>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${url}" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">${lapsed ? "تمدید تایید" : "تمدید کنید"}</a>
+      </div>
+      <p style="margin:0;color:${MUTED};font-size:13px;">اگر شماره تماس کسب‌وکارتان عوض شده، اول آن را در داشبورد به‌روز کنید و بعد تمدید بزنید.</p>
+    `),
+    text: `${subject}\n\n${lapsed ? `نشان تایید «${input.name}» منقضی شده و از صفحه‌ی عمومی برداشته شده است.` : `تایید «${input.name}» تا ${fa(input.daysRemaining)} روز دیگر منقضی می‌شود.`}\n\nتمدید از داشبورد:\n${url}`,
+  };
+}

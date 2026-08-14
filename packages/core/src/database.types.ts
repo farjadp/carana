@@ -233,6 +233,7 @@ export type Database = {
           verification_method: string | null
           verification_notes: string | null
           verification_reminder_sent_at: string | null
+          verification_reminder_stage: number | null
           verified_at: string | null
           verified_email: string | null
           verified_phone: string | null
@@ -289,6 +290,7 @@ export type Database = {
           verification_method?: string | null
           verification_notes?: string | null
           verification_reminder_sent_at?: string | null
+          verification_reminder_stage?: number | null
           verified_at?: string | null
           verified_email?: string | null
           verified_phone?: string | null
@@ -345,6 +347,7 @@ export type Database = {
           verification_method?: string | null
           verification_notes?: string | null
           verification_reminder_sent_at?: string | null
+          verification_reminder_stage?: number | null
           verified_at?: string | null
           verified_email?: string | null
           verified_phone?: string | null

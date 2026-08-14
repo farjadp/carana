@@ -247,6 +247,7 @@ export async function confirmBusinessClaim(
       verified_phone: business.phone,
       verified_email: null,
       verification_reminder_sent_at: null,
+      verification_reminder_stage: null,
     })
     .eq("id", businessId);
 
@@ -350,6 +351,7 @@ export async function verifyOwnListing(businessId: string): Promise<Result> {
       verified_phone: business.phone,
       verified_email: business.contact_email,
       verification_reminder_sent_at: null,
+      verification_reminder_stage: null,
     })
     .eq("id", businessId);
 
