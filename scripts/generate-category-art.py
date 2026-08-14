@@ -36,112 +36,76 @@ OUT = pathlib.Path("charana-category-art")
 # The three that stress the system in different directions: an abstract idea,
 # a physical object, and a network. If one language carries all three it will
 # carry the rest.
-PROBE = ["legal-immigration", "restaurant-cafe", "digital-it"]
+PROBE = ["restaurant-cafe", "medical-clinic", "legal-immigration"]
 
 # ---------------------------------------------------------------------------
 # The master visual language. Identical in every single call.
 # ---------------------------------------------------------------------------
 SYSTEM = """
-A minimal geometric flat vector symbol for a premium modern technology brand.
-Part of one custom illustration system, drawn as if constructed with compass
-and straightedge on a strict modular grid.
+A single minimal flat pictogram for a premium mobile app icon set.
 
-Construction, which is where the identity lives: forms are assembled from
-stepped rectilinear profiles, exact bilateral or radial symmetry, and steady
-repetition of a single module. Edges are either orthogonal or at clean 45
-degree angles. Where a form tapers it tapers in discrete steps, never in a
-smooth curve. Circles are true circles. This stepped, modular, strictly
-symmetrical construction is the visual signature and must be visible in the
-silhouette itself.
+This is app iconography, not artwork. One central object, bold simple
+silhouette, very low detail, large clear shapes. It must be recognisable
+instantly at small size on a phone.
 
-Legibility is the first requirement. The subject must be recognisable within one
-second, by someone glancing at a small card. An abstract decorative medallion
-that could belong to any category is a failure, however beautiful.
+Background: solid warm cream #F6F1E8, filling the entire frame, completely
+plain.
+Main shape: solid deep maroon #800000.
+Optional second shape: deep navy #14213D, only where it genuinely helps.
+Maximum two colours in the pictogram. No third colour.
 
-The identity is in HOW the recognisable form is drawn, not in replacing it with
-ornament: draw the real thing, but construct it entirely from stepped modular
-geometry with exact symmetry. Never reproduce the standard app-icon glyph for
-the subject — find a different, simpler cut of the same idea.
+The object is precisely centred, both horizontally and vertically, with equal
+margins on all four sides. It occupies almost exactly half the width and half
+the height of the frame. Every icon in this set must sit at the same optical
+size and the same position, so they line up perfectly when placed side by side.
 
-Composition: one centred symbol occupying roughly half the frame, generous
-empty space around it, perfectly flat. No perspective, no depth, no shadow, no
-gradient, no texture, no outline stroke, no highlight.
+The one shared signature across the whole set: the BOTTOM-RIGHT CORNER of the
+main shape is squared off as a small staircase of exactly three even steps,
+each step the same size, descending toward the lower right. It is small —
+roughly one eighth of the shape's width — and it reads as a deliberate corner
+treatment, the way a chamfer or a rounded corner would.
 
-Colour: exactly two. Solid deep maroon #800000 filling the entire frame, symbol
-in warm cream #F6F1E8. No third colour, no white, no black, no gradient.
+It must look designed, not damaged. The object stays complete and undamaged
+everywhere else: nothing is bitten out of the middle of an edge, nothing
+interrupts the object's silhouette anywhere except that one corner, and the
+object remains immediately readable as itself.
 
-FORBIDDEN, without exception: bulbous, onion-shaped, domed, teardrop-topped or
-tapering tower forms of any kind. Arches of any kind. Minarets, mosques,
-lanterns, eight-pointed stars, Arabic calligraphy, carpets, flags, monuments,
-buildings. Scales of justice. Generic hub-and-spoke network diagrams. Anything
-that reads as a stock icon-library glyph.
+The stepped corner appears exactly once, only at the bottom right, in every
+icon without exception.
 
-No photography, no realism, no 3D, no isometric, no sketch texture. No text, no
-letters, no numbers, no logo, no watermark, no border, no frame. The symbol must
-stay legible at 120 pixels, so large simple forms only and no fine detail.
+NONE OF THE FOLLOWING: scenes, backgrounds, environments, people, faces, hands,
+photography, realism, 3D, isometric, perspective, shadows, gradients, outlines,
+strokes, textures, patterns, ornament, floating extra elements, sparkles, dots,
+multiple objects, monuments, architecture, carpets, arches, domes, stars.
+
+No text, no letters, no numbers, no logo, no watermark, no frame, no border.
+
+The result should sit comfortably in an icon set made for Stripe, Linear or
+Notion. Modern first. The geometry is the only thing that is Iranian, and only
+to someone who studies it.
 """.strip()
 
 # ---------------------------------------------------------------------------
 # Only this line changes between categories.
 # ---------------------------------------------------------------------------
 CATEGORIES = [
-    ("skilled-trades", "خدمات فنی و تخصصی",
-     "a stylised geometric tool form — a simple angular wrench or square-and-"
-     "compass shape built from a few straight solid bars meeting at clean angles"),
-
-    ("real-estate-mortgage", "املاک و وام مسکن",
-     "a stylised geometric dwelling — a simple solid house silhouette whose "
-     "roofline follows a stepped Achaemenid rhythm rather than a plain triangle"),
-
-    ("legal-immigration", "حقوقی و مهاجرت",
-     "a document with a stepped seal: a tall upright rectangle standing for a "
-     "sheet of paper, its lower right corner carrying a small square stamp built "
-     "of stepped modules, and three short horizontal bars across its upper half "
-     "standing for lines of writing"),
-
-    ("accounting-tax", "حسابداری و مالیات",
-     "a stylised geometric ledger — a stack of even horizontal bars of "
-     "decreasing width, rising in a steady rhythm like a stepped profile"),
-
-    ("automotive", "خودرو",
-     "a stylised geometric wheel — a bold ring with a small number of evenly "
-     "spaced radial spokes, radially symmetrical like an ancient lotus rosette"),
-
-    ("education", "آموزش",
-     "a stylised geometric open book — two symmetrical solid pages meeting at a "
-     "central spine, with a single small form rising above them"),
-
-    ("medical-clinic", "پزشکی و سلامت",
-     "a stylised geometric care symbol — a rounded solid heart-adjacent form "
-     "with a clean cross-shaped negative space cut precisely through its centre"),
-
-    ("events", "رویدادها و خدمات مراسم",
-     "a stylised geometric celebration form — a radially symmetrical burst of "
-     "identical tapering petals, built on the twelve-fold rhythm of a lotus rosette"),
-
-    ("digital-it", "دیجیتال و فناوری",
-     "a screen: a wide rectangle with a thick stepped border and a solid centre, "
-     "standing on a short symmetrical stepped base, unmistakably a display or "
-     "monitor seen straight on"),
-
-    ("beauty-wellness", "زیبایی و سلامت فردی",
-     "a stylised geometric botanical — a single symmetrical form of tapering "
-     "leaves rising from one stem, following the vertical proportion of a cypress"),
-
-    ("restaurant-cafe", "رستوران و کافه",
-     "a plate seen from directly above: one bold circle with a narrower "
-     "concentric ring inside it, flanked left and right by two simple straight "
-     "vertical bars of equal length standing for utensils, all built from clean "
-     "orthogonal geometry with flat square ends and no tapering or rounded tips"),
-
-    ("iranian-grocery", "فروشگاه و مواد غذایی ایرانی",
-     "a stylised geometric vessel — a wide symmetrical jar or basket form with a "
-     "simple stepped rim and a repeating rhythm across its body"),
+    ("skilled-trades", "خدمات فنی و تخصصی", "a wrench"),
+    ("real-estate-mortgage", "املاک و وام مسکن", "a house"),
+    ("legal-immigration", "حقوقی و مهاجرت", "a single sheet of paper, a document"),
+    ("accounting-tax", "حسابداری و مالیات", "a calculator"),
+    ("automotive", "خودرو", "a car wheel"),
+    ("education", "آموزش", "an open book"),
+    ("medical-clinic", "پزشکی و سلامت", "a medical cross"),
+    ("events", "رویدادها و خدمات مراسم", "a calendar page"),
+    ("digital-it", "دیجیتال و فناوری", "a computer screen"),
+    ("beauty-wellness", "زیبایی و سلامت فردی", "a hand mirror"),
+    ("restaurant-cafe", "رستوران و کافه", "a plate seen from above"),
+    ("iranian-grocery", "فروشگاه و مواد غذایی ایرانی", "a shopping basket"),
 ]
 
 
 def build_prompt(metaphor: str) -> str:
-    return f"{SYSTEM}\n\nThe central symbol for this image: {metaphor}."
+    return f"{SYSTEM}\n\nThe object in this pictogram: {metaphor}."
 
 
 def generate(slug: str, metaphor: str, api_key: str) -> dict:

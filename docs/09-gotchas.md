@@ -307,3 +307,38 @@ site", enumerate routes from `sitemap.xml`, not from memory. This was found by
 the user on the home page after an audit that had covered the profile page,
 category cards, city cards and three listing indexes — everything except the
 first screen every visitor sees.
+
+---
+
+## A connected iPhone that Xcode calls an "ineligible destination"
+
+**Symptom:** `expo run:ios --device` finds the phone, auto-signs, then fails
+with `xcodebuild` error 70 and:
+
+```
+iOS 26.5 is not installed. Please download and install the platform
+```
+
+**Cause:** Xcode bundles device support only for old iOS versions — 16.4 was
+the newest present here — and downloads the current one on demand. On a machine
+where that has never happened, `~/Library/Developer/Xcode/iOS DeviceSupport/`
+is empty and any phone on a current iOS is an *ineligible destination*.
+
+**The misleading part:** `xcodebuild -showsdks` cheerfully lists the SDK. Having
+the SDK is not the same as having the platform's device support, and the first
+error in the sequence is about signing certificates, which sends you looking at
+provisioning rather than at Xcode's components.
+
+**Fix:**
+
+```bash
+xcodebuild -downloadPlatform iOS
+```
+
+Several gigabytes. Or Xcode → Settings → Components → iOS. Nothing in the
+project changes.
+
+**Note:** the preceding `No code signing certificates are available to use` is a
+separate, earlier problem — no Apple ID in Xcode → Settings → Accounts. Once
+fixed, the run prints `Auto signing app using team(s): …` before hitting the
+platform error above.

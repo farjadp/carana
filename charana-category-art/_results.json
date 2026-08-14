@@ -2,28 +2,28 @@
   {
     "slug": "legal-immigration",
     "path": "charana-category-art/legal-immigration.png",
-    "bytes": 818621,
-    "seconds": 101.0,
+    "bytes": 770235,
+    "seconds": 91.5,
     "title_fa": "حقوقی و مهاجرت",
     "status": "ok",
-    "metaphor": "a document with a stepped seal: a tall upright rectangle standing for a sheet of paper, its lower right corner carrying a small square stamp built of stepped modules, and three short horizontal bars across its upper half standing for lines of writing"
+    "metaphor": "a single sheet of paper, a document"
   },
   {
-    "slug": "digital-it",
-    "path": "charana-category-art/digital-it.png",
-    "bytes": 812958,
-    "seconds": 100.6,
-    "title_fa": "دیجیتال و فناوری",
+    "slug": "medical-clinic",
+    "path": "charana-category-art/medical-clinic.png",
+    "bytes": 762659,
+    "seconds": 95.6,
+    "title_fa": "پزشکی و سلامت",
     "status": "ok",
-    "metaphor": "a screen: a wide rectangle with a thick stepped border and a solid centre, standing on a short symmetrical stepped base, unmistakably a display or monitor seen straight on"
+    "metaphor": "a medical cross"
   },
   {
     "slug": "restaurant-cafe",
     "path": "charana-category-art/restaurant-cafe.png",
-    "bytes": 836490,
-    "seconds": 98.1,
+    "bytes": 834627,
+    "seconds": 93.7,
     "title_fa": "رستوران و کافه",
     "status": "ok",
-    "metaphor": "a plate seen from directly above: one bold circle with a narrower concentric ring inside it, flanked left and right by two simple straight vertical bars of equal length standing for utensils, all built from clean orthogonal geometry with flat square ends and no tapering or rounded tips"
+    "metaphor": "a plate seen from above"
   }
 ]

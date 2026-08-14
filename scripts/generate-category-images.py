@@ -25,112 +25,108 @@ import urllib.error
 import urllib.request
 
 MODEL = "gpt-image-2"
-SIZE = "1024x1024"
+SIZE = "1536x1024"
 QUALITY = "high"
 
-OUT = pathlib.Path("charana-category-images")
+OUT = pathlib.Path("charana-category-images/round-2")
 
 # ---------------------------------------------------------------------------
 # The shared visual system. Identical in every call.
 # ---------------------------------------------------------------------------
 SYSTEM = """
-Premium editorial lifestyle photograph for a modern Canadian technology brand
-with Iranian cultural roots. Shot as part of a single cohesive brand campaign.
+A real editorial photograph, part of one professionally art-directed campaign
+for a contemporary Iranian-Canadian product.
 
-Photographic system, identical across the whole set: soft natural daylight from
-a large window, slightly warm white balance, restrained contrast with gentle
-film-like grain, 35mm to 50mm lens feel, shallow but not exaggerated depth of
-field, calm visual hierarchy, generous negative space of roughly 20 percent
-around the main subject, subject centred or slightly off-centre so the frame
-crops cleanly to both square and landscape.
+It must look photographed on a real camera, not rendered and not generated.
+Allow the small natural imperfections that make a photograph believable: a
+slight asymmetry, a fingerprint, an uneven surface, a crumb, a worn edge.
 
-Colour: warm cream surfaces, deep navy, restrained maroon and lapis blue
-accents appearing naturally through wardrobe, materials, objects and shadows.
-Never a monochrome maroon poster. Materials read as natural stone, walnut wood,
-brass and ceramic.
+Subject: ONE clear real-world detail, object, material or space, placed
+slightly off-centre on a surface, with the room breathing around it — a wall, a
+window edge, a chair back softening away behind. Medium-close: near enough that
+the object is unmistakably the subject, far enough that it sits somewhere real
+rather than floating on a styling table. Never a wide establishing scene. This is not a photograph explaining a
+profession — no professional posed at their workplace, no staged scene of
+someone performing their job, no handshake, nobody looking at the camera, no
+exaggerated smiles. When a person appears at all it is a hand or a partial
+figure caught mid-action, at the edge of the frame.
 
-Iranian identity appears subtly through craftsmanship, textile geometry,
-material choices and the people themselves. Absolutely no Islamic arches,
-domes, minarets, mosques, lanterns, Arabic calligraphy, eight-pointed stars,
-oriental fantasy interiors, Persian carpets used as decoration, or national
-flags of any country.
+Light: soft natural daylight from one side, restrained contrast, no dramatic
+or cinematic lighting, no HDR, no heavy colour grading. Gentle depth of field —
+the background is softer than the subject but still readable, never dissolved
+into heavy bokeh.
 
-People, where present, are contemporary Iranian-Canadians of varied age and
-gender, dressed as real working professionals, caught in candid working
-moments, never looking into the camera, never posed handshakes, with realistic
-skin texture rather than retouched perfection.
+Atmosphere: warm cream is the dominant tone of the whole campaign. Deep maroon,
+lapis blue and deep navy appear only as restrained accents in real objects —
+a ceramic, a textile, a book cover, a painted wall. Never recolour or tint the
+photograph itself.
 
-Strictly no text, no lettering, no signage, no numbers, no logos, no watermark,
-no UI elements, no borders or frames. Realistic documentary photography, not
-stock photography, not illustration, not 3D render.
+Materials that recur across the campaign: warm walnut, cream stone, unglazed
+ceramic, brass, linen. Contemporary Canadian interiors and streets, never a
+flag, a maple leaf or a skyline landmark.
+
+Composition for a UI card: one dominant subject, low visual noise, generous
+negative space, subject held near the centre so it survives responsive
+cropping, nothing important near the edges.
+
+No text, no lettering, no signage, no readable labels, no brand names, no
+logos, no watermark, no borders.
 """.strip()
 
 # ---------------------------------------------------------------------------
 CATEGORIES = [
-    ("skilled-trades", "خدمات فنی و تخصصی",
-     "A skilled tradesperson working with real tools inside a bright, clean, "
-     "contemporary Canadian home mid-renovation. Hands and craft are the "
-     "subject. No hard hats, no construction-site clichés, no posed contractor."),
+    ("restaurant-cafe",
+     "a shallow ceramic bowl of contemporary Persian food set slightly off-centre on a "
+     "pale stone cafe table, a slim glass of black tea behind it, a folded deep maroon "
+     "napkin and cutlery to one side, a sprig of eucalyptus in clear glass, a soft window "
+     "and a chair back falling away behind"),
 
-    ("real-estate-mortgage", "املاک و وام مسکن",
-     "A refined contemporary Canadian living room where a real-estate "
-     "professional and a client review property documents together at a table. "
-     "Quiet, considered, trust-building. No key handovers, no oversized keys, "
-     "no handshakes, no mansion fantasy."),
+    ("medical-clinic",
+     "a stethoscope resting on a warm cream stone counter in a quiet contemporary clinic, "
+     "a small amber glass bottle beside it, a deep navy panel and a single olive branch in "
+     "a pale vase softening away behind, nobody present"),
 
-    ("legal-immigration", "حقوقی و مهاجرت",
-     "A calm modern law office with natural stone and walnut, where a lawyer "
-     "reviews documents across a desk with a client. Serious, intelligent, "
-     "reassuring. No scales of justice, no gavels, no passports, no flags."),
+    ("digital-it",
+     "the corner of an open laptop on a warm walnut desk, a deep navy ceramic cup of coffee "
+     "beside it, a dried branch in a pale vessel behind, screen dark and unreadable, morning "
+     "light across the wood"),
 
-    ("accounting-tax", "حسابداری و مالیات",
-     "An accountant at an uncluttered desk with a laptop and organised "
-     "paperwork, explaining something to a client seated beside them. No "
-     "floating charts, no cash, no coins, no generic fintech abstraction."),
+    ("skilled-trades",
+     "a few well-used hand tools laid in a row on a walnut workbench, a brass measuring tape "
+     "and a folded canvas cloth, pale plaster wall behind, one hand just leaving the frame"),
 
-    ("automotive", "خودرو",
-     "A spotless modern independent automotive workshop where a mechanic "
-     "inspects an engine bay with focused precision. Ordinary well-kept family "
-     "car. No supercars, no racing, no grease-covered stereotype garage."),
+    ("real-estate-mortgage",
+     "a quiet corner of a contemporary Canadian home: a pale stone sill, a brass door handle "
+     "catching light, a linen curtain moving slightly, a single key on the sill"),
 
-    ("education", "آموزش",
-     "A tutor and a teenage student working through material together at a "
-     "table in a bright contemporary Canadian learning space. Curiosity and "
-     "progress. No graduation caps, no chalkboards, no lecture halls."),
+    ("legal-immigration",
+     "a walnut desk with a closed leather folder, a fountain pen resting on it and a pair of "
+     "reading glasses to one side, deep navy book spines out of focus behind"),
 
-    ("medical-clinic", "پزشکی و سلامت",
-     "A bright contemporary Canadian clinic consultation room where a "
-     "healthcare professional listens attentively to a patient. Care and "
-     "cleanliness. No surgery, no dramatic hospital imagery, no oversized "
-     "medical symbols."),
+    ("accounting-tax",
+     "an uncluttered walnut desk with a small calculator, a neat stack of papers weighted by "
+     "a brass ruler, a cup of tea at the edge, pale wall behind"),
 
-    ("events", "رویدادها و خدمات مراسم",
-     "An elegant contemporary Iranian-Canadian celebration table being styled "
-     "before guests arrive: ceramics, seasonal flowers, textiles with subtle "
-     "Persian geometry, warm candlelight. No wedding clichés, no traditional "
-     "costume, no luxury excess."),
+    ("automotive",
+     "a detail of a clean car in a bright modern workshop: the curve of a wheel arch and a "
+     "polished alloy wheel, a folded cloth on the floor, pale concrete and daylight"),
 
-    ("digital-it", "دیجیتال و فناوری",
-     "Two technology professionals working together in a calm, plant-filled "
-     "Canadian studio workspace, screens present but content indistinct. No "
-     "hooded hackers, no neon, no holograms, no cyberpunk."),
+    ("education",
+     "an open notebook and two closed books on a walnut table, a pencil across the page, a "
+     "glass of tea at the edge, a window and pale curtain behind"),
 
-    ("beauty-wellness", "زیبایی و سلامت فردی",
-     "A calm premium contemporary salon or wellness studio in soft daylight, a "
-     "professional at work with a client. Natural textures and restrained "
-     "warmth. No over-retouched faces, no spa clichés, nothing sexualised."),
+    ("events",
+     "a table being laid for a gathering: pale ceramic plates, deep maroon linen napkins, a "
+     "brass candlestick unlit, small seasonal flowers, cream wall behind"),
 
-    ("restaurant-cafe", "رستوران و کافه",
-     "Contemporary Iranian food plated beautifully on ceramic at a shared table "
-     "in a modern Canadian restaurant, warm daylight, hands reaching in to "
-     "serve. Appetising and authentic. No oriental decoration, no carpets, no "
-     "hookah."),
+    ("beauty-wellness",
+     "a calm counter in a contemporary studio: a folded linen towel, a small brass hand "
+     "mirror face down, an unglazed ceramic dish, one amber bottle, soft daylight"),
 
-    ("iranian-grocery", "فروشگاه و مواد غذایی ایرانی",
-     "A modern Iranian grocery in Canada: beautifully organised shelves, fresh "
-     "herbs, pomegranates, saffron, tea, rice and nuts in clean contemporary "
-     "packaging with no readable labels. Warm, familiar, local. No bazaar, no "
-     "market stereotype, no clutter."),
+    ("iranian-grocery",
+     "a wooden crate of fresh herbs beside a shallow bowl of pistachios and a small dish of "
+     "saffron threads on a pale stone counter, a pomegranate at the edge of frame, warm shop "
+     "light behind"),
 ]
 
 
@@ -191,18 +187,17 @@ def main() -> None:
         sys.exit(f"no category matched {wanted}")
 
     results = []
-    for slug, title_fa, scene in targets:
+    for slug, scene in targets:
         try:
             info = generate(slug, scene, api_key)
-            info["title_fa"] = title_fa
             info["status"] = "ok"
             print(f"ok    {slug:24} {info['bytes'] // 1024:>5} KB  {info['seconds']}s")
         except urllib.error.HTTPError as e:
             detail = e.read().decode()[:300]
-            info = {"slug": slug, "title_fa": title_fa, "status": "failed", "error": detail}
+            info = {"slug": slug, "status": "failed", "error": detail}
             print(f"FAIL  {slug:24} {detail}")
         except Exception as e:  # noqa: BLE001
-            info = {"slug": slug, "title_fa": title_fa, "status": "failed", "error": str(e)}
+            info = {"slug": slug, "status": "failed", "error": str(e)}
             print(f"FAIL  {slug:24} {e}")
         results.append(info)
 
