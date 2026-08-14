@@ -77,6 +77,22 @@ domains now; `vercel.json` carries only headers.
 
 ---
 
+## `vercel deploy` accepts a `vercel.json` that the Git integration rejects
+
+**Symptom:** `vercel --prod` from the laptop succeeds, every push to `main`
+fails seconds later with no build log. The site stays up on the last CLI
+deploy, so nothing looks broken until you read the deployment list.
+
+**Cause:** a `"//"` key was used to hold an explanatory comment in
+`apps/web/vercel.json`. JSON has no comments, and the Git integration validates
+the file strictly: *should NOT have additional property `//`*. The CLI does not
+run that check, which is why the two paths disagreed.
+
+**Fix:** keep `vercel.json` to schema-valid keys only. Explanations belong in
+this file, not in the config.
+
+---
+
 ## Postgres does not apply RLS per column
 
 **Symptom:** none. That is the problem.

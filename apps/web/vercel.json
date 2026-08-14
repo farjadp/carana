@@ -1,13 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
 
-  "//": [
-    "Host redirects are configured at the domain level in the Vercel project,",
-    "not here: charana.ca is canonical and www.charana.ca, carana.ca and",
-    "www.carana.ca all 308 to it. Duplicating those rules in this file sent",
-    "traffic back the other way and produced a redirect loop."
-  ],
-
   "headers": [
     {
       "source": "/.well-known/apple-app-site-association",
