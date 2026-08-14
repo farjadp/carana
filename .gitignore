@@ -20,3 +20,12 @@ CLAUDE.md
 # NOTE: pnpm-lock.yaml is intentionally NOT ignored.
 # The lockfile must be committed so every developer and CI build
 # installs identical dependency versions.
+
+# Expo / React Native
+apps/mobile/.expo
+apps/mobile/dist
+apps/mobile/ios
+apps/mobile/android
+
+# Turborepo
+.turbo
