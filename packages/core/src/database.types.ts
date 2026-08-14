@@ -412,6 +412,33 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_runs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          id: string
+          job: string
+          status: string
+          summary: Json
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          job: string
+          status: string
+          summary?: Json
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          job?: string
+          status?: string
+          summary?: Json
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -531,6 +558,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_errors: {
+        Row: {
+          created_at: string
+          detail: Json
+          environment: string | null
+          id: string
+          kind: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json
+          environment?: string | null
+          id?: string
+          kind: string
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          environment?: string | null
+          id?: string
+          kind?: string
+        }
+        Relationships: []
       }
       user_activity_logs: {
         Row: {

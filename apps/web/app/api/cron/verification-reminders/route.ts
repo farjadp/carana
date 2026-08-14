@@ -22,7 +22,7 @@ import {
   reminderIsDue,
   reminderStageFor,
 } from "@/lib/verification/status";
-import { reportQuietFailure, withCronMonitor } from "@/lib/observability/report";
+import { reportQuietFailure, withCronRun } from "@/lib/observability/report";
 
 // Reminders are per-listing state, never cached.
 export const dynamic = "force-dynamic";
@@ -49,11 +49,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  // Wrapped so both halves of "did it work" are observable. A failed run is
-  // visible on its own; a run that silently stops happening is not, because
-  // nothing writes a log when nothing executes. A missed check-in alerts with
-  // no code of ours running to raise it.
-  return withCronMonitor("verification-reminders", () => run());
+  // Every run is recorded, success included. A failed run writes a row saying
+  // so; a run that silently stops happening writes nothing at all, so the
+  // signal is the absence of recent rows — which only works if the happy path
+  // is recorded too.
+  return withCronRun("verification-reminders", async () => {
+    const summary = await run();
+    return { result: NextResponse.json(summary), summary };
+  });
 }
 
 async function run() {
@@ -78,8 +81,7 @@ async function run() {
     .limit(MAX_PER_RUN);
 
   if (error) {
-    reportQuietFailure("cron_run_failed", { step: "scan", reason: error.message });
-    return NextResponse.json({ error: "scan failed" }, { status: 500 });
+    throw new Error(`reminder scan failed: ${error.message}`);
   }
 
   const summary = { scanned: businesses?.length ?? 0, sent: 0, skipped: 0, failed: 0 };
@@ -148,5 +150,5 @@ async function run() {
   }
 
   console.log("Verification reminders:", summary);
-  return NextResponse.json(summary);
+  return summary;
 }

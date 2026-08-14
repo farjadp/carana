@@ -1,32 +1,23 @@
 // ============================================================================
 // Source: instrumentation.ts
-// Version: 1.0.0 — 2026-08-25
-// Why: Server-side error reporting. `register` runs once per server instance;
-//      `onRequestError` is how Next hands over errors it caught itself, which
-//      a try/catch in application code never sees.
-// Env / Identity: Inert unless SENTRY_DSN is set. No DSN means no network
-//      calls, so local runs and previews stay quiet by default.
+// Version: 2.0.0 — 2026-08-26
+// Why: Catch the server errors Next handles itself, which application-level
+//      try/catch never sees, and record them in our own table.
+// Env / Identity: Server. Writes through the admin client.
 // ============================================================================
 
-import * as Sentry from "@sentry/nextjs";
+import type { Instrumentation } from "next";
 
-export async function register() {
-  const dsn = process.env.SENTRY_DSN;
-  if (!dsn) return;
+export const onRequestError: Instrumentation.onRequestError = async (
+  err,
+  request
+) => {
+  // Imported lazily: instrumentation is evaluated in every runtime Next
+  // starts, including edge, and the Supabase admin client is server-only.
+  const { reportQuietFailure } = await import("@/lib/observability/report");
 
-  Sentry.init({
-    dsn,
-    environment: process.env.VERCEL_ENV ?? "development",
-
-    // Traces cost money and answer a question nobody is asking yet. The point
-    // of this integration is knowing that something broke, not how fast it was.
-    tracesSampleRate: 0,
-
-    // This is a Persian-language directory: business names, phone numbers and
-    // private notes all pass through these requests. Never attach request
-    // bodies or user identifiers to an error report.
-    sendDefaultPii: false,
+  reportQuietFailure("request_error", {
+    path: request.path,
+    message: err instanceof Error ? err.message : String(err),
   });
-}
-
-export const onRequestError = Sentry.captureRequestError;
+};

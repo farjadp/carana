@@ -1,19 +1,19 @@
 // ============================================================================
 // Source: lib/observability/report.ts
-// Version: 1.0.0 — 2026-08-25
+// Version: 2.0.0 — 2026-08-26
 // Why: The failures in this project do not throw. sendEmail and sendSms return
-//      { sent: false } and write to console.error, which on Vercel is
-//      unretained and unwatched. Three separate outages in one week were all
-//      found by going and looking, never by being told.
+//      { sent: false } and carry on, which is correct behaviour and also the
+//      reason three outages in one week were found by auditing rather than by
+//      being told. An exception handler would have caught none of them.
+// Env / Identity: Server only. Writes through the admin client because
+//      system_errors and cron_runs have no client-facing RLS policy.
 //
-//      An exception handler alone would have caught none of them, because
-//      nothing was ever thrown. These helpers are how a deliberate, quiet
-//      failure becomes a signal.
-// Env / Identity: Safe on server and client. Inert unless SENTRY_DSN is set,
-//      so local development and preview stay silent.
+// This replaced a Sentry integration. The vendor was the expensive part; the
+// useful part was naming the failure class, and that is kept.
 // ============================================================================
+import "server-only";
 
-import * as Sentry from "@sentry/nextjs";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 /** Anything that failed but did not throw. */
 export type QuietFailure =
@@ -24,51 +24,97 @@ export type QuietFailure =
   | "sms_carrier_rejected"
   | "verification_write_failed"
   | "reminder_send_failed"
-  | "cron_run_failed";
+  | "cron_run_failed"
+  | "request_error";
 
 /**
- * Report a failure that the product deliberately swallowed.
+ * Record a failure the product deliberately swallowed.
  *
- * Fail-soft is the right behaviour — a missing API key should not crash a
- * signup. But "the user's action silently did nothing" is precisely the class
- * of bug nobody reports, because from the outside it looks like success.
+ * Never awaited by callers and never allowed to throw: a reporting failure
+ * must not become a second, louder outage on top of the first one. If the
+ * insert fails, the console line is still there.
  */
 export function reportQuietFailure(
   kind: QuietFailure,
   detail: Record<string, unknown> = {}
-) {
-  // Still log. When the DSN is absent this is the only record, and when it is
-  // present the two agree, which makes the Vercel log usable during an incident.
+): void {
+  // Kept regardless of whether the insert lands. During an incident the
+  // Vercel log is the fastest thing to read.
   console.error(`[quiet-failure] ${kind}`, detail);
 
-  Sentry.captureMessage(`Quiet failure: ${kind}`, {
-    level: "error",
-    tags: { quiet_failure: kind },
-    extra: detail,
-  });
+  void (async () => {
+    try {
+      const admin = createSupabaseAdminClient();
+      await admin.from("system_errors").insert({
+        kind,
+        detail,
+        environment: process.env.VERCEL_ENV ?? "development",
+      });
+    } catch (err) {
+      console.error("[quiet-failure] could not record:", err);
+    }
+  })();
 }
 
 /**
- * Wrap a scheduled job so that both halves of "did it work" are observable.
+ * Wrap a scheduled job so both halves of "did it work" are observable.
  *
- * A cron that fails is visible. A cron that silently stops running is not:
- * nothing appears in a log when nothing executes. Sentry's check-in API exists
- * for exactly that asymmetry — a missed check-in raises an alert on its own,
- * with no code running to raise it.
+ * A job that fails writes a row saying so. A job that silently stops running
+ * writes nothing at all — so the signal is the *absence* of recent rows, which
+ * only works if successful runs are recorded too. That is why this writes on
+ * the happy path as well.
  */
-export async function withCronMonitor<T>(
-  slug: string,
-  run: () => Promise<T>
+export async function withCronRun<T>(
+  job: string,
+  run: () => Promise<{ result: T; summary?: Record<string, unknown> }>
 ): Promise<T> {
-  const checkInId = Sentry.captureCheckIn({ monitorSlug: slug, status: "in_progress" });
+  const startedAt = Date.now();
+  const admin = createSupabaseAdminClient();
 
   try {
-    const result = await run();
-    Sentry.captureCheckIn({ checkInId, monitorSlug: slug, status: "ok" });
+    const { result, summary } = await run();
+
+    await admin.from("cron_runs").insert({
+      job,
+      status: "ok",
+      summary: summary ?? {},
+      duration_ms: Date.now() - startedAt,
+    });
+
     return result;
   } catch (error) {
-    Sentry.captureCheckIn({ checkInId, monitorSlug: slug, status: "error" });
-    Sentry.captureException(error, { tags: { cron: slug } });
+    await admin.from("cron_runs").insert({
+      job,
+      status: "error",
+      summary: { error: String(error) },
+      duration_ms: Date.now() - startedAt,
+    });
+
+    reportQuietFailure("cron_run_failed", { job, error: String(error) });
     throw error;
   }
+}
+
+/**
+ * Hours since the last successful run of a job, or null if it has never run.
+ *
+ * This is the heartbeat check. A number climbing past the job's interval means
+ * the schedule stopped firing — the failure mode that produces no log line and
+ * no error, because nothing executed.
+ */
+export async function hoursSinceLastRun(job: string): Promise<number | null> {
+  const admin = createSupabaseAdminClient();
+
+  const { data } = await admin
+    .from("cron_runs")
+    .select("created_at")
+    .eq("job", job)
+    .eq("status", "ok")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data?.created_at) return null;
+
+  return (Date.now() - new Date(data.created_at).getTime()) / 3_600_000;
 }
