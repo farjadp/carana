@@ -23,6 +23,53 @@ const publicSupabaseKey =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
   process.env.SUPABASE_PUBLISHABLE_KEY;
 
+/**
+ * NEXT_PUBLIC_* values are baked into the browser bundle at build time. If they
+ * are absent now they are absent forever, so a missing one has to stop the
+ * build rather than ship an app that cannot reach Supabase.
+ *
+ * The generic "Missing required environment variable" thrown from a prerender
+ * worker says nothing about which side of the build is misconfigured, so state
+ * plainly what the build can and cannot see.
+ */
+function reportSupabaseEnv() {
+  const seen = (name: string) => (process.env[name] ? "set" : "MISSING");
+
+  const lines = [
+    "",
+    "  Supabase build environment",
+    `    NEXT_PUBLIC_SUPABASE_URL              ${seen("NEXT_PUBLIC_SUPABASE_URL")}`,
+    `    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY  ${seen("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY")}`,
+    `    SUPABASE_URL                          ${seen("SUPABASE_URL")}`,
+    `    SUPABASE_PUBLISHABLE_KEY              ${seen("SUPABASE_PUBLISHABLE_KEY")}`,
+    `    resolved public url                   ${publicSupabaseUrl ? "ok" : "UNRESOLVED"}`,
+    `    resolved public key                   ${publicSupabaseKey ? "ok" : "UNRESOLVED"}`,
+    "",
+  ];
+
+  console.log(lines.join("\n"));
+
+  if (!publicSupabaseUrl || !publicSupabaseKey) {
+    throw new Error(
+      [
+        "Cannot build: the Supabase URL and publishable key must be available at build time,",
+        "because Next inlines NEXT_PUBLIC_* values into the browser bundle and they cannot be",
+        "supplied later at runtime.",
+        "",
+        "Set BOTH of these in the hosting project, for every environment that builds",
+        "(Production, Preview and Development):",
+        "  NEXT_PUBLIC_SUPABASE_URL",
+        "  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+        "",
+        "Setting only SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY is enough for server code,",
+        "but this build did not receive those either — see the table above.",
+      ].join("\n")
+    );
+  }
+}
+
+reportSupabaseEnv();
+
 const nextConfig: NextConfig = {
   // @charana/core ships raw TypeScript rather than a build step, so Next has
   // to compile it like first-party source.
