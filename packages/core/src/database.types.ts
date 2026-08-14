@@ -238,6 +238,7 @@ export type Database = {
           verified_email: string | null
           verified_phone: string | null
           verified_until: string | null
+          view_count: number
           website: string | null
           whatsapp: string | null
           working_hours: Json | null
@@ -295,6 +296,7 @@ export type Database = {
           verified_email?: string | null
           verified_phone?: string | null
           verified_until?: string | null
+          view_count?: number
           website?: string | null
           whatsapp?: string | null
           working_hours?: Json | null
@@ -352,6 +354,7 @@ export type Database = {
           verified_email?: string | null
           verified_phone?: string | null
           verified_until?: string | null
+          view_count?: number
           website?: string | null
           whatsapp?: string | null
           working_hours?: Json | null
@@ -762,6 +765,10 @@ export type Database = {
       has_business_access: {
         Args: { target_business_id: string; target_user_id: string }
         Returns: boolean
+      }
+      increment_business_view: {
+        Args: { target_id: string }
+        Returns: undefined
       }
       is_admin: { Args: { user_id: string }; Returns: boolean }
       review_current_status: {

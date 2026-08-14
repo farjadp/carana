@@ -14,6 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import InteractionBar from "@/components/business/interaction-bar";
 import { PrivateNoteCard } from "@/components/business/private-note-card";
 import { VerificationBadge, VerificationDetail } from "@/components/verification-badge";
+import { ViewCounter } from "@/components/business/view-counter";
 import { getVerificationStatus } from "@/lib/verification/status";
 import { toast } from "sonner";
 
@@ -72,6 +73,8 @@ export default function BusinessProfileClient({
 
   return (
     <div className="min-h-screen bg-gray-50/50 pb-20" dir="rtl">
+      {/* Renders nothing; counts one view so "most visited" has a number. */}
+      <ViewCounter businessId={business.id} />
       {/* 1. Header Cover & Hero Section */}
       <div className="relative bg-gray-900 text-white">
         {/* Cover Photo */}

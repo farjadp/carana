@@ -18,16 +18,21 @@ import { Menu, X } from "lucide-react";
 
 export type NavItem = { href: string; label: string };
 
+// Primary navigation is for finding a business, and nothing else. "About us"
+// used to sit here; nobody arrives at a directory wanting to read about the
+// directory, so it moved to the secondary menu with the rest of the company
+// pages. Long labels were shortened — the bar has to survive a narrow laptop.
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "خانه" },
   { href: "/categories", label: "دسته‌بندی‌ها" },
-  { href: "/provinces", label: "استان‌ها و شهرها" },
+  { href: "/cities", label: "شهرها" },
   { href: "/businesses", label: "همه کسب‌وکارها" },
-  { href: "/about", label: "درباره ما" },
 ];
 
 const SECONDARY: NavItem[] = [
+  { href: "/provinces", label: "استان‌ها" },
   { href: "/how-it-works", label: "چطور کار می‌کند" },
+  { href: "/about", label: "درباره ما" },
   { href: "/trust", label: "اعتماد و بررسی" },
   { href: "/support", label: "پشتیبانی" },
   { href: "/contact", label: "تماس با ما" },

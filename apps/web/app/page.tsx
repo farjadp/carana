@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Search, MapPin, ArrowLeft, Star, ShieldCheck, Bookmark, Navigation, MessageSquare, Plus, CheckCircle2 } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
@@ -7,8 +8,28 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { VerificationBadge } from "@/components/verification-badge";
-import { getVerificationStatus } from "@/lib/verification/status";
+import { BusinessCard } from "@/components/business/business-card";
+
+// The eight cities with generated background art. Kept here rather than read
+// from lib/data/cities.ts because only these have images — a card whose
+// background 404s is worse than no card.
+const CITY_CARDS = [
+  { slug: "toronto", nameFa: "تورنتو", nameEn: "Toronto" },
+  { slug: "vancouver", nameFa: "ونکوور", nameEn: "Vancouver" },
+  { slug: "montreal", nameFa: "مونترال", nameEn: "Montreal" },
+  { slug: "calgary", nameFa: "کلگری", nameEn: "Calgary" },
+  { slug: "ottawa", nameFa: "اتاوا", nameEn: "Ottawa" },
+  { slug: "edmonton", nameFa: "ادمونتون", nameEn: "Edmonton" },
+  { slug: "winnipeg", nameFa: "وینیپگ", nameEn: "Winnipeg" },
+  { slug: "halifax", nameFa: "هلیفکس", nameEn: "Halifax" },
+] as const;
+
+// The app is built and runs, but is not on either store yet — that path is
+// blocked on the Apple organization account. Flip this and fill the two URLs
+// on the day it ships; nothing else needs to change.
+const APP_LIVE = false;
+const APP_STORE_URL = "";
+const PLAY_STORE_URL = "";
 
 export const metadata: Metadata = {
   title: "čārana | دایرکتوری کسب‌وکارهای ایرانیان کانادا",
@@ -138,37 +159,9 @@ export default async function HomePage() {
                 </Button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {latestBusinesses.map((biz) => (
-                  <Card key={biz.id} className="overflow-hidden hover:shadow-lg transition-shadow border-gray-100 rounded-2xl flex flex-col justify-between">
-                    <CardContent className="p-0 flex flex-col h-full justify-between">
-                      <div className="p-6">
-                        <div className="flex justify-between items-start mb-3">
-                          {/* Was rendered unconditionally, on every card. */}
-                          <VerificationBadge
-                            status={getVerificationStatus(biz)}
-                            audience="public"
-                          />
-                          <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                            {biz.category}
-                          </span>
-                        </div>
-                        <h3 className="text-lg font-bold mb-2 text-gray-900">{biz.name}</h3>
-                        <div className="flex items-center text-gray-500 text-xs mb-3">
-                          <MapPin className="ml-1.5 h-3.5 w-3.5 text-red-500" />
-                          <span>{biz.city || "شهر مشخص نشده"}، {biz.province || "کانادا"}</span>
-                        </div>
-                        <p className="text-xs text-gray-600 mb-4 line-clamp-2 leading-relaxed">
-                          {biz.short_description || biz.description || "اطلاعات تکمیلی در صفحه اختصاصی موجود است."}
-                        </p>
-                      </div>
-                      <div className="p-6 pt-0">
-                        <Button asChild variant="muted" className="w-full rounded-xl text-xs bg-gray-900 text-white hover:bg-[color:var(--lajvard)]">
-                          <Link href={`/businesses/${biz.slug || biz.id}`}>مشاهده پروفایل</Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <BusinessCard key={biz.id} business={biz} />
                 ))}
               </div>
             </div>
@@ -182,63 +175,72 @@ export default async function HomePage() {
               <div className="flex justify-between items-end mb-8">
                 <div>
                   <h2 className="text-2xl md:text-3xl font-bold mb-2">پربازدیدترین کسب‌وکارها</h2>
-                  <p className="text-sm text-gray-500">کسب‌وکارهایی که بیشترین آمار بازدید و توجه مخاطبان را در چارانا داشته‌اند</p>
+                  <p className="text-sm text-gray-500">بیشترین بازدید در چارانا</p>
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {popularBusinesses.map((biz) => (
-                  <Card key={biz.id} className="overflow-hidden hover:shadow-lg transition-shadow border-gray-100 bg-white rounded-2xl flex flex-col justify-between">
-                    <CardContent className="p-0 flex flex-col h-full justify-between">
-                      <div className="p-6">
-                        <div className="flex justify-between items-start mb-3">
-                          <span className="text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full">
-                            پربازدید
-                          </span>
-                          <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                            {biz.category}
-                          </span>
-                        </div>
-                        <h3 className="text-lg font-bold mb-2 text-gray-900">{biz.name}</h3>
-                        <div className="flex items-center text-gray-500 text-xs mb-3">
-                          <MapPin className="ml-1.5 h-3.5 w-3.5 text-red-500" />
-                          <span>{biz.city || "شهر مشخص نشده"}، {biz.province || "کانادا"}</span>
-                        </div>
-                        <p className="text-xs text-gray-600 mb-4 line-clamp-2 leading-relaxed">
-                          {biz.short_description || biz.description || "اطلاعات تکمیلی در صفحه اختصاصی موجود است."}
-                        </p>
-                      </div>
-                      <div className="p-6 pt-0">
-                        <Button asChild variant="muted" className="w-full rounded-xl text-xs bg-gray-900 text-white hover:bg-[color:var(--lajvard)]">
-                          <Link href={`/businesses/${biz.slug || biz.id}`}>مشاهده پروفایل</Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <BusinessCard key={biz.id} business={biz} showViews />
                 ))}
               </div>
             </div>
           </section>
         )}
 
-        {/* 6. Active Cities */}
-        <section className="py-16 px-4 bg-white border-t border-gray-100">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">جستجو بر اساس شهر</h2>
-            <div className="flex flex-wrap justify-center gap-3 md:gap-4">
-              {['Toronto', 'Vancouver', 'Montreal', 'Calgary', 'Ottawa', 'Edmonton', 'Winnipeg', 'Halifax'].map((city) => (
-                <Button key={city} asChild variant="muted" className="bg-white hover:border-[color:var(--lajvard)] hover:text-[color:var(--lajvard)] h-12 px-6 rounded-full font-medium">
-                  <Link href={`/cities/${city.toLowerCase()}`}>
-                    <MapPin className="ml-2 h-4 w-4" />
-                    {city}
-                  </Link>
-                </Button>
+        {/* 6. Explore by city */}
+        <section className="border-t border-gray-100 bg-white px-4 py-16">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-8 text-center">
+              <h2 className="mb-2 text-2xl font-bold md:text-3xl">کاوش بر اساس شهر</h2>
+              <p className="text-sm text-gray-500">
+                کسب‌وکارهای ایرانی را در شهر خودت پیدا کن
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              {CITY_CARDS.map((city) => (
+                <Link
+                  key={city.slug}
+                  href={`/cities/${city.slug}`}
+                  className="group relative aspect-[4/3] overflow-hidden rounded-2xl"
+                >
+                  <Image
+                    src={`/images/cities/${city.slug}.png`}
+                    alt=""
+                    fill
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    className="object-cover transition duration-500 group-hover:scale-105"
+                  />
+
+                  {/* Two layers, not one. The flat wash keeps mid-tones off the
+                      text; the bottom-weighted gradient anchors the name. A
+                      single overlay either greys out the photograph or leaves
+                      the name unreadable over a bright window. */}
+                  <div className="absolute inset-0 bg-[#14213d]/45" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#14213d] via-[#14213d]/40 to-transparent" />
+
+                  <div className="absolute inset-x-0 bottom-0 p-4">
+                    <p className="text-lg font-black text-[#f6f1e8] drop-shadow-sm">
+                      {city.nameFa}
+                    </p>
+                    <p className="text-xs text-[#f6f1e8]/70" dir="ltr">
+                      {city.nameEn}
+                    </p>
+                  </div>
+                </Link>
               ))}
+            </div>
+
+            <div className="mt-6 text-center">
+              <Button asChild variant="ghost" className="text-[color:var(--lajvard)]">
+                <Link href="/cities">
+                  همه‌ی شهرها <ArrowLeft className="mr-1 h-4 w-4" />
+                </Link>
+              </Button>
             </div>
           </div>
         </section>
-
-
 
         {/* 6. Business Owner Path */}
         <section className="py-20 px-4 bg-[color:var(--lajvard)] text-white relative overflow-hidden">
@@ -331,48 +333,71 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 9. Coming Soon / Roadmap */}
-        <section className="py-16 px-4 bg-gray-50">
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-2xl font-bold mb-8 flex items-center justify-center gap-2">
-              <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-md font-bold uppercase tracking-wider">نقشه راه</span>
-              به‌زودی در پروفایل کاربری
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="flex items-start gap-3 p-4 bg-white rounded-xl border border-gray-100">
-                <Bookmark className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-1">ذخیره کسب‌وکارها</h4>
-                  <p className="text-xs text-gray-500 leading-relaxed">لیست شخصی برای مراجعه بعدی</p>
-                </div>
+        {/* 9. The app */}
+        <section className="relative overflow-hidden bg-[#14213d] px-4 py-20 text-[#f6f1e8]">
+          {/* Stepped bands: the Achaemenid parapet rhythm from the brand book,
+              used as texture rather than as an illustrated monument. */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.07]"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(90deg, #f6f1e8 0 14px, transparent 14px 28px), repeating-linear-gradient(0deg, #f6f1e8 0 14px, transparent 14px 56px)",
+            }}
+          />
+
+          <div className="relative mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-[1fr_auto]">
+            <div>
+              <span className="mb-4 inline-block rounded-full bg-[#c9a24b]/20 px-3 py-1 text-xs font-bold text-[#c9a24b]">
+                به‌زودی
+              </span>
+
+              <h2 className="mb-4 text-3xl font-black leading-tight md:text-4xl">
+                چارانا همیشه همراهت
+              </h2>
+
+              <p className="mb-8 max-w-xl leading-relaxed text-[#f6f1e8]/75">
+                کسب‌وکارهای اطرافت را پیدا کن، ذخیره کن و یادداشت‌های خصوصی‌ات را
+                نگه دار. اپلیکیشن ساخته شده و در حال آماده‌سازی برای انتشار در
+                اپ‌استور و گوگل‌پلی است.
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                {/* Deliberately not links. The app is built but not published,
+                    and a store button that goes nowhere is the same broken
+                    promise as a search box that does not search. When the
+                    listings are live, APP_LIVE flips and these become real. */}
+                {APP_LIVE ? (
+                  <>
+                    <Link href={APP_STORE_URL} className="rounded-xl bg-[#f6f1e8] px-6 py-3 font-bold text-[#14213d]">
+                      App Store
+                    </Link>
+                    <Link href={PLAY_STORE_URL} className="rounded-xl bg-[#f6f1e8] px-6 py-3 font-bold text-[#14213d]">
+                      Google Play
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <span className="cursor-default rounded-xl border border-[#f6f1e8]/25 px-6 py-3 font-bold text-[#f6f1e8]/50">
+                      App Store — به‌زودی
+                    </span>
+                    <span className="cursor-default rounded-xl border border-[#f6f1e8]/25 px-6 py-3 font-bold text-[#f6f1e8]/50">
+                      Google Play — به‌زودی
+                    </span>
+                  </>
+                )}
               </div>
-              <div className="flex items-start gap-3 p-4 bg-white rounded-xl border border-gray-100">
-                <Navigation className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-1">لیست «می‌خواهم بروم»</h4>
-                  <p className="text-xs text-gray-500 leading-relaxed">نشان‌گذاری مکان‌های جدید برای بازدید</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-4 bg-white rounded-xl border border-gray-100">
-                <MessageSquare className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-1">یادداشت خصوصی</h4>
-                  <p className="text-xs text-gray-500 leading-relaxed">ثبت نظر متنی، صوتی و تصویری</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-4 bg-white rounded-xl border border-gray-100">
-                <Star className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-1">امتیازدهی و نظردهی</h4>
-                  <p className="text-xs text-gray-500 leading-relaxed">نظرهای تاییدشده عمومی برای راهنمایی بقیه</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-4 bg-white rounded-xl border border-gray-100 sm:col-span-2 md:col-span-1">
-                <ShieldCheck className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-1">Claim کسب‌وکار</h4>
-                  <p className="text-xs text-gray-500 leading-relaxed">مدیریت مستقیم پروفایل توسط صاحبان مشاغل</p>
-                </div>
+
+              <p className="mt-6 text-sm text-[#f6f1e8]/60">
+                تا آن موقع، همه‌ی امکانات در همین سایت روی موبایل کار می‌کند.
+              </p>
+            </div>
+
+            {/* A device outline built from brand geometry rather than a
+                photograph of a phone with a fake screenshot inside it. */}
+            <div className="mx-auto hidden h-[380px] w-[190px] shrink-0 rounded-[2rem] border-4 border-[#f6f1e8]/20 bg-[#800000]/20 p-3 md:block">
+              <div className="flex h-full w-full flex-col items-center justify-center rounded-[1.4rem] bg-[#f6f1e8]/5">
+                <span className="text-4xl font-black text-[#f6f1e8]/30">č</span>
+                <span className="mt-2 text-xs text-[#f6f1e8]/25">čārana</span>
               </div>
             </div>
           </div>
