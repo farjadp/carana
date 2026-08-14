@@ -9,24 +9,15 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { logUserActivity } from "@/lib/actions/logs";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
-async function assertAdmin() {
+/**
+ * Moderation actions are open to moderators as well as admins, matching the
+ * admin layout and users/actions.ts. Deletion stays admin-only below.
+ */
+async function assertAdmin(allowed: ("admin" | "moderator")[] = ["admin", "moderator"]) {
   const supabase = await createSupabaseActionClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) throw new Error("احراز هویت انجام نشده است.");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile || profile.role !== "admin") {
-    throw new Error("شما مجوز دسترسی به این عملیات را ندارید.");
-  }
-
-  return user;
+  return requireAdmin(supabase, allowed);
 }
 
 export async function updateBusinessStatus(businessId: string, newStatus: string) {
@@ -87,7 +78,7 @@ export async function updateBusinessStatus(businessId: string, newStatus: string
 
 export async function deleteBusiness(businessId: string) {
   try {
-    const adminUser = await assertAdmin();
+    const adminUser = await assertAdmin(["admin"]);
     const supabaseAdmin = createSupabaseAdminClient(); // Bypass RLS to delete
     
     const { data: business, error: fetchError } = await supabaseAdmin

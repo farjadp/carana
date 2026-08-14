@@ -14,7 +14,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // Nothing behind auth should ever be crawled.
-      disallow: ["/admin", "/dashboard", "/profile", "/auth", "/api"],
+      disallow: ["/admin", "/dashboard", "/profile", "/auth", "/api", "/account"],
     },
     sitemap: `${env.baseUrl}/sitemap.xml`,
     host: env.baseUrl,

@@ -12,6 +12,7 @@ export function SiteFooter({ currentPath }: { currentPath: string }) {
   const footerLinks = [
     { href: "/about", label: "درباره ما" },
     { href: "/contact", label: "تماس با ما" },
+    { href: "/support", label: "پشتیبانی" },
     { href: "/dashboard/business/new", label: "ثبت کسب‌وکار" },
     { href: "/privacy", label: "حریم خصوصی" },
     { href: "/terms", label: "شرایط استفاده" },
