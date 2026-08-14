@@ -2,17 +2,25 @@
 
 ## Vercel
 
-The repo is a pnpm + Turborepo monorepo. `vercel.json` at the root already sets
-the build, install and output paths, so the Vercel project must point at the
-**repository root**, not `apps/web`.
+The repo is a pnpm + Turborepo monorepo. Point the Vercel project at
+**`apps/web`** and let the Next.js preset do the rest — `apps/web/vercel.json`
+carries only redirects and headers, no build wiring.
 
 | Setting | Value |
 |---|---|
-| Root Directory | `.` (repository root) |
-| Framework Preset | Next.js |
-| Build Command | from `vercel.json` — leave the override off |
-| Install Command | from `vercel.json` — leave the override off |
+| Root Directory | `apps/web` |
+| Framework Preset | Next.js (auto-detected) |
+| Build Command | leave empty — Vercel runs `next build` |
+| Install Command | leave empty — Vercel installs from the workspace root |
 | Node version | 22.x |
+
+Vercel detects the pnpm workspace and Turborepo on its own and installs from
+the repository root, so `apps/web` can still import `/core`.
+
+Do **not** set a custom `outputDirectory`. With the Next.js preset Vercel uses
+its own builder and resolves `.next` relative to the Root Directory; a manual
+override pointed it somewhere the builder never looks, which produced a build
+that succeeded and then failed to deploy.
 
 ### Environment variables
 

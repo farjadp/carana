@@ -1,9 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm turbo build --filter=@charana/web",
-  "installCommand": "pnpm install --frozen-lockfile",
-  "outputDirectory": "apps/web/.next",
-  "framework": "nextjs",
   "redirects": [
     {
       "source": "/:path*",
@@ -14,6 +10,12 @@
     {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "www.carana.ca" }],
+      "destination": "https://charana.ca/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.charana.ca" }],
       "destination": "https://charana.ca/:path*",
       "permanent": true
     }
