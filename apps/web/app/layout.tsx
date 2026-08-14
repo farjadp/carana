@@ -4,7 +4,7 @@
 // Why: Define the global App Router shell, fonts, metadata, and RTL document.
 // Env / Identity: Brand identity for čārana, no secrets used here.
 // ============================================================================
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Manrope, Vazirmatn } from "next/font/google";
 import type { ReactNode } from "react";
 
@@ -30,10 +30,26 @@ export const metadata: Metadata = {
   },
   description:
     "čārana دایرکتوری فارسی‌زبان برای معرفی کسب‌وکارهای ایرانیان کاناداست؛ از خدمات محلی تا برندهای حرفه‌ای.",
+  // Assets come from the designer's favicon pack in public/. Declared here
+  // rather than as raw <link> tags so Next owns deduplication and ordering.
   icons: {
-    icon: "/brand/charana-mark-primary.svg",
-    apple: "/brand/charana-app-icon.svg",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#800000" }],
   },
+  manifest: "/manifest.webmanifest",
+};
+
+/**
+ * themeColor belongs to the Viewport export, not Metadata — putting it on
+ * Metadata is silently ignored.
+ */
+export const viewport: Viewport = {
+  themeColor: "#800000",
 };
 
 export default function RootLayout({
