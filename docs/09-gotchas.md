@@ -183,3 +183,54 @@ claims 57.0.6 exists. It does not, on the store. Trust the store.
 A standard `replace(/[^a-z0-9]/g, "")` reduces every Persian business name to
 the empty string. `packages/core/src/slug.ts` keeps the Arabic/Persian Unicode
 range. Persian slugs work fine in URLs and Google indexes them.
+
+---
+
+## RTL forces the keyboard to Persian, and every ASCII-digit check then fails
+
+**Symptom:** sign-in rejects correct credentials; a correctly typed phone number
+is reported invalid. No error anywhere explains why.
+
+**Cause:** the app forces RTL, so the keyboard opens in Persian and the user
+types Persian digits (U+06F0–U+06F9) or Arabic-Indic (U+0660–U+0669). In a
+password field the dots look identical; in a phone field the digits look right.
+The string simply does not match.
+
+**Fix:** credential fields take a `latin` prop that pins direction, keyboard and
+autocorrect. Numeric input runs through `toLatinDigits()` before parsing.
+
+**This will happen again** on any new field parsed as ASCII digits — postal
+code, OTP entry, card, year. Test with Persian digits explicitly.
+
+---
+
+## supabase-js deadlocks if you query from inside onAuthStateChange
+
+**Symptom:** login succeeds, the session exists, but the UI still shows signed
+out. No error.
+
+**Cause:** supabase-js holds an internal lock while the callback runs. Calling
+back into the client from inside it never resolves.
+
+**Fix:** defer to the next tick — `setTimeout(() => loadProfile(...), 0)`.
+
+---
+
+## `themeColor` belongs to `viewport`, not `metadata`
+
+On `metadata` it is silently dropped, so the browser chrome never picks up the
+brand colour and nothing warns you. Verified against the Next 16 type
+definitions, not assumed.
+
+---
+
+## The Vercel CLI cannot upload the generated native project
+
+**Symptom:** `vercel --prod` fails with `files should NOT have more than 15000
+items`, then with `not a valid symlink` on an xcframework.
+
+**Cause:** `expo prebuild` writes `apps/mobile/ios`, ~19,000 files including
+symlinks the CLI rejects. None of it belongs in the web build.
+
+**Fix:** `.vercelignore` excludes `apps/mobile/ios`, `android`, `.expo`, plus
+`docs` and `scripts`. Deploy with `--archive=tgz`.

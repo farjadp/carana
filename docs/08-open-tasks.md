@@ -39,10 +39,11 @@ personal account rather than Ashavid.
 
 ---
 
-## The logo
+## Configure Supabase SMTP
 
-Still a placeholder `č`. Worth paying a designer. Brief and four
-ready-to-paste image-model prompts are in `07-design.md`.
+Auth mail still uses Supabase's built-in sender and throttles to a handful per
+hour. Resend is already configured for everything else. Settings in
+`12-integrations.md`. **Do this before any real signup volume.**
 
 ---
 
@@ -59,22 +60,26 @@ a city. A person could clear a few hundred in an evening. No screen exists yet.
 
 ## Mobile
 
-Pick a path from `05-mobile.md` — development build on a device, or stay on the
-simulator until TestFlight.
+Auth, profile, save, private notes and review display are **done**. Remaining:
 
-Then, in rough order of value:
-1. Auth (login, signup) — SecureStore is already wired
-2. Save / bookmark
-3. Private notes and ratings
-4. Submit and read reviews
-5. User profile
+1. Review **submission** form (display already works)
+2. A full "my notes" list — the count is shown, the list is not
+3. In-app profile editing (currently links to web)
+4. Device install or TestFlight — see `05-mobile.md`
 
 ---
 
 ## Engineering debt
 
 **Rate limiting is in-memory.** Resets on deploy, not shared between instances.
-Move to Supabase or Upstash before the AI features see real traffic.
+Now also guards the contact form, so this matters more than it did.
+Move to Supabase or Upstash.
+
+**Canadian A2P registration for Twilio** is unverified. Low volume works; watch
+for `30034`-class errors as signups grow.
+
+**Category artwork** is the weakest asset in the project. Hand it to the
+designer who did the logo.
 
 **No tests.** Not one. Everything in `02-security.md` was verified by hand
 against the live database, which does not protect against regressions. The RLS

@@ -1,6 +1,6 @@
 # čārana — Engineering Handover
 
-**Written:** 2026-08-24
+**Written:** 2026-08-24 · **Updated:** 2026-08-25
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://charana.ca
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -22,7 +22,10 @@ Everything is committed and pushed. Nothing is half-finished on disk.
 | Directory data | 677 listings imported, categorised, published |
 | Mobile (Expo SDK 57) | Builds and runs on simulator; device install prepared, not done |
 | App Store / Play | Blocked on D-U-N-S for Ashavid Inc. |
-| Brand assets | Category art done; **logo still needs a designer** |
+| Brand assets | **Done** — Hidden Č identity applied across web and mobile |
+| Email | **Live** via Resend from noreply@charana.ca |
+| SMS | **Live** via Twilio from the Ontario number |
+| Mobile accounts | Login, signup, profile, save, private notes, reviews |
 
 ---
 
@@ -57,15 +60,16 @@ After that, pick from `08-open-tasks.md`.
 | `06-data-import.md` | Importing another directory export |
 | `07-design.md` | Brand, colours, icons, and the logo brief |
 | `08-open-tasks.md` | Deciding what to do next |
-| `09-gotchas.md` | **Read this one.** It is the traps that cost hours today. |
+| `09-gotchas.md` | **Read this one.** It is the traps that cost hours. |
+| `12-integrations.md` | Email, SMS, brand and the mobile account journey |
 | `10-accounts.md` | Setting up accounts and credentials |
 
 ---
 
 ## One honest note
 
-Two things in this project were built by me and are below the standard of the
-rest: the **category artwork** went through three attempts before landing
-somewhere acceptable, and the **logo** is still the placeholder. Illustration
-is not something I do well. `07-design.md` contains a proper brief to take to a
-designer or an image model — that is the right way to finish it.
+The **category artwork** is mine and is the weakest thing here — it took three
+attempts and is adequate rather than good. Hand-coding SVG paths works for
+geometry and badly for illustration. The logo was produced by a designer and is
+in `apps/web/public/brand/`; the category art deserves the same treatment.
+`07-design.md` has the brief.
