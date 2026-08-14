@@ -9,8 +9,25 @@ Ordered by what unblocks the most. Each is scoped so you can pick one up cold.
 **Configure Supabase auth URLs.** Signup and password reset are broken in
 production until this is set. Four fields. → `04-deployment.md`
 
-**Point carana.ca nameservers at Vercel.** The redirect is already configured;
-DNS just does not resolve. Registrar-side.
+**Set the Resend and Twilio variables on Vercel.** Production has neither.
+`RESEND_API_KEY`, `EMAIL_FROM`, `TWILIO_ACCOUNT_SID`, `TWILIO_API_KEY_SID`,
+`TWILIO_API_KEY_SECRET`, `TWILIO_FROM_NUMBER` — the ten that *are* set are all
+Supabase, Maps and the AI keys. Neither sender throws when unconfigured; both
+return `sent: false` and log. So on production today the contact form accepts a
+message that is never delivered and phone verification never sends a code, and
+nothing on the page says so. → `12-integrations.md`
+
+**Check `SUPABASE_DISABLE_EMAIL_CONFIRMATION_FOR_TESTING` on Vercel.** It is
+present in the **Production** scope. At `"true"`, `POST /api/auth/signup` takes
+the admin-SDK branch and creates every account with `email_confirm: true` — no
+address is ever verified. Read the value; if it is `"true"`, remove it from
+Production and keep it in Preview only.
+
+**Point carana.ca nameservers at Vercel.** The registrar (GoDaddy) already
+delegates to `ns1/ns2.vercel-dns.com`, but those servers answer REFUSED — the
+zone was never created on Vercel, so the name does not resolve at all. Either
+create the DNS zone on Vercel or drop the delegation and set
+`A carana.ca 76.76.21.21` at GoDaddy. `charana.ca` is unaffected and serving.
 
 **Delete `GEMINI_API_KEY` from Vercel.** Nothing reads it. An unused key is
 only ever a liability.
