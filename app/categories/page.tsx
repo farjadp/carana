@@ -1,65 +1,57 @@
 // ============================================================================
 // Source: app/categories/page.tsx
-// Version: 1.2.0 — 2026-08-11
-// Why: Explain the business-category taxonomy for the directory.
-// Env / Identity: Static directory structure page for čārana.
+// Version: 1.3.0 — 2026-08-12
+// Why: Display all active categories dynamically from the database.
+// Env / Identity: Server Component.
 // ============================================================================
 import type { Metadata } from "next";
-
+import Link from "next/link";
 import { InnerPage } from "@/components/inner-page";
-import { Card, CardContent } from "@/components/ui/card";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "دسته‌بندی کسب‌وکارها | čārana",
 };
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
+  const supabase = await createSupabaseServerClient();
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("is_active", true)
+    .order("display_order", { ascending: true });
+
   return (
     <InnerPage
       currentPath="/categories"
       currentSection="business"
       eyebrow="ساختار دایرکتوری"
-      title="دسته‌بندی‌هایی که معرفی کسب‌وکارهای ایرانی را واقعاً قابل‌استفاده می‌کنند"
-      description="این دایرکتوری نباید با دسته‌های کلی و بی‌دقت شروع شود. دسته‌ها باید طوری چیده شوند که کاربر بتواند سریع پزشک، وکیل، رستوران، مشاور، فروشگاه یا سرویس موردنیازش را پیدا کند."
+      title="دسته‌بندی‌های کسب‌وکارهای ایرانی"
+      description="این دایرکتوری طوری طراحی شده است که بتوانید سریع پزشک، وکیل، رستوران، مشاور، فروشگاه یا سرویس موردنیاز خود را در کانادا پیدا کنید."
     >
-      <section className="category-grid">
-        {[
-          ["پزشکی و سلامت", "دندانپزشک، پزشک خانواده، روان‌درمانگر، کلینیک زیبایی، فیزیوتراپی و خدمات سلامت."],
-          ["حقوقی و مهاجرت", "وکیل، مشاور مهاجرت، دفتر اسناد، خدمات بیمه و راهنمایی پرونده‌های رسمی."],
-          ["مالی و حسابداری", "حسابدار، مالیات، bookkeeping، مشاوره مالی، mortgage و خدمات مالی بیزینسی."],
-          ["غذا و مهمان‌داری", "رستوران، کترینگ، شیرینی‌فروشی، کافه و خدمات پذیرایی برای رویدادها."],
-          ["خانه، ساختمان و دکور", "مشاور املاک، پیمانکار، بازسازی، نظافت، طراحی داخلی و خدمات نگهداری ملک."],
-          ["خدمات خلاق و دیجیتال", "طراحی، مارکتینگ، تولید محتوا، عکاسی، چاپ، برندینگ و توسعه وب."],
-        ].map(([title, description]) => (
-          <Card key={title}>
-            <CardContent>
-              <strong>{title}</strong>
-              <p>{description}</p>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        {categories && categories.map((category) => (
+          <Link key={category.id} href={`/categories/${category.slug}`} className="group block h-48 md:h-56 rounded-xl overflow-hidden relative shadow-sm hover:shadow-lg transition-all border border-gray-100">
+            {category.image_url ? (
+              <img 
+                src={category.image_url} 
+                alt={category.name} 
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            ) : (
+              <div className="absolute inset-0 w-full h-full bg-gray-100" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/40 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+              <div className="text-3xl mb-2 drop-shadow-md">{category.icon}</div>
+              <h3 className="font-bold text-lg md:text-xl drop-shadow-md mb-1">{category.name}</h3>
+              {category.description && (
+                <p className="text-sm text-gray-200 line-clamp-2 drop-shadow-md">{category.description}</p>
+              )}
+            </div>
+          </Link>
         ))}
-      </section>
-
-      <section className="info-grid">
-        <Card className="info-card">
-          <CardContent>
-            <strong>چرا این ساختار درست است</strong>
-            <p>
-              کاربران به دنبال معرفی قابل‌اعتماد کسب‌وکارها هستند، نه صرفاً یک اسم در فهرست.
-              بنابراین دسته‌بندی باید تصمیم‌گیری را سریع کند و حس اعتبار ایجاد کند.
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="info-card">
-          <CardContent>
-            <strong>اولویت فاز اول</strong>
-            <p>
-              اگر بخواهیم نسخه اولیه lean باشد، می‌توانیم از شش دسته پرتقاضا شروع کنیم:
-              پزشکی، حقوقی، مالی، غذا، املاک، و خدمات دیجیتال.
-            </p>
-          </CardContent>
-        </Card>
-      </section>
+      </div>
     </InnerPage>
   );
 }

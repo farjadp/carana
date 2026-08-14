@@ -16,7 +16,11 @@ type PageShellProps = {
   currentPath: string;
 };
 
-export function PageShell({ children, currentSection, currentPath }: PageShellProps) {
+export async function PageShell({
+  children,
+  currentSection,
+  currentPath,
+}: PageShellProps) {
   return (
     <div className="page-shell">
       <SiteHeader currentSection={currentSection} currentPath={currentPath} />

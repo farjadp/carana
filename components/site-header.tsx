@@ -1,12 +1,13 @@
 // ============================================================================
 // Source: components/site-header.tsx
-// Version: 1.2.0 — 2026-08-11
-// Why: Render the shared navigation, grouped menus, and auth CTAs.
-// Env / Identity: Shared navigation shell for čārana.
+// Version: 1.4.0 — 2026-08-11
+// Why: Render the shared navigation, grouped menus, and session-aware auth CTAs.
+// Env / Identity: Reads the current authenticated user on the server.
 // ============================================================================
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { getOptionalUser } from "@/lib/auth/session";
 import type { NavSection } from "@/lib/site-content";
 
 type SiteHeaderProps = {
@@ -30,71 +31,50 @@ function NavMenuLink({
   );
 }
 
-export function SiteHeader({ currentSection, currentPath }: SiteHeaderProps) {
+export async function SiteHeader({ currentSection, currentPath }: SiteHeaderProps) {
+  const user = await getOptionalUser();
+
   return (
-    <header className="site-header">
-      <Link className="brand" href="/" aria-label="Charana home">
-        <span className="brand-mark">č</span>
-        <div className="brand-copy">
-          <strong>čārana</strong>
-          <span>دایرکتوری کسب‌وکارهای ایرانیان کانادا</span>
-        </div>
-      </Link>
+    <header className="site-header border-b border-gray-100 bg-white sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto w-full px-4 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-8">
+          <Link className="flex items-center gap-2 hover:opacity-90" href="/" aria-label="Charana home">
+            <span className="bg-[color:var(--lajvard)] text-white font-bold w-8 h-8 rounded flex items-center justify-center text-lg">č</span>
+            <div className="hidden sm:flex flex-col">
+              <strong className="text-lg font-black leading-none text-gray-900 tracking-tight">čārana</strong>
+            </div>
+          </Link>
 
-      <nav className="main-nav" aria-label="ناوبری اصلی">
-        <Link href="/" aria-current={currentPath === "/" ? "page" : undefined}>
-          خانه
-        </Link>
-
-        <div className="nav-group">
-          <button
-            className="nav-trigger"
-            type="button"
-            data-current={currentSection === "business"}
-          >
-            کسب‌وکارها
-            <span className="nav-caret">⌄</span>
-          </button>
-          <div className="nav-menu">
-            <NavMenuLink href="/categories" label="دسته‌بندی‌ها" currentPath={currentPath} />
-            <NavMenuLink
-              href="/how-it-works"
-              label="چطور کار می‌کند"
-              currentPath={currentPath}
-            />
-            <NavMenuLink href="/trust" label="اعتماد و امنیت" currentPath={currentPath} />
-            <NavMenuLink
-              href="/architecture"
-              label="معماری کاربری"
-              currentPath={currentPath}
-            />
-          </div>
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600" aria-label="ناوبری اصلی">
+            <Link href="/" className="hover:text-[color:var(--lajvard)] transition-colors">خانه</Link>
+            <Link href="/categories" className="hover:text-[color:var(--lajvard)] transition-colors">دسته‌بندی‌ها</Link>
+            <Link href="/cities" className="hover:text-[color:var(--lajvard)] transition-colors">شهرها</Link>
+            <Link href="/businesses" className="hover:text-[color:var(--lajvard)] transition-colors">کسب‌وکارها</Link>
+            <Link href="/about" className="hover:text-[color:var(--lajvard)] transition-colors">درباره ما</Link>
+          </nav>
         </div>
 
-        <div className="nav-group">
-          <button
-            className="nav-trigger"
-            type="button"
-            data-current={currentSection === "brand"}
-          >
-            برند
-            <span className="nav-caret">⌄</span>
-          </button>
-          <div className="nav-menu">
-            <NavMenuLink href="/story" label="داستان اسم" currentPath={currentPath} />
-            <NavMenuLink href="/about" label="درباره ما" currentPath={currentPath} />
-            <NavMenuLink href="/contact" label="ارتباط با ما" currentPath={currentPath} />
-          </div>
+        <div className="flex items-center gap-4">
+          {user ? (
+            <>
+              <Link className="text-sm font-medium hover:text-[color:var(--lajvard)]" href="/profile">
+                پروفایل
+              </Link>
+              <form action="/auth/logout" method="post">
+                <Button type="submit" variant="ghost" size="sm">
+                  خروج
+                </Button>
+              </form>
+            </>
+          ) : (
+            <Link className="text-sm font-medium hover:text-[color:var(--lajvard)] hidden sm:block" href="/auth/login">
+              ورود
+            </Link>
+          )}
+          <Button asChild className="bg-[color:var(--lajvard)] hover:bg-[color:var(--primary)] text-white">
+            <Link href="/dashboard/business/new">ثبت کسب‌وکار</Link>
+          </Button>
         </div>
-      </nav>
-
-      <div className="header-actions">
-        <Link className="text-link" href="/auth/login">
-          ورود
-        </Link>
-        <Button asChild variant="solid">
-          <Link href="/auth/signup">ثبت‌نام کسب‌وکار</Link>
-        </Button>
       </div>
     </header>
   );
