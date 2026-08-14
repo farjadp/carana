@@ -34,6 +34,33 @@ only ever a liability.
 
 ---
 
+## Shipping to users right now and wrong
+
+**The report button lies.** `handleReport` in
+`apps/web/app/businesses/[slug]/business-profile-client.tsx` shows a toast
+saying the report reached support and does nothing else. No request, no row, no
+email. `/admin/reports` is a static empty state with no query behind it, and the
+admin sidebar carries a hardcoded badge of `۲`. Either build it — a
+`business_reports` table plus a queue reusing the `moderateReview` pattern — or
+delete the button. A directory sells trust; a trust mechanism that only pretends
+to work converts a suspicious user into a reassured one while the listing stays
+up.
+
+**Nothing counts the conversion moment.** Call, WhatsApp, website and directions
+are bare `<a href>` anchors. No event, no row, no number. Featured listings and
+advertising cannot be sold on this, because an owner who pays for visibility
+will ask what it bought.
+
+Note for anyone who assumes otherwise: there is **no telemetry table**.
+`user_business_interactions` is a self-reported personal CRM written only when a
+signed-in user deliberately saves something, and `user_activity_logs` covers
+only auth and role events. Owner analytics needs a new table, not a new query.
+
+Both were found by tracing one journey through every layer —
+see the Service Blueprint in Notion.
+
+---
+
 ## Critical path to the App Store
 
 **D-U-N-S for Ashavid Inc.** — free, but takes days to weeks and everything
