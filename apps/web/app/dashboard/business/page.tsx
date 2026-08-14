@@ -14,6 +14,7 @@ import { requireUser } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { calculateBusinessProfileProgress } from "@/lib/utils/progress";
 import { Progress } from "@/components/ui/progress";
+import { VerificationRenewalBanner } from "@/components/verification-renewal-banner";
 
 export const metadata: Metadata = {
   title: "پنل صاحب کسب‌وکار",
@@ -34,11 +35,16 @@ export default async function BusinessDashboardPage() {
   const user = await requireUser("/dashboard/business");
   const supabase = await createSupabaseServerClient();
 
-  // Fetch businesses owned by this user
+  // Both routes to ownership. `created_by` covers listings this account built
+  // through onboarding; `owner_user_id` covers ones it claimed, where the row
+  // was originally created by an admin during import. Filtering on created_by
+  // alone hid every claimed business from the person who just proved they own
+  // it. Both values are session UUIDs, so the or() filter string is not
+  // attacker-controlled.
   const { data: businesses } = await supabase
     .from("businesses")
     .select("*")
-    .eq("created_by", user.id)
+    .or(`created_by.eq.${user.id},owner_user_id.eq.${user.id}`)
     .order("created_at", { ascending: false });
 
   const formatDate = (dateStr: string) => {
@@ -93,7 +99,10 @@ export default async function BusinessDashboardPage() {
                     </div>
                     {getStatusBadge(b.status)}
                   </div>
-                  
+
+                  {/* The six-month rule, owner side: countdown from day one. */}
+                  <VerificationRenewalBanner business={b} />
+
                   <div className="space-y-3 mt-6">
                     <div className="flex items-center gap-2 text-sm text-[color:var(--muted-text)]">
                       <div className="w-6 flex justify-center"><Building2 size={16} /></div>

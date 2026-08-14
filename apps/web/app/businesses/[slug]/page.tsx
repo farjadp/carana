@@ -25,7 +25,9 @@ const PUBLIC_BUSINESS_COLUMNS = `
   preferred_contact, languages, is_iranian_owned,
   logo_url, cover_url, brand_color,
   working_hours, accepts_appointments, booking_url,
-  services, branches, status, created_by, created_at, updated_at
+  services, branches, status, created_by, created_at, updated_at,
+  owner_user_id, verification_method, verified_at, verified_until,
+  verified_phone, verified_email
 `;
 
 async function fetchBusinessRecord(slugParam: string) {

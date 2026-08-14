@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import InteractionBar from "@/components/business/interaction-bar";
 import { PrivateNoteCard } from "@/components/business/private-note-card";
+import { VerificationBadge, VerificationDetail } from "@/components/verification-badge";
+import { getVerificationStatus } from "@/lib/verification/status";
 import { toast } from "sonner";
 
 interface BusinessProfileClientProps {
@@ -34,6 +36,10 @@ export default function BusinessProfileClient({
 }: BusinessProfileClientProps) {
   const [activeTab, setActiveTab] = useState<"about" | "services" | "gallery" | "reviews">("about");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Computed, never stored: a boolean column cannot express "verified, but it
+  // expires in nine days" or "the phone number changed after we proved it".
+  const verification = getVerificationStatus(business);
 
   const handleShare = () => {
     if (navigator.share) {
@@ -116,16 +122,11 @@ export default function BusinessProfileClient({
               {/* Title & Badges */}
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                  {business.is_verified && (
-                    <span className="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-                      <ShieldCheck size={14} /> تایید شده čārana
-                    </span>
-                  )}
-                  {business.is_claimed && (
-                    <span className="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-                      <UserCheck size={14} /> مالکیت احرازشده
-                    </span>
-                  )}
+                  {/* One badge, computed from verified_at / verified_until.
+                      The three booleans that used to sit here — is_verified,
+                      is_claimed, is_featured — exist in no migration, so these
+                      chips could never render. */}
+                  <VerificationBadge status={verification} size="lg" audience="public" />
                   {business.is_featured && (
                     <span className="bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
                       <Sparkles size={14} /> ویژه
@@ -538,17 +539,16 @@ export default function BusinessProfileClient({
               </h2>
 
               <div className="space-y-3 text-xs">
-                <div className="flex items-center justify-between p-2.5 bg-emerald-50/60 rounded-xl text-emerald-950">
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 size={16} className="text-emerald-600" /> وضعیت تایید چارانا
-                  </span>
-                  <span className="font-bold">{business.is_verified ? "تایید شده" : "در حال بررسی"}</span>
-                </div>
+                <VerificationDetail status={verification} audience="public" />
 
-                <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl text-gray-800">
-                  <span>ادعای مالکیت بیزینس</span>
-                  <span className="font-bold">{business.is_claimed ? "احراز مالک" : "ثبت توسط کاربران"}</span>
-                </div>
+                {verification.state === "unverified" && (
+                  <Link
+                    href={`/claim?businessId=${business.id}`}
+                    className="block rounded-xl bg-[#800000]/5 p-2.5 text-center font-bold text-[#800000] hover:bg-[#800000]/10 transition"
+                  >
+                    صاحب این کسب‌وکار هستید؟ مالکیتش را احراز کنید
+                  </Link>
+                )}
 
                 {business.license_info && (
                   <div className="p-2.5 bg-gray-50 rounded-xl text-gray-800">

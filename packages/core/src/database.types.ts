@@ -86,31 +86,40 @@ export type Database = {
           business_id: string
           created_at: string
           id: string
+          method: string | null
           note: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: Database["public"]["Enums"]["claim_status"]
           user_id: string
+          verified_at: string | null
+          verified_phone: string | null
         }
         Insert: {
           business_id: string
           created_at?: string
           id?: string
+          method?: string | null
           note?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["claim_status"]
           user_id: string
+          verified_at?: string | null
+          verified_phone?: string | null
         }
         Update: {
           business_id?: string
           created_at?: string
           id?: string
+          method?: string | null
           note?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["claim_status"]
           user_id?: string
+          verified_at?: string | null
+          verified_phone?: string | null
         }
         Relationships: [
           {
@@ -203,6 +212,7 @@ export type Database = {
           logo_url: string | null
           name: string
           name_en: string | null
+          owner_user_id: string | null
           ownership_status: string | null
           phone: string | null
           postal_code: string | null
@@ -220,7 +230,13 @@ export type Database = {
           telegram: string | null
           updated_at: string
           verification_documents: string[] | null
+          verification_method: string | null
           verification_notes: string | null
+          verification_reminder_sent_at: string | null
+          verified_at: string | null
+          verified_email: string | null
+          verified_phone: string | null
+          verified_until: string | null
           website: string | null
           whatsapp: string | null
           working_hours: Json | null
@@ -252,6 +268,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           name_en?: string | null
+          owner_user_id?: string | null
           ownership_status?: string | null
           phone?: string | null
           postal_code?: string | null
@@ -269,7 +286,13 @@ export type Database = {
           telegram?: string | null
           updated_at?: string
           verification_documents?: string[] | null
+          verification_method?: string | null
           verification_notes?: string | null
+          verification_reminder_sent_at?: string | null
+          verified_at?: string | null
+          verified_email?: string | null
+          verified_phone?: string | null
+          verified_until?: string | null
           website?: string | null
           whatsapp?: string | null
           working_hours?: Json | null
@@ -301,6 +324,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           name_en?: string | null
+          owner_user_id?: string | null
           ownership_status?: string | null
           phone?: string | null
           postal_code?: string | null
@@ -318,7 +342,13 @@ export type Database = {
           telegram?: string | null
           updated_at?: string
           verification_documents?: string[] | null
+          verification_method?: string | null
           verification_notes?: string | null
+          verification_reminder_sent_at?: string | null
+          verified_at?: string | null
+          verified_email?: string | null
+          verified_phone?: string | null
+          verified_until?: string | null
           website?: string | null
           whatsapp?: string | null
           working_hours?: Json | null
@@ -327,6 +357,13 @@ export type Database = {
           {
             foreignKeyName: "businesses_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "businesses_owner_user_id_fkey"
+            columns: ["owner_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -607,7 +644,7 @@ export type Database = {
       verification_codes: {
         Row: {
           attempts: number
-          code: string
+          business_id: string | null
           code_hash: string | null
           consumed_at: string | null
           created_at: string | null
@@ -618,7 +655,7 @@ export type Database = {
         }
         Insert: {
           attempts?: number
-          code: string
+          business_id?: string | null
           code_hash?: string | null
           consumed_at?: string | null
           created_at?: string | null
@@ -629,7 +666,7 @@ export type Database = {
         }
         Update: {
           attempts?: number
-          code?: string
+          business_id?: string | null
           code_hash?: string | null
           consumed_at?: string | null
           created_at?: string | null
@@ -639,6 +676,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "verification_codes_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "verification_codes_user_id_fkey"
             columns: ["user_id"]

@@ -74,7 +74,6 @@ export async function sendVerificationCode(type: "email" | "phone") {
   const { error: dbError } = await admin.from("verification_codes").insert({
     user_id: user.id,
     type,
-    code: "",
     code_hash: hashCode(code),
     expires_at: expiresAt.toISOString(),
   });
