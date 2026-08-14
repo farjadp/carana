@@ -29,3 +29,5 @@ apps/mobile/android
 
 # Turborepo
 .turbo
+.vercel
+.env*
