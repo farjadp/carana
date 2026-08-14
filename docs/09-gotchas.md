@@ -286,3 +286,24 @@ The comparison folds Persian and Arabic-Indic digits to ASCII first. Without
 that, a number entered on the Persian keyboard shares no characters with the
 stored one and every badge would void itself the moment it was granted — the
 same trap as `toLatinDigits` in the SMS sender.
+
+---
+
+## A badge with no condition on it
+
+**Symptom:** every listing on the home page showed "تایید شده", including
+677 rows imported by us that nobody had verified.
+
+**Cause:** the chip was rendered unconditionally — no `&&`, no ternary, no
+flag. The section heading and subtitle asserted the same thing in words
+("جدیدترین کسب‌وکارهای تایید شده", "پس از بررسی تیم چارانا") over a query that
+filters on publication status alone.
+
+**Fix:** every verification chip now derives from `getVerificationStatus`.
+Headings say what the query selects.
+
+**Lesson:** when checking whether something renders correctly "across the
+site", enumerate routes from `sitemap.xml`, not from memory. This was found by
+the user on the home page after an audit that had covered the profile page,
+category cards, city cards and three listing indexes — everything except the
+first screen every visitor sees.
