@@ -22,19 +22,29 @@ export const env = {
     return getRequiredEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", val);
   },
   /**
-   * Absolute origin for auth redirect links.
+   * Absolute origin, used for auth redirect links, robots.txt and the sitemap.
    *
-   * Falling back to localhost silently is only acceptable in development —
-   * in production it produces password-reset emails that point at the
-   * developer's machine, so require it explicitly there.
+   * Resolution order:
+   *   1. NEXT_PUBLIC_BASE_URL — set this to the real domain; it always wins.
+   *   2. VERCEL_PROJECT_PRODUCTION_URL — the project's production domain, set
+   *      by Vercel on every build including previews.
+   *   3. VERCEL_URL — the per-deployment URL, so preview builds get something
+   *      absolute and correct for themselves.
+   *   4. localhost, for local development.
+   *
+   * The earlier version threw whenever NODE_ENV was production, which broke
+   * the build outright: `next build` runs in production mode, and the
+   * robots.txt/sitemap routes are prerendered during it.
    */
   get baseUrl() {
-    const val = process.env.NEXT_PUBLIC_BASE_URL;
-    if (val) return val.replace(/\/$/, "");
+    const explicit = process.env.NEXT_PUBLIC_BASE_URL;
+    if (explicit) return explicit.replace(/\/$/, "");
 
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("Missing required environment variable: NEXT_PUBLIC_BASE_URL");
-    }
+    const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    if (productionHost) return `https://${productionHost.replace(/\/$/, "")}`;
+
+    const deploymentHost = process.env.VERCEL_URL;
+    if (deploymentHost) return `https://${deploymentHost.replace(/\/$/, "")}`;
 
     return "http://localhost:3000";
   },
