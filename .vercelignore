@@ -1,0 +1,17 @@
+# Vercel only builds apps/web. Everything below is either irrelevant to that
+# build or actively breaks the upload.
+
+# The generated native project contains xcframework symlinks that the CLI
+# rejects, and 19k files that blow the upload limit.
+apps/mobile/ios
+apps/mobile/android
+apps/mobile/.expo
+
+# Documentation and one-off operational scripts are not part of the build.
+docs
+scripts
+
+# Local build output
+**/.next
+**/.turbo
+**/dist
