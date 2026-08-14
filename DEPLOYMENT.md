@@ -37,6 +37,10 @@ Set these in Vercel → Settings → Environment Variables, for **Production** a
 | `SUPABASE_JWKS_URL` | |
 | `OPENAI_API_KEY` | server only |
 | `RESEND_API_KEY` | server only — transactional email |
+| `TWILIO_ACCOUNT_SID` | server only |
+| `TWILIO_API_KEY_SID` | server only |
+| `TWILIO_API_KEY_SECRET` | server only |
+| `TWILIO_FROM_NUMBER` | `+12495549408` — the Canadian number |
 | `EMAIL_FROM` | e.g. `čārana <noreply@charana.ca>` |
 | `NEXT_PUBLIC_GOOGLE_MAPS_KEY` | restrict by HTTP referrer in Google Cloud |
 | `NEXT_PUBLIC_BASE_URL` | `https://charana.ca` — the build fails without it |
@@ -130,8 +134,27 @@ Supabase Dashboard → Project Settings → Authentication → SMTP Settings
 Until that is done, signup confirmation will throttle as soon as more than a
 few people register in an hour.
 
-SMS has no provider. Phone verification returns an explicit "not enabled yet"
-rather than pretending a message was sent.
+## SMS
+
+Phone verification sends through **Twilio**, using an API Key rather than the
+account auth token so the credential can be revoked on its own.
+
+Two numbers are on the account. `+1 249 554 9408` is an **Ontario** number and
+is the configured sender — a local number delivers better to a Canadian
+audience than the Michigan one.
+
+The destination always comes from `profiles.mobile_number`, never from the
+request. A caller must not be able to aim a verification code at an arbitrary
+handset.
+
+Phone numbers are normalised to E.164 before sending, including Persian and
+Arabic-Indic digits: the product runs RTL, the keyboard opens in Persian, and a
+number typed there contains none of the characters an ASCII digit check looks
+for.
+
+**Not yet checked:** whether the account needs Canadian A2P registration for
+application-to-person traffic at volume. Low volume works; watch for
+`30034`-class errors as signups grow.
 
 ## Post-deploy checklist
 

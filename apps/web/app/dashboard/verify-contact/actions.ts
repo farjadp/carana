@@ -13,6 +13,7 @@ import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/send";
 import { verificationCodeEmail } from "@/lib/email/templates";
+import { sendSms } from "@/lib/sms/send";
 
 const CODE_TTL_MINUTES = 15;
 const MAX_ATTEMPTS = 5;
@@ -101,16 +102,32 @@ export async function sendVerificationCode(type: "email" | "phone") {
     return { success: true, message: "کد تایید به ایمیل شما ارسال شد." };
   }
 
-  // SMS has no provider yet. Rather than claim a message was sent, say so.
-  if (process.env.NODE_ENV !== "production") {
-    console.log(`[DEV] phone verification code for ${user.email}: ${code}`);
-    return { success: true, message: "کد تایید موبایل (حالت توسعه) در ترمینال چاپ شد." };
+  // Phone. The number comes from the profile, not from the request — a caller
+  // must not be able to point a verification code at an arbitrary handset.
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("mobile_number")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const mobile = profile?.mobile_number?.trim();
+  if (!mobile) {
+    return {
+      success: false,
+      error: "ابتدا شماره موبایل خود را در صفحه پروفایل ثبت کنید.",
+    };
   }
 
-  return {
-    success: false,
-    error: "تایید پیامکی هنوز فعال نیست. فعلاً ایمیل خود را تایید کنید.",
-  };
+  const result = await sendSms(
+    mobile,
+    `کد تایید چارانا: ${code}\n\nاین کد تا ۱۵ دقیقه معتبر است. آن را با کسی به اشتراک نگذارید.`
+  );
+
+  if (!result.sent) {
+    return { success: false, error: result.error ?? "ارسال پیامک انجام نشد." };
+  }
+
+  return { success: true, message: "کد تایید به موبایل شما پیامک شد." };
 }
 
 export async function verifyCode(type: "email" | "phone", code: string) {
