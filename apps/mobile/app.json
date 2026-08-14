@@ -15,7 +15,7 @@
         "applinks:www.charana.ca"
       ],
       "infoPlist": {
-        "CFBundleDisplayName": "\u010d\u0101rana"
+        "CFBundleDisplayName": "čārana"
       }
     },
     "android": {
@@ -72,7 +72,10 @@
       "reactCompiler": true
     },
     "extra": {
-      "eas": {}
-    }
+      "eas": {
+        "projectId": "ddda648e-ce1b-4e47-9d03-c00dfac61e71"
+      }
+    },
+    "owner": "ashavid"
   }
 }
