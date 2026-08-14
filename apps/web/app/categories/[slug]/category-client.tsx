@@ -10,6 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { VerificationBadge } from "@/components/verification-badge";
+import { getVerificationStatus } from "@/lib/verification/status";
 import { CategoryDetailConfig } from "@/lib/data/category-details";
 
 interface BusinessItem {
@@ -433,11 +435,9 @@ export default function CategoryClientPage({
 
                   {/* Top Right Badges */}
                   <div className="absolute top-3 right-3 flex items-center gap-1.5">
-                    {b.is_verified && (
-                      <span className="bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-                        <ShieldCheck className="h-3 w-3" /> تایید شده
-                      </span>
-                    )}
+                    {/* is_verified exists in no migration, so this chip could
+                        never render. Real state comes from verified_until. */}
+                    <VerificationBadge status={getVerificationStatus(b)} audience="public" />
                     {b.is_featured && (
                       <span className="bg-amber-500/90 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
                         <Sparkles className="h-3 w-3" /> ویژه

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { VerificationBadge } from "@/components/verification-badge";
+import { getVerificationStatus } from "@/lib/verification/status";
 
 export const metadata: Metadata = {
   title: "čārana | دایرکتوری کسب‌وکارهای ایرانیان کانادا",
@@ -122,8 +124,14 @@ export default async function HomePage() {
             <div className="max-w-7xl mx-auto">
               <div className="flex justify-between items-end mb-8">
                 <div>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-2">جدیدترین کسب‌وکارهای تایید شده</h2>
-                  <p className="text-sm text-gray-500">کسب‌وکارهایی که اخیراً پس از بررسی تیم چارانا در سیستم منتشر شده‌اند</p>
+                  {/* The heading used to read "newest *verified* businesses"
+                      and the subtitle claimed each had been reviewed by the
+                      team. Both were asserted over a query that filters on
+                      publication status alone, so 677 imported listings were
+                      described as verified. Say what the query actually
+                      selects. */}
+                  <h2 className="text-2xl md:text-3xl font-bold mb-2">جدیدترین کسب‌وکارها</h2>
+                  <p className="text-sm text-gray-500">تازه‌ترین کسب‌وکارهایی که در چارانا منتشر شده‌اند</p>
                 </div>
                 <Button asChild variant="ghost" className="hidden sm:inline-flex text-[color:var(--lajvard)]">
                   <Link href="/categories/all">مشاهده همه <ArrowLeft className="mr-1 h-4 w-4" /></Link>
@@ -136,9 +144,11 @@ export default async function HomePage() {
                     <CardContent className="p-0 flex flex-col h-full justify-between">
                       <div className="p-6">
                         <div className="flex justify-between items-start mb-3">
-                          <span className="text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full flex items-center gap-1">
-                            <ShieldCheck className="h-3 w-3" /> تایید شده
-                          </span>
+                          {/* Was rendered unconditionally, on every card. */}
+                          <VerificationBadge
+                            status={getVerificationStatus(biz)}
+                            audience="public"
+                          />
                           <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                             {biz.category}
                           </span>

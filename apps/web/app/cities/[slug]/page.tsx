@@ -25,6 +25,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cityConfigs, getCityConfig } from "@/lib/data/cities";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { VerificationBadge } from "@/components/verification-badge";
+import { getVerificationStatus, isTrusted } from "@/lib/verification/status";
 
 export const revalidate = 60;
 
@@ -97,7 +99,9 @@ export default async function CityDetailPage({ params }: CityPageParams) {
     .limit(24);
 
   const cityBusinesses = (businesses ?? []) as BusinessCard[];
-  const verifiedCount = cityBusinesses.filter((business) => business.is_verified).length;
+  const verifiedCount = cityBusinesses.filter((business) =>
+    isTrusted(getVerificationStatus(business))
+  ).length;
   const categoryCount = new Set(cityBusinesses.map((business) => business.category).filter(Boolean)).size;
 
   return (
@@ -265,12 +269,10 @@ export default async function CityDetailPage({ params }: CityPageParams) {
                           <span>{business.city || city.nameEn}، {business.province || city.province}</span>
                         </div>
                         <div className="absolute top-3 right-3 flex gap-1.5">
-                          {business.is_verified ? (
-                            <span className="rounded-full bg-emerald-500 text-white px-2 py-1 text-[10px] font-black inline-flex items-center gap-1">
-                              <ShieldCheck className="h-3 w-3" />
-                              تایید شده
-                            </span>
-                          ) : null}
+                          <VerificationBadge
+                            status={getVerificationStatus(business)}
+                            audience="public"
+                          />
                           {business.is_featured ? (
                             <span className="rounded-full bg-amber-500 text-white px-2 py-1 text-[10px] font-black inline-flex items-center gap-1">
                               <Sparkles className="h-3 w-3" />
