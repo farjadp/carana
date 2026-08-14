@@ -7,6 +7,7 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Vazirmatn } from "next/font/google";
 import type { ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/next";
 
 import "./globals.css";
 
@@ -61,6 +62,12 @@ export default function RootLayout({
     <html lang="fa" dir="rtl">
       <body className={`${vazirmatn.variable} ${manrope.variable}`}>
         {children}
+        {/* Cookieless by design. It stores nothing on the visitor's device, so
+            it needs no consent banner — which matters here, because a cookie
+            wall would be the first thing a visitor meets on a directory whose
+            whole proposition is trust, and a meaningful share would decline
+            and skew the numbers anyway. */}
+        <Analytics />
       </body>
     </html>
   );

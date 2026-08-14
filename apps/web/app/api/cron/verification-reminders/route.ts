@@ -22,6 +22,7 @@ import {
   reminderIsDue,
   reminderStageFor,
 } from "@/lib/verification/status";
+import { reportQuietFailure, withCronMonitor } from "@/lib/observability/report";
 
 // Reminders are per-listing state, never cached.
 export const dynamic = "force-dynamic";
@@ -48,6 +49,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  // Wrapped so both halves of "did it work" are observable. A failed run is
+  // visible on its own; a run that silently stops happening is not, because
+  // nothing writes a log when nothing executes. A missed check-in alerts with
+  // no code of ours running to raise it.
+  return withCronMonitor("verification-reminders", () => run());
+}
+
+async function run() {
   const admin = createSupabaseAdminClient();
 
   // Everything inside the widest reminder window, plus anything already past
@@ -69,7 +78,7 @@ export async function GET(request: NextRequest) {
     .limit(MAX_PER_RUN);
 
   if (error) {
-    console.error("Reminder scan failed:", error);
+    reportQuietFailure("cron_run_failed", { step: "scan", reason: error.message });
     return NextResponse.json({ error: "scan failed" }, { status: 500 });
   }
 
@@ -118,7 +127,11 @@ export async function GET(request: NextRequest) {
     if (!result.sent) {
       // Do not record the stage. A silent failure that marks itself done is
       // the worst outcome — the owner is never told and never will be.
-      console.error(`Renewal reminder failed for ${business.id}: ${result.error}`);
+      reportQuietFailure("reminder_send_failed", {
+        businessId: business.id,
+        stage,
+        reason: result.error,
+      });
       summary.failed += 1;
       continue;
     }

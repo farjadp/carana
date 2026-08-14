@@ -9,6 +9,8 @@ import "server-only";
 
 import { Resend } from "resend";
 
+import { reportQuietFailure } from "@/lib/observability/report";
+
 import { company } from "@/lib/data/company";
 
 const FROM = process.env.EMAIL_FROM ?? `${company.brand} <noreply@charana.ca>`;
@@ -48,7 +50,7 @@ export async function sendEmail(input: {
       console.log(`[email:dev] to=${input.to} subject=${input.subject}\n${input.text}`);
       return { sent: false, error: "RESEND_API_KEY not set (logged instead)" };
     }
-    console.error("RESEND_API_KEY is not set; email not sent");
+    reportQuietFailure("email_not_configured", { to: input.to, subject: input.subject });
     return { sent: false, error: "email is not configured" };
   }
 
@@ -63,13 +65,13 @@ export async function sendEmail(input: {
     });
 
     if (error) {
-      console.error("Resend error:", error.message);
+      reportQuietFailure("email_send_failed", { to: input.to, reason: error.message });
       return { sent: false, error: error.message };
     }
 
     return { sent: true, id: data?.id };
   } catch (err) {
-    console.error("Email send failed:", err);
+    reportQuietFailure("email_send_failed", { to: input.to, reason: String(err) });
     return { sent: false, error: "email send failed" };
   }
 }

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 /**
  * Bridge the server-side Supabase variables into the public namespace.
@@ -90,4 +91,42 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/**
+ * Source maps for error reports, and only when they can actually be uploaded.
+ *
+ * The Sentry SDK reports at runtime on its own — the instrumentation files are
+ * what start it. This wrapper does one extra job: upload source maps, so a
+ * stack trace names `sendVerificationCode` instead of `t` on line 1 of a
+ * minified chunk.
+ *
+ * Uploading needs an org, a project and an auth token. Until those exist the
+ * wrapper is skipped entirely rather than added and disabled, because a build
+ * that reaches for a missing token is a build that can fail for a reason
+ * unrelated to the code. Set the three variables and source maps begin working
+ * with no further change here.
+ */
+const sentryUploadConfigured =
+  !!process.env.SENTRY_ORG &&
+  !!process.env.SENTRY_PROJECT &&
+  !!process.env.SENTRY_AUTH_TOKEN;
+
+export default sentryUploadConfigured
+  ? withSentryConfig(nextConfig, {
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+
+      // The build log is already long; only speak up when something is wrong.
+      silent: true,
+
+      // Strip the uploaded maps from the deployed bundle. Without this the
+      // readable source of a private admin panel is served to anyone who opens
+      // devtools.
+      sourcemaps: { deleteSourcemapsAfterUpload: true },
+
+      // Route browser events through our own domain. Ad blockers block calls
+      // to sentry.io by default, which would silently drop exactly the
+      // client-side errors this is here to catch.
+      tunnelRoute: "/monitoring",
+    })
+  : nextConfig;

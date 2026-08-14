@@ -10,6 +10,8 @@
 // ============================================================================
 import "server-only";
 
+import { reportQuietFailure } from "@/lib/observability/report";
+
 const ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
 const API_KEY_SID = process.env.TWILIO_API_KEY_SID;
 const API_KEY_SECRET = process.env.TWILIO_API_KEY_SECRET;
@@ -58,7 +60,7 @@ export async function sendSms(to: string, body: string): Promise<SmsResult> {
       console.log(`[sms:dev] to=${to}\n${body}`);
       return { sent: false, error: "Twilio not configured (logged instead)" };
     }
-    console.error("Twilio is not configured; SMS not sent");
+    reportQuietFailure("sms_not_configured", { to });
     return { sent: false, error: "sms is not configured" };
   }
 
@@ -82,8 +84,15 @@ export async function sendSms(to: string, body: string): Promise<SmsResult> {
     const data = (await res.json()) as { sid?: string; message?: string; code?: number };
 
     if (!res.ok) {
-      // Log Twilio's own code — it is what their docs are indexed by.
-      console.error(`Twilio error ${data.code}: ${data.message}`);
+      // Log Twilio's own code — it is what their docs are indexed by. 30034
+      // and its neighbours mean carrier filtering, which is the signal that
+      // A2P registration stopped being optional.
+      reportQuietFailure(
+        data.code && data.code >= 30000 && data.code < 30100
+          ? "sms_carrier_rejected"
+          : "sms_send_failed",
+        { code: data.code, reason: data.message }
+      );
 
       // 21211 is an invalid destination; that one is the user's to fix.
       if (data.code === 21211) return { sent: false, error: "شماره موبایل معتبر نیست." };
@@ -93,7 +102,7 @@ export async function sendSms(to: string, body: string): Promise<SmsResult> {
 
     return { sent: true, sid: data.sid };
   } catch (err) {
-    console.error("SMS send failed:", err);
+    reportQuietFailure("sms_send_failed", { reason: String(err) });
     return { sent: false, error: "ارسال پیامک انجام نشد." };
   }
 }
