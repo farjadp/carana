@@ -2229,3 +2229,284 @@ section {
 
 .listing-meta { font-size: 0.78rem; color: var(--muted-text); }
 .empty-note { color: var(--muted-text); text-align: center; padding: 2rem 0; }
+
+/* ============================================================================
+   Site header — rebuilt 2026-08-23
+   The previous header hid its whole nav below `md` with nothing in its place,
+   leaving phones with no navigation at all.
+   ========================================================================== */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.site-header-inner {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.brand-mark {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.55rem;
+  background: var(--annabi);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.brand-name {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+/* --- desktop nav --------------------------------------------------------- */
+
+.header-nav {
+  display: none;
+  align-items: center;
+  gap: 1.35rem;
+  flex: 1;
+}
+
+.header-nav-link {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted-text);
+  padding: 0.4rem 0;
+  position: relative;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.header-nav-link:hover { color: var(--text); }
+
+.header-nav-link.is-active {
+  color: var(--annabi);
+  font-weight: 700;
+}
+
+/* Active underline sits on the header border so it reads as a tab. */
+.header-nav-link.is-active::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1.32rem;
+  height: 2px;
+  background: var(--annabi);
+  border-radius: 2px;
+}
+
+.header-actions {
+  /* On mobile these live in the menu panel, so the bar stays one clean row. */
+  display: none;
+  align-items: center;
+  gap: 0.85rem;
+  margin-inline-start: auto;
+}
+
+.header-link {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted-text);
+  white-space: nowrap;
+}
+
+.header-link:hover { color: var(--text); }
+
+.header-cta {
+  display: inline-flex;
+  align-items: center;
+  height: 2.35rem;
+  padding: 0 1rem;
+  border-radius: 999px;
+  background: var(--annabi);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.header-cta:hover { opacity: 0.9; }
+
+/* --- burger + panel ------------------------------------------------------ */
+
+.header-burger {
+  margin-inline-start: auto;
+  width: 2.4rem;
+  height: 2.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.6rem;
+  color: var(--text);
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.mobile-menu-backdrop {
+  position: fixed;
+  inset: 4rem 0 0;
+  background: rgba(20, 33, 61, 0.35);
+  z-index: 40;
+}
+
+.mobile-menu {
+  position: fixed;
+  inset-inline: 0;
+  top: 4rem;
+  max-height: calc(100dvh - 4rem);
+  overflow-y: auto;
+  z-index: 45;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  padding: 0.75rem 1rem 1.5rem;
+  box-shadow: 0 18px 40px rgba(20, 33, 61, 0.12);
+}
+
+.mobile-menu nav { display: flex; flex-direction: column; }
+
+.mobile-menu-link {
+  display: block;
+  width: 100%;
+  padding: 0.85rem 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: start;
+  border-radius: 0.6rem;
+}
+
+.mobile-menu-link:active { background: rgba(20, 33, 61, 0.05); }
+
+.mobile-menu-link.is-active {
+  color: var(--annabi);
+  background: rgba(128, 0, 0, 0.06);
+}
+
+.mobile-menu-link.is-secondary {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--muted-text);
+  padding-block: 0.6rem;
+}
+
+.mobile-menu-link.is-plain {
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  color: var(--annabi);
+}
+
+.mobile-menu-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 0.6rem 0;
+}
+
+.mobile-menu-cta {
+  margin-top: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 3rem;
+  border-radius: 999px;
+  background: var(--annabi);
+  color: #fff;
+  font-weight: 700;
+}
+
+@media (min-width: 900px) {
+  .header-nav { display: flex; }
+  .header-actions { display: flex; }
+  .header-burger,
+  .mobile-menu,
+  .mobile-menu-backdrop { display: none; }
+}
+
+/* --- /businesses filters and pager --------------------------------------- */
+
+.filter-bar {
+  max-width: 72rem;
+  margin: 0 auto 1.5rem;
+  padding: 0 1.25rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.filter-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted-text);
+  margin-inline-end: 0.25rem;
+}
+
+.filter-chip {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.filter-chip:hover { border-color: var(--lajvard); }
+
+.filter-chip.is-active {
+  background: var(--annabi);
+  border-color: var(--annabi);
+  color: #fff;
+  font-weight: 600;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.pager-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.pager-btn.is-disabled { opacity: 0.4; }
+.pager-status { font-size: 0.85rem; color: var(--muted-text); }
