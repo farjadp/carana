@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "čārana",
+    "name": "Charana",
     "slug": "charana",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,7 +13,10 @@
       "associatedDomains": [
         "applinks:charana.ca",
         "applinks:www.charana.ca"
-      ]
+      ],
+      "infoPlist": {
+        "CFBundleDisplayName": "čārana"
+      }
     },
     "android": {
       "adaptiveIcon": {
