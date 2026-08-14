@@ -12,6 +12,15 @@ function getRequiredEnv(name: string, value: string | undefined) {
   return value;
 }
 
+/**
+ * `env` is read from client components as well as the server.
+ *
+ * Only `NEXT_PUBLIC_*` survives into the browser bundle — every other
+ * `process.env` read in client code compiles to `undefined`. The
+ * `?? process.env.SUPABASE_URL` fallbacks below therefore only ever fire on
+ * the server; next.config.ts promotes those values into the public namespace
+ * at build time so a single configured variable covers both.
+ */
 export const env = {
   get supabaseUrl() {
     const val = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
