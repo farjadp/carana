@@ -1,5 +1,5 @@
 // ============================================================================
-// Source: lib/utils/string.ts
+// Source: packages/core/src/slug.ts
 // Version: 1.0.0 — 2026-08-13
 // Why: Utility functions for string manipulation.
 // ============================================================================
