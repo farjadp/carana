@@ -1,167 +1,91 @@
 # Open tasks
 
-Ordered by what unblocks the most. Each is scoped so you can pick one up cold.
+**The operational board is Notion, not this file.** Mission Control on the
+🧿 Charana page carries ~50 missions with per-task instructions, owners
+(`Hands`: Farjad / Claude / Both), status and a Done log. This file is the
+compressed summary for a cold start; when they disagree, Notion is fresher.
+
+Board: https://app.notion.com/p/3bc370c6d6248007ba12da832b4ee80a
 
 ---
 
-## Do these first — minutes each, high consequence
+## One Supabase dashboard session — minutes, unblocks real signups
 
-**Configure Supabase auth URLs.** Signup and password reset are broken in
-production until this is set. Four fields. → `04-deployment.md`
+The first real phone signup (14 Aug) surfaced the whole auth-email chain:
+junk folder, "Supabase Auth" sender, English template, link opening
+localhost. Four dashboard settings fix all of it; the app-side code is done.
 
-**Set the Resend and Twilio variables on Vercel.** Production has neither.
-`RESEND_API_KEY`, `EMAIL_FROM`, `TWILIO_ACCOUNT_SID`, `TWILIO_API_KEY_SID`,
-`TWILIO_API_KEY_SECRET`, `TWILIO_FROM_NUMBER` — the ten that *are* set are all
-Supabase, Maps and the AI keys. Neither sender throws when unconfigured; both
-return `sent: false` and log. So on production today the contact form accepts a
-message that is never delivered and phone verification never sends a code, and
-nothing on the page says so. → `12-integrations.md`
+1. **SMTP through Resend** — Project Settings → Auth → SMTP. Host
+   `smtp.resend.com`, port 465, username literally `resend`, password = the
+   Resend API key, sender `noreply@charana.ca`, sender name `čārana`.
+2. **Templates** — Auth → Email Templates. Paste-ready RTL HTML with subjects
+   in `13-supabase-email-templates.md`.
+3. **URL configuration** — Site URL `https://charana.ca`; Redirect URLs
+   `https://charana.ca/**`, `https://www.charana.ca/**`,
+   `https://carana-*.vercel.app/**`, and **`charana://**`** (the app — mobile
+   signup redirects confirmation to `charana://auth/confirmed`, a welcome
+   screen that signs the person in).
+4. **While there:** check `SUPABASE_DISABLE_EMAIL_CONFIRMATION_FOR_TESTING`
+   in Vercel Production. If `"true"`, signup bypasses email verification
+   entirely. Keep it Preview-only.
 
-**Check `SUPABASE_DISABLE_EMAIL_CONFIRMATION_FOR_TESTING` on Vercel.** It is
-present in the **Production** scope. At `"true"`, `POST /api/auth/signup` takes
-the admin-SDK branch and creates every account with `email_confirm: true` — no
-address is ever verified. Read the value; if it is `"true"`, remove it from
-Production and keep it in Preview only.
+Then verify with a throwaway signup: inbox not junk, from čārana, Persian,
+link opens the app.
 
-**Point carana.ca nameservers at Vercel.** The registrar (GoDaddy) already
-delegates to `ns1/ns2.vercel-dns.com`, but those servers answer REFUSED — the
-zone was never created on Vercel, so the name does not resolve at all. Either
-create the DNS zone on Vercel or drop the delegation and set
-`A carana.ca 76.76.21.21` at GoDaddy. `charana.ca` is unaffected and serving.
+## Other Farjad-side items, each minutes
 
-**Delete `GEMINI_API_KEY` from Vercel.** Nothing reads it. An unused key is
-only ever a liability.
-
----
-
-## Shipping to users right now and wrong
-
-**The report button lies.** `handleReport` in
-`apps/web/app/businesses/[slug]/business-profile-client.tsx` shows a toast
-saying the report reached support and does nothing else. No request, no row, no
-email. `/admin/reports` is a static empty state with no query behind it, and the
-admin sidebar carries a hardcoded badge of `۲`. Either build it — a
-`business_reports` table plus a queue reusing the `moderateReview` pattern — or
-delete the button. A directory sells trust; a trust mechanism that only pretends
-to work converts a suspicious user into a reassured one while the listing stays
-up.
-
-**Nothing counts the conversion moment.** Call, WhatsApp, website and directions
-are bare `<a href>` anchors. No event, no row, no number. Featured listings and
-advertising cannot be sold on this, because an owner who pays for visibility
-will ask what it bought.
-
-Note for anyone who assumes otherwise: there is **no telemetry table**.
-`user_business_interactions` is a self-reported personal CRM written only when a
-signed-in user deliberately saves something, and `user_activity_logs` covers
-only auth and role events. Owner analytics needs a new table, not a new query.
-
-Both were found by tracing one journey through every layer —
-see the Service Blueprint in Notion.
+- **`CRON_SECRET` on Vercel Production** — until set, the verification-renewal
+  reminder cron refuses to run (by design).
+- **Delete `GEMINI_API_KEY`** from Vercel *and revoke at Google*. Nothing
+  reads it.
+- **carana.ca does not resolve** — GoDaddy already delegates to Vercel's
+  nameservers but no zone exists there (they answer REFUSED). Create the zone
+  on Vercel, or take delegation back and set `A 76.76.21.21`.
+- **Rotate the Twilio primary auth token** — it was pasted into a chat on
+  14 Aug. The app uses API keys, not the token, so nothing breaks.
+- **Twilio balance was $16.55** — top up before real verification volume.
+- **D-U-N-S for Ashavid Inc.** — the single blocker under the whole store
+  path. Check first at developer.apple.com/enroll/duns-lookup; it may exist.
+- **End-to-end claim test** — now unblocked (Twilio live): claim an imported
+  listing whose number you can answer, confirm the SMS and badge.
 
 ---
 
-## Critical path to the App Store
+## Code, in priority order
 
-**D-U-N-S for Ashavid Inc.** — free, but takes days to weeks and everything
-else waits on it. Check whether one already exists before applying:
-`developer.apple.com/enroll/duns-lookup`
+**Search does not exist — the only open P0.** The hero search box is a prop:
+no action, no handler, no `/search` route. The product's primary action does
+nothing. Needs Persian-aware full-text (fold ی/ي, ک/ك, Persian digits),
+URL-addressable results, and logging of zero-result queries from day one —
+that list is users naming the missing supply. The home-page hero is blocked
+on this.
 
-Then: Apple Developer Program (Organization, ~$99/yr) and Google Play Console
-(Organization, ~$25 once).
+**The report button still lies.** `handleReport` shows "sent to support" and
+does nothing; `/admin/reports` is a static empty state with a hardcoded badge
+of ۲. Build `business_reports` + queue (reuse the `moderateReview` pattern),
+or remove the button.
 
-Once the Apple account exists:
-- Set `APPLE_TEAM_ID` on Vercel — the apple-app-site-association file is already
-  serving and just needs the real value
-- First EAS build → take the SHA-256 fingerprint → set
-  `ANDROID_SHA256_FINGERPRINT`
-- TestFlight replaces the 7-day free-signing workaround entirely
+**Conversion events.** Profile views now count (`view_count` via
+`increment_business_view`), but call / WhatsApp / website / directions taps
+are still bare anchors. `business_events` table per the Notion mission —
+prerequisite for the owner analytics dashboard, which is the revenue surface.
 
-Also needed and not started: **store screenshots**, and the **expo.dev
-organisation slug** for `owner` in `app.json` — without it builds go under a
-personal account rather than Ashavid.
+**Then:** RLS regression tests (everything in `02-security.md` is verified by
+hand only) · shared rate limiting (in-memory now) · service blueprints for
+the remaining 7 core journeys · mobile: review submission, My Notes list,
+in-app profile edit.
 
----
+## Decisions waiting on Farjad
 
-## Configure Supabase SMTP
+- Do edits to a published listing need re-review? (field lists in
+  `lib/moderation/change-review.ts` are the whole policy)
+- Should mobile ever carry the owner dashboard? (Apple 15–30% question —
+  decide before store accounts arrive)
+- Featured/ads pricing surface — nothing built; sell only after
+  `business_events` can prove value.
 
-Auth mail still uses Supabase's built-in sender and throttles to a handful per
-hour. Resend is already configured for everything else. Settings in
-`12-integrations.md`. **Do this before any real signup volume.**
+## Known data debt
 
----
-
-## Data
-
-**409 listings have no city.** They are live and appear on the province page,
-in categories and in search, but on no city page — which is where most local
-search traffic lands. This is the biggest single data win available.
-
-Suggested: an admin queue showing name, description and phone, asking only for
-a city. A person could clear a few hundred in an evening. No screen exists yet.
-
----
-
-## Mobile
-
-Auth, profile, save, private notes and review display are **done**. Remaining:
-
-1. Review **submission** form (display already works)
-2. A full "my notes" list — the count is shown, the list is not
-3. In-app profile editing (currently links to web)
-4. Device install or TestFlight — see `05-mobile.md`
-
----
-
-## Engineering debt
-
-**Rate limiting is in-memory.** Resets on deploy, not shared between instances.
-Now also guards the contact form, so this matters more than it did.
-Move to Supabase or Upstash.
-
-**Canadian A2P registration for Twilio** is unverified. Low volume works; watch
-for `30034`-class errors as signups grow.
-
-**Category artwork** is the weakest asset in the project. Hand it to the
-designer who did the logo.
-
-**No tests.** Not one. Everything in `02-security.md` was verified by hand
-against the live database, which does not protect against regressions. The RLS
-rules are the highest-value thing to cover.
-
-**`businesses.category` is free text**, not a foreign key to `categories`.
-
-**Two sources of truth for categories:** `lib/data/category-details.ts` has
-names that differ from the database rows. Slugs match; labels do not.
-
-**Drop `verification_codes.code`** — the old plaintext column, superseded by
-`code_hash`, nothing writes it.
-
-**Four ESLint errors** in `hooks/use-voice-recorder.ts` and
-`use-video-recorder.ts` — React Compiler memoization. Pre-existing, non-fatal,
-but those two hooks miss compiler optimisation.
-
-**`ai@7` with `@ai-sdk/openai@4`** — the versions do not match.
-
-**`globals.css` is ~2,700 lines**; `onboarding-form.tsx` is ~1,400.
-
-**`business_claims` / `business_memberships`** exist but the claim workflow was
-never built.
-
----
-
-## Product decisions waiting on you
-
-**Do edits to a published listing need re-review?** Currently: identity and
-trust fields always do, free text and links get an AI check, operational fields
-publish immediately. The field lists in
-`apps/web/lib/moderation/change-review.ts` are the entire policy and are a
-one-line change either way.
-
-**Should mobile ever carry the owner dashboard?** Currently web-only, which
-keeps every payment surface out of the app and away from Apple's in-app-purchase
-rules. Adding a "buy" button to the app would pull the whole thing under the
-15–30% commission.
-
-**Photography for category cards.** Real photos would look far better than any
-icon set. Needs licensed images.
+409 listings without a city · `businesses.category` is free text, no FK ·
+two sources of truth for category labels · `ai@7` vs `@ai-sdk/openai@4` ·
+four ESLint errors in recorder hooks · `globals.css` ~2.5k lines.

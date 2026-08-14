@@ -99,3 +99,64 @@ controls being hidden — hiding them hides the reason to create an account.
 **Still missing:** the review submission form (display works), a full
 "my notes" list, in-app profile editing (links to web), and email confirmation
 depends on the Supabase auth URLs being configured.
+
+---
+
+# Added 2026-08-14 (evening)
+
+## Verification & claims
+
+- Schema: `businesses.owner_user_id / verification_method / verified_at /
+  verified_until / verified_phone / verified_email /
+  verification_reminder_stage+sent_at`; `verification_codes` extended with
+  `business_id` and business types; plaintext `code` column dropped.
+- Logic lives in `apps/web/lib/verification/status.ts` (single source of
+  truth: states, 182-day window, `superseded` on contact change, Persian
+  digit folding) and `actions.ts` (claim by SMS to the listed number, daily
+  cap 5 listings/account, renewal re-runs the proof).
+- UI: `components/verification-badge.tsx`, `verification-renewal-banner.tsx`,
+  `/claim` route. Owner dashboard queries `created_by` OR `owner_user_id`.
+- Reminders: `/api/cron/verification-reminders`, daily 13:00 UTC via
+  `vercel.json` crons; stages 30/7/0 descending; **requires `CRON_SECRET`**
+  (timing-safe check; refuses to run unset). Wrapped in `withCronRun`.
+
+## First-party telemetry (replaced Sentry — cost)
+
+- `system_errors`: written by `reportQuietFailure` in
+  `lib/observability/report.ts` — never awaited, never throws. Kinds cover
+  email/SMS unconfigured+failed, `sms_carrier_rejected` (Twilio 30034 class
+  = A2P signal), reminder/cron failures, `request_error` via
+  `instrumentation.ts` `onRequestError`.
+- `cron_runs`: one row per run **including successes** — absence of recent
+  rows is the alert; `hoursSinceLastRun()` is the heartbeat read. Both
+  tables RLS-on, no policies (service-role only).
+
+## Profile views
+
+`businesses.view_count` + `increment_business_view(uuid)` SECURITY DEFINER
+function (the only anon write; no IP/user/timestamp recorded). Counted
+client-side by `components/business/view-counter.tsx` because the page is
+ISR-cached — server-side would count regenerations, not visitors.
+
+## Analytics
+
+`@vercel/analytics` in the root layout — cookieless, no consent banner.
+Search Console: registered (domain property). GA deliberately rejected.
+
+## Imagery pipeline
+
+`scripts/generate-category-images.py` (12 editorial photos) and
+`generate-city-images.py` (8 blue-hour city backgrounds) — OpenAI
+`gpt-image-2`, locked SYSTEM art-direction blocks, per-slug re-runs.
+Served as WebP from `public/images/{categories,cities}/`; masters in
+`charana-category-images/` (untracked). DB `categories.image_url` points at
+`.webp` (migration 20260828090000).
+
+## Mobile auth deep link
+
+Signup passes `emailRedirectTo: "charana://auth/confirmed"`; that screen
+parses fragment tokens, `setSession`s, greets by first name, CTA to profile.
+Custom scheme, not Universal Links (free signing can't hold the
+entitlement). **Requires `charana://**` in Supabase Redirect URLs.**
+Supabase dashboard work (SMTP, sender name, templates, URLs) documented in
+`13-supabase-email-templates.md` — pending Farjad.

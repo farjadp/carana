@@ -91,3 +91,89 @@ hotlinked. Corrected in the same session and since re-hosted.
 
 **Trusted `api.expo.dev` over the App Store** on which Expo Go version exists.
 Your screenshot was right.
+
+---
+
+# Session: 2026-08-14 (the long one)
+
+One conversation, morning to evening. The theme that emerged: **silent
+failure** — things that report success while doing nothing.
+
+## Infrastructure
+
+- **Auto-deploy had been dead a day.** Every git push failed on a `"//"` key
+  in `vercel.json` (the Git integration validates strictly; the CLI does
+  not). Production was quietly running from laptop deploys. Fixed; pipeline
+  since verified over many pushes.
+- Farjad set Twilio + Resend env vars; email and SMS became real.
+- Sentry was added, then **removed the same day** (price) and replaced with
+  first-party telemetry: `system_errors` (quiet failures via
+  `reportQuietFailure`) and `cron_runs` (heartbeat by presence — a job that
+  stops running writes nothing, so success is recorded too).
+- Vercel Web Analytics (cookieless, no consent banner needed); Search
+  Console registered by Farjad. GA rejected deliberately: cookie wall on a
+  trust product.
+
+## The verification system (core of the day)
+
+Two paths: `self_onboarded` (own email+phone proven) and `claimed` — SMS to
+the number **already published on the listing**; the claimant never chooses
+the destination, receiving the code *is* the proof. 182-day expiry; renewal
+re-runs the original proof; countdown public only in the last 30 days
+(owners always see it). Editing the proven phone/email **voids** the badge
+(`superseded`), with Persian-digit folding so RTL input doesn't void itself.
+`/claim` route built — it had linked to a 404 on every unclaimed profile.
+Reminder cron at 30/7/0 days, stage-bucketed so it can't nag; refuses to run
+without `CRON_SECRET` (unset — the remaining blocker).
+
+## Honesty purge
+
+Found and removed a family of UI lies: the home page called all 677 imported
+listings "تایید شده" with an **unconditional** chip under a heading claiming
+team review; category/city cards read `is_verified`, a column in no
+migration; the fallback category FAQ claimed "all reviewed"; "most visited"
+sorted by nonexistent `view_count` (section could never render — now backed
+by a real counter + `increment_business_view`); the report button still
+lies (open task). Rule recorded in 00-START-HERE.
+
+## Home page + imagery
+
+Home rebuilt as a discovery surface: shared `BusinessCard` (whole card is
+the link, CTA «دیدن اطلاعات و تماس»), newest + most-visited sections, city
+cards with generated blue-hour photos, app section with a **live miniature
+of the real app UI** (first version — dead phone on wallpaper — rejected),
+nav decluttered. Category art: after 4 failed art directions (icon clichés →
+unreadable medallions → pixel edges → photography too stock), landed on
+editorial object photography, Iranian identity in art direction not
+subjects. 12 categories + 8 cities, one campaign, WebP (24 MB → <1 MB).
+Scripts in `scripts/generate-*.py` with locked SYSTEM blocks.
+
+## Mobile
+
+Phone build unblocked through the full error chain: signing (Apple ID),
+**iOS platform download** (the "ineligible destination" trap — gotcha
+recorded), react-native-svg 15.13→15.15.4 (Fabric API mismatch), prebuild,
+Developer Mode. **App now runs on Farjad's iPhone.** First real signup
+exposed the auth-email chain (junk / "Supabase Auth" / English / localhost
+link) → `charana://auth/confirmed` deep-link welcome screen built; RTL
+branded templates written (`docs/13`); dashboard settings documented and
+waiting on Farjad.
+
+## Process
+
+Notion Mission Control became the operational board: ~50 missions, `Hands`
+column (Farjad/Claude/Both), per-task instructions for every Farjad-owned
+card, Done log backfilled from the whole git history. Standing rule in
+memory: all work is recorded there.
+
+## What I got wrong today
+
+- Audited the badge system across profile/category/city surfaces and
+  declared it clean — **without checking the home page**, which was the one
+  surface lying. Lesson recorded: enumerate from sitemap.xml.
+- Called the deploy pipeline broken when it was merely slow; the empty
+  re-trigger commit was unnecessary.
+- Four rounds of image art direction rejected before understanding the
+  actual requirement (identity in direction, not in subjects).
+- Left the events section's `view_count` assumption unverified for hours
+  while it silently rendered nothing.

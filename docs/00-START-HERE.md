@@ -1,52 +1,44 @@
 # čārana — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-25
+**Written:** 2026-08-24 · **Updated:** 2026-08-14 (evening)
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://charana.ca
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
+**Task board:** Notion → 🧿 Charana → Mission Control (the live source of
+truth for what is open, who owns it, and per-task instructions). Standing
+rule: every piece of work — planned, in progress, done — is also recorded
+there, not only in git.
 
 ---
 
 ## Where things stand, in sixty seconds
 
-The web app is **live and working** at charana.ca with 677 published business
-listings. The mobile app **runs on the iOS simulator** but not yet on a physical
-phone — see `05-mobile.md`, there is one blocker with three ways round it.
-
-Everything is committed and pushed. Nothing is half-finished on disk.
+The web app is **live** at charana.ca with 677 published listings, real
+photography, working email + SMS, cookieless analytics, and first-party error
+telemetry. The mobile app **runs on Farjad's physical iPhone** (free signing,
+7-day builds). The verification system — the product's core trust mechanic —
+is built end to end and needs its first real-world test.
 
 | Area | State |
 |---|---|
-| Web (Next.js 16) | Live on charana.ca, deploying cleanly from `main` |
-| Database (Supabase) | 16 migrations applied, history in sync, RLS hardened |
-| Directory data | 677 listings imported, categorised, published |
-| Mobile (Expo SDK 57) | Builds and runs on simulator; device install prepared, not done |
+| Web (Next.js 16) | Live, auto-deploying from `main` (pipeline verified) |
+| Search | **Does not exist.** Hero box is a prop. The open P0. |
+| Verification | Built: self-onboarded + SMS-claim paths, 6-month expiry, renewal cron (needs `CRON_SECRET`), badges honest everywhere |
+| Claim flow | `/claim` live — SMS to the number already on the listing |
+| Database | 20 migrations, history in sync, RLS hardened, telemetry tables (`system_errors`, `cron_runs`), `view_count` live |
+| Imagery | 12 category photographs + 8 city backgrounds, one campaign, WebP |
+| Email | Resend live; **Supabase auth mail still needs dashboard SMTP/templates/URLs** → `13-…` |
+| SMS | Twilio live (rotate the leaked auth token; balance low) |
+| Mobile | Runs on device; email confirmation deep-links into the app (`charana://auth/confirmed`) |
 | App Store / Play | Blocked on D-U-N-S for Ashavid Inc. |
-| Brand assets | **Done** — Hidden Č identity applied across web and mobile |
-| Email | **Live** via Resend from noreply@charana.ca |
-| SMS | **Live** via Twilio from the Ontario number |
-| Mobile accounts | Login, signup, profile, save, private notes, reviews |
-
----
+| Analytics | Vercel Web Analytics (cookieless) + Search Console registered |
 
 ## What to do first when you wake up
 
-Three things are worth ten minutes each, in this order:
-
-**1. Configure Supabase auth URLs.** Signup and password reset are broken in
-production until this is done. It is four fields in a dashboard.
-→ `04-deployment.md`, "Supabase auth configuration"
-
-**2. Point carana.ca at Vercel.** The redirect is already configured on the
-Vercel side; the domain just does not resolve yet. Nameservers at the registrar.
-→ `04-deployment.md`, "Domains"
-
-**3. Delete `GEMINI_API_KEY` from Vercel.** Nothing in the codebase reads it.
-An unused key is only ever a liability.
-
-After that, pick from `08-open-tasks.md`.
-
----
+1. Read `08-open-tasks.md` — it now begins with the one Supabase dashboard
+   session that fixes real signups, then the code queue (search is the P0).
+2. Open the Notion board for the live picture before starting anything.
+3. `09-gotchas.md` before debugging **anything** — every entry cost hours.
 
 ## Reading order
 
@@ -58,18 +50,23 @@ After that, pick from `08-open-tasks.md`.
 | `04-deployment.md` | Deploying, or something is broken in production |
 | `05-mobile.md` | Picking the mobile work back up |
 | `06-data-import.md` | Importing another directory export |
-| `07-design.md` | Brand, colours, icons, and the logo brief |
+| `07-design.md` | Brand, colours, the photography system, logo brief |
 | `08-open-tasks.md` | Deciding what to do next |
-| `09-gotchas.md` | **Read this one.** It is the traps that cost hours. |
-| `12-integrations.md` | Email, SMS, brand and the mobile account journey |
-| `10-accounts.md` | Setting up accounts and credentials |
+| `09-gotchas.md` | **Read this one.** The traps that cost hours. |
+| `10-accounts.md` | Accounts and credentials |
+| `11-session-log.md` | How we got here, session by session |
+| `12-integrations.md` | Email, SMS, verification, telemetry, analytics |
+| `13-supabase-email-templates.md` | Paste-ready auth email templates |
 
----
+## Working style (learned, do not relearn)
 
-## One honest note
-
-The **category artwork** is mine and is the weakest thing here — it took three
-attempts and is adequate rather than good. Hand-coding SVG paths works for
-geometry and badly for illustration. The logo was produced by a designer and is
-in `apps/web/public/brand/`; the category art deserves the same treatment.
-`07-design.md` has the brief.
+- Act without asking; deliver, then report. Farjad reviews outcomes.
+- Never hand-draw illustrations. Imagery goes through the OpenAI image API
+  scripts in `scripts/` (category, city) with their locked art-direction
+  blocks — probe 1–3 images before a batch.
+- Honesty in UI is a hard rule here: no badge, count, button or claim that
+  is not backed by real state. Several shipped violations were found and
+  removed (unconditional "تایید شده" chips, fake report toast, "reviewed by
+  team" copy). Check for this class when reviewing anything.
+- When auditing "the site", enumerate routes from `sitemap.xml` — the home
+  page was once the only surface not checked, and it was the one that lied.
