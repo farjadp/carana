@@ -84,6 +84,7 @@ const secureStorageAdapter = {
  */
 const isServer = typeof window === "undefined";
 
+
 const noopStorage = {
   getItem: async () => null,
   setItem: async () => {},

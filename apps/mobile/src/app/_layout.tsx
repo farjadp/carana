@@ -9,6 +9,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { I18nManager } from "react-native";
 
+import { AuthProvider } from "../context/auth";
 import { colors } from "../theme";
 
 // The whole product is Persian; force RTL rather than following the device.
@@ -16,7 +17,7 @@ I18nManager.allowRTL(true);
 
 export default function RootLayout() {
   return (
-    <>
+    <AuthProvider>
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
@@ -26,7 +27,10 @@ export default function RootLayout() {
       >
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="business/[slug]" options={{ presentation: "card" }} />
+        {/* Auth slides up over whatever the user was doing, so signing in
+            never loses their place in the directory. */}
+        <Stack.Screen name="auth" options={{ presentation: "modal" }} />
       </Stack>
-    </>
+    </AuthProvider>
   );
 }

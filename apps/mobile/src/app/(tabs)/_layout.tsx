@@ -5,7 +5,7 @@
 // Env / Identity: Presentational.
 // ============================================================================
 import { Tabs } from "expo-router";
-import { Building2, Home, MapPin, Search } from "lucide-react-native";
+import { Building2, Home, MapPin, Search, UserRound } from "lucide-react-native";
 
 import { colors } from "../../theme";
 
@@ -52,6 +52,13 @@ export default function TabsLayout() {
         options={{
           title: "جستجو",
           tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "حساب من",
+          tabBarIcon: ({ color, size }) => <UserRound color={color} size={size} />,
         }}
       />
     </Tabs>

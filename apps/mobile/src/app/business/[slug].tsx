@@ -25,9 +25,12 @@ import {
   MessageCircle,
   Navigation,
   Phone,
+  Star,
 } from "lucide-react-native";
 
+import { InteractionBar } from "../../components/interaction-bar";
 import { getBusinessBySlug, type BusinessDetail } from "../../lib/businesses";
+import { listPublishedReviews, type PublicReview } from "../../lib/interactions";
 import { colors, radius, space, type } from "../../theme";
 
 const DAY_LABELS: Record<string, string> = {
@@ -40,13 +43,16 @@ export default function BusinessScreen() {
   const router = useRouter();
 
   const [business, setBusiness] = useState<BusinessDetail | null>(null);
+  const [reviews, setReviews] = useState<PublicReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        setBusiness(await getBusinessBySlug(decodeURIComponent(slug ?? "")));
+        const found = await getBusinessBySlug(decodeURIComponent(slug ?? ""));
+        setBusiness(found);
+        if (found) setReviews(await listPublishedReviews(found.id));
       } catch (err) {
         setError(err instanceof Error ? err.message : "خطای ناشناخته");
       } finally {
@@ -152,6 +158,8 @@ export default function BusinessScreen() {
           ) : null}
         </View>
 
+        <InteractionBar businessId={business.id} businessName={business.name} />
+
         {business.description ? (
           <Section title="درباره">
             <Text style={styles.body}>{business.description}</Text>
@@ -226,6 +234,35 @@ export default function BusinessScreen() {
             ))}
           </Section>
         ) : null}
+
+        <Section title={`نظرات کاربران${reviews.length ? ` (${reviews.length})` : ""}`}>
+          {reviews.length === 0 ? (
+            <Text style={styles.noReviews}>
+              هنوز نظری ثبت نشده است. اولین نفر باشید.
+            </Text>
+          ) : (
+            reviews.map((r) => (
+              <View key={r.id} style={styles.review}>
+                <View style={styles.reviewHead}>
+                  <View style={styles.reviewStars}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star
+                        key={n}
+                        size={13}
+                        color={colors.annabi}
+                        fill={n <= r.public_rating ? colors.annabi : "transparent"}
+                      />
+                    ))}
+                  </View>
+                  {r.public_title ? (
+                    <Text style={styles.reviewTitle}>{r.public_title}</Text>
+                  ) : null}
+                </View>
+                <Text style={styles.reviewBody}>{r.public_body}</Text>
+              </View>
+            ))
+          )}
+        </Section>
 
         <View style={{ height: space.xl }} />
       </ScrollView>
@@ -348,6 +385,13 @@ const styles = StyleSheet.create({
 
   infoRow: { flexDirection: "row-reverse", alignItems: "center", gap: space.sm },
   infoValue: { ...type.body, flex: 1, textAlign: "right" },
+
+  noReviews: { ...type.muted, textAlign: "center", paddingVertical: space.sm, lineHeight: 20 },
+  review: { gap: 5, paddingBottom: space.sm },
+  reviewHead: { flexDirection: "row-reverse", alignItems: "center", gap: space.sm },
+  reviewStars: { flexDirection: "row-reverse", gap: 2 },
+  reviewTitle: { flex: 1, fontSize: 14, fontWeight: "700", color: colors.text, textAlign: "right" },
+  reviewBody: { ...type.body, textAlign: "right" },
 
   branch: { gap: 2 },
   branchName: { fontSize: 14, fontWeight: "700", color: colors.text, textAlign: "right" },
