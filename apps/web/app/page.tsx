@@ -206,7 +206,7 @@ export default async function HomePage() {
                   className="group relative aspect-[4/3] overflow-hidden rounded-2xl"
                 >
                   <Image
-                    src={`/images/cities/${city.slug}.png`}
+                    src={`/images/cities/${city.slug}.webp`}
                     alt=""
                     fill
                     sizes="(max-width: 768px) 50vw, 25vw"

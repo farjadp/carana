@@ -1,17 +1,25 @@
 [
   {
-    "slug": "medical-clinic",
-    "path": "charana-category-images/round-2/category-medical-clinic.png",
-    "bytes": 2023142,
-    "seconds": 86.7,
+    "slug": "events",
+    "path": "charana-category-images/round-2/category-events.png",
+    "bytes": 2456820,
+    "seconds": 92.1,
     "revised_prompt": null,
     "status": "ok"
   },
   {
-    "slug": "digital-it",
-    "path": "charana-category-images/round-2/category-digital-it.png",
-    "bytes": 2019145,
-    "seconds": 87.4,
+    "slug": "beauty-wellness",
+    "path": "charana-category-images/round-2/category-beauty-wellness.png",
+    "bytes": 2010063,
+    "seconds": 93.0,
+    "revised_prompt": null,
+    "status": "ok"
+  },
+  {
+    "slug": "iranian-grocery",
+    "path": "charana-category-images/round-2/category-iranian-grocery.png",
+    "bytes": 2219991,
+    "seconds": 97.4,
     "revised_prompt": null,
     "status": "ok"
   }

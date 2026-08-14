@@ -25,7 +25,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "restaurant-cafe",
     name: "رستوران، کافه و غذا",
     icon: "☕️",
-    imageUrl: "/images/categories/restaurant-cafe.svg",
+    imageUrl: "/images/categories/restaurant-cafe.webp",
     description: "معرفی بهترین رستوران‌های ایرانی، کافه‌ها، شیرینی‌فروشی‌ها و خدمات کترینگ در شهرها و استان‌های کانادا.",
     subcategories: [
       { slug: "kabab", label: "کبابی و سنتی" },
@@ -84,7 +84,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "medical-clinic",
     name: "پزشکی، دندانپزشکی و سلامت",
     icon: "🩺",
-    imageUrl: "/images/categories/medical-clinic.svg",
+    imageUrl: "/images/categories/medical-clinic.webp",
     description: "دایرکتوری پزشکان خانواده، دندانپزشکان، روانشناسان و کلینیک‌های سلامت فارسی‌زبان در کانادا.",
     subcategories: [
       { slug: "family_doc", label: "پزشک خانواده" },
@@ -141,7 +141,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "legal-immigration",
     name: "حقوقی و وکالت",
     icon: "⚖️",
-    imageUrl: "/images/categories/legal-immigration.svg",
+    imageUrl: "/images/categories/legal-immigration.webp",
     description: "وکلا و مشاوران رسمی مهاجرت کانادا (RCIC)، وکلای دادگستری، حقوق تجارت، خانواده و املاک.",
     subcategories: [
       { slug: "immigration_lawyer", label: "وکیل مهاجرت" },
@@ -198,7 +198,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "real-estate-mortgage",
     name: "املاک و وام",
     icon: "🏠",
-    imageUrl: "/images/categories/real-estate-mortgage.svg",
+    imageUrl: "/images/categories/real-estate-mortgage.webp",
     description: "مشاوران املاک باسابقه، متخصصان وام مسکن (Mortgage Specialists)، اجاره و املاک تجاری در کانادا.",
     subcategories: [
       { slug: "realtor", label: "مشاور خرید و فروش املاک" },
@@ -246,7 +246,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "accounting-tax",
     name: "مالی، حسابداری و بیمه",
     icon: "📊",
-    imageUrl: "/images/categories/accounting-tax.svg",
+    imageUrl: "/images/categories/accounting-tax.webp",
     description: "حسابداران رسمی (CPA)، مشاوران مالیاتی شخصی و شرکتی، دفاتر بیمه عمر و سرمایه‌گذاری.",
     subcategories: [
       { slug: "personal_tax", label: "مالیات شخصی (Personal Tax)" },
@@ -294,7 +294,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "beauty-wellness",
     name: "آرایشگری و زیبایی",
     icon: "✨",
-    imageUrl: "/images/categories/beauty-wellness.svg",
+    imageUrl: "/images/categories/beauty-wellness.webp",
     description: "سالن‌های زیبایی، آرایشگاه‌های زنانه و مردانه، خدمات پوست، ناخن، لیزر و ماساژ.",
     subcategories: [
       { slug: "hair_salon", label: "آرایشگاه و کوپ مو" },
@@ -325,7 +325,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "iranian-grocery",
     name: "فروشگاه و خرده‌فروشی",
     icon: "🛒",
-    imageUrl: "/images/categories/iranian-grocery.svg",
+    imageUrl: "/images/categories/iranian-grocery.webp",
     description: "سوپرمارکت‌های ایرانی، کتاب‌فروشی، صنایع دستی، خشکبار و فروشگاه‌های آنلاین بسته‌های ایرانی.",
     subcategories: [
       { slug: "supermarket", label: "سوپرمارکت مواد غذایی" },
@@ -354,7 +354,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "education",
     name: "آموزش و تدریس",
     icon: "📚",
-    imageUrl: "/images/categories/education.svg",
+    imageUrl: "/images/categories/education.webp",
     description: "آموزش زبان انگلیسی و فرانسوی، آموزش موسیقی، کنکور، ریاضیات و کلاس‌های تقویتی کودکان.",
     subcategories: [
       { slug: "language", label: "آموزش زبان (IELTS / CELPIP)" },
@@ -383,7 +383,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     slug: "skilled-trades",
     name: "ساختمان و تاسیسات",
     icon: "🔧",
-    imageUrl: "/images/categories/skilled-trades.svg",
+    imageUrl: "/images/categories/skilled-trades.webp",
     description: "خدمات لوله‌کشی، برق‌کاری، بازسازی منزل، نقاشی ساختمان و خدمات فنی فوری.",
     subcategories: [
       { slug: "renovation", label: "بازسازی و دکوراسیون" },
@@ -409,11 +409,97 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetailConfig> = {
     ],
   },
 
+  "automotive": {
+    slug: "automotive",
+    name: "خودرو",
+    icon: "🚗",
+    imageUrl: "/images/categories/automotive.webp",
+    description: "تعمیرگاه، مکانیک، صافکاری، خرید و فروش و بیمه خودرو نزد کسب‌وکارهای ایرانی کانادا.",
+    subcategories: [
+      { slug: "mechanic", label: "مکانیکی و تعمیرگاه" },
+      { slug: "bodyshop", label: "صافکاری و نقاشی" },
+      { slug: "dealership", label: "خرید و فروش خودرو" },
+      { slug: "detailing", label: "دیتیلینگ و شست‌وشو" },
+      { slug: "tires", label: "لاستیک و تعویض فصلی" },
+      { slug: "insurance", label: "بیمه خودرو" },
+    ],
+    decisionGuide: {
+      title: "راهنمای انتخاب تعمیرگاه و خدمات خودرو",
+      tips: [
+        {
+          title: "برآورد کتبی بگیرید",
+          desc: "پیش از شروع کار، برآورد نوشته‌شده با تفکیک قطعات و دستمزد بخواهید. در انتاریو مشتری حق دارد برآورد کتبی دریافت کند و صورتحساب نهایی نباید بیش از ده درصد از آن بیشتر شود.",
+        },
+        {
+          title: "قطعه‌ی اصلی یا بازار آزاد",
+          desc: "بپرسید قطعه اورجینال است یا بازار آزاد. هر دو می‌توانند انتخاب درستی باشند، ولی باید بدانید بابت کدام پول می‌دهید.",
+        },
+        {
+          title: "زمستان کانادا را دست‌کم نگیرید",
+          desc: "لاستیک زمستانی در کبک اجباری است و در بیشتر استان‌ها تخفیف بیمه دارد. برای نوبت پاییز زود اقدام کنید.",
+        },
+      ],
+    },
+    faqs: [
+      {
+        question: "آیا تعمیرگاه می‌تواند بدون اجازه‌ی من کار اضافه انجام دهد؟",
+        answer: "خیر. هر کاری خارج از برآورد اولیه نیاز به تایید شما دارد. اگر با صورتحسابی بیش از برآورد روبه‌رو شدید، می‌توانید به سازمان حمایت از مصرف‌کننده‌ی استان خود شکایت کنید.",
+      },
+      {
+        question: "برای فروش خودرو در کانادا چه مدارکی لازم است؟",
+        answer: "معمولاً سند مالکیت و بسته‌ی اطلاعات خودرو (UVIP در انتاریو). قوانین در هر استان متفاوت است، پس پیش از معامله بررسی کنید.",
+      },
+    ],
+  },
+
+  "digital-it": {
+    slug: "digital-it",
+    name: "دیجیتال و فناوری",
+    icon: "💻",
+    imageUrl: "/images/categories/digital-it.webp",
+    description: "طراحی وب، اپلیکیشن، شبکه، پشتیبانی فنی، دیجیتال مارکتینگ و خدمات فناوری اطلاعات.",
+    subcategories: [
+      { slug: "web", label: "طراحی و توسعه وب" },
+      { slug: "mobile", label: "اپلیکیشن موبایل" },
+      { slug: "marketing", label: "دیجیتال مارکتینگ و سئو" },
+      { slug: "it_support", label: "پشتیبانی فنی و شبکه" },
+      { slug: "design", label: "طراحی گرافیک و برند" },
+      { slug: "data", label: "داده و اتوماسیون" },
+    ],
+    decisionGuide: {
+      title: "راهنمای سفارش پروژه‌های دیجیتال",
+      tips: [
+        {
+          title: "مالکیت کد و دسترسی‌ها را از اول روشن کنید",
+          desc: "دامنه، هاست، مخزن کد و حساب‌های تبلیغاتی باید به نام شما باشند، نه به نام مجری. این رایج‌ترین جایی است که کسب‌وکارها گیر می‌افتند.",
+        },
+        {
+          title: "پروژه را مرحله‌ای ببندید",
+          desc: "به‌جای یک قرارداد بزرگ، کار را به مراحل کوچک با خروجی مشخص تقسیم کنید. هم ریسک کمتر است هم پیشرفت قابل سنجش.",
+        },
+        {
+          title: "بپرسید بعد از تحویل چه می‌شود",
+          desc: "پشتیبانی، به‌روزرسانی و رفع اشکال باید در قرارداد باشند. سایتی که کسی نگهداری‌اش نکند ظرف یک سال آسیب‌پذیر می‌شود.",
+        },
+      ],
+    },
+    faqs: [
+      {
+        question: "هزینه‌ی طراحی یک وب‌سایت در کانادا چقدر است؟",
+        answer: "بسته به دامنه‌ی کار بسیار متفاوت است. مهم‌تر از قیمت، شفاف بودن این است که دقیقاً چه چیزی تحویل داده می‌شود و مالکیتش با کیست.",
+      },
+      {
+        question: "آیا لازم است مجری در همان شهر من باشد؟",
+        answer: "برای کار نرم‌افزاری معمولاً نه. برای پشتیبانی شبکه و سخت‌افزار، حضور محلی مزیت واقعی دارد.",
+      },
+    ],
+  },
+
   "events": {
     slug: "events",
     name: "رویدادها و تشریفات",
     icon: "🎟️",
-    imageUrl: "/images/categories/events.svg",
+    imageUrl: "/images/categories/events.webp",
     description: "کنسرت‌ها، جُنگ‌های خنده، همایش‌های تجاری، نمایشگاه‌ها و شب‌های شعر ایرانی در کانادا.",
     subcategories: [
       { slug: "concert", label: "کنسرت و اجرای زنده" },
@@ -444,7 +530,7 @@ export function getCategoryDetail(slug: string): CategoryDetailConfig {
     slug: slug,
     name: "دسته‌بندی مشاغل",
     icon: "🏢",
-    imageUrl: "/images/categories/skilled-trades.svg",
+    imageUrl: "",
     description: "لیست جامع کسب‌وکارهای ایرانیان کانادا در این دسته‌بندی.",
     subcategories: [
       { slug: "general", label: "خدمات عمومی" },
@@ -457,7 +543,10 @@ export function getCategoryDetail(slug: string): CategoryDetailConfig {
       ]
     },
     faqs: [
-      { question: "آیا کسب‌وکارهای این دسته تاییدشده هستند؟", answer: "بله، تمام موارد توسط تیم پشتیبانی بررسی اولیه می‌شوند." }
+      {
+        question: "آیا کسب‌وکارهای این دسته تاییدشده هستند؟",
+        answer: "بخشی از آگهی‌ها را چارانا گردآوری کرده و صاحبانشان هنوز مالکیت را احراز نکرده‌اند. آگهی‌هایی که نشان تایید دارند، صاحبشان تسلطش بر شماره تماس منتشرشده را اثبات کرده است.",
+      },
     ]
   };
 }
