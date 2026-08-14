@@ -333,71 +333,196 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 9. The app */}
-        <section className="relative overflow-hidden bg-[#14213d] px-4 py-20 text-[#f6f1e8]">
-          {/* Stepped bands: the Achaemenid parapet rhythm from the brand book,
-              used as texture rather than as an illustrated monument. */}
+        {/* 9. The app — a working miniature of the real UI, not a dead frame */}
+        <section className="relative overflow-hidden bg-[#14213d] px-4 py-24 text-[#f6f1e8]">
+          <style>{`
+            @keyframes app-float { 0%,100% { transform: rotate(-5deg) translateY(0); } 50% { transform: rotate(-5deg) translateY(-10px); } }
+            @keyframes chip-float-a { 0%,100% { transform: rotate(-8deg) translateY(0); } 50% { transform: rotate(-8deg) translateY(-7px); } }
+            @keyframes chip-float-b { 0%,100% { transform: rotate(6deg) translateY(0); } 50% { transform: rotate(6deg) translateY(-12px); } }
+            @media (prefers-reduced-motion: reduce) {
+              .app-float, .chip-float-a, .chip-float-b { animation: none !important; }
+            }
+          `}</style>
+
+          {/* One warm glow behind the phone instead of wallpaper texture. */}
+          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[640px] w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#800000]/25 blur-[130px] md:left-[28%]" />
+          {/* A single stepped horizon along the base — the parapet drawn once,
+              as a line, not repeated as a pattern. */}
           <div
-            className="pointer-events-none absolute inset-0 opacity-[0.07]"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-16 opacity-[0.12]"
             style={{
               backgroundImage:
-                "repeating-linear-gradient(90deg, #f6f1e8 0 14px, transparent 14px 28px), repeating-linear-gradient(0deg, #f6f1e8 0 14px, transparent 14px 56px)",
+                "linear-gradient(to top, #f6f1e8 0, #f6f1e8 100%)",
+              maskImage:
+                "repeating-linear-gradient(90deg, black 0 48px, transparent 48px 96px), linear-gradient(to top, black 0 16px, transparent 16px 32px, black 32px 48px, transparent 48px)",
+              WebkitMaskComposite: "source-in",
+              maskComposite: "intersect",
             }}
           />
 
-          <div className="relative mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-[1fr_auto]">
-            <div>
-              <span className="mb-4 inline-block rounded-full bg-[#c9a24b]/20 px-3 py-1 text-xs font-bold text-[#c9a24b]">
-                به‌زودی
+          <div className="relative mx-auto grid max-w-6xl items-center gap-16 md:grid-cols-2">
+            {/* The phone: the actual app, in miniature. Built from the same
+                pieces the product ships — search, cards, the verified badge —
+                because the app exists and this is what it looks like. */}
+            <div className="relative mx-auto w-[270px]">
+              <div
+                className="app-float relative rounded-[2.6rem] border-[6px] border-[#0d1730] bg-[#0d1730] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)]"
+                style={{ animation: "app-float 7s ease-in-out infinite" }}
+                dir="rtl"
+              >
+                <div className="overflow-hidden rounded-[2.2rem] bg-[#f6f1e8]">
+                  {/* status strip + notch */}
+                  <div className="relative flex h-8 items-center justify-center bg-[#f6f1e8]">
+                    <div className="h-5 w-24 rounded-full bg-[#0d1730]" />
+                  </div>
+
+                  {/* app header */}
+                  <div className="flex items-center justify-between px-4 pb-2 pt-1">
+                    <span className="text-lg font-black text-[#800000]">چارانا</span>
+                    <span className="rounded-full bg-[#14213d]/5 px-2 py-1 text-[9px] font-bold text-[#14213d]">تورنتو ▾</span>
+                  </div>
+
+                  {/* search */}
+                  <div className="mx-4 mb-3 flex items-center gap-2 rounded-xl bg-white px-3 py-2.5 shadow-sm">
+                    <Search className="h-3.5 w-3.5 text-[#5f6472]" />
+                    <span className="text-[10px] text-[#5f6472]">دنبال چه کسب‌وکاری می‌گردی؟</span>
+                  </div>
+
+                  {/* category row */}
+                  <div className="mb-3 flex gap-1.5 px-4">
+                    {["رستوران", "پزشک", "وکیل", "املاک"].map((c, i) => (
+                      <span
+                        key={c}
+                        className={`rounded-full px-2.5 py-1 text-[9px] font-bold ${
+                          i === 0 ? "bg-[#800000] text-[#f6f1e8]" : "bg-white text-[#14213d]"
+                        }`}
+                      >
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* two mini business cards */}
+                  {[
+                    { name: "رستوران شب‌های شیراز", cat: "رستوران و کافه", badge: true },
+                    { name: "دکتر آرین مهر", cat: "دندانپزشک", badge: false },
+                  ].map((b) => (
+                    <div key={b.name} className="mx-4 mb-2.5 rounded-xl bg-white p-3 shadow-sm">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#f6f1e8] text-[11px] font-black text-[#800000]">
+                          {b.name.slice(0, 1)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[11px] font-bold text-[#14213d]">{b.name}</p>
+                          <p className="text-[9px] text-[#5f6472]">{b.cat}</p>
+                        </div>
+                        <Star className="h-3.5 w-3.5 shrink-0 text-[#c9a24b]" fill="#c9a24b" />
+                      </div>
+                      {b.badge && (
+                        <span className="mt-2 inline-flex items-center gap-1 rounded-md bg-[#800000] px-1.5 py-0.5 text-[8px] font-bold text-[#f6f1e8]">
+                          <ShieldCheck className="h-2.5 w-2.5" /> مالکیت احرازشده
+                        </span>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* bottom nav */}
+                  <div className="mt-1 flex items-center justify-around border-t border-[#14213d]/8 bg-white px-4 py-2.5">
+                    <Search className="h-4 w-4 text-[#800000]" />
+                    <Bookmark className="h-4 w-4 text-[#5f6472]" />
+                    <MessageSquare className="h-4 w-4 text-[#5f6472]" />
+                    <div className="h-4 w-4 rounded-full bg-[#5f6472]/30" />
+                  </div>
+                </div>
+              </div>
+
+              {/* floating proof chips */}
+              <div
+                className="chip-float-a absolute -right-14 top-14 rounded-xl bg-[#f6f1e8] px-3 py-2 text-[10px] font-black text-[#14213d] shadow-xl"
+                style={{ animation: "chip-float-a 5.5s ease-in-out infinite" }}
+              >
+                +۶۷۷ کسب‌وکار
+              </div>
+              <div
+                className="chip-float-b absolute -left-16 bottom-24 flex items-center gap-1 rounded-xl bg-[#800000] px-3 py-2 text-[10px] font-black text-[#f6f1e8] shadow-xl"
+                style={{ animation: "chip-float-b 6.5s ease-in-out infinite" }}
+              >
+                <ShieldCheck className="h-3 w-3" /> تایید با پیامک
+              </div>
+            </div>
+
+            {/* copy */}
+            <div dir="rtl">
+              <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#c9a24b]/40 bg-[#c9a24b]/10 px-4 py-1.5 text-xs font-bold text-[#c9a24b]">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#c9a24b] opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#c9a24b]" />
+                </span>
+                اپلیکیشن ساخته شده — در مسیر اپ‌استور
               </span>
 
-              <h2 className="mb-4 text-3xl font-black leading-tight md:text-4xl">
-                چارانا همیشه همراهت
+              <h2 className="mb-5 text-3xl font-black leading-[1.25] md:text-5xl">
+                چارانا توی جیبت،
+                <br />
+                <span className="text-[#c9a24b]">هرجای کانادا که باشی</span>
               </h2>
 
-              <p className="mb-8 max-w-xl leading-relaxed text-[#f6f1e8]/75">
-                کسب‌وکارهای اطرافت را پیدا کن، ذخیره کن و یادداشت‌های خصوصی‌ات را
-                نگه دار. اپلیکیشن ساخته شده و در حال آماده‌سازی برای انتشار در
-                اپ‌استور و گوگل‌پلی است.
-              </p>
+              <ul className="mb-9 space-y-4 text-[#f6f1e8]/80">
+                <li className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f6f1e8]/10">
+                    <Bookmark className="h-4 w-4 text-[#c9a24b]" />
+                  </span>
+                  <span className="leading-relaxed">
+                    کسب‌وکارها را ذخیره کن و لیست «می‌خواهم بروم» بساز
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f6f1e8]/10">
+                    <MessageSquare className="h-4 w-4 text-[#c9a24b]" />
+                  </span>
+                  <span className="leading-relaxed">
+                    یادداشت خصوصی بنویس — فقط خودت می‌بینی، حتی ما هم نه
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f6f1e8]/10">
+                    <ShieldCheck className="h-4 w-4 text-[#c9a24b]" />
+                  </span>
+                  <span className="leading-relaxed">
+                    نشان تایید یعنی مالکیت با پیامک به شماره‌ی خود آگهی اثبات شده
+                  </span>
+                </li>
+              </ul>
 
-              <div className="flex flex-wrap gap-3">
-                {/* Deliberately not links. The app is built but not published,
-                    and a store button that goes nowhere is the same broken
-                    promise as a search box that does not search. When the
-                    listings are live, APP_LIVE flips and these become real. */}
+              <div className="flex flex-wrap items-center gap-3">
                 {APP_LIVE ? (
                   <>
-                    <Link href={APP_STORE_URL} className="rounded-xl bg-[#f6f1e8] px-6 py-3 font-bold text-[#14213d]">
+                    <Link href={APP_STORE_URL} className="rounded-2xl bg-[#f6f1e8] px-7 py-3.5 font-bold text-[#14213d] transition hover:-translate-y-0.5">
                       App Store
                     </Link>
-                    <Link href={PLAY_STORE_URL} className="rounded-xl bg-[#f6f1e8] px-6 py-3 font-bold text-[#14213d]">
+                    <Link href={PLAY_STORE_URL} className="rounded-2xl bg-[#f6f1e8] px-7 py-3.5 font-bold text-[#14213d] transition hover:-translate-y-0.5">
                       Google Play
                     </Link>
                   </>
                 ) : (
+                  /* Not links on purpose: the app is on no store yet, and a
+                     store button that goes nowhere is the same broken promise
+                     as a search box that does not search. */
                   <>
-                    <span className="cursor-default rounded-xl border border-[#f6f1e8]/25 px-6 py-3 font-bold text-[#f6f1e8]/50">
-                      App Store — به‌زودی
-                    </span>
-                    <span className="cursor-default rounded-xl border border-[#f6f1e8]/25 px-6 py-3 font-bold text-[#f6f1e8]/50">
-                      Google Play — به‌زودی
+                    {["App Store", "Google Play"].map((store) => (
+                      <span
+                        key={store}
+                        className="flex cursor-default flex-col items-center rounded-2xl border border-[#f6f1e8]/15 bg-[#f6f1e8]/5 px-7 py-2.5 backdrop-blur-sm"
+                      >
+                        <span className="text-[10px] text-[#f6f1e8]/50">به‌زودی در</span>
+                        <span className="font-bold text-[#f6f1e8]/85" dir="ltr">{store}</span>
+                      </span>
+                    ))}
+                    <span className="text-sm text-[#f6f1e8]/55">
+                      تا آن روز، همین سایت روی موبایل کامل کار می‌کند
                     </span>
                   </>
                 )}
-              </div>
-
-              <p className="mt-6 text-sm text-[#f6f1e8]/60">
-                تا آن موقع، همه‌ی امکانات در همین سایت روی موبایل کار می‌کند.
-              </p>
-            </div>
-
-            {/* A device outline built from brand geometry rather than a
-                photograph of a phone with a fake screenshot inside it. */}
-            <div className="mx-auto hidden h-[380px] w-[190px] shrink-0 rounded-[2rem] border-4 border-[#f6f1e8]/20 bg-[#800000]/20 p-3 md:block">
-              <div className="flex h-full w-full flex-col items-center justify-center rounded-[1.4rem] bg-[#f6f1e8]/5">
-                <span className="text-4xl font-black text-[#f6f1e8]/30">č</span>
-                <span className="mt-2 text-xs text-[#f6f1e8]/25">čārana</span>
               </div>
             </div>
           </div>
