@@ -6,13 +6,14 @@
 // ============================================================================
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronRight } from "lucide-react-native";
 
+import { BrandLoading } from "./brand-mark";
 import { BusinessCardView } from "./business-card";
 import { listBusinesses, listCategories, type BusinessCard } from "../lib/businesses";
-import { colors, radius, space, type } from "../theme";
+import { colors, radius, shadow, space, type } from "../theme";
 
 export function ListingScreen({
   title,
@@ -59,7 +60,7 @@ export function ListingScreen({
       </View>
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: space.xl }} color={colors.annabi} />
+        <BrandLoading />
       ) : (
         <FlatList
           data={items}
@@ -99,10 +100,9 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
     alignItems: "center",
     justifyContent: "center",
+    ...shadow.card,
   },
   headerText: { flex: 1 },
   title: { ...type.h1, fontSize: 22, textAlign: "right" },

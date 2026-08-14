@@ -17,9 +17,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronRight, Eye, EyeOff } from "lucide-react-native";
 
+import { BrandMark } from "../../components/brand-mark";
 import { Alert, Field, GhostButton, PrimaryButton } from "../../components/ui";
 import { supabase } from "../../lib/supabase";
-import { colors, radius, space, type } from "../../theme";
+import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -69,6 +70,9 @@ export default function LoginScreen() {
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <View style={styles.brandRow}>
+            <BrandMark size={40} />
+          </View>
           <Text style={styles.brand}>čārana</Text>
           <Text style={styles.title}>ورود به حساب</Text>
           <Text style={styles.subtitle}>
@@ -141,11 +145,13 @@ const styles = StyleSheet.create({
   navBar: { flexDirection: "row-reverse", paddingHorizontal: space.md, paddingVertical: space.sm },
   back: {
     width: 36, height: 36, borderRadius: radius.md,
-    backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line,
+    backgroundColor: colors.surface,
     alignItems: "center", justifyContent: "center",
+    ...shadow.card,
   },
   scroll: { paddingHorizontal: space.lg, paddingBottom: space.xl },
-  brand: { fontSize: 32, fontWeight: "800", color: colors.annabi, textAlign: "center", marginTop: space.md },
+  brandRow: { alignItems: "center", marginTop: space.md },
+  brand: { fontSize: 30, fontFamily: fonts.heavy, color: colors.annabi, textAlign: "center", marginTop: 6 },
   title: { ...type.h1, fontSize: 22, textAlign: "center", marginTop: space.lg },
   subtitle: { ...type.body, color: colors.mutedText, textAlign: "center", marginTop: 6 },
   form: { gap: space.md, marginTop: space.xl },
@@ -155,5 +161,5 @@ const styles = StyleSheet.create({
     alignItems: "center", gap: 6, marginTop: space.xl,
   },
   footerText: { ...type.muted },
-  footerLink: { color: colors.lajvard, fontWeight: "700", fontSize: 14 },
+  footerLink: { color: colors.lajvard, fontFamily: fonts.bold, fontSize: 14 },
 });

@@ -17,7 +17,7 @@ import {
   listProvinces,
   type BusinessCard,
 } from "../../lib/businesses";
-import { colors, radius, space, type } from "../../theme";
+import { colors, radius, space, type, fonts, shadow } from "../../theme";
 
 export default function ProvinceScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -108,8 +108,9 @@ const styles = StyleSheet.create({
   },
   back: {
     width: 36, height: 36, borderRadius: radius.md,
-    backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line,
+    backgroundColor: colors.surface,
     alignItems: "center", justifyContent: "center",
+    ...shadow.card,
   },
   title: { ...type.h1, fontSize: 22, textAlign: "right" },
   subtitle: { ...type.muted, textAlign: "right", marginTop: 2 },
@@ -118,9 +119,9 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: "row-reverse", alignItems: "center", gap: 5,
     paddingHorizontal: space.sm, paddingVertical: 6, borderRadius: radius.pill,
-    backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line,
+    backgroundColor: colors.surface, ...shadow.card,
   },
-  chipText: { fontSize: 12.5, color: colors.text, fontWeight: "600" },
+  chipText: { fontSize: 12.5, color: colors.text, fontFamily: fonts.semibold },
   chipCount: { fontSize: 11, color: colors.mutedText },
   empty: { ...type.muted, textAlign: "center", marginTop: space.xl },
 });

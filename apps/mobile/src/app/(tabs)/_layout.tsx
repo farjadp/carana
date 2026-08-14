@@ -1,13 +1,16 @@
 // ============================================================================
 // Source: apps/mobile/src/app/(tabs)/_layout.tsx
-// Version: 1.0.0 — 2026-08-22
-// Why: Bottom tab bar mirroring the web navigation.
+// Version: 2.0.0 — 2026-08-14
+// Why: Bottom tab bar mirroring the web navigation. v2: the Hidden Č mark is
+//      the home icon, labels are Vazirmatn, and the bar floats on a soft
+//      shadow instead of a hairline.
 // Env / Identity: Presentational.
 // ============================================================================
 import { Tabs } from "expo-router";
-import { Building2, Home, MapPin, Search, UserRound } from "lucide-react-native";
+import { Building2, MapPin, Search, UserRound } from "lucide-react-native";
 
-import { colors } from "../../theme";
+import { BrandMark } from "../../components/brand-mark";
+import { colors, fonts } from "../../theme";
 
 export default function TabsLayout() {
   return (
@@ -18,11 +21,16 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: colors.mutedText,
         tabBarStyle: {
           backgroundColor: colors.surface,
-          borderTopColor: colors.line,
+          borderTopWidth: 0,
           height: 88,
           paddingTop: 8,
+          shadowColor: "#14213d",
+          shadowOpacity: 0.08,
+          shadowRadius: 16,
+          shadowOffset: { width: 0, height: -4 },
+          elevation: 10,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+        tabBarLabelStyle: { fontSize: 11, fontFamily: fonts.semibold },
         sceneStyle: { backgroundColor: colors.bg },
       }}
     >
@@ -30,7 +38,7 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "خانه",
-          tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <BrandMark color={color} size={size} simple />,
         }}
       />
       <Tabs.Screen

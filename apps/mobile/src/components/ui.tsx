@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { AlertCircle, CheckCircle2 } from "lucide-react-native";
 
-import { colors, radius, space, type } from "../theme";
+import { colors, fonts, radius, shadow, space, type } from "../theme";
 
 /**
  * `latin` forces the field to stay left-to-right with Latin input.
@@ -105,7 +105,7 @@ export function Alert({ tone, children }: { tone: "error" | "success"; children:
 
 const styles = StyleSheet.create({
   field: { gap: 6 },
-  label: { fontSize: 13, fontWeight: "700", color: colors.text, textAlign: "right" },
+  label: { fontSize: 13, fontFamily: fonts.bold, color: colors.text, textAlign: "right" },
   input: {
     borderWidth: 1,
     borderColor: colors.line,
@@ -126,12 +126,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.annabi,
     alignItems: "center",
     justifyContent: "center",
+    ...shadow.raised,
   },
   primaryOff: { opacity: 0.45 },
-  primaryText: { color: "#fff", fontSize: 15.5, fontWeight: "700" },
+  primaryText: { color: "#fff", fontSize: 15.5, fontFamily: fonts.bold },
 
   ghost: { alignItems: "center", paddingVertical: space.sm },
-  ghostText: { color: colors.lajvard, fontSize: 14, fontWeight: "600" },
+  ghostText: { color: colors.lajvard, fontSize: 14, fontFamily: fonts.semibold },
 
   alert: {
     flexDirection: "row-reverse",

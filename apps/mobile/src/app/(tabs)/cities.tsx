@@ -5,12 +5,13 @@
 // ============================================================================
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronLeft, MapPin } from "lucide-react-native";
 
+import { BrandLoading, ScreenHeader } from "../../components/brand-mark";
 import { listProvinces, type ProvinceSummary } from "../../lib/businesses";
-import { colors, radius, space, type } from "../../theme";
+import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
 export default function LocationsScreen() {
   const router = useRouter();
@@ -23,17 +24,11 @@ export default function LocationsScreen() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" color={colors.annabi} />
-      </SafeAreaView>
-    );
-  }
+  if (loading) return <BrandLoading />;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <Text style={styles.title}>استان‌ها و شهرها</Text>
+      <ScreenHeader title="استان‌ها و شهرها" subtitle="کسب‌وکارها را نزدیک خودت پیدا کن" />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {provinces.map(({ province, total, cities }) => (
@@ -89,9 +84,8 @@ const styles = StyleSheet.create({
     gap: space.sm,
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.line,
     padding: space.md,
+    ...shadow.card,
   },
   provinceName: { ...type.h2, fontSize: 16, textAlign: "right" },
   provinceEn: { ...type.muted, textAlign: "right", marginTop: 1 },
@@ -103,14 +97,14 @@ const styles = StyleSheet.create({
     minWidth: 34, paddingHorizontal: 8, paddingVertical: 3,
     borderRadius: radius.pill, backgroundColor: colors.softAnnabi, alignItems: "center",
   },
-  badgeText: { fontSize: 12, fontWeight: "700", color: colors.annabi },
+  badgeText: { fontSize: 12, fontFamily: fonts.bold, color: colors.annabi },
   chipRow: { flexDirection: "row-reverse", flexWrap: "wrap", gap: space.xs, marginTop: space.sm },
   chip: {
     flexDirection: "row-reverse", alignItems: "center", gap: 5,
     paddingHorizontal: space.sm, paddingVertical: 6,
     borderRadius: radius.pill, backgroundColor: colors.surface,
-    borderWidth: 1, borderColor: colors.line,
+    ...shadow.card,
   },
-  chipText: { fontSize: 12.5, color: colors.text, fontWeight: "600" },
+  chipText: { fontSize: 12.5, color: colors.text, fontFamily: fonts.semibold },
   chipCount: { fontSize: 11, color: colors.mutedText },
 });

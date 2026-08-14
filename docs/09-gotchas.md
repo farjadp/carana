@@ -342,3 +342,48 @@ project changes.
 separate, earlier problem — no Apple ID in Xcode → Settings → Accounts. Once
 fixed, the run prints `Auto signing app using team(s): …` before hitting the
 platform error above.
+
+---
+
+## `Link asChild` silently discards a Pressable's function-style
+
+**Symptom:** the business card never showed its white surface, border or
+shadow — on any screen, in any design revision. Text sat directly on the cream
+page background and nothing errored. Setting the background to pure red
+changed nothing, which is what finally proved the style was not applied at all.
+
+**Cause:** expo-router's `<Link asChild>` clones its child through a Slot, and
+that clone drops a `style` given as a **function** (`style={({pressed}) =>
+[...]}`). A plain object or array survives; the pressed-state function form is
+discarded whole — including every static style inside it.
+
+**Fix:** `business-card.tsx` no longer wraps the card in `Link asChild`; it is
+a plain `Pressable` with `router.push` in `onPress`. If `Link asChild` is ever
+reintroduced, the style must be a static array, with the pressed state handled
+some other way.
+
+**Lesson:** "renders without error" is not "renders as written". This shipped
+in the first version of the card and survived two redesigns because the cream
+page made borderless rows look intentional. Pixel-sample a screenshot when a
+surface colour matters.
+
+---
+
+## A stale Metro serves yesterday's app with today's confidence
+
+**Symptom:** after a rebuild and reinstall, the simulator showed a UI from two
+commits ago — including text that no longer exists anywhere in the tree.
+
+**Cause:** two stacked staleness layers. A Metro started in the morning (before
+`pnpm add` of a new package and the day's edits) kept serving its old module
+graph; and when the dev client could not reach its recorded LAN URL it silently
+fell back to the **cached bundle from its last successful session** instead of
+erroring.
+
+**Fix:** kill the old Metro (`lsof -nP -iTCP:8081`), start a fresh one **from
+`apps/mobile`, not the repo root** (from the root it resolves the default
+`expo/AppEntry` instead of `expo-router/entry` and the app dies on boot), and
+reconnect with an explicit
+`ca.charana.app://expo-development-client/?url=http://localhost:8081`.
+Before trusting any screenshot, confirm the log printed a fresh `iOS Bundled …`
+line after your last edit.

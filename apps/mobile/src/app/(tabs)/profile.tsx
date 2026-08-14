@@ -29,10 +29,11 @@ import {
   UserRound,
 } from "lucide-react-native";
 
+import { BrandLoading, BrandMark } from "../../components/brand-mark";
 import { PrimaryButton } from "../../components/ui";
 import { useAuth } from "../../context/auth";
 import { listMyNotes, listSaved, type SavedBusiness } from "../../lib/interactions";
-import { colors, radius, space, type } from "../../theme";
+import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
 const WEB = "https://charana.ca";
 
@@ -68,13 +69,7 @@ export default function ProfileScreen() {
     }, [user])
   );
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" color={colors.annabi} />
-      </SafeAreaView>
-    );
-  }
+  if (loading) return <BrandLoading />;
 
   // ---------------------------------------------------------------- signed out
   if (!user) {
@@ -82,7 +77,7 @@ export default function ProfileScreen() {
       <SafeAreaView style={styles.safe} edges={["top"]}>
         <ScrollView contentContainerStyle={styles.guestScroll}>
           <View style={styles.guestIcon}>
-            <UserRound size={38} color={colors.annabi} />
+            <BrandMark size={44} />
           </View>
 
           <Text style={styles.guestTitle}>حساب کاربری</Text>
@@ -238,48 +233,48 @@ const styles = StyleSheet.create({
   benefit: {
     flexDirection: "row-reverse", gap: space.sm, alignItems: "flex-start",
     backgroundColor: colors.surface, borderRadius: radius.lg,
-    borderWidth: 1, borderColor: colors.line, padding: space.md,
+    padding: space.md, ...shadow.card,
   },
   benefitIcon: {
     width: 36, height: 36, borderRadius: radius.md,
     backgroundColor: colors.softLajvard, alignItems: "center", justifyContent: "center",
   },
-  benefitTitle: { fontSize: 14.5, fontWeight: "700", color: colors.text, textAlign: "right" },
+  benefitTitle: { fontSize: 14.5, fontFamily: fonts.bold, color: colors.text, textAlign: "right" },
   benefitBody: { ...type.muted, textAlign: "right", marginTop: 2, lineHeight: 19 },
   guestActions: { gap: space.sm, marginTop: space.xl },
   secondaryBtn: { alignItems: "center", paddingVertical: space.sm },
-  secondaryText: { color: colors.lajvard, fontSize: 14.5, fontWeight: "600" },
+  secondaryText: { color: colors.lajvard, fontSize: 14.5, fontFamily: fonts.semibold },
   linksBlock: {
     marginTop: space.xl, backgroundColor: colors.surface, borderRadius: radius.lg,
-    borderWidth: 1, borderColor: colors.line, paddingHorizontal: space.md,
+    paddingHorizontal: space.md, ...shadow.card,
   },
 
   identity: {
     flexDirection: "row-reverse", alignItems: "center", gap: space.md,
     backgroundColor: colors.surface, borderRadius: radius.lg,
-    borderWidth: 1, borderColor: colors.line, padding: space.md,
+    padding: space.md, ...shadow.card,
   },
   avatar: {
     width: 56, height: 56, borderRadius: 28,
     backgroundColor: colors.softAnnabi, alignItems: "center", justifyContent: "center",
   },
-  avatarText: { fontSize: 24, fontWeight: "800", color: colors.annabi },
+  avatarText: { fontSize: 24, fontFamily: fonts.heavy, color: colors.annabi },
   name: { ...type.h2, textAlign: "right" },
   email: { ...type.muted, textAlign: "right", marginTop: 2 },
 
   statRow: { flexDirection: "row-reverse", gap: space.sm, marginTop: space.sm },
   stat: {
     flex: 1, backgroundColor: colors.surface, borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.line, paddingVertical: space.md, alignItems: "center",
+    paddingVertical: space.md, alignItems: "center", ...shadow.card,
   },
-  statValue: { fontSize: 19, fontWeight: "800", color: colors.annabi },
+  statValue: { fontSize: 19, fontFamily: fonts.heavy, color: colors.annabi },
   statLabel: { ...type.muted, marginTop: 2 },
 
   section: { marginTop: space.lg },
   sectionTitle: { ...type.h2, fontSize: 15.5, textAlign: "right", marginBottom: space.sm },
   sectionBody: {
     backgroundColor: colors.surface, borderRadius: radius.lg,
-    borderWidth: 1, borderColor: colors.line, paddingHorizontal: space.md,
+    paddingHorizontal: space.md, ...shadow.card,
   },
   empty: { ...type.muted, textAlign: "center", paddingVertical: space.md, lineHeight: 20 },
 
@@ -287,7 +282,7 @@ const styles = StyleSheet.create({
     flexDirection: "row-reverse", alignItems: "center", gap: space.sm,
     paddingVertical: space.md, borderBottomWidth: 1, borderBottomColor: colors.line,
   },
-  savedName: { fontSize: 14.5, fontWeight: "600", color: colors.text, textAlign: "right" },
+  savedName: { fontSize: 14.5, fontFamily: fonts.semibold, color: colors.text, textAlign: "right" },
   savedMeta: { ...type.muted, textAlign: "right", marginTop: 1 },
 
   linkRow: {
@@ -299,8 +294,7 @@ const styles = StyleSheet.create({
   signOut: {
     flexDirection: "row-reverse", alignItems: "center", justifyContent: "center",
     gap: space.sm, marginTop: space.lg, paddingVertical: space.md,
-    borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line,
-    backgroundColor: colors.surface,
+    borderRadius: radius.lg, backgroundColor: colors.surface, ...shadow.card,
   },
-  signOutText: { color: colors.annabi, fontWeight: "700", fontSize: 14.5 },
+  signOutText: { color: colors.annabi, fontFamily: fonts.bold, fontSize: 14.5 },
 });

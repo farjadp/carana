@@ -11,7 +11,7 @@ import { ChevronRight, MailCheck } from "lucide-react-native";
 
 import { Alert, Field, PrimaryButton } from "../../components/ui";
 import { supabase } from "../../lib/supabase";
-import { colors, radius, space, type } from "../../theme";
+import { colors, radius, shadow, space, type } from "../../theme";
 
 const WEB_ORIGIN = "https://charana.ca";
 
@@ -97,8 +97,9 @@ const styles = StyleSheet.create({
   navBar: { flexDirection: "row-reverse", paddingHorizontal: space.md, paddingVertical: space.sm },
   back: {
     width: 36, height: 36, borderRadius: radius.md,
-    backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line,
+    backgroundColor: colors.surface,
     alignItems: "center", justifyContent: "center",
+    ...shadow.card,
   },
   body: { flex: 1, justifyContent: "center", paddingHorizontal: space.lg, gap: space.md },
   title: { ...type.h1, fontSize: 22, textAlign: "center" },

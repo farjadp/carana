@@ -7,7 +7,6 @@
 import { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
-  ActivityIndicator,
   Linking,
   Platform,
   Pressable,
@@ -28,10 +27,11 @@ import {
   Star,
 } from "lucide-react-native";
 
+import { BrandLoading, MerlonGlyph } from "../../components/brand-mark";
 import { InteractionBar } from "../../components/interaction-bar";
 import { getBusinessBySlug, type BusinessDetail } from "../../lib/businesses";
 import { listPublishedReviews, type PublicReview } from "../../lib/interactions";
-import { colors, radius, space, type } from "../../theme";
+import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
 const DAY_LABELS: Record<string, string> = {
   sat: "شنبه", sun: "یکشنبه", mon: "دوشنبه", tue: "سه‌شنبه",
@@ -61,13 +61,7 @@ export default function BusinessScreen() {
     })();
   }, [slug]);
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" color={colors.annabi} />
-      </SafeAreaView>
-    );
-  }
+  if (loading) return <BrandLoading />;
 
   if (!business) {
     return (
@@ -249,8 +243,8 @@ export default function BusinessScreen() {
                       <Star
                         key={n}
                         size={13}
-                        color={colors.annabi}
-                        fill={n <= r.public_rating ? colors.annabi : "transparent"}
+                        color={colors.gold}
+                        fill={n <= r.public_rating ? colors.gold : "transparent"}
                       />
                     ))}
                   </View>
@@ -273,7 +267,10 @@ export default function BusinessScreen() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.sectionTitleRow}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        <MerlonGlyph size={10} />
+      </View>
       <View style={styles.sectionBody}>{children}</View>
     </View>
   );
@@ -329,22 +326,24 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg, gap: space.md },
   notFound: { ...type.body, color: colors.mutedText },
   backBtn: { paddingHorizontal: space.lg, paddingVertical: space.sm, backgroundColor: colors.annabi, borderRadius: radius.pill },
-  backBtnText: { color: "#fff", fontWeight: "700" },
+  backBtnText: { color: "#fff", fontFamily: fonts.bold },
 
   navBar: { flexDirection: "row-reverse", paddingHorizontal: space.md, paddingVertical: space.sm },
   back: {
     width: 36, height: 36, borderRadius: radius.md,
-    backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line,
+    backgroundColor: colors.surface,
     alignItems: "center", justifyContent: "center",
+    ...shadow.card,
   },
   scroll: { paddingHorizontal: space.md },
 
   hero: { alignItems: "center", paddingVertical: space.md },
   avatar: {
-    width: 72, height: 72, borderRadius: radius.lg,
+    width: 76, height: 76, borderRadius: radius.lg,
     backgroundColor: colors.softAnnabi, alignItems: "center", justifyContent: "center",
+    borderWidth: 1.5, borderColor: colors.softGold,
   },
-  avatarText: { fontSize: 30, fontWeight: "800", color: colors.annabi },
+  avatarText: { fontSize: 30, fontFamily: fonts.heavy, color: colors.annabi },
   name: { ...type.h1, fontSize: 24, textAlign: "center", marginTop: space.sm },
   nameEn: { ...type.muted, marginTop: 2 },
   tagline: { ...type.body, color: colors.mutedText, textAlign: "center", marginTop: 6 },
@@ -354,33 +353,36 @@ const styles = StyleSheet.create({
     backgroundColor: colors.softLajvard, borderRadius: radius.pill,
     paddingHorizontal: space.sm, paddingVertical: 5,
   },
-  metaChipText: { fontSize: 12, fontWeight: "600", color: colors.lajvard },
+  metaChipText: { fontSize: 12, fontFamily: fonts.semibold, color: colors.lajvard },
 
   actions: { flexDirection: "row-reverse", gap: space.sm, marginTop: space.sm },
   action: {
     flex: 1, flexDirection: "row-reverse", alignItems: "center", justifyContent: "center",
     gap: 6, paddingVertical: 13, borderRadius: radius.md,
-    backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line,
+    backgroundColor: colors.surface, ...shadow.card,
   },
-  actionPrimary: { backgroundColor: colors.annabi, borderColor: colors.annabi },
-  actionText: { fontSize: 13.5, fontWeight: "700", color: colors.text },
+  actionPrimary: { backgroundColor: colors.annabi },
+  actionText: { fontSize: 13.5, fontFamily: fonts.bold, color: colors.text },
   actionTextPrimary: { color: "#fff" },
 
   section: { marginTop: space.lg },
-  sectionTitle: { ...type.h2, fontSize: 16, textAlign: "right", marginBottom: space.sm },
+  sectionTitleRow: {
+    flexDirection: "row-reverse", alignItems: "center", gap: 7, marginBottom: space.sm,
+  },
+  sectionTitle: { ...type.h2, fontSize: 16, textAlign: "right" },
   sectionBody: {
     backgroundColor: colors.surface, borderRadius: radius.lg,
-    borderWidth: 1, borderColor: colors.line, padding: space.md, gap: space.sm,
+    padding: space.md, gap: space.sm, ...shadow.card,
   },
   body: { ...type.body, textAlign: "right" },
 
   serviceRow: { flexDirection: "row-reverse", gap: space.sm, alignItems: "flex-start" },
-  serviceName: { fontSize: 14, fontWeight: "700", color: colors.text, textAlign: "right" },
+  serviceName: { fontSize: 14, fontFamily: fonts.bold, color: colors.text, textAlign: "right" },
   serviceDesc: { ...type.muted, textAlign: "right", marginTop: 2 },
-  servicePrice: { fontSize: 13, fontWeight: "700", color: colors.lajvard },
+  servicePrice: { fontSize: 13, fontFamily: fonts.bold, color: colors.lajvard },
 
   hourRow: { flexDirection: "row-reverse", justifyContent: "space-between" },
-  hourDay: { fontSize: 13.5, color: colors.text, fontWeight: "600" },
+  hourDay: { fontSize: 13.5, color: colors.text, fontFamily: fonts.semibold },
   hourValue: { fontSize: 13.5, color: colors.mutedText },
 
   infoRow: { flexDirection: "row-reverse", alignItems: "center", gap: space.sm },
@@ -390,10 +392,10 @@ const styles = StyleSheet.create({
   review: { gap: 5, paddingBottom: space.sm },
   reviewHead: { flexDirection: "row-reverse", alignItems: "center", gap: space.sm },
   reviewStars: { flexDirection: "row-reverse", gap: 2 },
-  reviewTitle: { flex: 1, fontSize: 14, fontWeight: "700", color: colors.text, textAlign: "right" },
+  reviewTitle: { flex: 1, fontSize: 14, fontFamily: fonts.bold, color: colors.text, textAlign: "right" },
   reviewBody: { ...type.body, textAlign: "right" },
 
   branch: { gap: 2 },
-  branchName: { fontSize: 14, fontWeight: "700", color: colors.text, textAlign: "right" },
+  branchName: { fontSize: 14, fontFamily: fonts.bold, color: colors.text, textAlign: "right" },
   branchAddr: { ...type.muted, textAlign: "right" },
 });

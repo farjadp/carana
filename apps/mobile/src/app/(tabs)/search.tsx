@@ -18,6 +18,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Search as SearchIcon, X } from "lucide-react-native";
 
+import { ScreenHeader } from "../../components/brand-mark";
 import { BusinessCardView } from "../../components/business-card";
 import {
   listBusinesses,
@@ -25,7 +26,7 @@ import {
   type BusinessCard,
   type Category,
 } from "../../lib/businesses";
-import { colors, radius, space, type } from "../../theme";
+import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
 export default function SearchScreen() {
   const [term, setTerm] = useState("");
@@ -64,6 +65,7 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
+      <ScreenHeader title="جستجو" />
       <View style={styles.header}>
         <View style={styles.searchBar}>
           <SearchIcon size={18} color={colors.mutedText} />
@@ -138,17 +140,16 @@ function Chip({
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingHorizontal: space.md, paddingTop: space.md, gap: space.sm },
+  header: { paddingHorizontal: space.md, gap: space.sm },
   searchBar: {
     flexDirection: "row-reverse",
     alignItems: "center",
     gap: space.sm,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
     borderRadius: radius.pill,
     paddingHorizontal: space.md,
-    paddingVertical: 11,
+    paddingVertical: 12,
+    ...shadow.card,
   },
   input: { flex: 1, ...type.body, textAlign: "right", padding: 0 },
   chips: { flexDirection: "row-reverse", gap: space.xs, paddingVertical: 2 },
@@ -157,11 +158,10 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: radius.pill,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
+    ...shadow.card,
   },
-  chipActive: { backgroundColor: colors.annabi, borderColor: colors.annabi },
-  chipText: { fontSize: 12.5, fontWeight: "600", color: colors.text },
+  chipActive: { backgroundColor: colors.annabi },
+  chipText: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.text },
   chipTextActive: { color: "#fff" },
   list: { padding: space.md, gap: space.sm, paddingBottom: space.xl },
   resultCount: { ...type.muted, textAlign: "right", marginBottom: space.xs },

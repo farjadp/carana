@@ -31,3 +31,4 @@ apps/mobile/android
 .turbo
 .vercel
 .env*
+.expo/

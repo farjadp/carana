@@ -4,11 +4,11 @@
 // Why: One listing row, used on the home, category, city and search screens.
 // Env / Identity: Presentational only.
 // ============================================================================
-import { Link } from "expo-router";
+import { useRouter } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { BusinessCard as Business } from "../lib/businesses";
-import { colors, radius, space, type } from "../theme";
+import { colors, fonts, radius, shadow, space, type } from "../theme";
 
 export function BusinessCardView({
   business,
@@ -23,10 +23,15 @@ export function BusinessCardView({
     .join(" · ");
 
   const initial = business.name.trim().charAt(0);
+  const router = useRouter();
 
   return (
-    <Link href={`/business/${encodeURIComponent(business.slug ?? business.id)}`} asChild>
-      <Pressable style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
+    // Not Link asChild: expo-router's Slot drops a Pressable's function-style,
+    // which silently erased this card's background, border and shadow.
+    <Pressable
+      onPress={() => router.push(`/business/${encodeURIComponent(business.slug ?? business.id)}`)}
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+    >
         <View style={styles.row}>
           <View style={styles.avatar}>
             {business.logo_url && !business.logo_url.endsWith(".svg") ? (
@@ -48,8 +53,7 @@ export function BusinessCardView({
             {meta ? <Text style={styles.meta}>{meta}</Text> : null}
           </View>
         </View>
-      </Pressable>
-    </Link>
+    </Pressable>
   );
 }
 
@@ -58,10 +62,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     padding: space.md,
-    borderWidth: 1,
-    borderColor: colors.line,
+    ...shadow.card,
   },
-  pressed: { opacity: 0.7 },
+  pressed: { opacity: 0.75, transform: [{ scale: 0.99 }] },
   row: { flexDirection: "row-reverse", gap: space.md, alignItems: "flex-start" },
   avatar: {
     width: 48,
@@ -73,7 +76,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   avatarImg: { width: "100%", height: "100%" },
-  avatarText: { fontSize: 20, fontWeight: "800", color: colors.annabi },
+  avatarText: { fontSize: 20, fontFamily: fonts.heavy, color: colors.annabi },
   body: { flex: 1 },
   name: { ...type.h2, textAlign: "right" },
   desc: { ...type.body, color: colors.mutedText, textAlign: "right", marginTop: 4 },

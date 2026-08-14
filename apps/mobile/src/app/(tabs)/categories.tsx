@@ -5,12 +5,13 @@
 // ============================================================================
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronLeft } from "lucide-react-native";
 
+import { BrandLoading, ScreenHeader } from "../../components/brand-mark";
 import { countByCategory, listCategories, type Category } from "../../lib/businesses";
-import { colors, radius, space, type } from "../../theme";
+import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
 export default function CategoriesScreen() {
   const router = useRouter();
@@ -30,17 +31,11 @@ export default function CategoriesScreen() {
     })();
   }, []);
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" color={colors.annabi} />
-      </SafeAreaView>
-    );
-  }
+  if (loading) return <BrandLoading />;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <Text style={styles.title}>دسته‌بندی‌ها</Text>
+      <ScreenHeader title="دسته‌بندی‌ها" subtitle="هر چه لازم داری، به زبان خودت" />
       <FlatList
         data={categories}
         keyExtractor={(c) => c.id}
@@ -83,9 +78,8 @@ const styles = StyleSheet.create({
     gap: space.sm,
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.line,
     padding: space.md,
+    ...shadow.card,
   },
   iconBox: {
     width: 44,
@@ -107,5 +101,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.softLajvard,
     alignItems: "center",
   },
-  badgeText: { fontSize: 12, fontWeight: "700", color: colors.lajvard },
+  badgeText: { fontSize: 12, fontFamily: fonts.bold, color: colors.lajvard },
 });

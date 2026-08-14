@@ -20,7 +20,7 @@ import {
   upsertInteraction,
   type Interaction,
 } from "../lib/interactions";
-import { colors, radius, space, type } from "../theme";
+import { colors, radius, space, type, fonts, shadow } from "../theme";
 
 export function InteractionBar({
   businessId,
@@ -201,11 +201,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
+    ...shadow.card,
   },
-  actionOn: { backgroundColor: colors.annabi, borderColor: colors.annabi },
-  actionText: { fontSize: 13.5, fontWeight: "700", color: colors.text },
+  actionOn: { backgroundColor: colors.annabi },
+  actionText: { fontSize: 13.5, fontFamily: fonts.bold, color: colors.text },
   actionTextOn: { color: "#fff" },
 
   notePreview: {
@@ -214,7 +213,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     backgroundColor: colors.softLajvard,
   },
-  notePreviewLabel: { fontSize: 12, fontWeight: "700", color: colors.lajvard, textAlign: "right" },
+  notePreviewLabel: { fontSize: 12, fontFamily: fonts.bold, color: colors.lajvard, textAlign: "right" },
   notePreviewBody: { ...type.body, textAlign: "right", marginTop: 5 },
   starRow: { flexDirection: "row-reverse", gap: 3, marginTop: space.sm },
 
@@ -231,7 +230,7 @@ const styles = StyleSheet.create({
   sheetBody: { padding: space.lg, gap: space.md },
   sheetSubtitle: { ...type.h2, fontSize: 17, textAlign: "right" },
   privacyNote: { ...type.muted, textAlign: "right", lineHeight: 20 },
-  fieldLabel: { fontSize: 13, fontWeight: "700", color: colors.text, textAlign: "right" },
+  fieldLabel: { fontSize: 13, fontFamily: fonts.bold, color: colors.text, textAlign: "right" },
   starPicker: { flexDirection: "row-reverse", gap: space.sm },
   noteInput: {
     minHeight: 140,
