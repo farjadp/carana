@@ -11,6 +11,8 @@
 import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
+import { sendEmail } from "@/lib/email/send";
+import { verificationCodeEmail } from "@/lib/email/templates";
 
 const CODE_TTL_MINUTES = 15;
 const MAX_ATTEMPTS = 5;
@@ -81,16 +83,33 @@ export async function sendVerificationCode(type: "email" | "phone") {
     return { success: false, error: "خطا در ایجاد کد تایید." };
   }
 
-  // TODO: wire up a real SMS / email provider here.
-  // The code is deliberately NOT returned to the client — printing it in the
+  // The code is deliberately never returned to the client — putting it in the
   // response would let anyone verify without receiving the message.
+  if (type === "email") {
+    const target = user.email;
+    if (!target) {
+      return { success: false, error: "ایمیلی برای این حساب ثبت نشده است." };
+    }
+
+    const { subject, html, text } = verificationCodeEmail(code);
+    const result = await sendEmail({ to: target, subject, html, text });
+
+    if (!result.sent && process.env.NODE_ENV === "production") {
+      return { success: false, error: "ارسال ایمیل انجام نشد. دوباره تلاش کنید." };
+    }
+
+    return { success: true, message: "کد تایید به ایمیل شما ارسال شد." };
+  }
+
+  // SMS has no provider yet. Rather than claim a message was sent, say so.
   if (process.env.NODE_ENV !== "production") {
-    console.log(`[DEV] ${type} verification code for ${user.email}: ${code}`);
+    console.log(`[DEV] phone verification code for ${user.email}: ${code}`);
+    return { success: true, message: "کد تایید موبایل (حالت توسعه) در ترمینال چاپ شد." };
   }
 
   return {
-    success: true,
-    message: `کد تایید به ${type === "phone" ? "موبایل" : "ایمیل"} شما ارسال شد.`,
+    success: false,
+    error: "تایید پیامکی هنوز فعال نیست. فعلاً ایمیل خود را تایید کنید.",
   };
 }
 

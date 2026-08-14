@@ -36,6 +36,8 @@ Set these in Vercel → Settings → Environment Variables, for **Production** a
 | `SUPABASE_SECRET_KEY` | **server only** — never prefix with `NEXT_PUBLIC_` |
 | `SUPABASE_JWKS_URL` | |
 | `OPENAI_API_KEY` | server only |
+| `RESEND_API_KEY` | server only — transactional email |
+| `EMAIL_FROM` | e.g. `čārana <noreply@charana.ca>` |
 | `NEXT_PUBLIC_GOOGLE_MAPS_KEY` | restrict by HTTP referrer in Google Cloud |
 | `NEXT_PUBLIC_BASE_URL` | `https://charana.ca` — the build fails without it |
 | `APPLE_TEAM_ID` | once the Apple account exists |
@@ -95,6 +97,41 @@ pnpm gen:types
 
 They land in `packages/core/src/database.types.ts` and are consumed by both web
 and mobile.
+
+## Email
+
+Transactional mail goes through **Resend**. `charana.ca` is already a verified
+sending domain, so mail leaves from `noreply@charana.ca` with SPF/DKIM in place.
+
+What the app sends today:
+
+| Message | Trigger |
+|---|---|
+| Verification code | user requests email verification |
+| Listing published | admin approves a listing |
+| Listing needs changes | admin sets NEEDS_CHANGES or REJECTED |
+| Contact form | someone submits the form on /contact |
+
+**Supabase auth emails are separate.** Confirmation and password-reset mail
+still goes through Supabase's built-in sender, which is rate limited to a
+handful per hour and sends from a supabase.co address. Point it at Resend:
+
+Supabase Dashboard → Project Settings → Authentication → SMTP Settings
+
+| Field | Value |
+|---|---|
+| Host | `smtp.resend.com` |
+| Port | `465` |
+| Username | `resend` |
+| Password | the Resend API key |
+| Sender email | `noreply@charana.ca` |
+| Sender name | `čārana` |
+
+Until that is done, signup confirmation will throttle as soon as more than a
+few people register in an hour.
+
+SMS has no provider. Phone verification returns an explicit "not enabled yet"
+rather than pretending a message was sent.
 
 ## Post-deploy checklist
 

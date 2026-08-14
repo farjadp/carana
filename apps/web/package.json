@@ -12,6 +12,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^4.0.40",
     "@ai-sdk/react": "^4.0.65",
+    "@charana/core": "workspace:*",
     "@hookform/resolvers": "^5.7.1",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-progress": "^1.1.16",
@@ -30,10 +31,10 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-hook-form": "^7.85.0",
+    "resend": "^4.0.1",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0",
-    "zod": "^4.4.3",
-    "@charana/core": "workspace:*"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",

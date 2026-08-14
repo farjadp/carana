@@ -1,7 +1,8 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local"],
-
+  "globalDependencies": [
+    "**/.env.*local"
+  ],
   "globalEnv": [
     "NODE_ENV",
     "VERCEL",
@@ -9,12 +10,16 @@
     "VERCEL_URL",
     "VERCEL_PROJECT_PRODUCTION_URL"
   ],
-
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**"
+      ],
       "env": [
         "NEXT_PUBLIC_SUPABASE_URL",
         "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
@@ -25,24 +30,27 @@
         "SUPABASE_SECRET_KEY",
         "SUPABASE_JWKS_URL",
         "SUPABASE_DISABLE_EMAIL_CONFIRMATION_FOR_TESTING",
+        "RESEND_API_KEY",
+        "EMAIL_FROM",
         "OPENAI_API_KEY",
         "APPLE_TEAM_ID",
         "ANDROID_SHA256_FINGERPRINT",
         "GEMINI_API_KEY"
       ]
     },
-
     "dev": {
       "cache": false,
       "persistent": true
     },
-
     "lint": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
-
     "typecheck": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

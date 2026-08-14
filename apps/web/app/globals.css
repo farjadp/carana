@@ -2510,3 +2510,53 @@ section {
 
 .pager-btn.is-disabled { opacity: 0.4; }
 .pager-status { font-size: 0.85rem; color: var(--muted-text); }
+
+/* --- contact form (added 2026-08-24) ------------------------------------- */
+
+.contact-form-section {
+  max-width: 40rem;
+  margin: 0 auto 2.5rem;
+  padding: 0 1.25rem;
+}
+
+.contact-form-section h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.contact-form {
+  display: grid;
+  gap: 1rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 1.5rem;
+}
+
+.contact-form .form-group { display: grid; gap: 0.4rem; }
+
+/* Off-screen rather than display:none — some bots skip hidden inputs. */
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.contact-sent {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 2.5rem 1.5rem;
+  color: var(--success, #0f7b4f);
+}
+
+.contact-sent strong { color: var(--text); font-size: 1.05rem; }
+.contact-sent p { color: var(--muted-text); font-size: 0.9rem; margin: 0; }

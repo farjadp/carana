@@ -10,6 +10,8 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { logUserActivity } from "@/lib/actions/logs";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { sendEmail } from "@/lib/email/send";
+import { listingApprovedEmail, listingNeedsChangesEmail } from "@/lib/email/templates";
 
 /**
  * Moderation actions are open to moderators as well as admins, matching the
@@ -32,7 +34,7 @@ export async function updateBusinessStatus(businessId: string, newStatus: string
     const supabase = await createSupabaseActionClient();
     const { data: business, error: fetchError } = await supabase
       .from("businesses")
-      .select("created_by, name")
+      .select("created_by, name, slug")
       .eq("id", businessId)
       .single();
 
@@ -54,6 +56,10 @@ export async function updateBusinessStatus(businessId: string, newStatus: string
     if (updateError) {
       throw updateError;
     }
+
+    // Tell the owner what happened. A moderation decision the owner never
+    // hears about is the same as no decision from their side.
+    await notifyOwner(finalStatus, business);
 
     // Log the action
     await logUserActivity(
@@ -116,5 +122,41 @@ export async function deleteBusiness(businessId: string) {
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || "خطایی رخ داد." };
+  }
+}
+
+/**
+ * Email the listing owner about a moderation decision.
+ *
+ * Never throws: a mail failure must not roll back a status change that already
+ * succeeded, and the admin should not see an error for it.
+ */
+async function notifyOwner(
+  status: string,
+  business: { created_by: string; name: string; slug?: string | null }
+) {
+  try {
+    const admin = createSupabaseAdminClient();
+    const { data: owner } = await admin
+      .from("profiles")
+      .select("email")
+      .eq("id", business.created_by)
+      .maybeSingle();
+
+    const to = owner?.email;
+    if (!to) return;
+
+    if (status === "PUBLISHED" && business.slug) {
+      const mail = listingApprovedEmail({ name: business.name, slug: business.slug });
+      await sendEmail({ to, ...mail });
+      return;
+    }
+
+    if (status === "NEEDS_CHANGES" || status === "REJECTED") {
+      const mail = listingNeedsChangesEmail({ name: business.name });
+      await sendEmail({ to, ...mail });
+    }
+  } catch (error) {
+    console.error("Owner notification failed:", error);
   }
 }

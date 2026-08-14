@@ -1,108 +1,152 @@
-# Deployment runbook
+# Deployment
 
-## Current state
+## Vercel
 
-**Live:** https://charana.ca — deploying from `main` on every push.
-**Vercel project:** `carana`, team `ashavidproject`, plan Pro.
-**Last verified:** all routes 200, 404 page works, sitemap lists 677 businesses
-and zero drafts, security headers present.
-
-## Vercel settings
-
-These were wrong and are now fixed. If a deployment ever fails again, check
-these first — the dashboard overrides beat anything in the repo.
+The repo is a pnpm + Turborepo monorepo. Point the Vercel project at
+**`apps/web`** and let the Next.js preset do the rest — `apps/web/vercel.json`
+carries only redirects and headers, no build wiring.
 
 | Setting | Value |
 |---|---|
 | Root Directory | `apps/web` |
-| Framework Preset | Next.js |
-| Build Command | **empty** (no override) |
-| Install Command | **empty** (no override) |
-| Output Directory | **empty** (no override) |
-| Include files outside root | Enabled |
-| Node | 24.x |
+| Framework Preset | Next.js (auto-detected) |
+| Build Command | leave empty — Vercel runs `next build` |
+| Install Command | leave empty — Vercel installs from the workspace root |
+| Node version | 22.x |
 
-`apps/web/vercel.json` carries only headers now. No build wiring, and no host
-redirects — those are configured at the domain level.
+Vercel detects the pnpm workspace and Turborepo on its own and installs from
+the repository root, so `apps/web` can still import `/core`.
+
+Do **not** set a custom `outputDirectory`. With the Next.js preset Vercel uses
+its own builder and resolves `.next` relative to the Root Directory; a manual
+override pointed it somewhere the builder never looks, which produced a build
+that succeeded and then failed to deploy.
 
 ### Environment variables
 
-Set for Production, Preview **and** Development.
+Set these in Vercel → Settings → Environment Variables, for **Production** and
+**Preview**:
 
 | Variable | Notes |
 |---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | safe to expose |
 | `SUPABASE_URL` | |
 | `SUPABASE_PUBLISHABLE_KEY` | |
 | `SUPABASE_SECRET_KEY` | **server only** — never prefix with `NEXT_PUBLIC_` |
 | `SUPABASE_JWKS_URL` | |
 | `OPENAI_API_KEY` | server only |
+| `RESEND_API_KEY` | server only — transactional email |
+| `EMAIL_FROM` | e.g. `čārana <noreply@charana.ca>` |
 | `NEXT_PUBLIC_GOOGLE_MAPS_KEY` | restrict by HTTP referrer in Google Cloud |
-| `NEXT_PUBLIC_BASE_URL` | optional — falls back to Vercel's own domain vars |
+| `NEXT_PUBLIC_BASE_URL` | `https://charana.ca` — the build fails without it |
 | `APPLE_TEAM_ID` | once the Apple account exists |
 | `ANDROID_SHA256_FINGERPRINT` | after the first EAS Android build |
 
-`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are **not**
-required — `next.config.ts` promotes the unprefixed values into the public
-namespace at build time. Setting them explicitly still wins.
-
-**`SUPABASE_DISABLE_EMAIL_CONFIRMATION_FOR_TESTING` must be absent or `false`
-in production.** It creates pre-confirmed accounts through the admin API.
-
-**`GEMINI_API_KEY` is set on Vercel and read by nothing.** Delete it.
+`SUPABASE_DISABLE_EMAIL_CONFIRMATION_FOR_TESTING` must be absent or `false` in
+production. It creates pre-confirmed accounts through the admin API.
 
 ### Domains
 
-| Domain | Behaviour |
-|---|---|
-| `charana.ca` | canonical, serves the site |
-| `www.charana.ca` | 308 → charana.ca |
-| `carana.ca` | 308 → charana.ca — **DNS not pointed yet** |
-| `www.carana.ca` | 308 → charana.ca — **DNS not pointed yet** |
+- `charana.ca` — primary
+- `www.charana.ca` — redirect to apex
+- `carana.ca`, `www.carana.ca` — add to the same project; `vercel.json`
+  308-redirects them to `charana.ca` so the directory is never indexed twice
 
-Redirects are configured on the Vercel domains, not in `vercel.json`. Putting
-them in both directions caused a redirect loop where `/` worked and every other
-path bounced.
+## Supabase
 
-**To finish carana.ca:** point its nameservers at Vercel in the registrar. The
-redirect is already configured and will work as soon as DNS resolves.
+### Migrations
 
-## Supabase auth configuration — NOT DONE
+Migration history is in sync with the live schema. To apply new work:
 
-**Signup and password reset are broken in production until this is set.**
+```bash
+npx supabase login
+npx supabase link --project-ref <project-ref>
+pnpm db:push
+```
+
+Two rules learned the hard way:
+
+1. **Never apply SQL by hand in the dashboard.** The history table then drifts
+   from the schema, and the next `db:push` tries to replay everything from the
+   beginning. Repairing that drift is what `supabase migration repair` is for.
+2. **Migration versions must be unique.** Three files once shared the prefix
+   `20260813`, which broke `db:push` outright. Use a full
+   `YYYYMMDDHHMMSS_name.sql` prefix.
+
+### Auth configuration
 
 Supabase Dashboard → Authentication → URL Configuration:
 
-- **Site URL:** `https://charana.ca`
-- **Redirect URLs:**
+- **Site URL**: `https://charana.ca`
+- **Redirect URLs**:
   - `https://charana.ca/auth/callback`
   - `https://charana.ca/auth/update-password`
-  - `charana://**` (mobile)
-  - `http://localhost:3000/**` (local dev)
+  - `charana://**` — required for the mobile app
+  - `http://localhost:3000/**` — local development
 
-## Deploying
+Password reset and email confirmation links break without these.
 
-Push to `main`. Vercel builds automatically.
+### Types
 
-To deploy from the terminal (the CLI is already linked to the project):
-
-```bash
-npx vercel --prod --yes
-```
-
-## Post-deploy checks
+After any schema change, regenerate the shared types and commit them:
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}\n" https://charana.ca/
-curl -s https://charana.ca/robots.txt
-curl -s https://charana.ca/sitemap.xml | grep -c "<url>"
-curl -s -o /dev/null -w "%{http_code} -> %{redirect_url}\n" https://www.charana.ca/privacy
+pnpm gen:types
 ```
 
-Expect 200, a robots file naming `https://charana.ca`, ~720 sitemap URLs, and a
-308 from www to the apex.
+They land in `packages/core/src/database.types.ts` and are consumed by both web
+and mobile.
 
-## Note on preview URLs
+## Email
 
-Deployment Protection is on, so `*.vercel.app` URLs sit behind Vercel SSO. Fine
-for the production domain, but anyone you send a preview link to needs access
-to the Vercel team.
+Transactional mail goes through **Resend**. `charana.ca` is already a verified
+sending domain, so mail leaves from `noreply@charana.ca` with SPF/DKIM in place.
+
+What the app sends today:
+
+| Message | Trigger |
+|---|---|
+| Verification code | user requests email verification |
+| Listing published | admin approves a listing |
+| Listing needs changes | admin sets NEEDS_CHANGES or REJECTED |
+| Contact form | someone submits the form on /contact |
+
+**Supabase auth emails are separate.** Confirmation and password-reset mail
+still goes through Supabase's built-in sender, which is rate limited to a
+handful per hour and sends from a supabase.co address. Point it at Resend:
+
+Supabase Dashboard → Project Settings → Authentication → SMTP Settings
+
+| Field | Value |
+|---|---|
+| Host | `smtp.resend.com` |
+| Port | `465` |
+| Username | `resend` |
+| Password | the Resend API key |
+| Sender email | `noreply@charana.ca` |
+| Sender name | `čārana` |
+
+Until that is done, signup confirmation will throttle as soon as more than a
+few people register in an hour.
+
+SMS has no provider. Phone verification returns an explicit "not enabled yet"
+rather than pretending a message was sent.
+
+## Post-deploy checklist
+
+- [ ] `https://charana.ca/robots.txt` resolves and points at the sitemap
+- [ ] `https://charana.ca/sitemap.xml` lists published businesses only
+- [ ] `https://charana.ca/.well-known/apple-app-site-association` returns JSON
+      with the real `APPLE_TEAM_ID`
+- [ ] `https://carana.ca` redirects to `https://charana.ca`
+- [ ] Signup → confirmation email → callback completes
+- [ ] Password reset email links to the production domain, not localhost
+- [ ] An anonymous request returns zero `DRAFT` listings
+
+## Known limitation
+
+Rate limiting for the AI endpoints (`lib/utils/rate-limit.ts`) is in-memory. It
+resets on deploy and is not shared between serverless instances, so it stops
+accidental hammering but not a determined attacker. Move it to Supabase or
+Upstash Redis before opening the AI features to a wide audience.

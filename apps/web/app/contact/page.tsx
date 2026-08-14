@@ -10,6 +10,8 @@ import Link from "next/link";
 
 import { InnerPage } from "@/components/inner-page";
 import { Card, CardContent } from "@/components/ui/card";
+
+import { ContactForm } from "./contact-form";
 import { company } from "@/lib/data/company";
 
 export const metadata: Metadata = {
@@ -84,6 +86,11 @@ export default function ContactPage() {
             </ul>
           </CardContent>
         </Card>
+      </section>
+
+      <section className="contact-form-section">
+        <h2>پیام بفرستید</h2>
+        <ContactForm />
       </section>
 
       <section className="note-card">
