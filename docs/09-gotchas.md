@@ -250,3 +250,39 @@ symlinks the CLI rejects. None of it belongs in the web build.
 
 **Fix:** `.vercelignore` excludes `apps/mobile/ios`, `android`, `.expo`, plus
 `docs` and `scripts`. Deploy with `--archive=tgz`.
+
+---
+
+## A badge that could never render
+
+**Symptom:** the verified badge never appeared, on any listing, ever.
+
+**Cause:** `business-profile-client.tsx` rendered `business.is_verified`,
+`is_claimed` and `is_featured`. None of those columns exist in any migration,
+and none were in the page's select list either. Three chips of dead code.
+
+**Fix:** verification state now lives in `verified_at` / `verified_until` /
+`verification_method`, and the badge is computed by
+`lib/verification/status.ts`. A boolean could not have expressed "verified, but
+it lapses in nine days" or "the phone number changed after we proved it"
+anyway.
+
+**Lesson:** a field the UI reads is not a field the database has. `select("*")`
+would have hidden this even longer — an absent column is simply `undefined`,
+which is falsy, which looks exactly like "not verified yet".
+
+---
+
+## Verification proves a contact point, not a row
+
+**Symptom:** none yet — this is the trap that was avoided.
+
+A listing verified by SMS and then edited to carry a different phone number
+would keep its badge while pointing somewhere nobody proved. `verified_phone`
+stores what was actually proven, and `getVerificationStatus` voids the badge
+when the live value moves away from it.
+
+The comparison folds Persian and Arabic-Indic digits to ASCII first. Without
+that, a number entered on the Persian keyboard shares no characters with the
+stored one and every badge would void itself the moment it was granted — the
+same trap as `toLatinDigits` in the SMS sender.

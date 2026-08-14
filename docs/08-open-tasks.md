@@ -46,15 +46,6 @@ delete the button. A directory sells trust; a trust mechanism that only pretends
 to work converts a suspicious user into a reassured one while the listing stays
 up.
 
-**The claim button leads to a 404.** Every unclaimed profile renders
-`<Link href={`/claim?businessId=${business.id}`}>`, and there is no
-`app/claim` directory. Verified live: `GET /claim?businessId=… → 404`. With 677
-imported listings, almost every profile shows this button, so owner acquisition
-walks into a dead end. The pieces around it already exist — `business_claims`,
-`business_memberships`, an admin queue at `/admin/claims`, and contact
-verification for proving ownership. Only the public route is missing. Build it
-or hide the button.
-
 **Nothing counts the conversion moment.** Call, WhatsApp, website and directions
 are bare `<a href>` anchors. No event, no row, no number. Featured listings and
 advertising cannot be sold on this, because an owner who pays for visibility
