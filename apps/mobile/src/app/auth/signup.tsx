@@ -41,7 +41,15 @@ export default function SignupScreen() {
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { full_name: fullName.trim() } },
+      options: {
+        data: { full_name: fullName.trim() },
+        // Land the confirmation back in the app, on a screen that greets the
+        // person and starts them on their profile. Without this Supabase
+        // falls back to the project's Site URL — which is how confirmation
+        // links ended up opening localhost in a phone browser. The scheme
+        // must be in the dashboard's Redirect URLs allowlist: charana://**
+        emailRedirectTo: "charana://auth/confirmed",
+      },
     });
 
     if (signUpError) {
