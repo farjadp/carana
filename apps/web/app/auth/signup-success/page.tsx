@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
-  title: "ثبت نام موفق | čārana",
+  title: "ثبت نام موفق",
 };
 
 export default async function SignupSuccessPage() {

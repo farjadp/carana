@@ -61,12 +61,12 @@ export async function generateMetadata({ params }: CityPageParams): Promise<Meta
 
   if (!city) {
     return {
-      title: "شهر پیدا نشد | čārana",
+      title: "شهر پیدا نشد",
     };
   }
 
   return {
-    title: `${city.nameFa} | کسب‌وکارهای ایرانی | čārana`,
+    title: `${city.nameFa} | کسب‌وکارهای ایرانی`,
     description: city.description,
   };
 }

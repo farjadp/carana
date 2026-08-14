@@ -19,6 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronLeft, Search } from "lucide-react-native";
 
+import { BrandMark } from "../../components/brand-mark";
 import { BusinessCardView } from "../../components/business-card";
 import {
   countByCategory,
@@ -96,10 +97,9 @@ export default function HomeScreen() {
       >
         {/* Hero */}
         <View style={styles.hero}>
+          <BrandMark size={56} />
           <Text style={styles.brand}>čārana</Text>
-          <Text style={styles.tagline}>
-            کسب‌وکارهای ایرانی کانادا، یکجا و قابل اعتماد
-          </Text>
+          <Text style={styles.tagline}>با اطمینان پیدا کن.</Text>
           {total > 0 ? (
             <Text style={styles.count}>{total.toLocaleString("fa-IR")} کسب‌وکار ثبت‌شده</Text>
           ) : null}
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: space.md },
 
   hero: { alignItems: "center", paddingTop: space.lg, paddingBottom: space.md },
-  brand: { fontSize: 40, fontWeight: "800", color: colors.annabi, letterSpacing: 0.5 },
+  brand: { fontSize: 34, fontWeight: "800", color: colors.annabi, letterSpacing: 0.5, marginTop: 10 },
   tagline: { ...type.body, color: colors.mutedText, marginTop: 6, textAlign: "center" },
   count: { ...type.muted, marginTop: 8, color: colors.lajvard, fontWeight: "700" },
   searchBar: {

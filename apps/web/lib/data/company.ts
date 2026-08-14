@@ -14,6 +14,12 @@ export const company = {
   brand: "čārana",
   brandFa: "چارانا",
   jurisdiction: "Ontario, Canada",
+
+  /** Approved 2026-08-14 with the Hidden Č identity. */
+  tagline: {
+    en: "Find with confidence.",
+    fa: "با اطمینان پیدا کن.",
+  },
   address: "Toronto, Ontario, Canada",
 
   email: {

@@ -10,7 +10,7 @@ import { InnerPage } from "@/components/inner-page";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "چطور کار می‌کند | čārana",
+  title: "چطور کار می‌کند",
 };
 
 export default function HowItWorksPage() {

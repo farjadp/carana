@@ -10,7 +10,7 @@ import { InnerPage } from "@/components/inner-page";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "دسته‌بندی کسب‌وکارها | čārana",
+  title: "دسته‌بندی کسب‌وکارها",
 };
 
 export default async function CategoriesPage() {

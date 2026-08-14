@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { redirectIfAuthenticated } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
-  title: "ایمیل تایید را بررسی کن | čārana",
+  title: "ایمیل تایید را بررسی کن",
 };
 
 export default async function CheckEmailPage() {

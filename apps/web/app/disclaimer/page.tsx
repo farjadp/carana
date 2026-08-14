@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import { InnerPage } from "@/components/inner-page";
 
 export const metadata: Metadata = {
-  title: "سلب مسئولیت | čārana",
+  title: "سلب مسئولیت",
 };
 
 export default function DisclaimerPage() {

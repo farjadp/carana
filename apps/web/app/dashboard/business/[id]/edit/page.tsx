@@ -15,7 +15,7 @@ import BusinessEditForm from "./edit-form";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "ویرایش کسب‌وکار | čārana",
+  title: "ویرایش کسب‌وکار",
 };
 
 interface EditPageProps {

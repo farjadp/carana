@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><rect width="1000" height="1000" rx="210" fill="#F6F1E8"/>
+  <title>čārana — Hidden Č master mark</title>
+  <desc>Editable vector reconstruction of the approved Hidden Č logo concept.</desc>
+  <g id="mark" fill="#800000">
+    <!-- Outer C / discovery ring -->
+    <path id="outer-c" d="M760 190
+      C690 120 600 80 500 80
+      C268 80 80 268 80 500
+      C80 732 268 920 500 920
+      C610 920 708 878 780 806
+      L666 692
+      C624 734 566 760 500 760
+      C356 760 240 644 240 500
+      C240 356 356 240 500 240
+      C562 240 620 262 664 304
+      Z"/>
+    <!-- Lower inner path / directional tail -->
+    <path id="inner-path" d="M364 548
+      C418 478 496 448 586 462
+      C652 472 704 508 748 560
+      L650 650
+      C624 620 592 602 552 596
+      C496 588 448 608 416 650
+      Z"/>
+    <!-- terminal arrow cut suggestion -->
+    <path id="terminal" d="M648 650 L790 650 L790 792 Z"/>
+    <!-- caron -->
+    <path id="caron" d="M438 318 L500 372 L562 318 L598 354 L500 442 L402 354 Z"/>
+  </g>
+</svg>

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "خطای احراز هویت | čārana",
+  title: "خطای احراز هویت",
 };
 
 export default function AuthErrorPage() {

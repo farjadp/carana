@@ -16,7 +16,7 @@ import { calculateBusinessProfileProgress } from "@/lib/utils/progress";
 import { Progress } from "@/components/ui/progress";
 
 export const metadata: Metadata = {
-  title: "پنل صاحب کسب‌وکار | čārana",
+  title: "پنل صاحب کسب‌وکار",
 };
 
 const getStatusBadge = (status: string) => {

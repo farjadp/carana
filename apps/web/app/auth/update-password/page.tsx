@@ -11,7 +11,7 @@ import { PageShell } from "@/components/page-shell";
 import { sanitizeAuthSearchParams } from "@/lib/auth/sanitize";
 
 export const metadata: Metadata = {
-  title: "تعریف رمز جدید | čārana",
+  title: "تعریف رمز جدید",
 };
 
 export default async function UpdatePasswordPage({

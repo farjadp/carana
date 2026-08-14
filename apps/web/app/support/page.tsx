@@ -13,7 +13,7 @@ import { LegalSection } from "@/components/legal-doc";
 import { company } from "@/lib/data/company";
 
 export const metadata: Metadata = {
-  title: "پشتیبانی | čārana",
+  title: "پشتیبانی",
   description:
     "راهنمای پشتیبانی چارانا: ثبت کسب‌وکار، اصلاح اطلاعات، حذف لیستینگ، مشکلات حساب کاربری.",
 };

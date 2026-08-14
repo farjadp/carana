@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "معماری کاربری و دسترسی | čārana",
+  title: "معماری کاربری و دسترسی",
 };
 
 export default function ArchitecturePage() {

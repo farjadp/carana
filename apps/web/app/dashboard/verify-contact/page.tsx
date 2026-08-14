@@ -11,7 +11,7 @@ import { requireUser } from "@/lib/auth/session";
 import { VerifyContactClient } from "./verify-contact-client";
 
 export const metadata = {
-  title: "اعتبارسنجی تماس | čārana",
+  title: "اعتبارسنجی تماس",
 };
 
 export default async function VerifyContactPage() {

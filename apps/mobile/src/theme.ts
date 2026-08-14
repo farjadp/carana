@@ -12,6 +12,8 @@ export const colors = {
   line: "rgba(20, 33, 61, 0.10)",
   lajvard: "#0047ab",
   annabi: "#800000",
+  // Accent only, never a surface. Brand book, section 12.
+  gold: "#c9a24b",
   success: "#0f7b4f",
   softAnnabi: "rgba(128, 0, 0, 0.08)",
   softLajvard: "rgba(0, 71, 171, 0.08)",

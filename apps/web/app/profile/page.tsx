@@ -15,7 +15,7 @@ import { ensureUserProfile } from "@/lib/profiles/ensure-profile";
 import { ProfileForm } from "./profile-form";
 
 export const metadata: Metadata = {
-  title: "پروفایل کاربری | čārana",
+  title: "پروفایل کاربری",
 };
 
 export default async function ProfilePage() {

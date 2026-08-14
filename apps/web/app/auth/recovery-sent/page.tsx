@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { redirectIfAuthenticated } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
-  title: "لینک بازیابی ارسال شد | čārana",
+  title: "لینک بازیابی ارسال شد",
 };
 
 export default async function RecoverySentPage() {

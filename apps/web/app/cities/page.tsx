@@ -17,7 +17,7 @@ import { listCitiesWithCounts } from "@/lib/data/geography";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "شهرها | čārana",
+  title: "شهرها",
   description: "کسب‌وکارهای ایرانیان کانادا بر اساس استان و شهر.",
 };
 

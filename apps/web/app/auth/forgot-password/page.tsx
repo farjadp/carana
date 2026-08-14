@@ -12,7 +12,7 @@ import { redirectIfAuthenticated } from "@/lib/auth/session";
 import { sanitizeAuthSearchParams } from "@/lib/auth/sanitize";
 
 export const metadata: Metadata = {
-  title: "فراموشی رمز | čārana",
+  title: "فراموشی رمز",
 };
 
 export default async function ForgotPasswordPage({

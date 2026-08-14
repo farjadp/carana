@@ -8,7 +8,7 @@ import Link from "next/link";
 
 import { PageShell } from "@/components/page-shell";
 
-export const metadata: Metadata = { title: "صفحه پیدا نشد | čārana" };
+export const metadata: Metadata = { title: "صفحه پیدا نشد" };
 
 export default function NotFound() {
   return (

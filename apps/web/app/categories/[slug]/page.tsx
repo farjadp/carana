@@ -22,7 +22,7 @@ export async function generateMetadata({
   const config = getCategoryDetail(slug);
 
   return {
-    title: `${config.name} ایرانیان کانادا | čārana`,
+    title: `${config.name} ایرانیان کانادا`,
     description: config.description,
     openGraph: {
       title: `${config.name} ایرانی در کانادا | دایرکتوری چارانا`,

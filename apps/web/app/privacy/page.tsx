@@ -14,7 +14,7 @@ import { LegalList, LegalMeta, LegalSection, LegalTable } from "@/components/leg
 import { company } from "@/lib/data/company";
 
 export const metadata: Metadata = {
-  title: "حریم خصوصی | čārana",
+  title: "حریم خصوصی",
   description:
     "سیاست حریم خصوصی چارانا: چه اطلاعاتی جمع‌آوری می‌شود، چرا، چه مدت نگهداری می‌شود و چگونه می‌توانید حذفش کنید.",
 };

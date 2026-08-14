@@ -10,7 +10,7 @@ import { InnerPage } from "@/components/inner-page";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "داستان اسم | čārana",
+  title: "داستان اسم",
 };
 
 export default function StoryPage() {

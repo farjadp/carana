@@ -13,7 +13,7 @@ import { LegalList, LegalMeta, LegalSection } from "@/components/legal-doc";
 import { company } from "@/lib/data/company";
 
 export const metadata: Metadata = {
-  title: "شرایط استفاده | čārana",
+  title: "شرایط استفاده",
   description:
     "شرایط استفاده از دایرکتوری چارانا برای کاربران و صاحبان کسب‌وکار.",
 };

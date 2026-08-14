@@ -10,7 +10,7 @@ import { InnerPage } from "@/components/inner-page";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "اعتماد و امنیت | čārana",
+  title: "اعتماد و امنیت",
 };
 
 export default function TrustPage() {

@@ -14,7 +14,7 @@ import { requireUser } from "@/lib/auth/session";
 import { DeleteAccountClient } from "./delete-client";
 
 export const metadata: Metadata = {
-  title: "حذف حساب کاربری | čārana",
+  title: "حذف حساب کاربری",
   description: "حذف دائمی حساب کاربری و تمام اطلاعات شخصی در چارانا.",
 };
 

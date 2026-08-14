@@ -14,7 +14,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "ثبت کسب‌وکار جدید | čārana",
+  title: "ثبت کسب‌وکار جدید",
   description: "اطلاعات کسب‌وکار خود را برای ثبت در دایرکتوری مشاغل ایرانیان کانادا وارد کنید.",
 };
 

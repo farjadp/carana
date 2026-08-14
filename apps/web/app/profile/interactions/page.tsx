@@ -4,7 +4,7 @@ import InteractionsClient from "./interactions-client";
 import { NotebookPen } from "lucide-react";
 
 export const metadata = {
-  title: "تعاملات من | čārana",
+  title: "تعاملات من",
   description: "مدیریت ذخیره‌شده‌ها، یادداشت‌ها و نظرات شما در پلتفرم چارانا",
 };
 

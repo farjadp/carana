@@ -15,7 +15,7 @@
         "applinks:www.charana.ca"
       ],
       "infoPlist": {
-        "CFBundleDisplayName": "čārana"
+        "CFBundleDisplayName": "\u010d\u0101rana"
       }
     },
     "android": {
@@ -61,7 +61,7 @@
         {
           "backgroundColor": "#f6f1e8",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 180,
+          "imageWidth": 160,
           "resizeMode": "contain"
         }
       ],

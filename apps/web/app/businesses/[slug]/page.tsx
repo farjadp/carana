@@ -76,12 +76,12 @@ export async function generateMetadata({
 
   if (!business) {
     return {
-      title: "کسب‌وکار یافت نشد | čārana",
+      title: "کسب‌وکار یافت نشد",
     };
   }
 
   return {
-    title: `${business.name} (${business.city || "کانادا"}) | čārana`,
+    title: `${business.name} (${business.city || "کانادا"})`,
     description: business.short_description || `اطلاعات تماس و مشخصات ${business.name} در دایرکتوری ایرانیان کانادا`,
     openGraph: {
       title: `${business.name} | دایرکتوری مشاغل ایرانیان کانادا`,

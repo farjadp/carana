@@ -9,7 +9,7 @@
 
 @theme inline {
   --font-sans: var(--font-vazirmatn);
-  --font-serif: var(--font-cormorant);
+  --font-latin: var(--font-manrope);
 }
 
 :root {
@@ -43,6 +43,8 @@
   --firouzeh: #40e0d0;
   --kahgeli: #d2b48c;
   --annabi: #800000;
+  /* Gold is an accent only — never a surface. Brand book, section 12. */
+  --gold: #c9a24b;
   --mesi: #b87333;
   --shadow: 0 22px 60px rgba(20, 33, 61, 0.12);
   --radius-xl: 32px;
@@ -118,7 +120,7 @@ a {
   border-radius: 16px;
   background: linear-gradient(135deg, var(--lajvard), #0e65d4);
   color: #fff;
-  font-family: var(--font-cormorant), serif;
+  font-family: var(--font-manrope), sans-serif;
   font-size: 2rem;
   font-weight: 700;
   box-shadow: 0 14px 30px rgba(0, 71, 171, 0.28);
@@ -131,7 +133,7 @@ a {
 }
 
 .brand-copy strong {
-  font-family: var(--font-cormorant), serif;
+  font-family: var(--font-manrope), sans-serif;
   font-size: 1.7rem;
   line-height: 1;
 }
@@ -341,7 +343,7 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(10px);
   color: #fff;
-  font-family: var(--font-cormorant), serif;
+  font-family: var(--font-manrope), sans-serif;
   font-size: 2.1rem;
   font-weight: 700;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -354,7 +356,7 @@ a {
 }
 
 .brand-side-copy strong {
-  font-family: var(--font-cormorant), serif;
+  font-family: var(--font-manrope), sans-serif;
   font-size: 1.8rem;
   line-height: 1;
 }
@@ -447,7 +449,7 @@ a {
   display: block;
   font-size: 1.35rem;
   font-weight: 800;
-  font-family: var(--font-cormorant), serif;
+  font-family: var(--font-manrope), sans-serif;
   line-height: 1.1;
 }
 
@@ -1597,7 +1599,7 @@ section {
 .admin-stat-card .stat-value {
   font-size: 2.1rem;
   font-weight: 800;
-  font-family: var(--font-cormorant), serif;
+  font-family: var(--font-manrope), sans-serif;
   line-height: 1.1;
   color: var(--text);
   margin-bottom: 6px;
@@ -2262,19 +2264,8 @@ section {
   flex-shrink: 0;
 }
 
-.brand-mark {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.55rem;
-  background: var(--annabi);
-  color: #fff;
-  font-weight: 700;
-  font-size: 1.05rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: Georgia, "Times New Roman", serif;
-}
+/* The real mark carries its own shape; no tile behind it. */
+.brand svg { display: block; flex-shrink: 0; }
 
 .brand-name {
   font-size: 1.1rem;

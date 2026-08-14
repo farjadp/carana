@@ -7,6 +7,7 @@
 // ============================================================================
 import Link from "next/link";
 
+import { BrandMark } from "@/components/brand-mark";
 import { HeaderNav } from "@/components/header-nav";
 import { getOptionalUser } from "@/lib/auth/session";
 import type { NavSection } from "@/lib/site-content";
@@ -23,9 +24,7 @@ export async function SiteHeader({ currentPath }: SiteHeaderProps) {
     <header className="site-header">
       <div className="site-header-inner">
         <Link className="brand" href="/" aria-label="čārana، صفحه اصلی">
-          <span className="brand-mark" aria-hidden="true">
-            č
-          </span>
+          <BrandMark size={34} color="var(--annabi)" />
           <strong className="brand-name">čārana</strong>
         </Link>
 

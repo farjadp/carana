@@ -12,7 +12,7 @@ import { redirectIfAuthenticated } from "@/lib/auth/session";
 import { sanitizeAuthSearchParams } from "@/lib/auth/sanitize";
 
 export const metadata: Metadata = {
-  title: "ورود | čārana",
+  title: "ورود",
 };
 
 export default async function LoginPage({

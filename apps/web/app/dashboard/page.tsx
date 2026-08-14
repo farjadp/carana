@@ -12,7 +12,7 @@ import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "داشبورد | čārana",
+  title: "داشبورد",
 };
 
 export default function DashboardPage() {

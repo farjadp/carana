@@ -21,7 +21,7 @@ const CARD_COLUMNS =
 const PAGE_SIZE = 48;
 
 export const metadata: Metadata = {
-  title: "همه کسب‌وکارها | čārana",
+  title: "همه کسب‌وکارها",
   description:
     "فهرست کامل کسب‌وکارهای ایرانی ثبت‌شده در کانادا، قابل مرور بر اساس استان و دسته‌بندی.",
 };

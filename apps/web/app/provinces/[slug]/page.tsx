@@ -31,10 +31,10 @@ export async function generateMetadata({
   const { slug } = await params;
   const province = getProvinceBySlug(slug);
 
-  if (!province) return { title: "استان پیدا نشد | čārana" };
+  if (!province) return { title: "استان پیدا نشد" };
 
   return {
-    title: `کسب‌وکارهای ایرانی ${province.name} | čārana`,
+    title: `کسب‌وکارهای ایرانی ${province.name}`,
     description: `دایرکتوری کسب‌وکارهای ایرانی در استان ${province.name} (${province.nameEn}) کانادا، بر اساس شهر و دسته‌بندی.`,
   };
 }
