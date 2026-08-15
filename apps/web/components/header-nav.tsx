@@ -14,7 +14,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 
 export type NavItem = { href: string; label: string };
 
@@ -29,10 +29,18 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/businesses", label: "همه کسب‌وکارها" },
 ];
 
+/** The "About" group — one item in the bar, five underneath. */
+export const ABOUT_ITEMS: NavItem[] = [
+  { href: "/about", label: "درباره محصول" },
+  { href: "/team", label: "معرفی تیم" },
+  { href: "/roadmap", label: "رودمپ" },
+  { href: "/releases", label: "نسخه‌ها" },
+  { href: "/download", label: "دانلود" },
+];
+
 const SECONDARY: NavItem[] = [
   { href: "/provinces", label: "استان‌ها" },
   { href: "/how-it-works", label: "چطور کار می‌کند" },
-  { href: "/about", label: "درباره ما" },
   { href: "/trust", label: "اعتماد و بررسی" },
   { href: "/support", label: "پشتیبانی" },
   { href: "/contact", label: "تماس با ما" },
@@ -83,6 +91,22 @@ export function HeaderNav({
             {item.label}
           </Link>
         ))}
+        <div className="header-nav-group">
+          <button
+            type="button"
+            className={`header-nav-link header-nav-group-trigger${ABOUT_ITEMS.some((i) => isActive(i.href, currentPath)) ? " is-active" : ""}`}
+            aria-haspopup="menu"
+          >
+            درباره ما <ChevronDown size={14} />
+          </button>
+          <div className="header-nav-menu" role="menu">
+            {ABOUT_ITEMS.map((item) => (
+              <Link key={item.href} href={item.href} role="menuitem" className={`header-nav-menu-link${isActive(item.href, currentPath) ? " is-active" : ""}`}>
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
       </nav>
 
       <button
@@ -109,6 +133,14 @@ export function HeaderNav({
               className={`mobile-menu-link${isActive(item.href, currentPath) ? " is-active" : ""}`}
               aria-current={isActive(item.href, currentPath) ? "page" : undefined}
             >
+              {item.label}
+            </Link>
+          ))}
+
+          <div className="mobile-menu-divider" />
+          <div className="mobile-menu-group-label">درباره ما</div>
+          {ABOUT_ITEMS.map((item) => (
+            <Link key={item.href} href={item.href} className={`mobile-menu-link is-secondary${isActive(item.href, currentPath) ? " is-active" : ""}`}>
               {item.label}
             </Link>
           ))}

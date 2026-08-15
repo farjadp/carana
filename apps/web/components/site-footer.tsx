@@ -10,7 +10,11 @@ import { legalLinks } from "@/lib/site-content";
 
 export function SiteFooter({ currentPath }: { currentPath: string }) {
   const footerLinks = [
-    { href: "/about", label: "درباره ما" },
+    { href: "/about", label: "درباره محصول" },
+    { href: "/team", label: "تیم" },
+    { href: "/roadmap", label: "رودمپ" },
+    { href: "/releases", label: "نسخه‌ها" },
+    { href: "/download", label: "دانلود اپ" },
     { href: "/contact", label: "تماس با ما" },
     { href: "/support", label: "پشتیبانی" },
     { href: "/dashboard/business/new", label: "ثبت کسب‌وکار" },

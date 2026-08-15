@@ -19,6 +19,10 @@ export const revalidate = 3600;
 const STATIC_PATHS = [
   "",
   "/about",
+  "/team",
+  "/roadmap",
+  "/releases",
+  "/download",
   "/how-it-works",
   "/story",
   "/trust",

@@ -2551,3 +2551,23 @@ section {
 
 .contact-sent strong { color: var(--text); font-size: 1.05rem; }
 .contact-sent p { color: var(--muted-text); font-size: 0.9rem; margin: 0; }
+
+/* Header "About" group — hover/focus dropdown. 2026-08-15 */
+.header-nav-group { position: relative; }
+.header-nav-group-trigger { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; cursor: pointer; font: inherit; }
+.header-nav-menu {
+  position: absolute; top: calc(100% + 10px); right: 0; min-width: 190px;
+  background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 8px;
+  box-shadow: 0 22px 60px rgba(20, 33, 61, 0.14);
+  opacity: 0; transform: translateY(6px); pointer-events: none; transition: opacity .15s, transform .15s;
+  z-index: 60;
+}
+.header-nav-group:hover .header-nav-menu,
+.header-nav-group:focus-within .header-nav-menu { opacity: 1; transform: none; pointer-events: auto; }
+.header-nav-menu-link {
+  display: block; padding: 9px 12px; border-radius: 12px; font-size: 14px; font-weight: 600;
+  color: var(--text); text-decoration: none;
+}
+.header-nav-menu-link:hover { background: var(--bg); }
+.header-nav-menu-link.is-active { color: var(--annabi); background: rgba(128, 0, 0, 0.06); }
+.mobile-menu-group-label { font-size: 12px; font-weight: 700; color: var(--muted-text); padding: 6px 12px 2px; }

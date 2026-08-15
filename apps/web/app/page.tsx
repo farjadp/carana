@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, MapPin, ArrowLeft, Star, ShieldCheck, Bookmark, Navigation, MessageSquare, Plus, CheckCircle2 } from "lucide-react";
+import { Search, MapPin, ArrowLeft, Star, ShieldCheck, Bookmark, Navigation, MessageSquare, Plus, CheckCircle2, Download } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BusinessCard } from "@/components/business/business-card";
 import { HomeHero } from "@/components/home-hero";
+import { STORES } from "@/lib/data/releases";
 
 // The eight cities with generated background art. Kept here rather than read
 // from lib/data/cities.ts because only these have images — a card whose
@@ -26,11 +27,12 @@ const CITY_CARDS = [
 ] as const;
 
 // The app is built and runs, but is not on either store yet — that path is
-// blocked on the Apple organization account. Flip this and fill the two URLs
+// blocked on the Apple organization account. Store URLs live in
+// lib/data/releases.ts; the direct APK is live today.
 // on the day it ships; nothing else needs to change.
-const APP_LIVE = false;
-const APP_STORE_URL = "";
-const PLAY_STORE_URL = "";
+const APP_LIVE = !!(STORES.appStore || STORES.playStore);
+const APP_STORE_URL = STORES.appStore;
+const PLAY_STORE_URL = STORES.playStore;
 
 export const metadata: Metadata = {
   title: "čārana | دایرکتوری کسب‌وکارهای ایرانیان کانادا",
@@ -429,7 +431,7 @@ export default async function HomePage() {
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#c9a24b] opacity-60" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-[#c9a24b]" />
                 </span>
-                اپلیکیشن ساخته شده — در مسیر اپ‌استور
+                نسخه‌ی اندروید آماده است — استورها در راه
               </span>
 
               <h2 className="mb-5 text-3xl font-black leading-[1.25] md:text-5xl">
@@ -466,14 +468,14 @@ export default async function HomePage() {
               </ul>
 
               <div className="flex flex-wrap items-center gap-3">
+                <a href={STORES.apkDirect} className="inline-flex items-center gap-2 rounded-2xl bg-[#c9a24b] px-6 py-3.5 font-bold text-[#14213d] transition hover:-translate-y-0.5 hover:bg-[#e6c877]">
+                  <Download className="h-4 w-4" /> دانلود مستقیم APK
+                  <span className="text-[11px] font-normal opacity-70" dir="ltr">v{STORES.apkVersion}</span>
+                </a>
                 {APP_LIVE ? (
                   <>
-                    <Link href={APP_STORE_URL} className="rounded-2xl bg-[#f6f1e8] px-7 py-3.5 font-bold text-[#14213d] transition hover:-translate-y-0.5">
-                      App Store
-                    </Link>
-                    <Link href={PLAY_STORE_URL} className="rounded-2xl bg-[#f6f1e8] px-7 py-3.5 font-bold text-[#14213d] transition hover:-translate-y-0.5">
-                      Google Play
-                    </Link>
+                    {APP_STORE_URL ? <Link href={APP_STORE_URL} className="rounded-2xl bg-[#f6f1e8] px-7 py-3.5 font-bold text-[#14213d] transition hover:-translate-y-0.5">App Store</Link> : null}
+                    {PLAY_STORE_URL ? <Link href={PLAY_STORE_URL} className="rounded-2xl bg-[#f6f1e8] px-7 py-3.5 font-bold text-[#14213d] transition hover:-translate-y-0.5">Google Play</Link> : null}
                   </>
                 ) : (
                   /* Not links on purpose: the app is on no store yet, and a
@@ -489,9 +491,9 @@ export default async function HomePage() {
                         <span className="font-bold text-[#f6f1e8]/85" dir="ltr">{store}</span>
                       </span>
                     ))}
-                    <span className="text-sm text-[#f6f1e8]/55">
-                      تا آن روز، همین سایت روی موبایل کامل کار می‌کند
-                    </span>
+                    <Link href="/download" className="text-sm text-[#f6f1e8]/70 underline underline-offset-4 hover:text-[#f6f1e8]">
+                      همه‌ی راه‌های دانلود →
+                    </Link>
                   </>
                 )}
               </div>
