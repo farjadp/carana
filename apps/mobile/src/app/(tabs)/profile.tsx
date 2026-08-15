@@ -160,7 +160,7 @@ export default function ProfileScreen() {
         </Section>
 
         <Section title="حساب کاربری">
-          <ExternalRow icon={<UserRound size={17} color={colors.mutedText} />} label="ویرایش پروفایل" url={`${WEB}/profile`} />
+          <InternalRow icon={<UserRound size={17} color={colors.annabi} />} label="ویرایش پروفایل" onPress={() => router.push("/account/edit")} />
           <InternalRow icon={<Store size={17} color={colors.annabi} />} label="کسب‌وکار من / ثبت کسب‌وکار" onPress={() => router.push("/register")} />
           <ExternalRow icon={<LifeBuoy size={17} color={colors.mutedText} />} label="پشتیبانی" url={`${WEB}/support`} />
           <ExternalRow icon={<Shield size={17} color={colors.mutedText} />} label="حریم خصوصی" url={`${WEB}/privacy`} />

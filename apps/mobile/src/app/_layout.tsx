@@ -61,6 +61,7 @@ export default function RootLayout() {
             never loses their place in the directory. */}
         <Stack.Screen name="auth" options={{ presentation: "modal" }} />
         <Stack.Screen name="register" />
+        <Stack.Screen name="account/edit" />
       </Stack>
       </RegistrationProvider>
     </AuthProvider>
