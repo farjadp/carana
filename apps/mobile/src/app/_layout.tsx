@@ -22,6 +22,7 @@ import { useEffect } from "react";
 import { I18nManager } from "react-native";
 
 import { AuthProvider } from "../context/auth";
+import { RegistrationProvider } from "../context/registration";
 import { colors } from "../theme";
 
 // The whole product is Persian; force RTL rather than following the device.
@@ -46,6 +47,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
+      <RegistrationProvider>
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
@@ -58,7 +60,9 @@ export default function RootLayout() {
         {/* Auth slides up over whatever the user was doing, so signing in
             never loses their place in the directory. */}
         <Stack.Screen name="auth" options={{ presentation: "modal" }} />
+        <Stack.Screen name="register" />
       </Stack>
+      </RegistrationProvider>
     </AuthProvider>
   );
 }

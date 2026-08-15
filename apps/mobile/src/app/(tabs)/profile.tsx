@@ -100,7 +100,7 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.linksBlock}>
-            <ExternalRow icon={<Store size={17} color={colors.mutedText} />} label="ثبت کسب‌وکار" url={`${WEB}/dashboard/business/new`} />
+            <InternalRow icon={<Store size={17} color={colors.annabi} />} label="ثبت کسب‌وکار" onPress={() => router.push("/register")} />
             <ExternalRow icon={<LifeBuoy size={17} color={colors.mutedText} />} label="پشتیبانی" url={`${WEB}/support`} />
             <ExternalRow icon={<Shield size={17} color={colors.mutedText} />} label="حریم خصوصی" url={`${WEB}/privacy`} />
           </View>
@@ -161,7 +161,7 @@ export default function ProfileScreen() {
 
         <Section title="حساب کاربری">
           <ExternalRow icon={<UserRound size={17} color={colors.mutedText} />} label="ویرایش پروفایل" url={`${WEB}/profile`} />
-          <ExternalRow icon={<Store size={17} color={colors.mutedText} />} label="کسب‌وکار من" url={`${WEB}/dashboard/business`} />
+          <InternalRow icon={<Store size={17} color={colors.annabi} />} label="کسب‌وکار من / ثبت کسب‌وکار" onPress={() => router.push("/register")} />
           <ExternalRow icon={<LifeBuoy size={17} color={colors.mutedText} />} label="پشتیبانی" url={`${WEB}/support`} />
           <ExternalRow icon={<Shield size={17} color={colors.mutedText} />} label="حریم خصوصی" url={`${WEB}/privacy`} />
         </Section>
@@ -204,6 +204,16 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.sectionBody}>{children}</View>
     </View>
+  );
+}
+
+function InternalRow({ icon, label, onPress }: { icon: React.ReactNode; label: string; onPress: () => void }) {
+  return (
+    <Pressable style={styles.linkRow} onPress={onPress}>
+      <ChevronLeft size={17} color={colors.mutedText} />
+      <Text style={[styles.linkLabel, { fontFamily: fonts.bold }]}>{label}</Text>
+      {icon}
+    </Pressable>
   );
 }
 
