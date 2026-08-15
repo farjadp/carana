@@ -43,7 +43,21 @@ export function SuggestionBox({
   const [error, setError] = useState<string | null>(null);
 
   // Recorder — the URI is only meaningful after stop().
-  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  // Mono AAC at 22 kHz: a voice note does not need stereo 44.1 kHz, and the
+  // smaller file matters on mobile data.
+  //
+  // Simulator note (15 Aug): on the iOS Simulator record() hangs the JS
+  // thread when the sim has no audio input routed — CoreAudio logs the input
+  // device with `totalChannelCount 0` and errors. Verify voice on a real
+  // phone; the simulator is not a valid test of this path.
+  const recorder = useAudioRecorder({
+    // HIGH_QUALITY is the m4a/AAC preset on both platforms (LOW is 3gp on
+    // Android, which the server would reject).
+    ...RecordingPresets.HIGH_QUALITY,
+    numberOfChannels: 1,
+    sampleRate: 22050,
+    bitRate: 48000,
+  });
   const capTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recState = useAudioRecorderState(recorder, 250);
   const [voiceUri, setVoiceUri] = useState<string | null>(null);
@@ -71,11 +85,16 @@ export function SuggestionBox({
       setError("برای ضبط صدا باید دسترسی میکروفون را بدهی.");
       return;
     }
-    await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-    await recorder.prepareToRecordAsync();
-    recorder.record();
-    // Hard cap; the server clamps too.
-    capTimer.current = setTimeout(() => void stopRecording(), MAX_SECONDS * 1000);
+    try {
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+      // Hard cap; the server clamps too.
+      capTimer.current = setTimeout(() => void stopRecording(), MAX_SECONDS * 1000);
+    } catch (e) {
+      console.warn("suggestion-box: record failed", e);
+      setError("ضبط شروع نشد. دوباره امتحان کن.");
+    }
   };
 
   const stopRecording = async () => {
