@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PUBLIC_STATUSES, PROVINCES, resolveProvince } from "@charana/core";
+import { redirect } from "next/navigation";
 import { InnerPage } from "@/components/inner-page";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -32,6 +33,13 @@ export default async function BusinessesPage({
   searchParams: Promise<{ page?: string; province?: string; category?: string; q?: string; city?: string }>;
 }) {
   const params = await searchParams;
+  // Free-text lives on /search now (ranked, Persian-aware). Keep old links working.
+  if (params.q?.trim()) {
+    const u = new URLSearchParams({ q: params.q.trim() });
+    if (params.city) u.set("city", params.city);
+    if (params.category) u.set("category", params.category);
+    redirect(`/search?${u}`);
+  }
   const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
   const from = (page - 1) * PAGE_SIZE;
 

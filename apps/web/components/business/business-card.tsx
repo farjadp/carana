@@ -31,9 +31,12 @@ export interface BusinessCardData extends VerifiableBusiness {
 export function BusinessCard({
   business,
   showViews = false,
+  categoryLabel,
 }: {
   business: BusinessCardData;
   showViews?: boolean;
+  /** Human label for business.category; falls back to the raw slug. */
+  categoryLabel?: string | null;
 }) {
   const status = getVerificationStatus(business);
   const href = `/businesses/${business.slug || business.id}`;
@@ -66,7 +69,7 @@ export function BusinessCard({
               {business.name}
             </h3>
             {business.category && (
-              <p className="truncate text-xs text-[#5f6472]">{business.category}</p>
+              <p className="truncate text-xs text-[#5f6472]">{categoryLabel ?? business.category}</p>
             )}
           </div>
         </div>

@@ -23,6 +23,7 @@ import { BusinessCardView } from "../../components/business-card";
 import {
   listBusinesses,
   listCategories,
+  searchBusinesses,
   type BusinessCard,
   type Category,
 } from "../../lib/businesses";
@@ -42,13 +43,15 @@ export default function SearchScreen() {
   const run = useCallback(async () => {
     setLoading(true);
     try {
-      setResults(
-        await listBusinesses({
-          search: term.trim() || undefined,
-          category: category ?? undefined,
-          limit: 60,
-        })
-      );
+      if (term.trim()) {
+        // Ranked, Persian-aware search — same RPC as the website.
+        const { hits } = await searchBusinesses({ q: term, category, limit: 60 });
+        setResults(hits);
+      } else {
+        setResults(await listBusinesses({ category: category ?? undefined, limit: 60 }));
+      }
+    } catch {
+      setResults([]);
     } finally {
       setLoading(false);
     }
@@ -72,7 +75,7 @@ export default function SearchScreen() {
           <TextInput
             value={term}
             onChangeText={setTerm}
-            placeholder="نام کسب‌وکار یا خدمات…"
+            placeholder="نام، خدمت، دسته یا شهر — فارسی یا انگلیسی"
             placeholderTextColor={colors.mutedText}
             style={styles.input}
             returnKeyType="search"

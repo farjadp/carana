@@ -234,3 +234,34 @@ export async function listBusinessesByProvince(provinceNameEn: string, limit = 6
   if (error) throw error;
   return (data ?? []) as unknown as BusinessCard[];
 }
+
+// ---------------------------------------------------------------------------
+// Search — the ranked, Persian-aware RPC (same engine as the website).
+// ---------------------------------------------------------------------------
+export async function searchBusinesses(opts: {
+  q: string;
+  city?: string | null;
+  category?: string | null;
+  verifiedOnly?: boolean;
+  limit?: number;
+}): Promise<{ hits: (BusinessCard & { verified_until: string | null; rank: number })[]; total: number }> {
+  const q = opts.q.replace(/\s+/g, " ").trim().slice(0, 100);
+  const { data, error } = await supabase.rpc("search_businesses", {
+    q,
+    p_city: opts.city ?? undefined,
+    p_category: opts.category ?? undefined,
+    p_verified_only: !!opts.verifiedOnly,
+    p_limit: opts.limit ?? 40,
+    p_offset: 0,
+  });
+  if (error) throw error;
+  const hits = (data ?? []) as (BusinessCard & { verified_until: string | null; rank: number; total_count: number })[];
+  // Log for the demand signal; failures are irrelevant to the user.
+  if (q) {
+    void supabase.from("search_queries").insert({
+      q, q_norm: q.toLowerCase(), city: opts.city ?? null, category: opts.category ?? null,
+      result_count: hits[0]?.total_count ?? 0, source: "mobile",
+    });
+  }
+  return { hits, total: hits[0]?.total_count ?? 0 };
+}

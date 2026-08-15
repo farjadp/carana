@@ -2571,3 +2571,15 @@ section {
 .header-nav-menu-link:hover { background: var(--bg); }
 .header-nav-menu-link.is-active { color: var(--annabi); background: rgba(128, 0, 0, 0.06); }
 .mobile-menu-group-label { font-size: 12px; font-weight: 700; color: var(--muted-text); padding: 6px 12px 2px; }
+
+/* Header search — a compact field that submits to /search. 2026-08-15 */
+.header-search {
+  display: none; align-items: center; gap: 6px; height: 36px; padding: 0 12px;
+  border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--muted-text);
+  transition: box-shadow .15s, border-color .15s;
+}
+.header-search:focus-within { border-color: rgba(128,0,0,0.35); box-shadow: 0 0 0 4px rgba(128,0,0,0.08); }
+.header-search input { width: 120px; background: transparent; border: 0; outline: none; font: inherit; font-size: 13.5px; color: var(--text); }
+.header-search input::placeholder { color: var(--muted-text); }
+.header-search input:focus { width: 180px; transition: width .15s; }
+@media (min-width: 1100px) { .header-search { display: inline-flex; } }

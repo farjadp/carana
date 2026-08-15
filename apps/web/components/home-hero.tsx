@@ -66,7 +66,7 @@ export function HomeHero({
     const sp = new URLSearchParams();
     if (q.trim()) sp.set("q", q.trim());
     if (city) sp.set("city", city);
-    router.push(`/businesses${sp.toString() ? `?${sp}` : ""}`);
+    router.push(`/search${sp.toString() ? `?${sp}` : ""}`);
   };
 
   return (
@@ -130,7 +130,7 @@ export function HomeHero({
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
               <span className="text-[#f6f1e8]/55">پرجستجو:</span>
               {SUGGESTIONS.map((s) => (
-                <button key={s} type="button" onClick={() => { setQ(s); router.push(`/businesses?q=${encodeURIComponent(s)}`); }}
+                <button key={s} type="button" onClick={() => { setQ(s); router.push(`/search?q=${encodeURIComponent(s)}`); }}
                   className="text-[#f6f1e8]/90 bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-full transition">
                   {s}
                 </button>

@@ -8,6 +8,7 @@
 import Link from "next/link";
 
 import { BrandMark } from "@/components/brand-mark";
+import { Search } from "lucide-react";
 import { HeaderNav } from "@/components/header-nav";
 import { getOptionalUser } from "@/lib/auth/session";
 import type { NavSection } from "@/lib/site-content";
@@ -31,6 +32,10 @@ export async function SiteHeader({ currentPath }: SiteHeaderProps) {
         <HeaderNav currentPath={currentPath} isSignedIn={!!user} />
 
         <div className="header-actions">
+          <form action="/search" method="get" className="header-search" role="search">
+            <Search size={15} aria-hidden />
+            <input name="q" placeholder="جستجو…" aria-label="جستجو در چارانا" />
+          </form>
           {user ? (
             <Link href="/profile" className="header-link">
               پروفایل

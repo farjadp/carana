@@ -219,6 +219,7 @@ export type Database = {
           preferred_contact: string | null
           province: string | null
           ref_no: number
+          search_text: string | null
           service_area: string | null
           service_type: string | null
           services: Json | null
@@ -278,6 +279,7 @@ export type Database = {
           preferred_contact?: string | null
           province?: string | null
           ref_no?: number
+          search_text?: string | null
           service_area?: string | null
           service_type?: string | null
           services?: Json | null
@@ -337,6 +339,7 @@ export type Database = {
           preferred_contact?: string | null
           province?: string | null
           ref_no?: number
+          search_text?: string | null
           service_area?: string | null
           service_type?: string | null
           services?: Json | null
@@ -415,6 +418,21 @@ export type Database = {
           name?: string
           slug?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      city_aliases: {
+        Row: {
+          aliases: string
+          city_en: string
+        }
+        Insert: {
+          aliases: string
+          city_en: string
+        }
+        Update: {
+          aliases?: string
+          city_en?: string
         }
         Relationships: []
       }
@@ -564,6 +582,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      search_queries: {
+        Row: {
+          category: string | null
+          city: string | null
+          created_at: string
+          id: string
+          q: string
+          q_norm: string
+          result_count: number
+          source: string
+          user_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          q: string
+          q_norm: string
+          result_count: number
+          source?: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          q?: string
+          q_norm?: string
+          result_count?: number
+          source?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       system_errors: {
         Row: {
@@ -761,10 +815,15 @@ export type Database = {
         Args: { target_business_id: string }
         Returns: Database["public"]["Enums"]["business_status"]
       }
+      business_search_text: {
+        Args: { b: Database["public"]["Tables"]["businesses"]["Row"] }
+        Returns: string
+      }
       current_user_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      fa_normalize: { Args: { t: string }; Returns: string }
       has_business_access: {
         Args: { target_business_id: string; target_user_id: string }
         Returns: boolean
@@ -778,6 +837,40 @@ export type Database = {
         Args: { target_review_id: string }
         Returns: Database["public"]["Enums"]["public_review_status"]
       }
+      search_businesses: {
+        Args: {
+          p_category?: string
+          p_city?: string
+          p_limit?: number
+          p_offset?: number
+          p_verified_only?: boolean
+          q: string
+        }
+        Returns: {
+          category: string
+          city: string
+          cover_url: string
+          id: string
+          logo_url: string
+          name: string
+          name_en: string
+          phone: string
+          province: string
+          rank: number
+          ref_no: number
+          short_description: string
+          slug: string
+          sub_category: string
+          tagline: string
+          total_count: number
+          verified_until: string
+          view_count: number
+          website: string
+        }[]
+      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       activity_action:

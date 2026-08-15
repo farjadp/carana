@@ -74,6 +74,7 @@ export default async function HomePage() {
       supabase.from("categories").select("id", { count: "exact", head: true }).eq("is_active", true),
     ]);
   const cityCount = new Set((cityRows ?? []).map((r) => (r.city as string).trim().toLowerCase()).filter(Boolean)).size;
+  const catLabel = new Map((categories ?? []).map((c) => [c.slug as string, c.name as string]));
   const stats = { total: totalCount ?? 0, verified: verifiedCount ?? 0, cities: cityCount, categories: categoryCount ?? 0 };
   const cityFreq = new Map<string, number>();
   for (const r of cityRows ?? []) { const c = (r.city as string).trim(); if (c) cityFreq.set(c, (cityFreq.get(c) ?? 0) + 1); }
@@ -134,7 +135,7 @@ export default async function HomePage() {
               
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {latestBusinesses.map((biz) => (
-                  <BusinessCard key={biz.id} business={biz} />
+                  <BusinessCard key={biz.id} business={biz} categoryLabel={catLabel.get(biz.category)} />
                 ))}
               </div>
             </div>
@@ -154,7 +155,7 @@ export default async function HomePage() {
               
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {popularBusinesses.map((biz) => (
-                  <BusinessCard key={biz.id} business={biz} showViews />
+                  <BusinessCard key={biz.id} business={biz} showViews categoryLabel={catLabel.get(biz.category)} />
                 ))}
               </div>
             </div>
