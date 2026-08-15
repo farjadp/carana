@@ -35,6 +35,7 @@ API routes and mobile screens — not from memory. Legend: ✅ built and live ·
 | My interactions list (saved, notes, reviews) | ✅ `/profile/interactions` |
 | Write a public review (rating + one-line + text) → moderation queue | ✅ |
 | Report a listing | ⚪ button was a fake toast; removed from profile — **P0 open** |
+| **Suggestion box** — "چی کم داریم؟" typed or voice, no sign-in needed; on home, /support and the zero-result search | ✅ (15 Aug night) `suggestion-box.tsx`, `/api/suggestions` |
 
 ### Mobile app (Expo, iOS + Android APK)
 | Feature | State |
@@ -48,6 +49,7 @@ API routes and mobile screens — not from memory. Legend: ✅ built and live ·
 | Account edit (name, phone) | ✅ |
 | Business registration: verify email + phone → optional website import (AI) → 7-step form → review → submit | ✅ |
 | Save/notes/reviews in app | ⚪ not yet (Notion: "My Notes list", "finish mobile review submission") |
+| Suggestion box on home + search empty (text ✅ verified; voice via expo-audio — verify on a real phone; needs APK 1.2.0) | 🟡 |
 | Store presence | 🟡 APK direct download live; App Store / Play blocked on D-U-N-S |
 
 ---
@@ -86,6 +88,7 @@ API routes and mobile screens — not from memory. Legend: ✅ built and live ·
 | Users: list, view, change role, delete | ✅ | `/admin/users`, `[id]` |
 | Activity log (last 100 events: sign-in, sign-up, profile edits, …) | ✅ | `/admin/logs`, `logUserActivity` |
 | Claims queue | 🟡 page queries the table; the flow itself is automatic (SMS proof), so the queue is mostly empty by design | `/admin/claims` |
+| **Suggestions inbox** — filter new/read/done, play voice (signed URL), internal note | ✅ | `/admin/suggestions` |
 | Reports (abuse) | ⚪ placeholder page — no table, no data | `/admin/reports` |
 | System settings | ⚪ placeholder page | `/admin/settings` |
 | Sidebar badges "۵" claims / "۲" reports | ❌ **hard-coded numbers** — an honesty violation of the same class as the old verified chip; should be live counts or removed | `sidebar-nav.tsx` |

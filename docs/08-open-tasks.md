@@ -1,6 +1,6 @@
 # Open tasks
 
-**Updated:** 2026-08-15 (night). The operational board is Notion → 🧿 Charana
+**Updated:** 2026-08-15 (late night). The operational board is Notion → 🧿 Charana
 → Mission Control; this file is the readable snapshot for a cold session.
 Every task below also exists there with owner, priority and instructions.
 
@@ -29,6 +29,10 @@ Every task below also exists there with owner, priority and instructions.
   packages? Offer for early-stage businesses? (three Notion decisions).
 
 ## Code — next slices, in order
+
+0. **Verify mobile voice on a real iPhone** and then **build APK 1.2.0**
+   (expo-audio is a new native module — the 1.1.0 APK cannot record). Then
+   admin sidebar badges "۵"/"۲" → live counts (Notion mission exists).
 
 1. **Report button tells a falsehood** (P0, small): either a
    `business_reports` table + admin queue, or remove the button. The toast

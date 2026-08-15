@@ -439,3 +439,39 @@ Persian/Arabic-Indic digits.
 **Also:** Persian city names are not in the data (cities are stored in
 English), so «املاک ریچموند» found nothing until `city_aliases` was joined
 into the search blob. Add a row there for every new city.
+
+---
+
+## Unlayered `a { color }` beats every Tailwind text utility
+
+**Symptom:** the profile's filled "تماس" button rendered ink text on annabi —
+`text-[#f6f1e8]` was in the class list, computed colour was `rgb(20,33,61)`.
+
+**Cause:** Tailwind v4 emits utilities inside `@layer utilities`. Any
+unlayered rule — here `a { color: inherit }` at the top of `globals.css` —
+outranks *all* layered rules regardless of specificity or order. So no `<a>`
+on the site could take a Tailwind text colour, and nothing warned.
+
+**Fix:** the anchor reset lives in `@layer base` now. When a colour "does not
+apply" on a link, check for an unlayered rule before anything else.
+
+---
+
+## The iOS Simulator has no microphone unless you give it one
+
+**Symptom:** tapping "record" freezes the JS thread. No error, no log; the UI
+just stops responding to taps while native scroll still works.
+
+**Cause:** the simulator's default audio input had `totalChannelCount 0` in
+the CoreAudio log (`AggregateDevice.mm … scope 'inpt' … totalChannelCount 0`),
+followed by `HALC_ProxyObject::SetPropertyData … got an error`. With no input
+device, `AVAudioRecorder.record()` never returns and expo-audio's sync
+`record()` blocks Hermes.
+
+**Fix:** Simulator → I/O → Audio Input → pick the Mac's mic; or test voice on
+a real phone (`ios:device`). Not a code bug — the web recorder and the mobile
+text path were verified; only the simulator mic was not.
+
+**Also:** device console output was not showing in a `nohup`-started Metro
+log. Use `xcrun simctl spawn booted log stream --predicate 'process == "Charana"'`
+to see the native side when JS logs are silent.
