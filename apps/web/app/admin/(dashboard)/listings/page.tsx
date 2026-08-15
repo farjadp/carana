@@ -29,12 +29,20 @@ export default async function AdminListingsPage() {
       status,
       created_at,
       created_by,
-      profiles ( id, full_name, email )
+      profiles!businesses_created_by_fkey ( id, full_name, email )
     `)
     .order("created_at", { ascending: false });
 
   if (error) {
+    // Surface it — an empty admin list that is really a failed query has cost
+    // us a blind day once already (PGRST201, two FKs to profiles).
     console.error("Error fetching businesses:", error);
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-900">
+        <div className="font-bold mb-1">خطا در بارگذاری کسب‌وکارها</div>
+        <div className="text-sm">{error.message}</div>
+      </div>
+    );
   }
 
   // Ensure type match for the client component
