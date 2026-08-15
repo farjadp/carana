@@ -231,20 +231,22 @@ export default function BusinessEditForm({ businessId, initialData }: EditFormPr
     setIsScraping(true);
     try {
       const result = await scrapeWebsiteForBusiness(aiUrl);
-      if (result.success && result.data) {
+      if (result.success) {
         const d = result.data;
-        if (d.name) setValue("name", d.name);
-        if (d.name_en) setValue("name_en", d.name_en);
-        if (d.short_description) setValue("short_description", d.short_description);
-        if (d.description) setValue("description", d.description);
-        if (d.phone) setValue("phone", d.phone);
-        if (d.contact_email) setValue("contact_email", d.contact_email);
-        if (d.address) setValue("address", d.address);
-        if (d.instagram) setValue("instagram", d.instagram);
-        if (d.telegram) setValue("telegram", d.telegram);
-        if (d.linkedin) setValue("linkedin", d.linkedin);
-        if (d.whatsapp) setValue("whatsapp", d.whatsapp);
-        alert("اطلاعات با موفقیت استخراج و فرم پر شد. لطفاً بررسی کنید.");
+        const put = (k: string, v: unknown) => {
+          if (v !== undefined && v !== null && v !== "") setValue(k as never, v as never, { shouldDirty: true });
+        };
+        put("name", d.name); put("name_en", d.name_en); put("tagline", d.tagline);
+        put("short_description", d.short_description); put("description", d.description);
+        put("sub_category", d.sub_category); put("established_year", d.established_year);
+        put("phone", d.phone); put("whatsapp", d.whatsapp); put("contact_email", d.contact_email);
+        put("website", d.website); put("instagram", d.instagram); put("telegram", d.telegram);
+        put("linkedin", d.linkedin); put("google_maps_url", d.google_maps_url);
+        put("address", d.address); put("city", d.city); put("province", d.province);
+        put("postal_code", d.postal_code); put("logo_url", d.logo_url);
+        put("booking_url", d.booking_url);
+        if (d.working_hours && Object.keys(d.working_hours).length) put("working_hours", d.working_hours);
+        alert("اطلاعات از سایت خوانده و در فرم قرار گرفت. لطفاً همه را بازبینی کنید و بعد ذخیره کنید.");
       } else {
         alert(result.error || "خطایی رخ داد.");
       }

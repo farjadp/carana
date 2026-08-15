@@ -1,8 +1,11 @@
 // ============================================================================
 // Source: app/dashboard/business/new/onboarding-form.tsx
-// Version: 2.0.0 — 2026-08-13
+// Version: 3.0.0 — 2026-08-15
 // Why: Comprehensive 7-step business registration form for Charana platform.
 // Features: RTL, auto-save draft, file upload, working hours, full social links.
+// v3: optional "step zero" — read the owner's website with AI and prefill the
+//     form; every step then shows which of its fields came from the site and
+//     which need a second look. The owner reviews and confirms everything.
 // Env / Identity: Client Component
 // ============================================================================
 "use client";
@@ -16,7 +19,7 @@ import {
   Loader2, ArrowRight, ArrowLeft, CheckCircle2, Save,
   Phone, Globe, Hash, MessageCircle, Mail, MapPin, Send, Link2, Clock,
   ShieldCheck, Building2, Camera, CalendarDays, Info,
-  PlusCircle, Trash2, DollarSign, Store, Sparkles
+  PlusCircle, Trash2, DollarSign, Store, Sparkles, AlertTriangle
 } from "lucide-react";
 
 import {
@@ -26,6 +29,8 @@ import {
   type ServiceItem, type BranchItem
 } from "@charana/core";
 import { saveBusinessDraft, submitBusiness } from "./actions";
+import { WebsiteImport } from "./website-import";
+import type { ScrapedBusiness } from "../ai-actions";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,6 +52,25 @@ const STEPS = [
 ];
 
 // دسته‌بندی‌های اصلی کسب‌وکار بصورت پروپ ارسال می‌شوند
+
+/** Which form fields belong to which step — drives the "from your site" banner. */
+const STEP_FIELDS: Record<number, string[]> = {
+  1: ["name", "name_en", "category", "sub_category", "short_description", "description", "established_year", "services"],
+  2: ["province", "city", "address", "postal_code", "google_maps_url"],
+  3: ["phone", "whatsapp", "contact_email", "website", "instagram", "telegram", "linkedin"],
+  4: ["languages"],
+  5: ["logo_url", "tagline"],
+  6: ["working_hours", "accepts_appointments", "booking_url"],
+};
+const FIELD_FA: Record<string, string> = {
+  name: "نام", name_en: "نام انگلیسی", category: "دسته‌بندی", sub_category: "زیردسته",
+  short_description: "توضیح کوتاه", description: "توضیح کامل", established_year: "سال شروع",
+  services: "خدمات", province: "استان", city: "شهر", address: "آدرس", postal_code: "کد پستی",
+  google_maps_url: "نقشه", phone: "تلفن", whatsapp: "واتساپ", contact_email: "ایمیل",
+  website: "وب‌سایت", instagram: "اینستاگرام", telegram: "تلگرام", linkedin: "لینکدین",
+  languages: "زبان‌ها", logo_url: "لوگو", tagline: "شعار", working_hours: "ساعات کاری",
+  accepts_appointments: "نوبت‌دهی", booking_url: "لینک رزرو",
+};
 
 // استان‌های کانادا
 const PROVINCES = [
@@ -91,7 +115,10 @@ export default function BusinessOnboardingForm({
 }) {
   const router = useRouter();
 
-  const [currentStep, setCurrentStep] = useState(1);
+  // Step 0 is the optional website import; the seven real steps start at 1.
+  const [currentStep, setCurrentStep] = useState(0);
+  /** Fields the AI import filled, and which of them it marked low-confidence. */
+  const [imported, setImported] = useState<{ fields: Set<string>; review: Set<string> } | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [businessId, setBusinessId] = useState<string | undefined>(undefined);
@@ -105,7 +132,7 @@ export default function BusinessOnboardingForm({
 
   // مقادیر پیش‌فرض برای همه فیلدهای فرم
   const methods = useForm<BusinessFormData>({
-    resolver: zodResolver(STEPS[currentStep - 1].schema),
+    resolver: zodResolver(STEPS[Math.max(currentStep, 1) - 1].schema),
     mode: "onTouched",
     defaultValues: {
       name: "", name_en: "", category: defaultCategory || "", sub_category: "", short_description: "",
@@ -141,6 +168,44 @@ export default function BusinessOnboardingForm({
   });
 
   // ============================================================================
+  // Website import → prefill
+  // ============================================================================
+  const applyImport = (d: ScrapedBusiness) => {
+    const filled = new Set<string>();
+    const put = (key: keyof BusinessFormData, value: unknown) => {
+      if (value === undefined || value === null || value === "") return;
+      setValue(key, value as never, { shouldDirty: true });
+      filled.add(key);
+    };
+    put("name", d.name); put("name_en", d.name_en); put("tagline", d.tagline);
+    put("short_description", d.short_description); put("description", d.description);
+    put("sub_category", d.sub_category); put("established_year", d.established_year);
+    if (d.category_slug && initialCategories.some((c) => c.value === d.category_slug)) {
+      put("category", d.category_slug);
+    }
+    put("phone", d.phone); put("whatsapp", d.whatsapp); put("contact_email", d.contact_email);
+    put("website", d.website); put("instagram", d.instagram); put("telegram", d.telegram);
+    put("linkedin", d.linkedin); put("google_maps_url", d.google_maps_url);
+    put("address", d.address); put("city", d.city); put("province", d.province);
+    put("postal_code", d.postal_code);
+    if (d.languages?.length) put("languages", d.languages);
+    put("logo_url", d.logo_url);
+    if (d.working_hours && Object.keys(d.working_hours).length) put("working_hours", d.working_hours);
+    if (typeof d.accepts_appointments === "boolean") put("accepts_appointments", d.accepts_appointments);
+    put("booking_url", d.booking_url);
+    if (d.services?.length) {
+      const items = d.services.map((s) => ({ ...s, price_note: "" }));
+      setServices(items);
+      setValue("services", items as never, { shouldDirty: true });
+      filled.add("services");
+    }
+    // The model reports keys by its own names; map the one that differs.
+    const review = new Set((d.confidence?.low ?? []).map((k) => (k === "category_slug" ? "category" : k)));
+    setImported({ fields: filled, review });
+    setCurrentStep(1);
+  };
+
+  // ============================================================================
   // منطق ناوبری مراحل
   // ============================================================================
 
@@ -156,7 +221,8 @@ export default function BusinessOnboardingForm({
 
   /** بازگشت به مرحله قبل */
   const handlePrev = () => {
-    if (currentStep > 1) setCurrentStep((prev) => prev - 1);
+    // From step 1, "back" returns to the website-import offer.
+    if (currentStep >= 1) setCurrentStep((prev) => prev - 1);
   };
 
   /** رفتن مستقیم به یک مرحله مشخص از طریق استپر */
@@ -249,8 +315,32 @@ export default function BusinessOnboardingForm({
   }
 
   // ============================================================================
+  // مرحله‌ی صفر: خواندن از وب‌سایت (اختیاری)
+  // ============================================================================
+  if (currentStep === 0) {
+    return (
+      <div className="max-w-3xl mx-auto" dir="rtl">
+        <div className="mb-6">
+          <h1 className="text-2xl font-black text-[color:var(--text)]">ثبت کسب‌وکار جدید</h1>
+          <p className="text-sm text-[color:var(--muted-text)] mt-1">قبل از شروع</p>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-[color:var(--line)] p-6 md:p-8">
+          <WebsiteImport
+            categories={initialCategories}
+            onApply={applyImport}
+            onSkip={() => setCurrentStep(1)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================================
   // رندر اصلی فرم
   // ============================================================================
+  const stepImported = imported ? STEP_FIELDS[currentStep]?.filter((f) => imported.fields.has(f)) ?? [] : [];
+  const stepReview = imported ? stepImported.filter((f) => imported.review.has(f)) : [];
+
   return (
     <div className="max-w-3xl mx-auto" dir="rtl">
 
@@ -334,6 +424,35 @@ export default function BusinessOnboardingForm({
             }}
           >
             <div className="p-6 md:p-8">
+
+              {imported && currentStep === 7 && imported.review.size > 0 ? (
+                <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm flex items-start gap-3">
+                  <AlertTriangle size={18} className="text-amber-600 mt-0.5 shrink-0" />
+                  <div className="leading-relaxed text-amber-900">
+                    <div className="font-bold">قبل از ارسال، این موارد را که از سایت‌تان خلاصه یا ترجمه شده یک بار دیگر بخوانید:</div>
+                    <div className="mt-0.5">{[...imported.review].map((f) => FIELD_FA[f] ?? f).join("، ")}</div>
+                  </div>
+                </div>
+              ) : null}
+
+              {imported && stepImported.length > 0 && currentStep < 7 ? (
+                <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-3 text-sm flex items-start gap-3">
+                  <Sparkles size={18} className="text-emerald-600 mt-0.5 shrink-0" />
+                  <div className="leading-relaxed">
+                    <div className="font-bold text-emerald-900">
+                      از سایت شما پر شد: {stepImported.map((f) => FIELD_FA[f] ?? f).join("، ")}
+                    </div>
+                    {stepReview.length ? (
+                      <div className="text-amber-800 mt-1 flex items-start gap-1.5">
+                        <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                        <span>لطفاً این‌ها را دقیق‌تر ببینید (خلاصه یا ترجمه شده): {stepReview.map((f) => FIELD_FA[f] ?? f).join("، ")}</span>
+                      </div>
+                    ) : (
+                      <div className="text-emerald-800/80 mt-0.5">همه را مرور کنید و هر چه لازم بود همین‌جا اصلاح کنید.</div>
+                    )}
+                  </div>
+                </div>
+              ) : null}
 
               {/* ================================================================
                   مرحله ۱: اطلاعات پایه کسب‌وکار
@@ -1200,7 +1319,7 @@ export default function BusinessOnboardingForm({
                     <ReviewSection title="اطلاعات پایه">
                       <ReviewRow label="نام فارسی" value={getValues("name")} />
                       <ReviewRow label="نام انگلیسی" value={getValues("name_en")} />
-                      <ReviewRow label="دسته‌بندی" value={getValues("category")} />
+                      <ReviewRow label="دسته‌بندی" value={initialCategories.find((c) => c.value === getValues("category"))?.label ?? getValues("category")} />
                       <ReviewRow label="توضیح کوتاه" value={getValues("short_description")} />
                       <ReviewRow label="وضعیت مالکیت" value={getValues("ownership_status") === "owner" ? "صاحب کسب‌وکار" : "نماینده"} />
                     </ReviewSection>
@@ -1208,7 +1327,7 @@ export default function BusinessOnboardingForm({
                     <ReviewSection title="موقعیت">
                       <ReviewRow label="استان / شهر" value={`${getValues("province")} / ${getValues("city")}`} />
                       <ReviewRow label="آدرس" value={getValues("address")} dir="ltr" />
-                      <ReviewRow label="نوع خدمات" value={getValues("service_type")} />
+                      <ReviewRow label="نوع خدمات" value={{ in_person: "حضوری", online: "آنلاین", both: "حضوری و آنلاین" }[getValues("service_type") as string] ?? getValues("service_type")} />
                     </ReviewSection>
 
                     <ReviewSection title="ارتباطات">
@@ -1250,7 +1369,7 @@ export default function BusinessOnboardingForm({
                 type="button"
                 variant="ghost"
                 onClick={handlePrev}
-                disabled={currentStep === 1 || isSubmitting}
+                disabled={isSubmitting}
                 className="gap-2"
               >
                 <ArrowRight size={16} />
