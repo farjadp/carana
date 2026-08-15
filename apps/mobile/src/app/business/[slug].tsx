@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
+  Clipboard,
   Image,
   Linking,
   Platform,
@@ -119,6 +120,7 @@ export default function BusinessScreen() {
   const avg = reviews.length ? reviews.reduce((s, r) => s + (r.public_rating || 0), 0) / reviews.length : null;
   const publicUrl = `${WEB}/businesses/${encodeURIComponent(business.slug ?? business.id)}`;
 
+  const copyRef = () => { if (business.ref_no) Clipboard.setString(String(business.ref_no)); };
   const share = () => Share.share({ message: `${business.name} — ${publicUrl}`, url: publicUrl, title: business.name }).catch(() => {});
 
   return (
@@ -153,6 +155,9 @@ export default function BusinessScreen() {
                 ) : null}
                 {category ? (
                   <Pressable onPress={() => router.push(`/categories/${category.slug}`)} style={styles.catChip}><Text style={styles.catChipText}>{category.name}</Text></Pressable>
+                ) : null}
+                {business.ref_no ? (
+                  <Pressable onPress={copyRef} style={styles.refChip} hitSlop={6}><Text style={styles.refChipText}>#{business.ref_no}</Text></Pressable>
                 ) : null}
               </View>
               <Text style={styles.name}>{business.name}</Text>
@@ -316,6 +321,15 @@ export default function BusinessScreen() {
                 <BrandMark size={14} simple /><Text style={styles.hint}>کسب‌وکار ایرانی‌-کانادایی</Text>
               </View>
             ) : null}
+            {business.ref_no ? (
+              <Pressable onPress={copyRef} style={styles.refRow}>
+                <Text style={styles.refValue}>#{business.ref_no}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.subhead}>شماره‌ی مرجع چارانا</Text>
+                  <Text style={styles.hint}>در تماس با پشتیبانی یا احراز مالکیت این شماره را بگویید. برای کپی لمس کنید.</Text>
+                </View>
+              </Pressable>
+            ) : null}
           </Section>
         </View>
       </ScrollView>
@@ -436,4 +450,8 @@ const styles = StyleSheet.create({
   reviewTitle: { flex: 1, fontSize: 14, fontFamily: fonts.bold, color: colors.text, textAlign: "right" },
   claimBtn: { flexDirection: "row-reverse", alignItems: "center", justifyContent: "center", gap: 4, backgroundColor: colors.softAnnabi, borderRadius: radius.md, paddingVertical: 10, paddingHorizontal: 12 },
   claimText: { fontSize: 13, fontFamily: fonts.bold, color: colors.annabi },
+  refChip: { backgroundColor: colors.bg, borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 4 },
+  refChipText: { fontSize: 11.5, fontFamily: fonts.bold, color: colors.mutedText, writingDirection: "ltr" },
+  refRow: { flexDirection: "row-reverse", alignItems: "center", gap: space.sm, paddingTop: space.sm, borderTopWidth: 1, borderTopColor: colors.line },
+  refValue: { fontSize: 18, fontFamily: fonts.heavy, color: colors.text, writingDirection: "ltr", letterSpacing: 1 },
 });

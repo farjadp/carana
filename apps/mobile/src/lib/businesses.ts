@@ -17,7 +17,7 @@ import { supabase } from "./supabase";
  * columns explicitly on a public query.
  */
 const CARD_COLUMNS =
-  "id, slug, name, name_en, category, sub_category, tagline, short_description, city, province, phone, website, logo_url, cover_url";
+  "id, ref_no, slug, name, name_en, category, sub_category, tagline, short_description, city, province, phone, website, logo_url, cover_url";
 
 const DETAIL_COLUMNS = `${CARD_COLUMNS}, description, address, is_address_public,
   whatsapp, contact_email, instagram, telegram, linkedin, google_maps_url,
@@ -28,6 +28,7 @@ const DETAIL_COLUMNS = `${CARD_COLUMNS}, description, address, is_address_public
 
 export type BusinessCard = {
   id: string;
+  ref_no: number | null;
   slug: string | null;
   name: string;
   name_en: string | null;

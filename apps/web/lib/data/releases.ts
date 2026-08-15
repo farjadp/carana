@@ -17,10 +17,10 @@ export const STORES = {
   /** Fill when the Play listing is live. */
   playStore: "",
   /** Direct APK — Android only, sideload. Latest preview build from EAS. */
-  apkDirect: "https://expo.dev/artifacts/eas/rrfJak9va1-nJKhFKNlEGn5Cizod-FNq3tVq6K832dM.apk",
-  apkVersion: "1.0.0",
+  apkDirect: "https://expo.dev/artifacts/eas/5wPzEKiCJJEEal5QfQzEAoU7EojEtX3HTV2hgQ1GHx0.apk",
+  apkVersion: "1.1.0",
   apkSizeMb: 107,
-  apkBuiltAt: "2026-08-14",
+  apkBuiltAt: "2026-08-15",
   /** iOS TestFlight invite — empty until the Apple organisation account exists. */
   testFlight: "",
 } as const;

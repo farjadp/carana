@@ -218,6 +218,7 @@ export type Database = {
           postal_code: string | null
           preferred_contact: string | null
           province: string | null
+          ref_no: number
           service_area: string | null
           service_type: string | null
           services: Json | null
@@ -276,6 +277,7 @@ export type Database = {
           postal_code?: string | null
           preferred_contact?: string | null
           province?: string | null
+          ref_no?: number
           service_area?: string | null
           service_type?: string | null
           services?: Json | null
@@ -334,6 +336,7 @@ export type Database = {
           postal_code?: string | null
           preferred_contact?: string | null
           province?: string | null
+          ref_no?: number
           service_area?: string | null
           service_type?: string | null
           services?: Json | null

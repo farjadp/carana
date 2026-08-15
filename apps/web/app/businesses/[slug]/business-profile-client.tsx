@@ -19,7 +19,7 @@ import {
   MapPin, Globe, Phone, Mail, Clock, ShieldCheck, Sparkles, MessageCircle,
   ExternalLink, CalendarDays, ChevronLeft, Star, Share2, Send, AtSign,
   Briefcase, Languages, Navigation, Edit3, Building2, CheckCircle2, BadgeCheck,
-  Check, Bookmark,
+  Check, Bookmark, Hash, Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -84,6 +84,14 @@ export default function BusinessProfileClient({
   business, category, user, initialInteraction, approvedReviews, similarBusinesses, isOwnerOrAdmin,
 }: Props) {
   const [copied, setCopied] = useState(false);
+  const [refCopied, setRefCopied] = useState(false);
+  const copyRef = async () => {
+    if (!business.ref_no) return;
+    await navigator.clipboard.writeText(String(business.ref_no));
+    setRefCopied(true);
+    toast.success(`شماره‌ی مرجع ${faNumber(business.ref_no)} کپی شد`);
+    setTimeout(() => setRefCopied(false), 1500);
+  };
   const verification = getVerificationStatus(business);
   const openNow = useOpenNow(business.working_hours);
   const provinceName = PROVINCES.find((p) => p.code === business.province)?.name ?? business.province;
@@ -172,6 +180,12 @@ export default function BusinessProfileClient({
                   </Link>
                 ) : null}
                 {business.sub_category ? <span className="text-xs text-[color:var(--muted-text)] bg-[color:var(--bg)] px-2.5 py-1 rounded-full">{business.sub_category}</span> : null}
+                {business.ref_no ? (
+                  <button type="button" onClick={copyRef} title="کپی شماره‌ی مرجع"
+                    className="text-[11px] text-[color:var(--muted-text)] hover:text-[color:var(--text)] bg-[color:var(--bg)] hover:bg-[color:var(--line)] px-2.5 py-1 rounded-full inline-flex items-center gap-1 transition [font-family:var(--font-latin)] tabular-nums" dir="ltr">
+                    <Hash size={11} /> {String(business.ref_no)} {refCopied ? <Check size={11} /> : null}
+                  </button>
+                ) : null}
               </div>
               <h1 className="text-2xl md:text-4xl font-black text-[color:var(--text)] leading-tight">{business.name}</h1>
               {business.name_en ? <p className="text-sm md:text-base text-[color:var(--muted-text)] [font-family:var(--font-latin)] mt-0.5" dir="ltr" style={{ textAlign: "right" }}>{business.name_en}</p> : null}
@@ -415,6 +429,15 @@ export default function BusinessProfileClient({
                 {business.is_iranian_owned ? (
                   <div className="flex items-center gap-2 text-[color:var(--text)]"><BrandMark size={14} color="#800000" simple /> کسب‌وکار ایرانی‌-کانادایی</div>
                 ) : null}
+                {business.ref_no ? (
+                  <div className="pt-3 mt-1 border-t border-[color:var(--line)] flex items-center justify-between gap-2">
+                    <span className="text-[color:var(--muted-text)]">شماره‌ی مرجع چارانا</span>
+                    <button type="button" onClick={copyRef} className="font-black text-[color:var(--text)] tabular-nums [font-family:var(--font-latin)] tracking-wider inline-flex items-center gap-1.5 hover:text-[color:var(--annabi)] transition" dir="ltr" title="کپی">
+                      #{String(business.ref_no)} {refCopied ? <Check size={13} /> : <Copy size={13} className="opacity-50" />}
+                    </button>
+                  </div>
+                ) : null}
+                {business.ref_no ? <p className="text-[11px] text-[color:var(--muted-text)]">در تماس با پشتیبانی یا احراز مالکیت، این شماره را بگویید.</p> : null}
               </div>
             </Section>
           </aside>

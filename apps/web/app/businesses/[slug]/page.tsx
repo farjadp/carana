@@ -18,7 +18,7 @@ export const revalidate = 60; // ISR cache 1 minute
 // verification fields (business_number, license_info, verification_documents,
 // verification_notes), which are admin-only and must never reach the client.
 const PUBLIC_BUSINESS_COLUMNS = `
-  id, slug, name, name_en, category, sub_category, tagline,
+  id, ref_no, slug, name, name_en, category, sub_category, tagline,
   short_description, description, established_year,
   country, province, city, address, postal_code, is_address_public,
   service_type, service_area, google_maps_url,
