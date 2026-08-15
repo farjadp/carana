@@ -61,6 +61,7 @@ simulator and Farjad's iPhone; store publishing is blocked on D-U-N-S.
 | `11-session-log.md` | How we got here, session by session |
 | `12-integrations.md` | Email, SMS, verification, telemetry, analytics |
 | `13-supabase-email-templates.md` | Paste-ready auth email templates |
+| `14-feature-inventory.md` | What exists, per audience — visitor / owner / admin — with state |
 
 ## Working style (learned, do not relearn)
 
