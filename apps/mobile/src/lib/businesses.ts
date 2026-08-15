@@ -23,7 +23,8 @@ const DETAIL_COLUMNS = `${CARD_COLUMNS}, description, address, is_address_public
   whatsapp, contact_email, instagram, telegram, linkedin, google_maps_url,
   preferred_contact, languages, is_iranian_owned, established_year,
   working_hours, accepts_appointments, booking_url, services, branches,
-  service_type, service_area, brand_color, created_at`;
+  service_type, service_area, brand_color, created_at,
+  verification_method, verified_at, verified_until, verified_phone, verified_email`;
 
 export type BusinessCard = {
   id: string;
@@ -56,7 +57,7 @@ export type BusinessDetail = BusinessCard & {
   languages: string[] | null;
   is_iranian_owned: boolean | null;
   established_year: number | null;
-  working_hours: Record<string, string> | null;
+  working_hours: Record<string, { open?: string; close?: string; closed?: boolean }> | null;
   accepts_appointments: boolean | null;
   booking_url: string | null;
   services: { name: string; description?: string; price?: string; price_unit?: string }[] | null;
@@ -65,6 +66,11 @@ export type BusinessDetail = BusinessCard & {
   service_area: string | null;
   brand_color: string | null;
   created_at: string | null;
+  verification_method: "self_onboarded" | "claimed" | null;
+  verified_at: string | null;
+  verified_until: string | null;
+  verified_phone: string | null;
+  verified_email: string | null;
 };
 
 export type Category = {

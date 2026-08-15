@@ -1,7 +1,8 @@
 // ============================================================================
 // Source: app/businesses/[slug]/page.tsx
-// Version: 2.1.0 — 2026-08-13
-// Why: Robust business detail page query with URL decoding, slug/name/id fallback, and admin client fallback.
+// Version: 3.0.0 — 2026-08-15
+// Why: Robust business detail page query with URL decoding, slug/name/id fallback.
+//      v3 also resolves the category label + image so the profile never shows a raw slug.
 // Env / Identity: Server Component.
 // ============================================================================
 
@@ -200,6 +201,13 @@ export default async function BusinessProfilePage({
       .limit(4),
   ]);
 
+  // Category label + hero image (the profile used to print the raw slug).
+  const { data: categoryRow } = await supabase
+    .from("categories")
+    .select("slug, name, image_url")
+    .eq("slug", business.category)
+    .maybeSingle();
+
   const seen = new Set<string>();
   const similarBusinesses = [...(sameCategory ?? []), ...(sameCity ?? [])]
     .filter((b) => {
@@ -213,6 +221,7 @@ export default async function BusinessProfilePage({
     <PageShell currentPath={`/businesses/${rawSlug}`} currentSection="business">
       <BusinessProfileClient
         business={business}
+        category={categoryRow ?? null}
         user={user}
         initialInteraction={initialInteraction}
         approvedReviews={approvedReviews}

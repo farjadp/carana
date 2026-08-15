@@ -1,25 +1,40 @@
+// ============================================================================
+// Source: app/businesses/[slug]/business-profile-client.tsx
+// Version: 3.0.0 — 2026-08-15
+// Why: The public business profile — the page every search, card and share
+//      lands on. v3 is a ground-up brand redesign: cream ground, annabi and
+//      lajvard, Vazirmatn; category photography as the cover when the owner
+//      has none; a live "open now" computed from working_hours; every fact
+//      the owner registered laid out where a visitor looks for it, and
+//      nothing rendered that is not backed by real state (no fake report
+//      toast, no is_claimed / is_featured / gallery columns that never
+//      existed, no raw category slug).
+// Env / Identity: Client component. Only public columns arrive here.
+// ============================================================================
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  MapPin, Globe, Phone, Mail, Clock, ShieldCheck, CheckCircle2,
-  Sparkles, MessageCircle, AlertTriangle, ExternalLink, Calendar,
-  Building2, ChevronLeft, Star, Heart, Share2, Layers, Award,
-  Check, Info, UserCheck, Edit3, Image as ImageIcon
+  MapPin, Globe, Phone, Mail, Clock, ShieldCheck, Sparkles, MessageCircle,
+  ExternalLink, CalendarDays, ChevronLeft, Star, Share2, Send, AtSign,
+  Briefcase, Languages, Navigation, Edit3, Building2, CheckCircle2, BadgeCheck,
+  Check, Bookmark,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import InteractionBar from "@/components/business/interaction-bar";
-import { PrivateNoteCard } from "@/components/business/private-note-card";
-import { VerificationBadge, VerificationDetail } from "@/components/verification-badge";
-import { ViewCounter } from "@/components/business/view-counter";
-import { getVerificationStatus } from "@/lib/verification/status";
 import { toast } from "sonner";
 
-interface BusinessProfileClientProps {
+import { Button } from "@/components/ui/button";
+import InteractionBar from "@/components/business/interaction-bar";
+import { PrivateNoteCard } from "@/components/business/private-note-card";
+import { VerificationBadge, VerificationDetail, faNumber } from "@/components/verification-badge";
+import { ViewCounter } from "@/components/business/view-counter";
+import { BrandMark } from "@/components/brand-mark";
+import { getVerificationStatus } from "@/lib/verification/status";
+import { PROVINCES } from "@charana/core";
+
+interface Props {
   business: any;
+  category: { slug: string; name: string; image_url: string | null } | null;
   user: any;
   initialInteraction: any;
   approvedReviews: any[];
@@ -27,580 +42,450 @@ interface BusinessProfileClientProps {
   isOwnerOrAdmin: boolean;
 }
 
-export default function BusinessProfileClient({
-  business,
-  user,
-  initialInteraction,
-  approvedReviews,
-  similarBusinesses,
-  isOwnerOrAdmin,
-}: BusinessProfileClientProps) {
-  const [activeTab, setActiveTab] = useState<"about" | "services" | "gallery" | "reviews">("about");
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+const DAYS: { key: string; label: string; jsIndex: number }[] = [
+  { key: "saturday", label: "شنبه", jsIndex: 6 },
+  { key: "sunday", label: "یکشنبه", jsIndex: 0 },
+  { key: "monday", label: "دوشنبه", jsIndex: 1 },
+  { key: "tuesday", label: "سه‌شنبه", jsIndex: 2 },
+  { key: "wednesday", label: "چهارشنبه", jsIndex: 3 },
+  { key: "thursday", label: "پنجشنبه", jsIndex: 4 },
+  { key: "friday", label: "جمعه", jsIndex: 5 },
+];
 
-  // Computed, never stored: a boolean column cannot express "verified, but it
-  // expires in nine days" or "the phone number changed after we proved it".
-  const verification = getVerificationStatus(business);
+const SERVICE_TYPE_FA: Record<string, string> = { in_person: "حضوری", online: "آنلاین", both: "حضوری و آنلاین" };
+const SERVICE_AREA_FA: Record<string, string> = { city: "در سطح شهر", province: "در سطح استان", canada: "سراسر کانادا", international: "بین‌المللی" };
+const CONTACT_FA: Record<string, string> = { phone: "تماس تلفنی", whatsapp: "واتساپ", email: "ایمیل" };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: business.name,
-        text: business.short_description || business.name,
-        url: window.location.href,
-      }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success("لینک پروفایل در حافظه کپی شد");
-    }
-  };
+/** Persian digits inside a time like 09:30 → ۰۹:۳۰ */
+const faTime = (t: string) => t.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
 
-  const handleReport = () => {
-    toast.info("گزارش شما برای پشتیبانی ارسال شد. متشکریم!");
-  };
-
-  // Determine working hours text for today
-  const getWorkingHoursText = () => {
-    if (!business.working_hours) return "ساعات کاری ثبت نشده است";
-    const daysMap: Record<number, string> = {
-      0: "sunday", 1: "monday", 2: "tuesday", 3: "wednesday", 4: "thursday", 5: "friday", 6: "saturday"
+function useOpenNow(hours: Record<string, { open?: string; close?: string; closed?: boolean }> | null | undefined) {
+  return useMemo(() => {
+    if (!hours || !Object.keys(hours).length) return null;
+    const now = new Date();
+    const today = DAYS.find((d) => d.jsIndex === now.getDay());
+    if (!today) return null;
+    const h = hours[today.key];
+    if (!h) return { known: false as const };
+    if (h.closed || !h.open || !h.close) return { known: true as const, open: false as const, todayLabel: "امروز تعطیل" };
+    const [oh, om] = h.open.split(":").map(Number);
+    const [ch, cm] = h.close.split(":").map(Number);
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const isOpen = mins >= oh * 60 + om && mins < ch * 60 + cm;
+    return {
+      known: true as const,
+      open: isOpen,
+      todayLabel: isOpen ? `باز است · تا ${faTime(h.close)}` : `بسته است · ${faTime(h.open)} باز می‌شود`,
     };
-    const todayKey = daysMap[new Date().getDay()];
-    const todayHours = business.working_hours[todayKey];
-    if (!todayHours || todayHours.closed) return "امروز: تعطیل";
-    return `امروز: ${todayHours.open || "09:00"} تا ${todayHours.close || "17:00"}`;
+  }, [hours]);
+}
+
+export default function BusinessProfileClient({
+  business, category, user, initialInteraction, approvedReviews, similarBusinesses, isOwnerOrAdmin,
+}: Props) {
+  const [copied, setCopied] = useState(false);
+  const verification = getVerificationStatus(business);
+  const openNow = useOpenNow(business.working_hours);
+  const provinceName = PROVINCES.find((p) => p.code === business.province)?.name ?? business.province;
+  const cover = business.cover_url || category?.image_url || null;
+  const services: any[] = Array.isArray(business.services) ? business.services : [];
+  const branches: any[] = Array.isArray(business.branches) ? business.branches : [];
+  const hours = business.working_hours && typeof business.working_hours === "object" ? business.working_hours : null;
+  const hasHours = hours && DAYS.some((d) => hours[d.key]);
+  const website = business.website ? (business.website.startsWith("http") ? business.website : `https://${business.website}`) : null;
+  const wa = business.whatsapp ? `https://wa.me/${String(business.whatsapp).replace(/[^0-9]/g, "")}` : null;
+  const mapsQuery = encodeURIComponent(`${business.name} ${business.address || ""}, ${business.city || ""}, ${business.province || ""}, Canada`);
+  const directions = business.google_maps_url || `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
+  const avgRating = approvedReviews.length
+    ? approvedReviews.reduce((s, r) => s + (r.rating || 0), 0) / approvedReviews.length
+    : null;
+
+  const share = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({ title: business.name, text: business.short_description || business.name, url }).catch(() => {});
+      return;
+    }
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    toast.success("لینک کپی شد");
+    setTimeout(() => setCopied(false), 1800);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-20" dir="rtl">
-      {/* Renders nothing; counts one view so "most visited" has a number. */}
+    <div className="min-h-screen bg-[color:var(--bg)] pb-24" dir="rtl">
       <ViewCounter businessId={business.id} />
-      {/* 1. Header Cover & Hero Section */}
-      <div className="relative bg-gray-900 text-white">
-        {/* Cover Photo */}
-        <div className="h-64 md:h-80 w-full relative overflow-hidden bg-gradient-to-r from-slate-900 to-indigo-950">
-          {business.cover_url ? (
-            <img
-              src={business.cover_url}
-              alt={business.name}
-              className="w-full h-full object-cover opacity-60 filter blur-[1px]"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 opacity-80" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-900/40 to-transparent" />
 
-          {/* Action buttons on Cover (Share / Report) */}
-          <div className="absolute top-6 left-4 md:left-8 z-10 flex items-center gap-2">
-            <button
-              onClick={handleShare}
-              className="p-2.5 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full transition shadow-md"
-              title="اشتراک‌گذاری"
-            >
-              <Share2 size={18} />
-            </button>
-            <button
-              onClick={handleReport}
-              className="p-2.5 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full transition shadow-md"
-              title="گزارش خطای اطلاعات"
-            >
-              <AlertTriangle size={18} />
-            </button>
-          </div>
+      {/* ───────────────────────────── Cover ───────────────────────────── */}
+      <div className="relative h-[240px] md:h-[340px] overflow-hidden bg-[color:var(--annabi)]">
+        {cover ? (
+          <img src={cover} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        ) : null}
+        {/* Warm brand wash so any photo sits inside the palette */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#14213d]/85 via-[#14213d]/25 to-[#800000]/20" />
+        {/* Merlon parapet along the bottom edge */}
+        <div className="absolute inset-x-0 bottom-0 h-3 opacity-90" aria-hidden>
+          <svg viewBox="0 0 48 12" preserveAspectRatio="none" className="w-full h-full">
+            <pattern id="merlon" width="48" height="12" patternUnits="userSpaceOnUse">
+              <path d="M0,12 V8 H6 V4 H12 V0 H24 V4 H30 V8 H36 V12 Z" fill="#f6f1e8" />
+            </pattern>
+            <rect width="100%" height="100%" fill="url(#merlon)" />
+          </svg>
         </div>
 
-        {/* Profile Main Header Content (Overlapping) */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 -mt-20 pb-8">
-          <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              {/* Logo / Avatar */}
-              <div className="w-28 h-28 md:w-36 md:h-36 rounded-3xl bg-white p-2 shadow-xl border-4 border-white overflow-hidden shrink-0 flex items-center justify-center text-gray-800 font-bold text-3xl">
-                {business.logo_url ? (
-                  <img src={business.logo_url} alt={business.name} className="w-full h-full object-cover rounded-2xl" />
-                ) : (
-                  <Building2 size={48} className="text-gray-400" />
-                )}
-              </div>
+        {/* Top-left actions */}
+        <div className="absolute top-5 left-4 md:left-8 flex items-center gap-2 z-10">
+          <button onClick={share} className="h-10 px-3.5 rounded-full bg-white/15 backdrop-blur-md text-white hover:bg-white/25 transition flex items-center gap-2 text-xs font-bold" title="اشتراک‌گذاری">
+            {copied ? <Check size={16} /> : <Share2 size={16} />}
+            <span className="hidden sm:inline">{copied ? "کپی شد" : "اشتراک"}</span>
+          </button>
+        </div>
 
-              {/* Title & Badges */}
-              <div>
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  {/* One badge, computed from verified_at / verified_until.
-                      The three booleans that used to sit here — is_verified,
-                      is_claimed, is_featured — exist in no migration, so these
-                      chips could never render. */}
-                  <VerificationBadge status={verification} size="lg" audience="public" />
-                  {business.is_featured && (
-                    <span className="bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-                      <Sparkles size={14} /> ویژه
-                    </span>
-                  )}
-                  {business.is_iranian_owned && (
-                    <span className="bg-gray-800 text-gray-200 border border-gray-700 text-xs px-2.5 py-1 rounded-lg">
-                      کسب‌وکار ایرانیان کانادا
-                    </span>
-                  )}
-                </div>
-
-                <h1 className="text-2xl md:text-4xl font-black text-white mb-1">
-                  {business.name}
-                </h1>
-
-                {business.name_en && (
-                  <p className="text-gray-300 font-sans text-sm md:text-base mb-3" dir="ltr" style={{ textAlign: "right" }}>
-                    {business.name_en}
-                  </p>
-                )}
-
-                <div className="flex flex-wrap items-center gap-4 text-xs md:text-sm text-gray-300">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin size={16} className="text-red-400" />
-                    <span>{business.city || "شهر مشخص نشده"}، {business.province || "کانادا"}</span>
-                  </div>
-                  <span>•</span>
-                  <Link href={`/categories/${business.category}`} className="flex items-center gap-1.5 hover:text-white transition underline">
-                    <Layers size={16} className="text-blue-400" />
-                    <span>{business.category}</span>
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Action CTAs & Owner Button */}
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              {isOwnerOrAdmin ? (
-                <Button asChild className="bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold w-full sm:w-auto">
-                  <Link href={`/dashboard/business/${business.id}/edit`}>
-                    <Edit3 size={16} className="ml-2" /> ویرایش پروفایل من
-                  </Link>
-                </Button>
-              ) : !business.is_claimed ? (
-                <Button asChild variant="solid" className="rounded-xl font-bold w-full sm:w-auto">
-                  <Link href={`/claim?businessId=${business.id}`}>
-                    صاحب این کسب‌وکار هستید؟ (ادعای مالکیت)
-                  </Link>
-                </Button>
-              ) : null}
-
-              {business.phone && (
-                <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold flex-1 sm:flex-initial">
-                  <a href={`tel:${business.phone}`}>
-                    <Phone size={16} className="ml-2" /> تماس تلفنی
-                  </a>
-                </Button>
-              )}
-            </div>
-          </div>
+        {/* Breadcrumb */}
+        <div className="absolute top-5 right-4 md:right-8 z-10 flex items-center gap-2 text-xs text-white/85">
+          <Link href="/" className="hover:text-white flex items-center gap-1.5"><BrandMark size={16} color="#f6f1e8" simple /> چارانا</Link>
+          <ChevronLeft size={12} />
+          {category ? <Link href={`/categories/${category.slug}`} className="hover:text-white">{category.name}</Link> : null}
+          {business.city ? (<><ChevronLeft size={12} /><Link href={`/cities/${encodeURIComponent(business.city)}`} className="hover:text-white">{business.city}</Link></>) : null}
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-8">
-        {/* 2. Quick Scannable Info Bar */}
-        <Card className="border-0 shadow-md bg-white rounded-3xl p-5 mb-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-xs">
-            {business.phone && (
-              <div className="p-3 bg-gray-50 rounded-2xl flex flex-col gap-1">
-                <span className="text-gray-400 font-medium">شماره تماس</span>
-                <a href={`tel:${business.phone}`} className="font-bold text-gray-900 hover:text-blue-600 font-sans" dir="ltr">
-                  {business.phone}
-                </a>
-              </div>
-            )}
-
-            {business.whatsapp && (
-              <div className="p-3 bg-green-50/60 text-green-900 rounded-2xl flex flex-col gap-1">
-                <span className="text-green-600 font-medium">واتساپ مستقیم</span>
-                <a
-                  href={`https://wa.me/${business.whatsapp.replace(/[^0-9]/g, '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold hover:underline font-sans"
-                  dir="ltr"
-                >
-                  پاسخگویی سریع
-                </a>
-              </div>
-            )}
-
-            {business.website && (
-              <div className="p-3 bg-blue-50/60 text-blue-900 rounded-2xl flex flex-col gap-1">
-                <span className="text-blue-600 font-medium">وب‌سایت رسمی</span>
-                <a
-                  href={business.website.startsWith('http') ? business.website : `https://${business.website}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-bold hover:underline font-sans truncate"
-                  dir="ltr"
-                >
-                  {business.website.replace(/^https?:\/\//, '')}
-                </a>
-              </div>
-            )}
-
-            <div className="p-3 bg-gray-50 rounded-2xl flex flex-col gap-1">
-              <span className="text-gray-400 font-medium">ساعات کاری</span>
-              <span className="font-bold text-gray-900 truncate">{getWorkingHoursText()}</span>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        {/* ────────────────────────── Identity card ────────────────────────── */}
+        <div className="-mt-16 md:-mt-20 relative z-10 bg-white rounded-[28px] shadow-[0_22px_60px_rgba(20,33,61,0.12)] p-5 md:p-7">
+          <div className="flex flex-col md:flex-row md:items-end gap-5">
+            {/* Logo */}
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-[color:var(--bg)] ring-4 ring-white shadow-lg overflow-hidden shrink-0 -mt-16 md:-mt-20 flex items-center justify-center">
+              {business.logo_url ? (
+                <img src={business.logo_url} alt={business.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-4xl md:text-5xl font-black text-[color:var(--annabi)]">{String(business.name).trim().charAt(0)}</span>
+              )}
             </div>
 
-            <div className="p-3 bg-gray-50 rounded-2xl flex flex-col gap-1">
-              <span className="text-gray-400 font-medium">نحوه ارائه خدمت</span>
-              <span className="font-bold text-gray-900">
-                {business.service_type === "online" ? "آنلاین / غیرحضوری" : business.service_type === "both" ? "حضوری و آنلاین" : "حضوری"}
-              </span>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <VerificationBadge status={verification} size="lg" audience="public" />
+                {category ? (
+                  <Link href={`/categories/${category.slug}`} className="text-xs font-bold text-[color:var(--lajvard)] bg-[color:var(--lajvard)]/8 px-2.5 py-1 rounded-full hover:bg-[color:var(--lajvard)]/12 transition">
+                    {category.name}
+                  </Link>
+                ) : null}
+                {business.sub_category ? <span className="text-xs text-[color:var(--muted-text)] bg-[color:var(--bg)] px-2.5 py-1 rounded-full">{business.sub_category}</span> : null}
+              </div>
+              <h1 className="text-2xl md:text-4xl font-black text-[color:var(--text)] leading-tight">{business.name}</h1>
+              {business.name_en ? <p className="text-sm md:text-base text-[color:var(--muted-text)] [font-family:var(--font-latin)] mt-0.5" dir="ltr" style={{ textAlign: "right" }}>{business.name_en}</p> : null}
+              {business.tagline ? <p className="text-sm md:text-[15px] text-[color:var(--text)]/80 mt-2">{business.tagline}</p> : null}
+
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 text-xs md:text-sm text-[color:var(--muted-text)]">
+                {business.city ? (
+                  <span className="inline-flex items-center gap-1.5"><MapPin size={15} className="text-[color:var(--annabi)]" />{business.city}{provinceName ? `، ${provinceName}` : ""}</span>
+                ) : null}
+                {openNow?.known ? (
+                  <span className={`inline-flex items-center gap-1.5 font-bold ${openNow.open ? "text-emerald-700" : "text-[color:var(--muted-text)]"}`}>
+                    <span className={`w-2 h-2 rounded-full ${openNow.open ? "bg-emerald-500" : "bg-gray-400"}`} />
+                    {openNow.todayLabel}
+                  </span>
+                ) : null}
+                {avgRating ? (
+                  <span className="inline-flex items-center gap-1 font-bold text-[color:var(--text)]">
+                    <Star size={14} className="fill-[color:var(--gold)] text-[color:var(--gold)]" />
+                    {faNumber(Math.round(avgRating * 10) / 10 as unknown as number)}
+                    <span className="text-[color:var(--muted-text)] font-normal">({faNumber(approvedReviews.length)} نظر)</span>
+                  </span>
+                ) : null}
+                {business.established_year ? (
+                  <span className="inline-flex items-center gap-1.5"><CalendarDays size={15} />از {faNumber(business.established_year)}</span>
+                ) : null}
+                <span className="mr-auto" />
+                {isOwnerOrAdmin ? (
+                  <Link href={`/dashboard/business/${business.id}/edit`} className="inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--text)] bg-[color:var(--bg)] hover:bg-[color:var(--line)] px-3 py-1.5 rounded-full transition"><Edit3 size={13} /> ویرایش پروفایل</Link>
+                ) : verification.state === "unverified" ? (
+                  <Link href={`/claim?businessId=${business.id}`} className="inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--annabi)] bg-[color:var(--annabi)]/6 hover:bg-[color:var(--annabi)]/10 px-3 py-1.5 rounded-full transition"><BadgeCheck size={13} /> صاحب این کسب‌وکار هستید؟</Link>
+                ) : null}
+              </div>
             </div>
 
-            <div className="p-3 bg-gray-50 rounded-2xl flex flex-col gap-1">
-              <span className="text-gray-400 font-medium">زبان‌های پاسخگویی</span>
-              <span className="font-bold text-gray-900 truncate">
-                {business.languages ? business.languages.join("، ") : "فارسی، انگلیسی"}
-              </span>
-            </div>
           </div>
-        </Card>
 
-        {/* 9. Personal User Engagement Interaction Bar */}
-        <div className="mb-8">
-          <h2 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-            <Heart size={16} className="text-red-500" /> ذخیره و یادداشت شخصی شما:
-          </h2>
+          {/* ─────────────────────── Primary actions ─────────────────────── */}
+          <div className={`grid grid-cols-2 gap-2.5 mt-6 ${business.accepts_appointments && business.booking_url ? "md:grid-cols-5" : "sm:grid-cols-4"}`}>
+            {business.phone ? (
+              <a href={`tel:${business.phone}`} className="h-12 rounded-2xl bg-[color:var(--annabi)] hover:bg-[#5c0000] text-[#f6f1e8] font-bold flex items-center justify-center gap-2 transition shadow-[0_8px_20px_rgba(128,0,0,0.25)]">
+                <Phone size={18} /> تماس
+              </a>
+            ) : null}
+            {wa ? (
+              <a href={wa} target="_blank" rel="noopener noreferrer" className="h-12 rounded-2xl bg-white border border-[color:var(--line)] hover:border-emerald-300 hover:bg-emerald-50 text-[color:var(--text)] font-bold flex items-center justify-center gap-2 transition">
+                <MessageCircle size={18} className="text-emerald-600" /> واتساپ
+              </a>
+            ) : null}
+            {business.address || business.google_maps_url ? (
+              <a href={directions} target="_blank" rel="noreferrer" className="h-12 rounded-2xl bg-white border border-[color:var(--line)] hover:border-[color:var(--lajvard)]/40 hover:bg-[color:var(--lajvard)]/5 text-[color:var(--text)] font-bold flex items-center justify-center gap-2 transition">
+                <Navigation size={18} className="text-[color:var(--lajvard)]" /> مسیریابی
+              </a>
+            ) : null}
+            {website ? (
+              <a href={website} target="_blank" rel="noreferrer" className="h-12 rounded-2xl bg-white border border-[color:var(--line)] hover:border-[color:var(--lajvard)]/40 hover:bg-[color:var(--lajvard)]/5 text-[color:var(--text)] font-bold flex items-center justify-center gap-2 transition">
+                <Globe size={18} className="text-[color:var(--lajvard)]" /> وب‌سایت
+              </a>
+            ) : null}
+            {business.accepts_appointments && business.booking_url ? (
+              <a href={business.booking_url} target="_blank" rel="noreferrer" className="h-12 rounded-2xl bg-[color:var(--lajvard)] hover:bg-[#003a8c] text-white font-bold flex items-center justify-center gap-2 transition col-span-2 md:col-span-1">
+                <CalendarDays size={18} /> رزرو نوبت
+              </a>
+            ) : null}
+          </div>
+        </div>
+
+        {/* ───────────────────────── Personal (signed-in) ───────────────────────── */}
+        <div className="mt-6">
           {user ? (
-            <>
+            <div className="bg-white/70 backdrop-blur rounded-3xl border border-[color:var(--line)] p-4 md:p-5">
+              <div className="text-xs font-bold text-[color:var(--muted-text)] mb-3 flex items-center gap-1.5"><Bookmark size={14} className="text-[color:var(--annabi)]" /> برای خودتان</div>
               <InteractionBar businessId={business.id} initialInteraction={initialInteraction} />
-              <PrivateNoteCard 
-                note={initialInteraction?.private_note}
-                title={initialInteraction?.private_title}
-                mediaUrls={initialInteraction?.private_media_urls}
-                mediaTypes={initialInteraction?.private_media_types}
-              />
-            </>
+              <PrivateNoteCard note={initialInteraction?.private_note} title={initialInteraction?.private_title} mediaUrls={initialInteraction?.private_media_urls} mediaTypes={initialInteraction?.private_media_types} />
+            </div>
           ) : (
-            <div className="bg-blue-50/80 border border-blue-100 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-blue-900 text-xs">
-              <span>برای ذخیره‌سازی، یادداشت خصوصی و ثبت نظر روی این کسب‌وکار، وارد حساب کاربری شوید.</span>
-              <Button asChild size="sm" className="bg-[color:var(--lajvard)] hover:bg-[color:var(--lajvard)]/90 text-white rounded-xl">
-                <Link href="/auth/login">ورود / ثبت‌نام</Link>
-              </Button>
+            <div className="rounded-2xl bg-[color:var(--lajvard)]/6 border border-[color:var(--lajvard)]/15 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[color:var(--text)]">
+              <span>برای ذخیره، یادداشت خصوصی و ثبت نظر روی این کسب‌وکار وارد شوید.</span>
+              <Button asChild size="sm" className="rounded-xl bg-[color:var(--lajvard)] text-white"><Link href={`/auth/login?next=/businesses/${business.slug || business.id}`}>ورود / ثبت‌نام</Link></Button>
             </div>
           )}
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex border-b border-gray-200 mb-8 gap-4 overflow-x-auto scrollbar-none">
-          <button
-            onClick={() => setActiveTab("about")}
-            className={`pb-3 text-sm font-bold border-b-2 transition whitespace-nowrap ${
-              activeTab === "about" ? "border-[color:var(--lajvard)] text-[color:var(--lajvard)]" : "border-transparent text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            درباره کسب‌وکار
-          </button>
-          {business.services && business.services.length > 0 && (
-            <button
-              onClick={() => setActiveTab("services")}
-              className={`pb-3 text-sm font-bold border-b-2 transition whitespace-nowrap ${
-                activeTab === "services" ? "border-[color:var(--lajvard)] text-[color:var(--lajvard)]" : "border-transparent text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              خدمات و قیمت‌ها ({business.services.length})
-            </button>
-          )}
-          {business.gallery && business.gallery.length > 0 && (
-            <button
-              onClick={() => setActiveTab("gallery")}
-              className={`pb-3 text-sm font-bold border-b-2 transition whitespace-nowrap ${
-                activeTab === "gallery" ? "border-[color:var(--lajvard)] text-[color:var(--lajvard)]" : "border-transparent text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              تصاویر و گالری ({business.gallery.length})
-            </button>
-          )}
-          <button
-            onClick={() => setActiveTab("reviews")}
-            className={`pb-3 text-sm font-bold border-b-2 transition whitespace-nowrap ${
-              activeTab === "reviews" ? "border-[color:var(--lajvard)] text-[color:var(--lajvard)]" : "border-transparent text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            نظرات و تجربه کاربران ({approvedReviews.length})
-          </button>
-        </div>
+        {/* ───────────────────────────── Body ───────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+          <div className="lg:col-span-2 space-y-6">
+            {/* About */}
+            <Section title="درباره" icon={<Sparkles size={16} />}>
+              {business.short_description ? <p className="text-[15px] md:text-base font-bold text-[color:var(--text)] leading-relaxed mb-3">{business.short_description}</p> : null}
+              {business.description ? (
+                <p className="text-sm md:text-[15px] text-[color:var(--text)]/80 leading-[1.9] whitespace-pre-line">{business.description}</p>
+              ) : !business.short_description ? (
+                <p className="text-sm text-[color:var(--muted-text)]">توضیحی برای این کسب‌وکار ثبت نشده است.</p>
+              ) : null}
 
-        {/* Main Grid Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column (2 Cols) */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Tab 1: About */}
-            {activeTab === "about" && (
-              <>
-                <Card className="border-0 shadow-sm bg-white rounded-3xl p-6 md:p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">توضیحات و مشخصات</h2>
-                  {business.short_description && (
-                    <p className="text-base font-semibold text-gray-800 leading-relaxed mb-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                      {business.short_description}
-                    </p>
-                  )}
-                  <p className="text-gray-600 leading-relaxed text-sm md:text-base whitespace-pre-line">
-                    {business.description || business.desc || "توضیح بیشتری برای این کسب‌وکار وارد نشده است."}
-                  </p>
+              <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+                <Fact label="نوع خدمات" value={SERVICE_TYPE_FA[business.service_type] ?? null} />
+                <Fact label="محدوده‌ی خدمات" value={SERVICE_AREA_FA[business.service_area] ?? null} />
+                <Fact label="زبان‌ها" value={Array.isArray(business.languages) && business.languages.length ? business.languages.join("، ") : null} icon={<Languages size={13} />} />
+                <Fact label="روش تماس ترجیحی" value={CONTACT_FA[business.preferred_contact] ?? null} />
+              </div>
+            </Section>
 
-                  {/* Highlights / Established */}
-                  <div className="mt-8 pt-6 border-t border-gray-100 grid grid-cols-2 gap-4 text-xs">
-                    {business.established_year && (
-                      <div className="flex items-center gap-2">
-                        <Calendar size={16} className="text-gray-400" />
-                        <span className="text-gray-500">سال شروع فعالیت:</span>
-                        <span className="font-bold text-gray-900">{business.established_year}</span>
-                      </div>
-                    )}
-                    {business.license_info && (
-                      <div className="flex items-center gap-2">
-                        <Award size={16} className="text-amber-500" />
-                        <span className="text-gray-500">مجوز / لایسنس:</span>
-                        <span className="font-bold text-gray-900">{business.license_info}</span>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-
-                {/* 4. Services Overview preview */}
-                {business.services && business.services.length > 0 && (
-                  <Card className="border-0 shadow-sm bg-white rounded-3xl p-6 md:p-8">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl font-bold text-gray-900">لیست خدمات و قیمت‌ها</h2>
-                      <button
-                        onClick={() => setActiveTab("services")}
-                        className="text-xs font-bold text-[color:var(--lajvard)] hover:underline flex items-center gap-1"
-                      >
-                        مشاهده همه <ChevronLeft size={14} />
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {business.services.slice(0, 4).map((s: any, idx: number) => (
-                        <div key={idx} className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                          <div className="flex items-center justify-between mb-1">
-                            <h3 className="font-bold text-gray-900 text-sm">{s.name}</h3>
-                            {s.price && (
-                              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg">
-                                {s.price} {s.price_unit || "دلار"}
-                              </span>
-                            )}
-                          </div>
-                          {s.description && (
-                            <p className="text-xs text-gray-500 line-clamp-2">{s.description}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </Card>
-                )}
-              </>
-            )}
-
-            {/* Tab 2: Services Full List */}
-            {activeTab === "services" && (
-              <Card className="border-0 shadow-sm bg-white rounded-3xl p-6 md:p-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">تعرفه‌ها و خدمات ارائه شده</h2>
-                <div className="space-y-4">
-                  {business.services?.map((s: any, idx: number) => (
-                    <div key={idx} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-base mb-1">{s.name}</h3>
-                        {s.description && (
-                          <p className="text-xs md:text-sm text-gray-600">{s.description}</p>
-                        )}
-                        {s.price_note && (
-                          <span className="text-[11px] text-gray-400 mt-1 block">{s.price_note}</span>
-                        )}
+            {/* Services */}
+            {services.length ? (
+              <Section title="خدمات و تعرفه‌ها" icon={<CheckCircle2 size={16} />} meta={`${faNumber(services.length)} مورد`}>
+                <ul className="divide-y divide-[color:var(--line)]">
+                  {services.map((s, i) => (
+                    <li key={i} className="py-3.5 flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="font-bold text-[color:var(--text)] text-sm md:text-[15px]">{s.name}</div>
+                        {s.description ? <p className="text-xs md:text-sm text-[color:var(--muted-text)] mt-1 leading-relaxed">{s.description}</p> : null}
+                        {s.price_note ? <p className="text-[11px] text-[color:var(--muted-text)] mt-1">{s.price_note}</p> : null}
                       </div>
                       <div className="shrink-0 text-left">
                         {s.price ? (
-                          <div className="text-base font-black text-emerald-600">
-                            {s.price} <span className="text-xs font-normal text-gray-500">{s.price_unit || "دلار"}</span>
+                          <div className="font-black text-[color:var(--annabi)] text-base leading-none">
+                            {faNumber(Number(String(s.price).replace(/[^\d.]/g, "")) || 0) || s.price}
+                            <span className="text-[11px] font-normal text-[color:var(--muted-text)] mr-1">{s.price_unit ? `/ ${s.price_unit}` : "دلار"}</span>
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400">تماس برای استعلام</span>
+                          <span className="text-[11px] text-[color:var(--muted-text)]">استعلام قیمت</span>
                         )}
                       </div>
-                    </div>
+                    </li>
                   ))}
-                </div>
-              </Card>
-            )}
+                </ul>
+              </Section>
+            ) : null}
 
-            {/* Tab 3: Gallery */}
-            {activeTab === "gallery" && (
-              <Card className="border-0 shadow-sm bg-white rounded-3xl p-6 md:p-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">گالری تصاویر</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {business.gallery?.map((imgUrl: string, idx: number) => (
-                    <div
-                      key={idx}
-                      onClick={() => setSelectedImage(imgUrl)}
-                      className="h-40 rounded-2xl overflow-hidden bg-gray-100 cursor-pointer group relative"
-                    >
-                      <img src={imgUrl} alt={`تصویر ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white">
-                        <ImageIcon size={24} />
-                      </div>
-                    </div>
-                  ))}
+            {/* Reviews */}
+            <Section title="نظرات کاربران" icon={<Star size={16} />} meta={approvedReviews.length ? `${faNumber(approvedReviews.length)} نظر` : undefined}>
+              {approvedReviews.length === 0 ? (
+                <div className="rounded-2xl bg-[color:var(--bg)] p-6 text-center">
+                  <Star className="h-8 w-8 text-[color:var(--gold)] mx-auto mb-2 opacity-70" />
+                  <div className="font-bold text-sm text-[color:var(--text)]">هنوز نظری ثبت نشده</div>
+                  <p className="text-xs text-[color:var(--muted-text)] mt-1">اولین نفری باشید که تجربه‌اش را می‌نویسد. نظرها پس از بررسی منتشر می‌شوند.</p>
                 </div>
-              </Card>
-            )}
-
-            {/* Tab 4: Public Reviews Section */}
-            {activeTab === "reviews" && (
-              <Card className="border-0 shadow-sm bg-white rounded-3xl p-6 md:p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">نظرات و تجربه‌های عمومی</h2>
-                    <p className="text-xs text-gray-500 mt-1">نظرات ثبت‌شده پس از بررسی مدیر نمایش داده می‌شوند.</p>
-                  </div>
-                </div>
-
-                {approvedReviews.length === 0 ? (
-                  <div className="bg-gray-50 rounded-2xl p-8 text-center my-4 border border-dashed border-gray-200">
-                    <Star className="h-10 w-10 text-amber-400 mx-auto mb-3 opacity-60" />
-                    <h3 className="font-bold text-gray-800 text-sm mb-1">هنوز نظری ثبت نشده است</h3>
-                    <p className="text-xs text-gray-500">نظرهای تاییدشده کاربران به‌زودی در این بخش نمایش داده می‌شوند.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {approvedReviews.map((rev) => (
-                      <div key={rev.id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-[color:var(--lajvard)] text-white text-xs font-bold flex items-center justify-center">
-                              {rev.user_name?.[0] || "ک"}
-                            </div>
-                            <span className="font-bold text-xs text-gray-900">{rev.user_name || "کاربر چارانا"}</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-amber-400 text-xs">
-                            <Star size={14} className="fill-current" />
-                            <span className="font-bold text-gray-800">{rev.rating || 5}</span>
-                          </div>
+              ) : (
+                <ul className="space-y-3">
+                  {approvedReviews.map((rev) => (
+                    <li key={rev.id} className="rounded-2xl bg-[color:var(--bg)] p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-[color:var(--annabi)]/10 text-[color:var(--annabi)] text-xs font-black flex items-center justify-center">{rev.user_name?.[0] || "ک"}</div>
+                          <span className="font-bold text-xs text-[color:var(--text)]">{rev.user_name || "کاربر چارانا"}</span>
                         </div>
-                        <p className="text-xs text-gray-700 leading-relaxed">{rev.content}</p>
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((n) => <Star key={n} size={13} className={n <= (rev.rating || 0) ? "fill-[color:var(--gold)] text-[color:var(--gold)]" : "text-[color:var(--line)]"} />)}
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
-            )}
+                      {rev.title ? <div className="font-bold text-sm text-[color:var(--text)] mb-1">{rev.title}</div> : null}
+                      <p className="text-xs md:text-sm text-[color:var(--text)]/80 leading-relaxed">{rev.content}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
           </div>
 
-          {/* Right Column: Location, Map & Trust Details */}
-          <div className="space-y-6">
-            {/* 6. Location & Map Box */}
-            <Card className="border-0 shadow-sm bg-white rounded-3xl p-6">
-              <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <MapPin size={18} className="text-red-500" /> موقعیت مکانی
-              </h2>
+          {/* ───────────────────────────── Sidebar ───────────────────────────── */}
+          <aside className="space-y-6">
+            {/* Contact */}
+            <Section title="اطلاعات تماس" icon={<Phone size={16} />} compact>
+              <ul className="space-y-1">
+                {business.phone ? <ContactRow icon={<Phone size={15} />} label="تلفن" value={business.phone} href={`tel:${business.phone}`} ltr /> : null}
+                {business.whatsapp ? <ContactRow icon={<MessageCircle size={15} />} label="واتساپ" value={business.whatsapp} href={wa!} ltr /> : null}
+                {business.contact_email ? <ContactRow icon={<Mail size={15} />} label="ایمیل" value={business.contact_email} href={`mailto:${business.contact_email}`} ltr /> : null}
+                {website ? <ContactRow icon={<Globe size={15} />} label="وب‌سایت" value={website.replace(/^https?:\/\//, "").replace(/\/$/, "")} href={website} ltr external /> : null}
+                {business.instagram ? <ContactRow icon={<AtSign size={15} />} label="اینستاگرام" value={"@" + String(business.instagram).replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/.*$/, "")} href={business.instagram} ltr external /> : null}
+                {business.telegram ? <ContactRow icon={<Send size={15} />} label="تلگرام" value={"@" + String(business.telegram).replace(/^https?:\/\/(t\.me|telegram\.me)\//, "").replace(/\/.*$/, "")} href={business.telegram} ltr external /> : null}
+                {business.linkedin ? <ContactRow icon={<Briefcase size={15} />} label="لینکدین" value="پروفایل شرکت" href={business.linkedin} external /> : null}
+              </ul>
+              {!business.phone && !business.whatsapp && !business.contact_email && !website ? <p className="text-xs text-[color:var(--muted-text)]">راه تماسی ثبت نشده است.</p> : null}
+            </Section>
 
-              <div className="space-y-3 text-xs">
-                <div className="p-3 bg-gray-50 rounded-xl">
-                  <span className="text-gray-400 block mb-1">استان و شهر:</span>
-                  <span className="font-bold text-gray-900">{business.city}، {business.province} (کانادا)</span>
-                </div>
-
-                {business.is_address_public && business.address && (
-                  <div className="p-3 bg-gray-50 rounded-xl">
-                    <span className="text-gray-400 block mb-1">آدرس کامل:</span>
-                    <span className="font-bold text-gray-900 leading-relaxed">{business.address}</span>
-                    {business.postal_code && <span className="block text-gray-400 mt-1" dir="ltr">{business.postal_code}</span>}
+            {/* Location */}
+            {business.city || (business.is_address_public && business.address) ? (
+              <Section title="موقعیت" icon={<MapPin size={16} />} compact>
+                {business.is_address_public && business.address ? (
+                  <p className="text-sm font-bold text-[color:var(--text)] leading-relaxed" dir="ltr" style={{ textAlign: "right" }}>{business.address}</p>
+                ) : null}
+                <p className="text-xs text-[color:var(--muted-text)] mt-1">
+                  {business.city}{provinceName ? `، ${provinceName}` : ""}{business.is_address_public && business.postal_code ? <span dir="ltr" className="[font-family:var(--font-latin)]"> · {business.postal_code}</span> : null}
+                </p>
+                {/* Embedded map intentionally omitted until the Maps Embed API is
+                    enabled on the key — a grey iframe reads as broken. Tracked in Notion. */}
+                <a href={directions} target="_blank" rel="noreferrer" className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-[color:var(--lajvard)]/8 text-[color:var(--lajvard)] text-xs font-bold hover:bg-[color:var(--lajvard)]/12 transition">
+                  <ExternalLink size={14} /> باز کردن در نقشه
+                </a>
+                {branches.length ? (
+                  <div className="mt-4 pt-3 border-t border-[color:var(--line)]">
+                    <div className="text-xs font-bold text-[color:var(--muted-text)] mb-2">شعبه‌های دیگر</div>
+                    <ul className="space-y-2">
+                      {branches.map((b, i) => (
+                        <li key={i} className="text-xs">
+                          <div className="font-bold text-[color:var(--text)]">{b.name || `شعبه ${faNumber(i + 2)}`}</div>
+                          <div className="text-[color:var(--muted-text)]" dir="ltr" style={{ textAlign: "right" }}>{[b.address, b.city].filter(Boolean).join(", ")}</div>
+                          {b.phone ? <a href={`tel:${b.phone}`} className="text-[color:var(--lajvard)]" dir="ltr">{b.phone}</a> : null}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                )}
+                ) : null}
+              </Section>
+            ) : null}
 
-                {/* Embedded Google Map */}
-                <div className="h-56 w-full rounded-xl overflow-hidden mt-3 border border-gray-100">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    allowFullScreen
-                    src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&q=${encodeURIComponent(`${business.name} ${business.address || ''}, ${business.city || ''}, ${business.province || ''}, Canada`)}`}
-                  />
-                </div>
+            {/* Hours */}
+            {hasHours ? (
+              <Section title="ساعات کاری" icon={<Clock size={16} />} compact>
+                <ul className="text-xs md:text-[13px]">
+                  {DAYS.map((d) => {
+                    const h = hours[d.key];
+                    const isToday = new Date().getDay() === d.jsIndex;
+                    return (
+                      <li key={d.key} className={`flex items-center justify-between py-1.5 ${isToday ? "font-black text-[color:var(--annabi)]" : "text-[color:var(--text)]"}`}>
+                        <span>{d.label}{isToday ? <span className="text-[10px] font-bold mr-1.5 bg-[color:var(--annabi)]/10 px-1.5 py-0.5 rounded-full">امروز</span> : null}</span>
+                        <span dir="ltr" className="[font-family:var(--font-latin)] tabular-nums">
+                          {!h || h.closed || !h.open || !h.close ? <span className="text-[color:var(--muted-text)]">تعطیل</span> : `${faTime(h.open)} – ${faTime(h.close)}`}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {business.accepts_appointments ? <p className="text-[11px] text-[color:var(--muted-text)] mt-2 flex items-center gap-1"><CalendarDays size={12} /> با هماهنگی قبلی هم پذیرش دارد.</p> : null}
+              </Section>
+            ) : business.accepts_appointments ? (
+              <Section title="ساعات کاری" icon={<Clock size={16} />} compact>
+                <p className="text-xs text-[color:var(--muted-text)]">با تعیین وقت قبلی.</p>
+              </Section>
+            ) : null}
 
-                {/* External Directions Link */}
-                {business.google_maps_url && (
-                  <a
-                    href={business.google_maps_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-50 text-blue-700 rounded-xl font-bold hover:bg-blue-100 transition mt-2"
-                  >
-                    <ExternalLink size={14} /> مسیریابی در اپلیکیشن مپ
-                  </a>
-                )}
-              </div>
-            </Card>
-
-            {/* 7. Trust & Verification Badge Details */}
-            <Card className="border-0 shadow-sm bg-white rounded-3xl p-6">
-              <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <ShieldCheck size={18} className="text-emerald-600" /> سنجش اعتبار و شفافیت
-              </h2>
-
-              <div className="space-y-3 text-xs">
+            {/* Trust */}
+            <Section title="اعتماد و شفافیت" icon={<ShieldCheck size={16} />} compact>
+              <div className="text-xs space-y-3">
                 <VerificationDetail status={verification} audience="public" />
-
-                {verification.state === "unverified" && (
-                  <Link
-                    href={`/claim?businessId=${business.id}`}
-                    className="block rounded-xl bg-[#800000]/5 p-2.5 text-center font-bold text-[#800000] hover:bg-[#800000]/10 transition"
-                  >
+                {verification.state === "unverified" ? (
+                  <Link href={`/claim?businessId=${business.id}`} className="block rounded-xl bg-[color:var(--annabi)]/6 p-2.5 text-center font-bold text-[color:var(--annabi)] hover:bg-[color:var(--annabi)]/10 transition">
                     صاحب این کسب‌وکار هستید؟ مالکیتش را احراز کنید
                   </Link>
-                )}
-
-                {business.license_info && (
-                  <div className="p-2.5 bg-gray-50 rounded-xl text-gray-800">
-                    <span className="text-gray-400 block mb-0.5">شماره ثبت / مجوز:</span>
-                    <span className="font-bold">{business.license_info}</span>
-                  </div>
-                )}
+                ) : null}
+                {business.is_iranian_owned ? (
+                  <div className="flex items-center gap-2 text-[color:var(--text)]"><BrandMark size={14} color="#800000" simple /> کسب‌وکار ایرانی‌-کانادایی</div>
+                ) : null}
               </div>
-            </Card>
-          </div>
+            </Section>
+          </aside>
         </div>
 
-        {/* 10. Similar Businesses Section */}
-        {similarBusinesses && similarBusinesses.length > 0 && (
-          <section className="mt-16 pt-8 border-t border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">کسب‌وکارهای مشابه در {business.city || "این منطقه"}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* ───────────────────────────── Similar ───────────────────────────── */}
+        {similarBusinesses?.length ? (
+          <section className="mt-14">
+            <div className="flex items-center gap-2 mb-5">
+              <span className="inline-block w-3 h-3" aria-hidden><svg viewBox="0 0 18 18" className="w-full h-full"><path fill="#c9a24b" d="M0,18 V12 H6 V6 H12 V0 H18 V18 Z" /></svg></span>
+              <h2 className="text-lg md:text-xl font-black text-[color:var(--text)]">کسب‌وکارهای مشابه{business.city ? ` در ${business.city}` : ""}</h2>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {similarBusinesses.map((sim) => (
-                <Card key={sim.id} className="hover:shadow-md transition border-gray-200 bg-white rounded-2xl overflow-hidden">
-                  <div className="h-32 bg-gray-100 relative">
-                    {sim.cover_url ? (
-                      <img src={sim.cover_url} alt={sim.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-r from-slate-800 to-indigo-900" />
-                    )}
+                <Link key={sim.id} href={`/businesses/${sim.slug || sim.id}`} className="group bg-white rounded-2xl overflow-hidden border border-[color:var(--line)] hover:shadow-[0_14px_36px_rgba(20,33,61,0.10)] transition">
+                  <div className="h-24 bg-[color:var(--bg)] relative overflow-hidden">
+                    {sim.cover_url ? <img src={sim.cover_url} alt="" className="w-full h-full object-cover group-hover:scale-[1.03] transition" /> : <div className="w-full h-full bg-gradient-to-br from-[color:var(--annabi)]/10 to-[color:var(--lajvard)]/10 flex items-center justify-center"><Building2 size={22} className="text-[color:var(--annabi)]/50" /></div>}
                   </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-bold text-gray-900 text-sm truncate mb-1">{sim.name}</h3>
-                    <p className="text-xs text-gray-500 mb-3">{sim.city || "کانادا"} • {sim.category}</p>
-                    <Button asChild size="sm" variant="muted" className="w-full text-xs rounded-xl">
-                      <Link href={`/businesses/${sim.slug || sim.id}`}>مشاهده</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
+                  <div className="p-3">
+                    <div className="font-bold text-sm text-[color:var(--text)] truncate">{sim.name}</div>
+                    <div className="text-[11px] text-[color:var(--muted-text)] mt-0.5 truncate">{sim.city || "کانادا"}</div>
+                  </div>
+                </Link>
               ))}
             </div>
           </section>
-        )}
+        ) : null}
       </div>
-
-      {/* Lightbox Modal for Gallery Images */}
-      {selectedImage && (
-        <div
-          onClick={() => setSelectedImage(null)}
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 cursor-pointer"
-        >
-          <img src={selectedImage} alt="بزرگ‌نمایی" className="max-w-full max-h-[90vh] rounded-2xl object-contain" />
-        </div>
-      )}
     </div>
+  );
+}
+
+// ─────────────────────────────── bits ───────────────────────────────
+
+function Section({ title, icon, meta, compact, children }: { title: string; icon?: React.ReactNode; meta?: string; compact?: boolean; children: React.ReactNode }) {
+  return (
+    <section className={`bg-white rounded-3xl border border-[color:var(--line)] ${compact ? "p-5" : "p-6 md:p-7"}`}>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base md:text-lg font-black text-[color:var(--text)] flex items-center gap-2">
+          <span className="text-[color:var(--gold)]"><svg viewBox="0 0 18 18" width="11" height="11"><path fill="currentColor" d="M0,18 V12 H6 V6 H12 V0 H18 V18 Z" /></svg></span>
+          {title}
+        </h2>
+        {meta ? <span className="text-xs text-[color:var(--muted-text)]">{meta}</span> : icon ? <span className="text-[color:var(--muted-text)]">{icon}</span> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Fact({ label, value, icon }: { label: string; value: string | null; icon?: React.ReactNode }) {
+  if (!value) return null;
+  return (
+    <div className="rounded-2xl bg-[color:var(--bg)] px-3.5 py-3">
+      <div className="text-[11px] text-[color:var(--muted-text)] flex items-center gap-1">{icon}{label}</div>
+      <div className="text-sm font-bold text-[color:var(--text)] mt-0.5">{value}</div>
+    </div>
+  );
+}
+
+function ContactRow({ icon, label, value, href, ltr, external }: { icon: React.ReactNode; label: string; value: string; href: string; ltr?: boolean; external?: boolean }) {
+  return (
+    <li>
+      <a href={href} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined}
+        className="flex items-center gap-3 py-2 rounded-xl hover:bg-[color:var(--bg)] -mx-2 px-2 transition group">
+        <span className="w-8 h-8 rounded-xl bg-[color:var(--bg)] text-[color:var(--annabi)] flex items-center justify-center shrink-0 group-hover:bg-white">{icon}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[10.5px] text-[color:var(--muted-text)]">{label}</span>
+          <span className={`block text-sm font-bold text-[color:var(--text)] truncate ${ltr ? "[font-family:var(--font-latin)]" : ""}`} dir={ltr ? "ltr" : undefined} style={ltr ? { textAlign: "right" } : undefined}>{value}</span>
+        </span>
+        {external ? <ExternalLink size={13} className="text-[color:var(--muted-text)] shrink-0" /> : null}
+      </a>
+    </li>
   );
 }

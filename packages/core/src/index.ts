@@ -24,3 +24,6 @@ export * from "./slug";
 
 // Province taxonomy for the province -> city browse hierarchy.
 export * from "./provinces";
+
+// One definition of "verified" for web and mobile.
+export * from "./verification-status";
