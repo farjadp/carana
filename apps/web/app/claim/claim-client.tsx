@@ -9,7 +9,7 @@
 // ============================================================================
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { MessageSquare, ShieldCheck } from "lucide-react";
@@ -18,21 +18,34 @@ import { toast } from "sonner";
 import { startBusinessClaim, confirmBusinessClaim } from "@/lib/verification/actions";
 import { faNumber } from "@/components/verification-badge";
 
+/** Persian / Arabic-Indic digits → ASCII. The forced-RTL keyboard trap. */
+const toLatinDigits = (s: string) =>
+  s.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+
 export default function ClaimClient({
   businessId,
   businessName,
   hasPhone,
+  maskedPhone: initialMasked = null,
 }: {
   businessId: string;
   businessName: string;
   hasPhone: boolean;
+  maskedPhone?: string | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [step, setStep] = useState<"intro" | "code">("intro");
-  const [maskedPhone, setMaskedPhone] = useState<string | null>(null);
+  const [step, setStep] = useState<"intro" | "code" | "done">("intro");
+  const [maskedPhone, setMaskedPhone] = useState<string | null>(initialMasked);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
 
   if (!hasPhone) {
     return (
@@ -57,8 +70,9 @@ export default function ClaimClient({
         setError(result.error ?? "خطایی رخ داد.");
         return;
       }
-      setMaskedPhone(result.maskedPhone ?? null);
+      setMaskedPhone(result.maskedPhone ?? initialMasked);
       setStep("code");
+      setCooldown(60);
       toast.success(result.message ?? "کد ارسال شد.");
     });
   };
@@ -72,13 +86,27 @@ export default function ClaimClient({
         return;
       }
       toast.success("مالکیت شما احراز شد.");
-      router.push("/dashboard");
+      setStep("done");
       router.refresh();
     });
   };
 
+  if (step === "done") {
+    return (
+      <div className="mt-6 rounded-3xl bg-emerald-50 border border-emerald-200 p-6 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-3"><ShieldCheck size={26} /></div>
+        <div className="text-xl font-black text-emerald-900">مالکیت «{businessName}» احراز شد</div>
+        <p className="text-sm text-emerald-900/80 mt-1 leading-relaxed">نشان تایید همین حالا روی پروفایل است و شش ماه اعتبار دارد. سی روز قبل از پایان، برای تمدید ایمیل می‌فرستیم.</p>
+        <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
+          <Link href="/dashboard/business" className="rounded-xl bg-[#800000] px-4 py-2.5 font-bold text-[#f6f1e8]">ویرایش پروفایل کسب‌وکار</Link>
+          <button onClick={() => router.push("/")} className="rounded-xl bg-white border border-emerald-200 px-4 py-2.5 font-bold text-emerald-900">بازگشت به چارانا</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-5">
+    <div className="mt-6 space-y-5">
       <div className="rounded-2xl border border-[rgba(20,33,61,0.10)] bg-white p-5">
         <h2 className="mb-3 flex items-center gap-2 font-bold text-[#14213d]">
           <ShieldCheck size={18} className="text-[#800000]" />
@@ -110,7 +138,7 @@ export default function ClaimClient({
 
           <input
             value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            onChange={(e) => setCode(toLatinDigits(e.target.value).replace(/\D/g, "").slice(0, 6))}
             inputMode="numeric"
             autoComplete="one-time-code"
             placeholder="۶ رقم"
@@ -128,10 +156,10 @@ export default function ClaimClient({
 
           <button
             onClick={request}
-            disabled={pending}
-            className="w-full text-sm text-[#0047ab] underline disabled:opacity-50"
+            disabled={pending || cooldown > 0}
+            className="w-full text-sm text-[#0047ab] underline disabled:opacity-50 disabled:no-underline"
           >
-            ارسال دوباره‌ی کد
+            {cooldown > 0 ? `ارسال دوباره تا ${faNumber(cooldown)} ثانیه دیگر` : "ارسال دوباره‌ی کد"}
           </button>
         </div>
       )}
