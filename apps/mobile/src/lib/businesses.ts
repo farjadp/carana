@@ -161,6 +161,53 @@ export async function listBusinesses(options?: {
   return (data ?? []) as unknown as BusinessCard[];
 }
 
+/**
+ * Cards that carry enough state for the home screen's "open now" rail and its
+ * verified spotlight: working_hours and the verification fields on top of the
+ * card columns. Still an explicit column list — RLS does not filter columns.
+ *
+ * Both facts are optional on a listing, so callers must treat an empty result
+ * as "nothing to show" and render nothing, never a placeholder claim.
+ */
+export type BusinessSignals = BusinessCard & {
+  working_hours: Record<string, { open?: string; close?: string; closed?: boolean }> | null;
+  verification_method: "self_onboarded" | "claimed" | null;
+  verified_at: string | null;
+  verified_until: string | null;
+  verified_phone: string | null;
+  verified_email: string | null;
+};
+
+export async function listWithSignals(limit = 60): Promise<BusinessSignals[]> {
+  const { data, error } = await supabase
+    .from("businesses")
+    .select(
+      `${CARD_COLUMNS}, working_hours, verification_method, verified_at, verified_until, verified_phone, verified_email`
+    )
+    .in("status", PUBLIC_STATUSES)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as BusinessSignals[];
+}
+
+/** Listings whose badge is live right now — ordered by the nearest expiry. */
+export async function listVerified(limit = 8): Promise<BusinessSignals[]> {
+  const { data, error } = await supabase
+    .from("businesses")
+    .select(
+      `${CARD_COLUMNS}, working_hours, verification_method, verified_at, verified_until, verified_phone, verified_email`
+    )
+    .in("status", PUBLIC_STATUSES)
+    .gt("verified_until", new Date().toISOString())
+    .order("verified_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as BusinessSignals[];
+}
+
 export async function getBusinessBySlug(slug: string): Promise<BusinessDetail | null> {
   const { data, error } = await supabase
     .from("businesses")

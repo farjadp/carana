@@ -2552,17 +2552,31 @@ section {
 .contact-sent strong { color: var(--text); font-size: 1.05rem; }
 .contact-sent p { color: var(--muted-text); font-size: 0.9rem; margin: 0; }
 
-/* Header "About" group — hover/focus dropdown. 2026-08-15 */
+/* Header grouped menus. 2026-08-15, rewritten same day.
+   The panel used to start at `calc(100% + 10px)`, which put ten pixels of
+   plain page between the trigger and the menu: the pointer left the group on
+   the way down, `:hover` dropped, and the menu disappeared before it could be
+   clicked. The offset is now transparent padding *inside* the positioned box,
+   so the hover target is continuous from trigger to first item. Visibility is
+   driven by `.is-open` from React (click, hover-with-delay, focus), with the
+   hover rule kept as a no-JS fallback. */
 .header-nav-group { position: relative; }
 .header-nav-group-trigger { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; cursor: pointer; font: inherit; }
+.header-nav-group-label { color: inherit; text-decoration: none; }
+.header-nav-group-toggle {
+  display: inline-flex; align-items: center; background: none; border: 0; padding: 2px;
+  cursor: pointer; color: inherit; line-height: 0;
+}
 .header-nav-menu {
-  position: absolute; top: calc(100% + 10px); right: 0; min-width: 190px;
-  background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 8px;
-  box-shadow: 0 22px 60px rgba(20, 33, 61, 0.14);
+  position: absolute; top: 100%; right: 0; min-width: 200px; padding-top: 10px;
   opacity: 0; transform: translateY(6px); pointer-events: none; transition: opacity .15s, transform .15s;
   z-index: 60;
 }
-.header-nav-group:hover .header-nav-menu,
+.header-nav-menu-panel {
+  background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 8px;
+  box-shadow: 0 22px 60px rgba(20, 33, 61, 0.14);
+}
+.header-nav-group.is-open .header-nav-menu,
 .header-nav-group:focus-within .header-nav-menu { opacity: 1; transform: none; pointer-events: auto; }
 .header-nav-menu-link {
   display: block; padding: 9px 12px; border-radius: 12px; font-size: 14px; font-weight: 600;

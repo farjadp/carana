@@ -1,44 +1,46 @@
 // ============================================================================
 // Source: components/site-footer.tsx
-// Version: 1.2.0 — 2026-08-11
+// Version: 2.0.0 — 2026-08-15
 // Why: Render the legal footer and branded copyright copy.
+//
+// v2 empties the footer of navigation. It had grown to eleven links — product,
+// team, roadmap, releases, download, contact, support, register, plus the three
+// legal pages — duplicating the header and giving every page a wall of small
+// grey text at the bottom. Navigation belongs in the header's grouped menus
+// (header-nav.tsx); what stays here is what a footer is actually for: the legal
+// pages and the copyright line.
 // Env / Identity: Uses shared legal link metadata only.
 // ============================================================================
 import Link from "next/link";
 
+import { BrandMark } from "@/components/brand-mark";
 import { legalLinks } from "@/lib/site-content";
 
 export function SiteFooter({ currentPath }: { currentPath: string }) {
-  const footerLinks = [
-    { href: "/about", label: "درباره محصول" },
-    { href: "/team", label: "تیم" },
-    { href: "/roadmap", label: "رودمپ" },
-    { href: "/releases", label: "نسخه‌ها" },
-    { href: "/download", label: "دانلود اپ" },
-    { href: "/contact", label: "تماس با ما" },
-    { href: "/support", label: "پشتیبانی" },
-    { href: "/dashboard/business/new", label: "ثبت کسب‌وکار" },
-    { href: "/privacy", label: "حریم خصوصی" },
-    { href: "/terms", label: "شرایط استفاده" },
-    { href: "/disclaimer", label: "سلب مسئولیت" },
-  ];
-
   return (
-    <footer className="border-t border-gray-100 bg-gray-50 py-12 mt-20">
-      <div className="max-w-7xl mx-auto px-4 text-center">
-        <div className="flex flex-wrap justify-center gap-6 mb-8 text-sm font-medium text-gray-600">
-          {footerLinks.map((link) => (
+    <footer className="border-t border-gray-100 bg-gray-50 py-10 mt-20">
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 px-4 text-center">
+        <Link href="/" className="flex items-center gap-2" aria-label="čārana، صفحه اصلی">
+          <BrandMark size={26} color="var(--annabi)" />
+          <span dir="ltr" className="text-lg font-bold text-[color:var(--annabi)]">
+            čārana
+          </span>
+        </Link>
+
+        <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-500" aria-label="اطلاعات حقوقی">
+          {legalLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="hover:text-[color:var(--lajvard)] transition-colors"
+              className="transition-colors hover:text-[color:var(--lajvard)]"
               aria-current={currentPath === link.href ? "page" : undefined}
             >
               {link.label}
             </Link>
           ))}
-        </div>
-        <p className="text-sm text-gray-500 leading-relaxed max-w-2xl mx-auto">
+        </nav>
+
+        <p className="max-w-2xl text-xs leading-relaxed text-gray-400">
           © 2026 <span dir="ltr" className="font-bold">čārana</span> — ساخته‌شده برای پیوند دادن جامعه ایرانیان کانادا با کسب‌وکارهایی که می‌شناسند، می‌سازند و به آنها اعتماد می‌کنند.
         </p>
       </div>

@@ -33,17 +33,9 @@ import { BrandLoading, BrandMark, MerlonGlyph, MerlonRow } from "../../component
 import { InteractionBar } from "../../components/interaction-bar";
 import { getBusinessBySlug, listCategories, type BusinessDetail, type Category } from "../../lib/businesses";
 import { listPublishedReviews, type PublicReview } from "../../lib/interactions";
+import { DAYS, openNow as computeOpenNow } from "../../lib/hours";
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
-const DAYS = [
-  { key: "saturday", label: "شنبه", js: 6 },
-  { key: "sunday", label: "یکشنبه", js: 0 },
-  { key: "monday", label: "دوشنبه", js: 1 },
-  { key: "tuesday", label: "سه‌شنبه", js: 2 },
-  { key: "wednesday", label: "چهارشنبه", js: 3 },
-  { key: "thursday", label: "پنجشنبه", js: 4 },
-  { key: "friday", label: "جمعه", js: 5 },
-];
 const SERVICE_TYPE_FA: Record<string, string> = { in_person: "حضوری", online: "آنلاین", both: "حضوری و آنلاین" };
 const SERVICE_AREA_FA: Record<string, string> = { city: "در سطح شهر", province: "در سطح استان", canada: "سراسر کانادا", international: "بین‌المللی" };
 const CONTACT_FA: Record<string, string> = { phone: "تماس تلفنی", whatsapp: "واتساپ", email: "ایمیل" };
@@ -80,19 +72,7 @@ export default function BusinessScreen() {
   }, [slug]);
 
   const hours = business?.working_hours ?? null;
-  const openNow = useMemo(() => {
-    if (!hours || !Object.keys(hours).length) return null;
-    const now = new Date();
-    const today = DAYS.find((d) => d.js === now.getDay());
-    const h = today ? hours[today.key] : undefined;
-    if (!h) return null;
-    if (h.closed || !h.open || !h.close) return { open: false, label: "امروز تعطیل" };
-    const [oh, om] = h.open.split(":").map(Number);
-    const [ch, cm] = h.close.split(":").map(Number);
-    const m = now.getHours() * 60 + now.getMinutes();
-    const isOpen = m >= oh * 60 + om && m < ch * 60 + cm;
-    return { open: isOpen, label: isOpen ? `باز است · تا ${fa(h.close)}` : `بسته است · ${fa(h.open)} باز می‌شود` };
-  }, [hours]);
+  const openNow = useMemo(() => computeOpenNow(hours), [hours]);
 
   if (loading) return <BrandLoading />;
   if (!business) {

@@ -5,6 +5,7 @@
 //      filter — the same axes the web search offers.
 // ============================================================================
 import { useCallback, useEffect, useState } from "react";
+import { useLocalSearchParams } from "expo-router";
 import {
   ActivityIndicator,
   FlatList,
@@ -30,7 +31,17 @@ import {
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
 export default function SearchScreen() {
-  const [term, setTerm] = useState("");
+  // The home hero and its quick chips deep-link here with ?q=; a fresh param
+  // replaces whatever was typed, so the tab shows what the user asked for.
+  const { q } = useLocalSearchParams<{ q?: string }>();
+  const [term, setTerm] = useState(q ?? "");
+  // Track the last param we adopted, so a new deep link wins over stale typing
+  // without a state-sync effect.
+  const [adopted, setAdopted] = useState(q ?? "");
+  if (typeof q === "string" && q !== adopted) {
+    setAdopted(q);
+    setTerm(q);
+  }
   const [category, setCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [results, setResults] = useState<BusinessCard[]>([]);
