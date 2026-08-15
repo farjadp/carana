@@ -10,6 +10,7 @@
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SuggestionBox } from "@/components/suggestion-box";
 import { ArrowLeft, BadgeCheck, KeyRound, LifeBuoy, Mail, Store, UserRoundX } from "lucide-react";
 
 import { InnerPage } from "@/components/inner-page";
@@ -104,6 +105,10 @@ export default function SupportPage() {
           </div>
         </section>
       ))}
+
+      <section className="mt-12" dir="rtl">
+        <SuggestionBox page="/support" title="پیشنهادی داری؟" hint="امکانی که کم است، چیزی که اذیت می‌کند، کسب‌وکاری که باید باشد — بنویس یا بگو." />
+      </section>
 
       <p className="mt-10 text-xs text-[color:var(--muted-text)]" dir="rtl">
         سؤالت این‌جا نبود؟ <Link href="/contact" className="text-[color:var(--lajvard)] font-bold">صفحه‌ی تماس</Link> — یا مستقیم به <a href={`mailto:${company.email.support}`} className="text-[color:var(--lajvard)] font-bold" dir="ltr">{company.email.support}</a>.

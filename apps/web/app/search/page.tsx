@@ -14,6 +14,7 @@ import { ArrowLeft, BadgeCheck, MapPin, Search as SearchIcon, SlidersHorizontal,
 
 import { PageShell } from "@/components/page-shell";
 import { BusinessCard } from "@/components/business/business-card";
+import { SuggestionBox } from "@/components/suggestion-box";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cleanQuery, logSearch, searchBusinesses } from "@/lib/search";
 
@@ -130,6 +131,16 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               {city || category || verifiedOnly ? <Link href={href({ city: null, category: null, verified: null })} className="px-4 py-2 rounded-xl bg-[color:var(--text)] text-[#f6f1e8] font-bold">حذف فیلترها</Link> : null}
               <Link href="/categories" className="px-4 py-2 rounded-xl bg-white border border-[color:var(--line)] font-bold text-[color:var(--text)]">مرور دسته‌ها</Link>
               <Link href="/dashboard/business/new" className="px-4 py-2 rounded-xl bg-[color:var(--annabi)]/8 text-[color:var(--annabi)] font-bold inline-flex items-center gap-1"><Sparkles size={14} /> این کسب‌وکار مال من است — ثبتش کنم</Link>
+            </div>
+            {/* The zero-result moment is exactly when someone knows what is
+                missing. Ask them, right here. */}
+            <div className="mt-6 text-right">
+              <SuggestionBox
+                page={`/search?q=${encodeURIComponent(q)}`}
+                compact
+                title="دنبال چی بودی که نبود؟"
+                hint="بگو یا بنویس — همین درخواست‌ها می‌گویند چه کسب‌وکاری را باید پیدا و دعوت کنیم."
+              />
             </div>
           </div>
         ) : (

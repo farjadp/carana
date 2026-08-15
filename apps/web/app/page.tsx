@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BusinessCard } from "@/components/business/business-card";
 import { HomeHero } from "@/components/home-hero";
+import { SuggestionBox } from "@/components/suggestion-box";
 import { STORES } from "@/lib/data/releases";
 
 // The eight cities with generated background art. Kept here rather than read
@@ -252,6 +253,13 @@ export default async function HomePage() {
                 <Link href="/auth/login">ورود به حساب</Link>
               </Button>
             </div>
+          </div>
+        </section>
+
+        {/* 6b. Ask the visitor what is missing — text or voice */}
+        <section className="px-4 py-16 bg-white border-t border-gray-100">
+          <div className="mx-auto max-w-3xl">
+            <SuggestionBox page="/" />
           </div>
         </section>
 

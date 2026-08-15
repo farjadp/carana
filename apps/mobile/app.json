@@ -65,7 +65,13 @@
           "resizeMode": "contain"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "چارانا برای ضبط پیشنهاد صوتی شما به میکروفون نیاز دارد."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

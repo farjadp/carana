@@ -21,6 +21,7 @@ import { Search as SearchIcon, X } from "lucide-react-native";
 
 import { ScreenHeader } from "../../components/brand-mark";
 import { BusinessCardView } from "../../components/business-card";
+import { SuggestionBox } from "../../components/suggestion-box";
 import {
   listBusinesses,
   listCategories,
@@ -126,7 +127,19 @@ export default function SearchScreen() {
           ListHeaderComponent={
             <Text style={styles.resultCount}>{results.length} نتیجه</Text>
           }
-          ListEmptyComponent={<Text style={styles.empty}>نتیجه‌ای پیدا نشد.</Text>}
+          ListEmptyComponent={
+            <View style={{ gap: space.md }}>
+              <Text style={styles.empty}>نتیجه‌ای پیدا نشد.</Text>
+              {/* The zero-result moment is when someone knows what is missing. */}
+              {term.trim() ? (
+                <SuggestionBox
+                  page={`search:${term.trim().slice(0, 80)}`}
+                  title="دنبال چی بودی که نبود؟"
+                  hint="بگو یا بنویس — همین درخواست‌ها می‌گویند چه کسب‌وکاری را باید پیدا و دعوت کنیم."
+                />
+              ) : null}
+            </View>
+          }
           renderItem={({ item }) => (
             <BusinessCardView business={item} categoryLabel={labelFor(item.category)} />
           )}

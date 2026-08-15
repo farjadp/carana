@@ -42,6 +42,7 @@ import { getVerificationStatus } from "@charana/core";
 
 import { BrandLoading, BrandMark, MerlonGlyph, MerlonRow } from "../../components/brand-mark";
 import { BusinessCardView } from "../../components/business-card";
+import { SuggestionBox } from "../../components/suggestion-box";
 import {
   countByCategory,
   listBusinesses,
@@ -383,6 +384,11 @@ export default function HomeScreen() {
           </View>
           <ChevronLeft size={18} color={colors.mutedText} />
         </Pressable>
+
+        {/* ── Ask what is missing — text or voice ───────────────────────── */}
+        <View style={{ marginHorizontal: space.md, marginTop: space.md }}>
+          <SuggestionBox page="home" />
+        </View>
 
         <View style={styles.foot}>
           <MerlonRow color={colors.gold} height={7} opacity={0.6} />

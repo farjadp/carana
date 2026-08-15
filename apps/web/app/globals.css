@@ -2650,3 +2650,51 @@ section {
 @media (min-width: 640px) { .bp-action.is-book { grid-column: auto; } }
 .bp-action.is-book:hover { color: #fff; background: var(--lajvard); border-color: var(--lajvard); box-shadow: 0 12px 26px rgba(0, 71, 171, 0.25); }
 .bp-action.is-book:hover .bp-action-icon { color: #fff; background: rgba(255, 255, 255, 0.18); }
+
+/* Suggestion box — text or voice. 2026-08-15 */
+.sbox {
+  background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 20px;
+  display: grid; gap: 14px; box-shadow: 0 16px 40px rgba(20, 33, 61, 0.06);
+}
+.sbox.is-compact { padding: 16px; border-radius: 18px; gap: 10px; box-shadow: none; }
+.sbox-head { display: flex; gap: 12px; align-items: flex-start; }
+.sbox-icon {
+  flex: none; width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
+  color: var(--gold); background: rgba(201, 162, 75, 0.16);
+}
+.sbox-head h3 { font-size: 16px; font-weight: 800; color: var(--text); margin: 0 0 2px; }
+.sbox-head p { font-size: 13px; color: var(--muted-text); margin: 0; line-height: 1.7; }
+.sbox-input { display: grid; gap: 8px; }
+.sbox textarea, .sbox-foot input {
+  width: 100%; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); color: var(--text);
+  padding: 10px 12px; font: inherit; font-size: 14px; line-height: 1.7; resize: vertical; outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.sbox textarea:focus, .sbox-foot input:focus { border-color: rgba(128,0,0,0.35); box-shadow: 0 0 0 4px rgba(128,0,0,0.08); background: #fff; }
+.sbox-mic {
+  justify-self: start; display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px;
+  border-radius: 999px; border: 1px dashed rgba(128,0,0,0.35); background: transparent; color: var(--annabi);
+  font-weight: 700; font-size: 13px; cursor: pointer; transition: background .15s, border-color .15s;
+}
+.sbox-mic:hover { background: rgba(128,0,0,0.05); }
+.sbox-mic.is-recording { border-style: solid; background: var(--annabi); color: #f6f1e8; animation: sbox-pulse 1.2s ease-in-out infinite; }
+@keyframes sbox-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(128,0,0,0.35);} 50% { box-shadow: 0 0 0 8px rgba(128,0,0,0);} }
+.sbox-voice { display: flex; align-items: center; gap: 10px; }
+.sbox-voice audio { flex: 1; height: 36px; }
+.sbox-voice-time { font-size: 12px; color: var(--muted-text); font-variant-numeric: tabular-nums; }
+.sbox-icon-btn { display: inline-flex; padding: 8px; border-radius: 10px; border: 0; background: var(--bg); color: var(--muted-text); cursor: pointer; }
+.sbox-icon-btn:hover { color: var(--annabi); background: rgba(128,0,0,0.06); }
+.sbox-foot { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.sbox-foot input { flex: 1; min-width: 200px; height: 42px; padding: 0 12px; }
+.sbox-send {
+  display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 18px; border: 0; border-radius: 999px;
+  background: var(--annabi); color: #f6f1e8; font-weight: 800; font-size: 14px; cursor: pointer;
+  box-shadow: 0 8px 20px rgba(128,0,0,0.22); transition: background .15s, transform .15s, opacity .15s;
+}
+.sbox-send:hover:not(:disabled) { background: #5c0000; transform: translateY(-1px); }
+.sbox-send:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.sbox-err { margin: 0; font-size: 12.5px; color: var(--annabi); }
+.sbox.is-done { grid-template-columns: auto 1fr auto; align-items: center; color: var(--success, #0f7b4f); }
+.sbox.is-done strong { display: block; color: var(--text); font-size: 15px; }
+.sbox.is-done p { margin: 2px 0 0; font-size: 13px; color: var(--muted-text); }
+.sbox-again { border: 0; background: var(--bg); color: var(--text); font-weight: 700; font-size: 13px; padding: 8px 14px; border-radius: 999px; cursor: pointer; }

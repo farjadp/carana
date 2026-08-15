@@ -18,8 +18,7 @@ import {
   MessageSquare,
   Activity,
   Layers,
-  FileSpreadsheet
-} from "lucide-react";
+  FileSpreadsheet, Lightbulb } from "lucide-react";
 
 export function AdminSidebarNav() {
   const pathname = usePathname();
@@ -31,6 +30,7 @@ export function AdminSidebarNav() {
     { href: "/admin/listings/import", label: "ایمپورت اکسل (AI)", icon: FileSpreadsheet },
     { href: "/admin/categories", label: "دسته‌بندی‌ها", icon: Layers },
     { href: "/admin/reviews", label: "بررسی نظرات", icon: MessageSquare },
+    { href: "/admin/suggestions", label: "پیشنهادها", icon: Lightbulb },
     { href: "/admin/users", label: "مدیریت کاربران", icon: Users },
     { href: "/admin/logs", label: "گزارش فعالیت‌ها", icon: Activity },
     { href: "/admin/reports", label: "گزارش تخلفات", icon: ShieldAlert, badge: "۲", badgeDanger: true },
