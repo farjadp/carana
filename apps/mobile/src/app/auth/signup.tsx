@@ -21,6 +21,7 @@ import { ChevronRight, Eye, EyeOff, MailCheck } from "lucide-react-native";
 
 import { BrandMark } from "../../components/brand-mark";
 import { Alert, Field, PrimaryButton } from "../../components/ui";
+import { authErrorMessage } from "@charana/core";
 import { supabase } from "../../lib/supabase";
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
@@ -54,11 +55,7 @@ export default function SignupScreen() {
     });
 
     if (signUpError) {
-      setError(
-        signUpError.message.toLowerCase().includes("already")
-          ? "این ایمیل قبلاً ثبت شده است."
-          : "ثبت‌نام انجام نشد. لطفاً دوباره تلاش کنید."
-      );
+      setError(authErrorMessage(signUpError, "ثبت‌نام انجام نشد. لطفاً دوباره تلاش کنید."));
       setBusy(false);
       return;
     }

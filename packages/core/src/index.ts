@@ -27,3 +27,6 @@ export * from "./provinces";
 
 // One definition of "verified" for web and mobile.
 export * from "./verification-status";
+
+// Persian messages for Supabase Auth errors (web + mobile).
+export * from "./auth-errors";

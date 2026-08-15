@@ -32,3 +32,4 @@ apps/mobile/android
 .vercel
 .env*
 .expo/
+*.local.txt

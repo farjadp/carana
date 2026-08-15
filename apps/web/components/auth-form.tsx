@@ -6,6 +6,7 @@
 // ============================================================================
 "use client";
 
+import { authErrorMessage } from "@charana/core";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -170,11 +171,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       router.replace("/auth/login?reset=success");
       router.refresh();
     } catch (caughtError) {
-      const message =
-        caughtError instanceof Error
-          ? caughtError.message
-          : "خطایی رخ داد. دوباره تلاش کنید.";
-      setError(message);
+      setError(authErrorMessage(caughtError));
     } finally {
       setLoading(false);
     }
@@ -192,8 +189,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       });
       if (signInError) throw signInError;
     } catch (caughtError) {
-      const message = caughtError instanceof Error ? caughtError.message : "خطایی در ورود با گوگل رخ داد.";
-      setError(message);
+      setError(authErrorMessage(caughtError, "خطایی در ورود با گوگل رخ داد."));
       setLoading(false);
     }
   }

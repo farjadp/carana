@@ -10,6 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronRight, MailCheck } from "lucide-react-native";
 
 import { Alert, Field, PrimaryButton } from "../../components/ui";
+import { authErrorMessage } from "@charana/core";
 import { supabase } from "../../lib/supabase";
 import { colors, radius, shadow, space, type } from "../../theme";
 
@@ -30,8 +31,13 @@ export default function ForgotPasswordScreen() {
       redirectTo: `${WEB_ORIGIN}/auth/update-password`,
     });
 
-    // Always report success: whether an address is registered is not something
-    // an unauthenticated caller should be able to probe.
+    // Report success regardless of whether the address exists — that must not
+    // be probeable. A rate limit is the one honest exception: nothing was sent.
+    if (resetError && /rate limit|too many/i.test(resetError.message)) {
+      setError(authErrorMessage(resetError));
+      setBusy(false);
+      return;
+    }
     if (resetError) console.warn("reset error", resetError.message);
     setSent(true);
     setBusy(false);
