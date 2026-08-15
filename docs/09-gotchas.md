@@ -416,3 +416,26 @@ just cannot read them back. `vercel env ls --format json` shows
 **Fix:** none needed — this is the desired posture. Keep working copies of
 such secrets in `apps/web/.env.local` (git-ignored) if a script on the laptop
 needs them, and check there before assuming production is misconfigured.
+
+---
+
+## Search must forgive the wrong keyboard layout, not just the wrong script
+
+**Symptom (seen on the simulator):** typing `dental richmond` in the app's
+search box produced `یثدفشم قهزاپخدی` — the device keyboard was Persian
+because the app forces RTL. Zero results, no error, and the user has no idea
+what happened.
+
+**Cause:** the same trap as `toLatinDigits`, one level up: not digits, the
+whole layout. Persian users on Latin keyboards hit the mirror image
+(`vsj,vhk` for «رستوران»).
+
+**Fix:** `search_businesses` scores both the literal query and
+`keyboard_swap(q)` (full ISIRI 9147 ↔ QWERTY map, 31 keys, `translate()`)
+and takes the better one, discounted 10% so a genuine literal hit still wins.
+`fa_normalize` separately folds Arabic ي/ك, ة/ۀ, harakat, tatweel and
+Persian/Arabic-Indic digits.
+
+**Also:** Persian city names are not in the data (cities are stored in
+English), so «املاک ریچموند» found nothing until `city_aliases` was joined
+into the search blob. Add a row there for every new city.
