@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 export default async function BusinessesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; province?: string; category?: string }>;
+  searchParams: Promise<{ page?: string; province?: string; category?: string; q?: string; city?: string }>;
 }) {
   const params = await searchParams;
   const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
@@ -47,6 +47,16 @@ export default async function BusinessesPage({
   const province = params.province ? resolveProvince(params.province) : null;
   if (province) query = query.eq("province", province.nameEn);
   if (params.category) query = query.eq("category", params.category);
+  if (params.city) query = query.ilike("city", params.city.trim());
+  // Free-text search over name / English name / short description. ilike
+  // escapes its argument; the pattern below only adds the wildcards.
+  // or() builds a filter string, so the term must not carry PostgREST syntax:
+  // strip commas, parentheses, dots and wildcards before interpolating.
+  const q = params.q?.trim().replace(/[,().%_\\*]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
+  if (q) {
+    const pat = `%${q}%`;
+    query = query.or(`name.ilike.${pat},name_en.ilike.${pat},short_description.ilike.${pat}`);
+  }
 
   const { data: businesses, count } = await query;
 
@@ -73,8 +83,8 @@ export default async function BusinessesPage({
       currentPath="/businesses"
       currentSection="business"
       eyebrow="فهرست کامل"
-      title="همه کسب‌وکارها"
-      description={`${total.toLocaleString("fa-IR")} کسب‌وکار ثبت‌شده. با استان و دسته‌بندی محدودش کنید.`}
+      title={q ? `نتایج جستجو برای «${q}»` : "همه کسب‌وکارها"}
+      description={q ? `${total.toLocaleString("fa-IR")} کسب‌وکار پیدا شد.` : `${total.toLocaleString("fa-IR")} کسب‌وکار ثبت‌شده. با استان و دسته‌بندی محدودش کنید.`}
     >
       <section className="filter-bar">
         <div className="filter-group">

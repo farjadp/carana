@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BusinessCard } from "@/components/business/business-card";
+import { HomeHero } from "@/components/home-hero";
 
 // The eight cities with generated background art. Kept here rather than read
 // from lib/data/cities.ts because only these have images — a card whose
@@ -61,56 +62,26 @@ export default async function HomePage() {
     .order("view_count", { ascending: false })
     .limit(6);
 
+  // Live numbers for the hero — every one is a real count, never a claim.
+  const nowIso = new Date().toISOString();
+  const [{ count: totalCount }, { count: verifiedCount }, { data: cityRows }, { count: categoryCount }] =
+    await Promise.all([
+      supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", ["APPROVED", "PUBLISHED"]),
+      supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", ["APPROVED", "PUBLISHED"]).gt("verified_until", nowIso),
+      supabase.from("businesses").select("city").in("status", ["APPROVED", "PUBLISHED"]).not("city", "is", null),
+      supabase.from("categories").select("id", { count: "exact", head: true }).eq("is_active", true),
+    ]);
+  const cityCount = new Set((cityRows ?? []).map((r) => (r.city as string).trim().toLowerCase()).filter(Boolean)).size;
+  const stats = { total: totalCount ?? 0, verified: verifiedCount ?? 0, cities: cityCount, categories: categoryCount ?? 0 };
+  const cityFreq = new Map<string, number>();
+  for (const r of cityRows ?? []) { const c = (r.city as string).trim(); if (c) cityFreq.set(c, (cityFreq.get(c) ?? 0) + 1); }
+  const topCities = [...cityFreq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([c]) => c);
+
   return (
     <PageShell currentPath="/" currentSection="home">
       <main className="min-h-screen">
-        {/* 1 & 2. Hero Section */}
-        <section className="bg-gradient-to-b from-[color:var(--lajvard-light)]/10 to-transparent py-16 md:py-24 px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-6 leading-tight">
-              کسب‌وکارهای ایرانیان کانادا را پیدا کن
-            </h1>
-            <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-              <strong dir="ltr" className="font-bold">čārana</strong> دایرکتوری کسب‌وکارهای ایرانی در کاناداست؛ از رستوران و کلینیک تا وکیل، مشاور، فروشگاه و خدمات محلی.
-            </p>
-
-            <Card className="max-w-3xl mx-auto shadow-xl border-gray-100 bg-white">
-              <CardContent className="p-3 md:p-4">
-                <form className="flex flex-col md:flex-row gap-3">
-                  <div className="flex-1 relative">
-                    <Search className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
-                    <Input 
-                      placeholder="نام کسب‌وکار، خدمت یا دسته‌بندی..." 
-                      className="pr-10 h-12 text-base w-full bg-gray-50 border-gray-200"
-                    />
-                  </div>
-                  <div className="md:w-1/3 relative">
-                    <MapPin className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
-                    <select className="flex h-12 w-full rounded-md border border-gray-200 bg-gray-50 px-10 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                      <option value="">همه شهرها</option>
-                      <option value="toronto">تورنتو (Toronto)</option>
-                      <option value="vancouver">ونکوور (Vancouver)</option>
-                      <option value="montreal">مونترال (Montreal)</option>
-                    </select>
-                  </div>
-                  <Button type="button" className="h-12 px-8 bg-[color:var(--lajvard)] hover:bg-[color:var(--primary)] text-white text-base">
-                    جستجو
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-
-            <div className="mt-6 flex flex-col md:flex-row items-center justify-center gap-4 text-sm">
-              <div className="flex items-center text-gray-500 gap-1.5 bg-white py-1 px-3 rounded-full shadow-sm border border-gray-100">
-                <ShieldCheck className="h-4 w-4 text-green-600" />
-                <span>اطلاعات کسب‌وکارها قبل از انتشار بررسی می‌شود</span>
-              </div>
-              <Button asChild variant="ghost" className="text-[color:var(--lajvard)]">
-                <Link href="/dashboard/business/new">ثبت کسب‌وکار من <Plus className="mr-1 h-4 w-4" /></Link>
-              </Button>
-            </div>
-          </div>
-        </section>
+        {/* 1 & 2. Hero — brand-first, live numbers, real search */}
+        <HomeHero stats={stats} cities={topCities} />
 
         {/* 3. Popular Categories */}
         <section className="py-16 px-4 bg-white">
