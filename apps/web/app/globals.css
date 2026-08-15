@@ -71,9 +71,14 @@ body {
   color: var(--text);
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* Inside @layer base on purpose: an unlayered `a { color }` outranks every
+   Tailwind text-* utility (they live in @layer utilities), which is how the
+   profile's filled "تماس" button ended up with ink text on annabi. */
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 button,
@@ -2597,3 +2602,51 @@ section {
 .header-search input::placeholder { color: var(--muted-text); }
 .header-search input:focus { width: 180px; transition: width .15s; }
 @media (min-width: 1100px) { .header-search { display: inline-flex; } }
+
+/* Business profile — primary action row. 2026-08-15
+   One filled primary (call), one strong secondary (book), the rest tonal:
+   a soft tinted surface with a coloured icon disc, no grey hairlines. Each
+   action owns a hue — annabi call, WhatsApp green, lajvard directions/site —
+   so the row reads as a set of distinct doors rather than five equal pills. */
+.bp-actions {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 24px;
+}
+@media (min-width: 640px) { .bp-actions { grid-template-columns: repeat(var(--bp-cols, 4), minmax(0, 1fr)); } }
+.bp-action {
+  --tint: var(--lajvard);
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  height: 52px; padding: 0 14px; border-radius: 16px;
+  font-weight: 700; font-size: 14.5px; letter-spacing: -0.005em;
+  color: var(--text); background: color-mix(in oklab, var(--tint) 7%, #fff);
+  border: 1px solid color-mix(in oklab, var(--tint) 14%, transparent);
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
+}
+.bp-action:hover { transform: translateY(-1px); background: color-mix(in oklab, var(--tint) 12%, #fff); border-color: color-mix(in oklab, var(--tint) 28%, transparent); box-shadow: 0 10px 24px color-mix(in oklab, var(--tint) 14%, transparent); }
+.bp-action:active { transform: translateY(0); }
+.bp-action:focus-visible { outline: 3px solid color-mix(in oklab, var(--tint) 35%, transparent); outline-offset: 2px; }
+.bp-action-icon {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 30px; height: 30px; border-radius: 10px;
+  color: var(--tint); background: color-mix(in oklab, var(--tint) 12%, #fff);
+}
+.bp-action.is-whatsapp { --tint: #128c5e; }
+.bp-action.is-directions, .bp-action.is-website { --tint: var(--lajvard); }
+
+/* Filled primary — the call. Cream text, forced: `a { color }` once beat it. */
+.bp-action.is-primary {
+  --tint: var(--annabi);
+  color: #f6f1e8; background: var(--annabi); border-color: transparent;
+  box-shadow: 0 10px 24px rgba(128, 0, 0, 0.22);
+}
+.bp-action.is-primary:hover { background: #5c0000; box-shadow: 0 14px 30px rgba(128, 0, 0, 0.30); }
+.bp-action.is-primary .bp-action-icon { color: #f6f1e8; background: rgba(246, 241, 232, 0.16); }
+
+/* Booking — strong but clearly second to the call: lajvard outline, filled on hover. */
+.bp-action.is-book {
+  --tint: var(--lajvard);
+  color: var(--lajvard); background: #fff; border: 1.5px solid color-mix(in oklab, var(--lajvard) 45%, transparent);
+  grid-column: span 2;
+}
+@media (min-width: 640px) { .bp-action.is-book { grid-column: auto; } }
+.bp-action.is-book:hover { color: #fff; background: var(--lajvard); border-color: var(--lajvard); box-shadow: 0 12px 26px rgba(0, 71, 171, 0.25); }
+.bp-action.is-book:hover .bp-action-icon { color: #fff; background: rgba(255, 255, 255, 0.18); }

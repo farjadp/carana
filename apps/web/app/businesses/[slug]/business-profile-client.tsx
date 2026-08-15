@@ -223,30 +223,35 @@ export default function BusinessProfileClient({
           </div>
 
           {/* ─────────────────────── Primary actions ─────────────────────── */}
-          <div className={`grid grid-cols-2 gap-2.5 mt-6 ${business.accepts_appointments && business.booking_url ? "md:grid-cols-5" : "sm:grid-cols-4"}`}>
+          {/* Styled by .bp-action in globals.css — see the note there on why
+              these are classes and not Tailwind text-* utilities. */}
+          <div
+            className="bp-actions"
+            style={{ ["--bp-cols" as string]: business.accepts_appointments && business.booking_url ? 5 : 4 }}
+          >
             {business.phone ? (
-              <a href={`tel:${business.phone}`} className="h-12 rounded-2xl bg-[color:var(--annabi)] hover:bg-[#5c0000] text-[#f6f1e8] font-bold flex items-center justify-center gap-2 transition shadow-[0_8px_20px_rgba(128,0,0,0.25)]">
-                <Phone size={18} /> تماس
+              <a href={`tel:${business.phone}`} className="bp-action is-primary">
+                <span className="bp-action-icon"><Phone size={16} /></span> تماس
               </a>
             ) : null}
             {wa ? (
-              <a href={wa} target="_blank" rel="noopener noreferrer" className="h-12 rounded-2xl bg-white border border-[color:var(--line)] hover:border-emerald-300 hover:bg-emerald-50 text-[color:var(--text)] font-bold flex items-center justify-center gap-2 transition">
-                <MessageCircle size={18} className="text-emerald-600" /> واتساپ
+              <a href={wa} target="_blank" rel="noopener noreferrer" className="bp-action is-whatsapp">
+                <span className="bp-action-icon"><MessageCircle size={16} /></span> واتساپ
               </a>
             ) : null}
             {business.address || business.google_maps_url ? (
-              <a href={directions} target="_blank" rel="noreferrer" className="h-12 rounded-2xl bg-white border border-[color:var(--line)] hover:border-[color:var(--lajvard)]/40 hover:bg-[color:var(--lajvard)]/5 text-[color:var(--text)] font-bold flex items-center justify-center gap-2 transition">
-                <Navigation size={18} className="text-[color:var(--lajvard)]" /> مسیریابی
+              <a href={directions} target="_blank" rel="noreferrer" className="bp-action is-directions">
+                <span className="bp-action-icon"><Navigation size={16} /></span> مسیریابی
               </a>
             ) : null}
             {website ? (
-              <a href={website} target="_blank" rel="noreferrer" className="h-12 rounded-2xl bg-white border border-[color:var(--line)] hover:border-[color:var(--lajvard)]/40 hover:bg-[color:var(--lajvard)]/5 text-[color:var(--text)] font-bold flex items-center justify-center gap-2 transition">
-                <Globe size={18} className="text-[color:var(--lajvard)]" /> وب‌سایت
+              <a href={website} target="_blank" rel="noreferrer" className="bp-action is-website">
+                <span className="bp-action-icon"><Globe size={16} /></span> وب‌سایت
               </a>
             ) : null}
             {business.accepts_appointments && business.booking_url ? (
-              <a href={business.booking_url} target="_blank" rel="noreferrer" className="h-12 rounded-2xl bg-[color:var(--lajvard)] hover:bg-[#003a8c] text-white font-bold flex items-center justify-center gap-2 transition col-span-2 md:col-span-1">
-                <CalendarDays size={18} /> رزرو نوبت
+              <a href={business.booking_url} target="_blank" rel="noreferrer" className="bp-action is-book">
+                <span className="bp-action-icon"><CalendarDays size={16} /></span> رزرو نوبت
               </a>
             ) : null}
           </div>
