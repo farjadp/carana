@@ -387,3 +387,32 @@ reconnect with an explicit
 `ca.charana.app://expo-development-client/?url=http://localhost:8081`.
 Before trusting any screenshot, confirm the log printed a fresh `iOS Bundled …`
 line after your last edit.
+
+---
+
+## Supabase free tier locks email templates until custom SMTP exists
+
+**Symptom:** `PATCH /v1/projects/{ref}/config/auth` with `mailer_templates_*`
+returns 400 *"Email template modification is not available for free tier
+projects using the default email provider"*.
+
+**Fix:** set the `smtp_*` fields first (Resend: `smtp.resend.com`, port
+`465`, user `resend`, pass = a Resend API key), then the templates in a second
+PATCH. Order matters; one combined request fails whole.
+
+Also: the Management API sits behind Cloudflare and rejects Python urllib's
+default User-Agent with `403 error code: 1010`. Send any browser-ish UA.
+
+## `vercel env pull` returns empty strings for Sensitive variables
+
+**Symptom:** a pulled `.env` shows `RESEND_API_KEY=""` and every Twilio value
+empty; it looks as if production was configured with blanks.
+
+**Cause:** the variables were created as **Sensitive**. Vercel never returns
+their values — not to the CLI, not to the dashboard. Production has them; you
+just cannot read them back. `vercel env ls --format json` shows
+`"type": "sensitive"`.
+
+**Fix:** none needed — this is the desired posture. Keep working copies of
+such secrets in `apps/web/.env.local` (git-ignored) if a script on the laptop
+needs them, and check there before assuming production is misconfigured.
