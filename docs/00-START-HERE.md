@@ -1,6 +1,6 @@
 # čārana — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-14 (evening)
+**Written:** 2026-08-24 · **Updated:** 2026-08-15 (night)
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://charana.ca
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -13,30 +13,34 @@ there, not only in git.
 
 ## Where things stand, in sixty seconds
 
-The web app is **live** at charana.ca with 677 published listings, real
-photography, working email + SMS, cookieless analytics, and first-party error
-telemetry. The mobile app **runs on Farjad's physical iPhone** (free signing,
-7-day builds). The verification system — the product's core trust mechanic —
-is built end to end and needs its first real-world test.
+The web app is **live** at charana.ca with 680 published listings (677
+imported + Farjad's three showcase listings), a brand-first home page with
+live counters, **real search** (Persian-aware, ranked, wrong-keyboard
+forgiving), redesigned business profiles on web + mobile, business
+registration with AI website import on web + mobile, branded auth mail via
+Resend, and a downloadable Android APK (1.1.0). The mobile app runs on the
+simulator and Farjad's iPhone; store publishing is blocked on D-U-N-S.
 
 | Area | State |
 |---|---|
-| Web (Next.js 16) | Live, auto-deploying from `main` (pipeline verified) |
-| Search | **Does not exist.** Hero box is a prop. The open P0. |
-| Verification | Built: self-onboarded + SMS-claim paths, 6-month expiry, renewal cron (needs `CRON_SECRET`), badges honest everywhere |
-| Claim flow | `/claim` live — SMS to the number already on the listing |
-| Database | 20 migrations, history in sync, RLS hardened, telemetry tables (`system_errors`, `cron_runs`), `view_count` live |
-| Imagery | 12 category photographs + 8 city backgrounds, one campaign, WebP |
-| Email | Resend live; **Supabase auth mail still needs dashboard SMTP/templates/URLs** → `13-…` |
-| SMS | Twilio live (rotate the leaked auth token; balance low) |
-| Mobile | Runs on device; email confirmation deep-links into the app (`charana://auth/confirmed`) |
-| App Store / Play | Blocked on D-U-N-S for Ashavid Inc. |
-| Analytics | Vercel Web Analytics (cookieless) + Search Console registered |
+| Search | **Built 15 Aug.** `search_businesses` RPC + `/search` + header + hero + mobile tab; every query logged in `search_queries` |
+| Home | Brand hero, live counters (680 · 3 verified · 24 cities · 12 categories), real search, direct APK button |
+| Business profile | Redesigned web + mobile: cover, verified badge, open-now, actions, services, hours, ref number |
+| Registration | Web + mobile: verify email+phone → optional "read it from my website" (AI) → 7 steps → review → submit |
+| Claim | `/claim` = find-your-business search; `/claim?businessId=` = 3-step SMS proof; Persian-digit-safe |
+| Auth mail | Supabase → Resend SMTP, four Persian templates, Site URL + redirects incl. `charana://**` — verified with a live signup |
+| Reference numbers | `businesses.ref_no` five-digit random unique on all rows, shown on profiles |
+| Accounts | Admin `farjad@ashavid.ca` (role admin); personal `its@farjadp.com` (owner of the 3 listings); old `admin@charana.ca` can retire |
+| Pages | About / Team / Roadmap / Releases / Download / Contact / Support written for real; About dropdown in header |
+| Mobile | v1.1.0 APK on EAS under @ashavid; deep links verified via assetlinks; in-app profile edit; brand redesign |
+| Android app links | `ANDROID_SHA256_FINGERPRINT` live on Vercel; assetlinks.json serves it |
+| Verification | Built end to end; renewal cron still needs `CRON_SECRET` |
+| App Store / Play | Blocked on D-U-N-S for Ashavid Inc.; store URLs live in `lib/data/releases.ts` — fill and every surface flips |
 
 ## What to do first when you wake up
 
-1. Read `08-open-tasks.md` — it now begins with the one Supabase dashboard
-   session that fixes real signups, then the code queue (search is the P0).
+1. Read `08-open-tasks.md` — the Supabase session and search are done; it
+   now leads with the small Farjad-side items and the next code slices.
 2. Open the Notion board for the live picture before starting anything.
 3. `09-gotchas.md` before debugging **anything** — every entry cost hours.
 

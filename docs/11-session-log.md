@@ -177,3 +177,71 @@ memory: all work is recorded there.
   actual requirement (identity in direction, not in subjects).
 - Left the events section's `view_count` assumption unverified for hours
   while it silently rendered nothing.
+
+---
+
+# 2026-08-15 — search, registration everywhere, the pages, the polish
+
+Longest day so far. Theme: **finish the promises** — every link goes
+somewhere, every number is real, every flow works end to end on both apps.
+
+## Morning: mobile brand + Android
+- Mobile app redesigned around the brand (Vazirmatn, Hidden Č, merlon,
+  soft elevation). Found a v1 bug on the way: `Link asChild` had silently
+  dropped the business card's function-style, so the card never had a
+  surface. Stale-Metro trap recorded.
+- eas-cli installed; Farjad's expo.dev login; `owner: ashavid`; first
+  Android APK (1.0.0), then 1.1.0 at night. `ANDROID_SHA256_FINGERPRINT`
+  extracted from the APK's v2 signing block, set on Vercel, assetlinks live.
+
+## Supabase session — done via the Management API, no dashboard
+- Site URL, redirect allow-list incl. `charana://**`, Resend SMTP, four
+  Persian templates. Free-tier gotcha: templates lock until SMTP exists.
+  Verified with a real signup: Resend "delivered" one second later.
+- Vercel Sensitive env vars pull as empty strings — not a misconfiguration.
+
+## Registration with AI website import
+- Web: step zero "shall we read this from your website?" → extractor
+  (multi-page, hrefs mined, JSON-LD, category suggestion, per-field
+  confidence) → prefill → per-step banners → review. Honesty guards: no
+  invented hours / year / "serves in Persian"; translated fields always
+  flagged. Model tried to fabricate 9–18 hours; now hours need a time
+  pattern in the page text.
+- Mobile: full owner journey (gate → verify → import → 7 steps → submit)
+  on three new Bearer-auth API routes; contact-code logic extracted to a
+  shared module. Draft awaited → one row per session.
+- Farjad decided mobile carries the owner journey (Notion decision closed).
+
+## Profiles, hero, pages
+- Business profile redesigned on web + mobile (cover, badge, open-now,
+  actions, services, hours, contact rows, trust); verification status moved
+  to `@charana/core` — subpath export broke Turbopack, re-exported from root.
+- Home hero: brand wash, live counters, real search. About / Team / Roadmap
+  / Releases / Download / Contact / Support written for real; About
+  dropdown; `lib/data/releases.ts` as the single source for stores/APK.
+- Claim flow: bare `/claim` = find-your-business; 3-step prove page;
+  Persian-digit-safe code (the old `\D` strip rejected ۱۲۳۴۵۶); success state.
+- Farjad's three businesses seeded as verified showcase listings; his
+  personal + admin accounts created; Persian messages for every auth error.
+- Five-digit `ref_no` on every business (trigger + backfill).
+
+## Search (the P0), night
+- `fa_normalize`, `search_text` blob + trigram GIN, `search_businesses` RPC
+  (ranked, multi-word, typo-tolerant, verified boost), `city_aliases`,
+  `search_queries` log, and **keyboard-layout forgiveness** — discovered live
+  when the simulator's Persian keyboard turned `dental` into `یثدفشم`.
+- `/search`, header field, hero, mobile tab all on the one RPC.
+
+## Bugs found and fixed in passing
+- Admin listings page had been blank for a day: two FKs to `profiles`
+  (PGRST201) failed the whole query and the page showed "no businesses".
+  Now disambiguated and errors are rendered, not swallowed.
+- Auth-form import order, Turbopack cache ghosts, `Link` with `mailto:`.
+
+## What I got wrong today
+- Briefly reported Vercel secrets as "empty" — they were Sensitive; retracted.
+- Sent a password-reset with the wrong redirect path once; re-sent.
+- Insisted on a screenshot tool that greyed out `/contact` while the DOM was
+  fine — should have trusted the server-side check sooner.
+- Nearly hard-coded a mis-mapped keyboard layout (m→ئ); fixed with the ISIRI
+  table before shipping.
