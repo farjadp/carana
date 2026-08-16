@@ -1,6 +1,6 @@
 # čārana — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-15 (night)
+**Written:** 2026-08-24 · **Updated:** 2026-08-16 · **Docs version:** 2.0
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://charana.ca
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -39,29 +39,24 @@ simulator and Farjad's iPhone; store publishing is blocked on D-U-N-S.
 
 ## What to do first when you wake up
 
-1. Read `08-open-tasks.md` — the Supabase session and search are done; it
-   now leads with the small Farjad-side items and the next code slices.
-2. Open the Notion board for the live picture before starting anything.
-3. `09-gotchas.md` before debugging **anything** — every entry cost hours.
+1. Read `05-open-tasks.md` — what is open, split into your side and mine.
+2. Open the Notion board (🧿 Charana → Mission Control) for the live picture.
+3. `06-gotchas.md` before debugging **anything** — every entry cost hours.
 
 ## Reading order
 
+Eight files, deliberately. They were fifteen until 16 Aug; the split made
+people (and models) read three of them and miss the rest.
+
 | File | Read it when |
 |---|---|
-| `01-architecture.md` | You want the shape of the system |
-| `02-security.md` | Before touching auth, RLS, or anything admin |
-| `03-database.md` | Before writing a migration or a query |
-| `04-deployment.md` | Deploying, or something is broken in production |
-| `05-mobile.md` | Picking the mobile work back up |
-| `06-data-import.md` | Importing another directory export |
-| `07-design.md` | Brand, colours, the photography system, logo brief |
-| `08-open-tasks.md` | Deciding what to do next |
-| `09-gotchas.md` | **Read this one.** The traps that cost hours. |
-| `10-accounts.md` | Accounts and credentials |
-| `11-session-log.md` | How we got here, session by session |
-| `12-integrations.md` | Email, SMS, verification, telemetry, analytics |
-| `13-supabase-email-templates.md` | Paste-ready auth email templates |
-| `14-feature-inventory.md` | What exists, per audience — visitor / owner / admin — with state |
+| `01-product.md` | What exists today per audience, plus the design system, brand and logo pack |
+| `02-engineering.md` | The shape of the system: architecture, database, deployment, integrations, auth mail, data import |
+| `03-security.md` | Before touching auth, RLS or anything admin — and where every credential lives |
+| `04-mobile.md` | Picking the mobile app back up |
+| `05-open-tasks.md` | Deciding what to do next |
+| `06-gotchas.md` | **Read this one.** The traps that cost hours. |
+| `07-session-log.md` | How we got here, session by session, including what was said wrongly |
 
 ## Working style (learned, do not relearn)
 

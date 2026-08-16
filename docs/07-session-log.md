@@ -84,7 +84,7 @@ for geometry and badly for pictures. The right answer was to use a professional
 icon set, which took two rejections to reach.
 
 **The logo is still a placeholder.** Worth paying a designer; brief is in
-`07-design.md`.
+`01-product.md`.
 
 **Told you the original logos were not imported.** They were — 621 of them,
 hotlinked. Corrected in the same session and since re-hosted.

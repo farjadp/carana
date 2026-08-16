@@ -111,7 +111,7 @@ It now uses a no-op storage when `typeof window === "undefined"`.
 | Display name | čārana |
 | Bundle ID | `ca.charana.app` (iOS and Android) — **effectively permanent after release** |
 | Scheme | `charana://` |
-| Icon / splash | Generated, in `assets/images/` — see `07-design.md` |
+| Icon / splash | Generated, in `assets/images/` — see `01-product.md` |
 | `owner` in app.json | **not set** — needs the expo.dev organisation slug |
 
 ## Store readiness
