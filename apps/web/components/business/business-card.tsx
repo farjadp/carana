@@ -9,10 +9,11 @@
 "use client";
 
 import Link from "next/link";
-import { Building2, Eye, MapPin, Sparkles } from "lucide-react";
+import { Building2, Eye, Flame, MapPin, Moon, Sparkles } from "lucide-react";
 
 import { VerificationBadge, faNumber } from "@/components/verification-badge";
 import { entitlementsFor } from "@/lib/billing/entitlements";
+import { activeBusyStatus } from "@/lib/business/live-status";
 import { getVerificationStatus, type VerifiableBusiness } from "@/lib/verification/status";
 
 export interface BusinessCardData extends VerifiableBusiness {
@@ -28,6 +29,8 @@ export interface BusinessCardData extends VerifiableBusiness {
   view_count?: number | null;
   plan?: string | null;
   plan_until?: string | null;
+  busy_status?: string | null;
+  busy_status_until?: string | null;
   [key: string]: unknown;
 }
 
@@ -46,6 +49,10 @@ export function BusinessCard({
   // webhook must never leave a lapsed listing wearing the chip. This is the
   // only place the card decides "featured"; every caller gets it for free.
   const featured = entitlementsFor(business).has("featured_placement");
+  // Self-expiring — a status set once during a Friday rush must not still
+  // read "busy" a week later. activeBusyStatus() checks busy_status_until,
+  // not just whether the column is set.
+  const busy = activeBusyStatus(business);
   const href = `/businesses/${business.slug || business.id}`;
 
   return (
@@ -91,6 +98,16 @@ export function BusinessCard({
           {featured && (
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-1 text-[10px] font-black text-white">
               <Sparkles size={11} /> ویژه
+            </span>
+          )}
+          {busy === "busy" && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-1 text-[10px] font-black text-white">
+              <Flame size={11} /> الان شلوغه
+            </span>
+          )}
+          {busy === "quiet" && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-1 text-[10px] font-black text-white">
+              <Moon size={11} /> الان خلوته
             </span>
           )}
         </div>

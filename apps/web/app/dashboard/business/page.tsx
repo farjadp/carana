@@ -15,6 +15,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { calculateBusinessProfileProgress } from "@/lib/utils/progress";
 import { Progress } from "@/components/ui/progress";
 import { VerificationRenewalBanner } from "@/components/verification-renewal-banner";
+import { BusyStatusToggle } from "@/components/business/busy-status-toggle";
 
 export const metadata: Metadata = {
   title: "پنل صاحب کسب‌وکار",
@@ -127,8 +128,16 @@ export default async function BusinessDashboardPage() {
                       </div>
                       <Progress value={calculateBusinessProfileProgress(b)} className="h-1.5 w-full" />
                     </div>
+
+                    {/* Only meaningful once the listing is actually visible. */}
+                    {b.status === "PUBLISHED" || b.status === "APPROVED" ? (
+                      <div className="border-t border-gray-100 pt-3">
+                        <span className="text-xs font-semibold text-gray-700">وضعیت زنده</span>
+                        <BusyStatusToggle business={b} />
+                      </div>
+                    ) : null}
                   </div>
-                  
+
                   <div className="mt-6 pt-4 flex gap-2">
                     <Link 
                       href={`/dashboard/business/${b.id}/edit`}

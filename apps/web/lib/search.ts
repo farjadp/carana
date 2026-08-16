@@ -13,6 +13,7 @@ export type SearchHit = {
   short_description: string | null; city: string | null; province: string | null;
   phone: string | null; website: string | null; logo_url: string | null; cover_url: string | null;
   verified_until: string | null; view_count: number | null; plan: string | null; plan_until: string | null;
+  busy_status: string | null; busy_status_until: string | null;
   rank: number; total_count: number;
 };
 

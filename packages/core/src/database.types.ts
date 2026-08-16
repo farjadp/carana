@@ -423,6 +423,8 @@ export type Database = {
           branches: Json | null
           brand_color: string | null
           business_number: string | null
+          busy_status: string | null
+          busy_status_until: string | null
           category: string
           city: string
           city_source: string | null
@@ -489,6 +491,8 @@ export type Database = {
           branches?: Json | null
           brand_color?: string | null
           business_number?: string | null
+          busy_status?: string | null
+          busy_status_until?: string | null
           category: string
           city: string
           city_source?: string | null
@@ -555,6 +559,8 @@ export type Database = {
           branches?: Json | null
           brand_color?: string | null
           business_number?: string | null
+          busy_status?: string | null
+          busy_status_until?: string | null
           category?: string
           city?: string
           city_source?: string | null
@@ -1328,6 +1334,8 @@ export type Database = {
           q: string
         }
         Returns: {
+          busy_status: string
+          busy_status_until: string
           category: string
           city: string
           cover_url: string

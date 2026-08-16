@@ -19,7 +19,7 @@ import {
   MapPin, Globe, Phone, Mail, Clock, ShieldCheck, Sparkles, MessageCircle,
   ExternalLink, CalendarDays, ChevronLeft, Star, Share2, Send, AtSign,
   Briefcase, Languages, Navigation, Edit3, Building2, CheckCircle2, BadgeCheck,
-  Check, Bookmark, Hash, Copy,
+  Check, Bookmark, Hash, Copy, Flame, Moon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,6 +34,7 @@ import { BrandMark } from "@/components/brand-mark";
 import { getVerificationStatus } from "@/lib/verification/status";
 import { entitlementsFor } from "@/lib/billing/entitlements";
 import { PLANS } from "@/lib/billing/plans";
+import { activeBusyStatus } from "@/lib/business/live-status";
 import { replyToReview } from "@/lib/actions/interactions";
 import { PROVINCES } from "@charana/core";
 
@@ -117,6 +118,7 @@ export default function BusinessProfileClient({
   // action that actually writes the reply.
   const canReplyToReviews = isOwnerOrAdmin && entitlementsFor(business).has("review_replies");
   const ownerSeesUpsell = isOwnerOrAdmin && !canReplyToReviews;
+  const busyStatus = activeBusyStatus(business);
 
   const share = async () => {
     const url = window.location.href;
@@ -184,6 +186,15 @@ export default function BusinessProfileClient({
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-2">
                 <VerificationBadge status={verification} size="lg" audience="public" />
+                {busyStatus === "busy" ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs font-black text-white">
+                    <Flame size={12} /> الان شلوغیم
+                  </span>
+                ) : busyStatus === "quiet" ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-1 text-xs font-black text-white">
+                    <Moon size={12} /> الان خلوته
+                  </span>
+                ) : null}
                 {category ? (
                   <Link href={`/categories/${category.slug}`} className="text-xs font-bold text-[color:var(--lajvard)] bg-[color:var(--lajvard)]/8 px-2.5 py-1 rounded-full hover:bg-[color:var(--lajvard)]/12 transition">
                     {category.name}

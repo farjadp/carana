@@ -23,7 +23,7 @@ export const MIN_INDEXABLE = 3;
 
 /** Columns a public list page is allowed to read. Never `*`. */
 export const LOCAL_CARD_COLUMNS =
-  "id, slug, name, name_en, category, sub_category, tagline, short_description, city, province, phone, website, logo_url, cover_url, working_hours, view_count, verified_at, verified_until, verified_phone, verified_email, verification_method, plan, plan_until";
+  "id, slug, name, name_en, category, sub_category, tagline, short_description, city, province, phone, website, logo_url, cover_url, working_hours, view_count, verified_at, verified_until, verified_phone, verified_email, verification_method, plan, plan_until, busy_status, busy_status_until";
 
 /**
  * `businesses.category` is free text (see Notion "businesses.category is not
@@ -103,6 +103,8 @@ export type LocalBusiness = {
   verification_method: VerificationMethod | null;
   plan: string | null;
   plan_until: string | null;
+  busy_status: string | null;
+  busy_status_until: string | null;
 };
 
 const DAY_KEYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];

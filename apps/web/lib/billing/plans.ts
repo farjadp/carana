@@ -36,6 +36,7 @@ export type Feature =
   | "announcements"       // discounts, events, news on the profile
   | "booking_link"
   | "review_replies"
+  | "busy_status"         // manual, self-expiring "busy now / quiet now"
   | "featured_placement"  // top of its city × category list, labelled
   | "homepage_slot"
   | "priority_support";
@@ -99,7 +100,7 @@ export const PLANS: Record<PlanId, Plan> = {
     nameEn: "Starter",
     tagline: "برای کسب‌وکاری که می‌خواهد بداند پروفایلش چه می‌کند و بیشتر بگوید.",
     price: { month: 1900, year: yearly(1900) },
-    features: ["insights_basic", "insights_full", "announcements", "booking_link", "review_replies"],
+    features: ["insights_basic", "insights_full", "announcements", "booking_link", "review_replies", "busy_status"],
     bullets: [
       "آمار کامل: ۹۰ روز، تفکیک هر اقدام، مبدأ بازدید",
       "۵ عکس گالری + ۱ ویدئو",
@@ -120,7 +121,7 @@ export const PLANS: Record<PlanId, Plan> = {
     price: { month: 4900, year: yearly(4900) },
     features: [
       "insights_basic", "insights_full", "announcements", "booking_link",
-      "review_replies", "featured_placement", "homepage_slot", "priority_support",
+      "review_replies", "busy_status", "featured_placement", "homepage_slot", "priority_support",
     ],
     bullets: [
       "همه‌ی امکانات استارتر",
