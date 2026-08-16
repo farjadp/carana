@@ -197,6 +197,29 @@ review-reply feature) on their own profile since that feature shipped
 earlier tonight. Two-line fix, written up as a gotcha (same "silently wrong
 for a case nobody tests" shape as the earlier `is_featured` dead code).
 
+## 16 August, actually last slice — busy status reaches mobile (`76f8f27`)
+
+Farjad asked for the busy/quiet status on mobile too. Moved
+`activeBusyStatus`/`BUSY_STATUS_HOURS` into `@charana/core` first (same
+move verification status made earlier this project) so both apps read one
+expiry rule instead of risking two copies drifting apart;
+`lib/business/live-status.ts` in `apps/web` is now a re-export, not a
+second definition. Mobile's `BusinessCard` type, list card, and detail
+screen all got the chip — reusing the detail screen's existing
+`verifiedChip` pill shape with the status colour rather than inventing a
+new one.
+
+Said plainly rather than silently narrowing scope: mobile has no
+owner-management screens at all yet — no edit, insights, billing, or
+announcements, only registration and the public-facing views. So this
+ships the half every visitor sees; the toggle itself has nowhere to live on
+mobile until that gap closes (tracked as open-tasks item 12). Verified with
+`tsc` on both `apps/mobile` and `apps/web` (clean); did not rebuild and
+reload in the simulator this pass — the simulator had an older build
+already running, and reloading it to exercise a JSX-only change that
+mirrors an already-shipped pattern didn't seem worth the cycle, but noting
+that plainly rather than implying a device check happened.
+
 ## Commits, oldest first
 
 ```

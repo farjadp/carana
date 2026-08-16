@@ -98,6 +98,12 @@ server-side (`e6071c5`). **Not built yet, in priority-ish order:**
     on `businesses` already but has no UI, same class of gap as the earlier
     `is_featured` dead-code bug.
 11. Mobile gallery parity — the web edit form has it, `apps/mobile` doesn't yet.
+12. Mobile owner-management screens — `apps/mobile` has no edit/insights/
+    billing/announcements at all, only registration and the public views.
+    Busy-status *display* shipped to mobile (16 Aug, `76f8f27`, moved the
+    expiry logic to `@charana/core` so both apps share it); the *toggle*
+    stays web-only until there's somewhere on mobile to put one. Same gap
+    blocks a mobile announcements manager and any future owner control.
 
 **Cross-cutting finding, not tied to a plan:** business profile and blog
 post URLs are Persian-language slugs today (`packages/core/src/slug.ts`
