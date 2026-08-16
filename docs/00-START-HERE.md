@@ -1,6 +1,6 @@
 # čārana — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-16 · **Docs version:** 2.3
+**Written:** 2026-08-24 · **Updated:** 2026-08-16 · **Docs version:** 2.4
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://charana.ca
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -34,6 +34,7 @@ simulator and Farjad's iPhone; store publishing is blocked on D-U-N-S.
 | Conversion events | `business_events` from both surfaces; owner insights at `/dashboard/business/[id]/insights` |
 | Billing | **Stripe subscriptions built and tested in sandbox**: checkout, portal, webhook, invoices, `/pricing`, server-side entitlements. Live mode needs the dashboard work in `05-open-tasks` |
 | Featured placement | **Fully renders.** City × category lists, `/cities/[slug]`, `/search`, and the home page's «ویژه» section all sort featured-first (expiry-aware) and show the chip on `BusinessCard`; nobody has bought it yet, so nothing shows today — that's correct, not broken |
+| Plans v2 | Pro → **استارتر (Starter)**, Featured → **پریمیوم (Premium)** (display names only — `PlanId` stays `pro`/`featured`, see `lib/billing/plans.ts`). Gallery is the first tiered feature actually built: free 3 photos, Starter 5 + 1 video, Premium unlimited (`GALLERY_LIMITS`, enforced server-side in `edit/actions.ts`, not just the UI). Announcements, review replies, vanity URLs, and the rest of the brainstormed Premium list are Notion backlog, not built |
 | Suggestions | Text or voice, web + app, admin inbox |
 | Admin | Listings, categories, reviews, users, logs, suggestions, blog desk, **reports queue**, **city cleanup queue**; sidebar badges are live counts |
 | Data gap | **409 listings still say «نامشخص»** — the cleanup queue is built; 365 of them are one click away |

@@ -98,6 +98,47 @@ in the browser: it doesn't render today, correctly, because no business holds
 an active Featured plan yet. Featured placement is now backed everywhere the
 pricing page claims it is.
 
+## 16 August, one more slice — plans v2, gallery ships (`e6071c5`)
+
+Farjad asked to audit "the packages" next. Same class of bug as Featured,
+worse: of Pro's 6 sold bullets, only `insights_full` was real. Gallery,
+announcements and review replies didn't exist in the DB at all; booking_link
+was built but free for everyone, not Pro-exclusive as sold; priority_support
+was never a coding task to begin with.
+
+Brainstormed a Free/Starter/Premium structure with Farjad (I proposed data-
+driven ideas — missed-search-terms reports, competitor-block suppression on
+your own profile, QR-tracked links — reusing infra already in the codebase;
+he proposed tiered gallery/announcements, a vanity URL, and personalized
+search suggestions). Landed on 11 features across the two paid tiers plus
+one cross-cutting finding (business/blog slugs are Persian, not English —
+a new standing rule; fixing that site-wide is separate, bigger work than
+just building new features English-slugged from day one).
+
+Shipped the first one end to end this session: **tiered gallery.**
+`GALLERY_LIMITS`/`ANNOUNCEMENT_LIMITS` in `lib/billing/plans.ts` (quantities,
+not booleans — every tier gets *some* gallery, paid tiers get more);
+`gallery_urls`/`gallery_video_url` columns; `GalleryUploader` component;
+wired into the edit form's media step; rendered on the public profile only
+when non-empty. The cap is enforced twice on purpose — the uploader disables
+past the limit (convenience), and `actions.ts` clamps the array server-side
+against the *existing* row's plan before writing (the actual gate) — the
+same "a UI check is not a gate" rule as everywhere else in billing.
+
+Renamed the product-facing tier names (Pro → استارتر, Featured → پریمیوم)
+without touching `PlanId` — it's the Stripe env var suffix, the DB check
+constraint, and what `sortFeaturedFirst`/the webhook compare against.
+Renaming the internal id for a label change would have touched all three for
+no reason.
+
+Everything else from the brainstorm (announcements, review replies, vanity
+URLs, personalized suggestions, real in-app booking, the AI blog-article
+perk, competitor-block suppression, QR tracking, real multi-branch UI, the
+Persian-slug finding, and mobile gallery parity) is written up in
+`05-open-tasks.md` and tracked as Notion Mission Control entries — not
+built this session. Eleven items is more than one slice; said so rather than
+half-building several.
+
 ## Commits, oldest first
 
 ```
