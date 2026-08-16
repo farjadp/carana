@@ -562,3 +562,28 @@ not care; the mobile client is typed and did.
 **Fix:** regenerate after every migration —
 `npx supabase gen types typescript --project-id <ref> > packages/core/src/database.types.ts`
 — and typecheck **both** apps, because only one of them will tell you.
+
+---
+
+## `create or replace function` refuses to add a column to an existing function's return row
+
+**Symptom:** `supabase db push` failed the whole migration with *"cannot
+change return type of existing function (SQLSTATE 42P13) — Row type defined
+by OUT parameters is different"*, on a plain `create or replace function`
+that only added two output columns (`plan`, `plan_until`) to
+`search_businesses`.
+
+**Cause:** Postgres allows `create or replace function` to change a
+function's body freely, but not the shape of a `returns table (...)` row —
+adding, removing, or reordering an OUT parameter is a signature change, not
+a body change, and Postgres refuses it outright rather than guessing what
+callers expect.
+
+**Fix:** `drop function if exists public.search_businesses(text, text, text,
+boolean, integer, integer);` before the `create or replace`, in the same
+migration file — the argument list in the `drop` has to match the existing
+signature exactly (positional types, not names).
+
+**Lesson:** any time a migration changes what a function *returns* rather
+than what it *does*, drop it first. Changing the argument list has the same
+restriction.

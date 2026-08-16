@@ -57,6 +57,36 @@ mirrored into Notion with a durable revision log.
   `/api/mobile/*` route were failing on empty Sensitive environment variables.
   The site rendered, so I believed it. Only the runtime log told the truth.
 
+## 16 August, continued — featured placement renders (`8580d7a`)
+
+The honesty gap flagged at the end of the last session: `sortFeaturedFirst`
+and the `featured_placement` entitlement existed, nothing called either, and
+`/cities/[slug]` still had a dead `is_featured` chip reading a column that
+was never selected (same bug class as the gotchas doc's "a badge that could
+never render" — different file, same mistake).
+
+- `BusinessCard` now computes `featured` itself, via `entitlementsFor` on
+  `plan`/`plan_until`, and renders the «ویژه» chip — one place, so every
+  surface that uses the card gets it without remembering to wire it up.
+- `lib/seo/local.ts` (city × category) and `/cities/[slug]` both sort
+  featured-first now, ahead of verified-first.
+- `search_businesses` needed a real migration, not a client-side sort: it
+  paginates in SQL, so featured-first has to be decided before `limit`/
+  `offset` or a featured row on page 2 would never outrank a free row on
+  page 1. Added `plan`, `plan_until` to its return row and `is_featured desc`
+  ahead of `rank desc` in the `order by`. `create or replace` refused to add
+  columns to an existing function's OUT parameters (`42P13`) — needed an
+  explicit `drop function` first, in the same migration.
+- Pushed with `supabase db push` against the linked project, then
+  `pnpm gen:types` to keep `database.types.ts` current — verified against the
+  gotcha two entries below this one.
+- Verified in the browser: no chip renders anywhere yet, correctly — nobody
+  holds an active Featured plan, so an absent chip is the honest state.
+
+**Still open, written up in `05-open-tasks.md`:** the pricing page promises
+a home page "ویژه" section (`homepage_slot`) that nothing renders yet. Don't
+let that plan sell it until it exists.
+
 ## Commits, oldest first
 
 ```

@@ -42,17 +42,18 @@ The live board is Notion → 🧿 Charana → Mission Control; this is the narra
 
 1. **APK 1.2.0.** It carries the blog, conversion events, the report sheet and
    the voice suggestion box. None of it reaches users until it ships.
-2. **Featured placement rendering.** The entitlement and the sort helper exist
-   (`sortFeaturedFirst`); the city × category and search lists do not use them
-   yet. When they do, the «ویژه» chip must render — an unlabelled paid position
-   is an advertisement.
-3. **Blog E-E-A-T pass.** Two or three first-hand sentences per post that a
+2. **Blog E-E-A-T pass.** Two or three first-hand sentences per post that a
    model cannot invent. Farjad supplies; I fold in.
-4. RLS and authorization regression tests.
-5. Rate limiting to shared infrastructure — it is per-instance memory today, so
+3. RLS and authorization regression tests.
+4. Rate limiting to shared infrastructure — it is per-instance memory today, so
    it resets on every deploy and does not hold across regions.
-6. Anti-scraping for the directory.
-7. `businesses.category` is free text, not a foreign key; category labels have
+5. Anti-scraping for the directory.
+6. `businesses.category` is free text, not a foreign key; category labels have
    two sources of truth.
-8. `notFound()` in the city routes returns 200 (pre-existing, cosmetic —
+7. `notFound()` in the city routes returns 200 (pre-existing, cosmetic —
    the body is noindex).
+8. **Homepage "featured" slot.** The Featured plan's `homepage_slot` feature
+   (see `lib/billing/plans.ts`) still isn't rendered anywhere — city × category,
+   `/cities/[slug]` and `/search` are done (16 Aug, `8580d7a`), but the
+   pricing page's promise of "حضور در بخش ویژه‌ی صفحه‌ی اول" is not backed
+   yet. Don't let the plan sell it until it exists — same rule as before.
