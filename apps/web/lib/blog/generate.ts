@@ -126,11 +126,11 @@ const briefSchema = z.object({
   angle: z.string().describe("The one specific, non-generic angle in one sentence"),
   why_now: z.string().describe("Which data point or date makes this worth writing today"),
   primary_keyword_fa: z.string(),
-  secondary_keywords_fa: z.array(z.string()).max(6),
+  secondary_keywords_fa: z.array(z.string()),
   english_query: z.string().describe("The English question a Canadian would type that this answers"),
-  must_link: z.array(z.string()).min(3).max(6).describe("Paths chosen from the inventory only"),
-  numbers_to_use: z.array(z.string()).max(5).describe("Verbatim facts from the FACTS list; nothing invented"),
-  image_scenes: z.array(z.string()).length(2).describe("Two scene sentences: cover, then inline; concrete objects, no people"),
+  must_link: z.array(z.string()).min(1).describe("Paths chosen from the inventory only"),
+  numbers_to_use: z.array(z.string()).describe("Verbatim facts from the FACTS list; nothing invented"),
+  image_scenes: z.array(z.string()).min(2).describe("Two scene sentences: cover, then inline; concrete objects, no people"),
 });
 
 async function planTopics(n: number, inv: Awaited<ReturnType<typeof buildInventory>>) {
@@ -143,7 +143,7 @@ async function planTopics(n: number, inv: Awaited<ReturnType<typeof buildInvento
 
   const { object } = await generateObject({
     model: openai(WRITER_MODEL),
-    schema: z.object({ briefs: z.array(briefSchema).length(n) }),
+    schema: z.object({ briefs: z.array(briefSchema).min(1) }),
     temperature: 0.8,
     providerOptions: { openai: { strictJsonSchema: false } },
     prompt: `You are the content editor of čārana (چارانا), the Persian-language directory of Iranian-owned businesses in Canada (charana.ca). Plan ${n} article briefs for today.
@@ -152,8 +152,8 @@ Editorial line: useful, specific, grounded in the directory's own data. Never ge
 Prefer these categories today (least recently covered): ${wanted.join(", ")}.
 Today: ${new Date().toISOString().slice(0, 10)}. Seasonal hooks: ${seasonalHooks().join("، ") || "none"}.
 
-FACTS (only these numbers may be used; quote verbatim):
-- Total public listings: ${inv.total}; verified: ${inv.verified}
+FACTS (only these numbers may be used; quote verbatim, WITH THEIR SCOPE — never attribute a Canada-wide number to a city):
+- Canada-wide, all cities: ${inv.total} public listings; ${inv.verified} verified (Canada-wide)
 ${inv.localFacts.map((f) => `- ${f.label}: ${f.count} → ${f.path}`).join("\n")}
 
 DEMAND (what people searched and did not find, last 30 days): ${inv.zeroTop.join("؛ ") || "—"}
@@ -165,24 +165,24 @@ ${inv.targets.map((t) => `${t.path} — ${t.label}`).join("\n")}
 Already written (do not repeat, do not paraphrase):
 ${recentTitles}
 
-Rules: each brief must have a distinct angle; at least two of the ${n} must be tied to a DEMAND or SUGGESTION item; at least one must be a city-specific piece; image scenes follow this photographic style: one object, warm cream, no people, no text.`,
+Rules: working titles are statements or how-tos, not rhetorical questions, ≤ 70 characters, specific (a city or a number in it when possible); each brief must have a distinct angle; at least two of the ${n} must be tied to a DEMAND or SUGGESTION item; at least one must be a city-specific piece; image scenes follow this photographic style: one object, warm cream, no people, no text.`,
   });
-  return object.briefs;
+  return object.briefs.slice(0, n);
 }
 
 // ---------------------------------------------------------------------------
 // 3. Draft → humanise
 // ---------------------------------------------------------------------------
 const draftSchema = z.object({
-  title: z.string(),
+  title: z.string().describe("Statement or how-to, ≤ 70 chars, no rhetorical question, no colon-subtitle"),
   title_en: z.string(),
   slug_en: z.string().describe("kebab-case ASCII slug from the English title, max 60 chars"),
   excerpt: z.string().describe("One or two Persian sentences, no clickbait"),
-  summary_en: z.string().describe("2–3 English sentences an answer engine can quote; include one number from FACTS"),
+  summary_en: z.string().describe("2–3 English sentences an answer engine can quote; include one number from FACTS with its scope; say 'listed' not 'verified' unless quoting the verified count; no site paths"),
   body_md: z.string().describe("Persian markdown, 1000–1400 words, 4–6 ## headings (not more), one table or list where it helps, [INLINE_IMAGE] marker once, internal links as markdown to inventory paths, no H1"),
-  faq: z.array(z.object({ q: z.string(), a: z.string() })).min(3).max(5),
-  tags: z.array(z.string()).min(3).max(6),
-  reading_minutes: z.number().int().min(3).max(12),
+  faq: z.array(z.object({ q: z.string(), a: z.string() })).min(2),
+  tags: z.array(z.string()).min(1),
+  reading_minutes: z.number(),
 });
 
 async function draft(brief: z.infer<typeof briefSchema>, inv: Awaited<ReturnType<typeof buildInventory>>) {
@@ -195,15 +195,30 @@ async function draft(brief: z.infer<typeof briefSchema>, inv: Awaited<ReturnType
 
 BRIEF: ${JSON.stringify(brief, null, 2)}
 
-FACTS you may quote (verbatim numbers only; if a number is not here, do not state one): total listings ${inv.total}, verified ${inv.verified};
+FACTS you may quote (verbatim numbers only, with the scope given here; if a number is not here, do not state one). Canada-wide across all cities: ${inv.total} listings, ${inv.verified} verified. Per city×category (these are city-scoped):
 ${inv.localFacts.map((f) => `${f.label}: ${f.count} (${f.path})`).join("; ")}
 
 Linkable paths (use ONLY these for internal links; every path in brief.must_link must appear at least once as a markdown link with a natural Persian anchor, and paths must be relative like /categories/medical-clinic):
 ${inv.targets.map((t) => `${t.path} — ${t.label}`).join("\n")}
 
-Style: expert but plain; second-person singular خودمانی ("پیدا کن", "بپرس"); nim-fasele (نیم‌فاصله) always; Persian digits inside Persian text; keep English proper nouns (city names, RRSP, TFSA, T1) in Latin; no "در این مقاله"; no filler intro; open with the reader's situation in two sentences; end with a short "بعدش چه کار کنم" section that points to the site. Put exactly one [INLINE_IMAGE] marker on its own line after the second or third section. Do not invent statistics, prices, laws or names. Where a rule depends on province, say "در انتاریو…" explicitly and keep it general.`,
+Style: expert but plain; second-person singular خودمانی ("پیدا کن", "بپرس"); never first-person singular ("من", "خودم") and never invented personal anecdotes — the only first person allowed is "ما در چارانا" about the directory's data; written register, not spoken (می‌رسد not می‌رسه, است not ـه، را not رو); čārana launched in 2026 — never "سال‌ها" or "همیشه" about our own experience; the word "تأییدشده/verified" only for the verified count itself, never as a synonym for "listed"; nim-fasele (نیم‌فاصله) always; Persian digits inside Persian text; keep English proper nouns (city names, RRSP, TFSA, T1) in Latin; no "در این مقاله"; no filler intro; open with the reader's situation in two sentences; end with a short "بعدش چه کار کنم" section that points to the site. Put exactly one [INLINE_IMAGE] marker on its own line after the second or third section. Do not invent statistics, prices, laws or names. Where a rule depends on province, say "در انتاریو…" explicitly and keep it general.`,
   });
   return object;
+}
+
+const wordCount = (md: string) => md.replace(/!\[[^\]]*\]\([^)]*\)/g, "").split(/\s+/).filter(Boolean).length;
+
+/** If a draft comes out short, grow it with substance — examples, a table, a checklist — never filler. */
+async function expand(body: string, target = 1100): Promise<string> {
+  const { text } = await generateText({
+    model: openai(WRITER_MODEL),
+    temperature: 0.7,
+    prompt: `This Persian article is ${wordCount(body)} words; it should be about ${target}. Expand it to roughly ${target} words by adding SUBSTANCE only: a concrete example under each thin section, one comparison table or checklist where it helps, a short "اشتباه‌های رایج" section if there is none. Keep every existing heading, fact, number, link and the [INLINE_IMAGE] marker exactly. Do not add filler sentences, do not add an intro or a conclusion paragraph, do not invent statistics, prices, laws or business names. Keep نیم‌فاصله and Persian digits. Return only the markdown.
+
+ARTICLE:
+${body}`,
+  });
+  return text.trim();
 }
 
 async function humanise(body: string): Promise<string> {
@@ -214,9 +229,10 @@ async function humanise(body: string): Promise<string> {
 
 - Vary sentence length: some very short. Some longer, with a clause that adds a concrete detail.
 - Remove listicle tics and AI-isms: no "در دنیای امروز", "قابل توجه است که", "به طور کلی", "در نهایت", "بیایید", "مهم است بدانید"; no sentence that starts with "این" three times in a row; no bullet list longer than five items.
-- One place, allow a personal aside in first-person plural ("ما دیده‌ایم که…") tied to the directory.
+- One place, allow an aside in first-person plural ("ما در چارانا دیده‌ایم که…") tied to the directory's data. Never first-person singular, never an invented personal memory.
 - One place, take a position ("به نظر ما…") and give the reason.
 - Prefer verbs to nominalisations; cut adverbs.
+- Keep the written register: no spoken/broken forms (می‌رسه، می‌شه، رو، تو به‌جای در) — خودمانی means plain and direct, not colloquial spelling.
 - Keep نیم‌فاصله and Persian digits. Return only the markdown.
 
 ARTICLE:
@@ -269,10 +285,14 @@ export async function generatePosts(n: number, opts?: { publish?: boolean; dryRu
     return result;
   }
 
-  for (const brief of briefs) {
+  // Posts are independent; run them concurrently so five fit inside one
+  // serverless invocation (each is ~25–40 s of model + image time).
+  const writeOne = async (brief: z.infer<typeof briefSchema>) => {
     try {
       const d = await draft(brief, inv);
-      const humanBody = await humanise(d.body_md);
+      let full = d.body_md;
+      if (wordCount(full) < 850) full = await expand(full);
+      const humanBody = await humanise(full);
       const slug = await uniqueSlug(d.slug_en || d.title_en);
 
       // Links: only ones that exist. Strip the rest to plain text.
@@ -316,7 +336,7 @@ export async function generatePosts(n: number, opts?: { publish?: boolean; dryRu
       };
       if (opts?.dryRun) {
         result.created.push({ id: "dry-run", slug, title: d.title });
-        continue;
+        return;
       }
       const { data: inserted, error } = await admin.from("blog_posts").insert(row).select("id, slug, title").single();
       if (error) throw error;
@@ -324,7 +344,8 @@ export async function generatePosts(n: number, opts?: { publish?: boolean; dryRu
     } catch (e) {
       result.errors.push({ title: brief.working_title, error: e instanceof Error ? e.message : String(e) });
     }
-  }
+  };
+  await Promise.all(briefs.map(writeOne));
 
   if (run) await admin.from("blog_runs").update({ finished_at: new Date().toISOString(), created: result.created.length, errors: result.errors.length ? result.errors : null }).eq("id", run.id);
   return result;
