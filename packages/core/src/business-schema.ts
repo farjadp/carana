@@ -109,6 +109,10 @@ export const step5Schema = z.object({
     .optional()
     .or(z.literal("")),
   tagline: z.string().max(100).optional(),
+  // گالری: تعداد مجاز بر اساس پلن اعمال می‌شود (lib/billing GALLERY_LIMITS)،
+  // نه اینجا — این schema فقط شکل داده را تضمین می‌کند، نه سقف پلن.
+  gallery_urls: z.array(z.string()).optional(),
+  gallery_video_url: z.string().optional().or(z.literal("")).nullable(),
 });
 
 // ============================================================================

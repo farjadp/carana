@@ -30,7 +30,7 @@ const PUBLIC_BUSINESS_COLUMNS = `
   working_hours, accepts_appointments, booking_url,
   services, branches, status, created_by, created_at, updated_at,
   owner_user_id, verification_method, verified_at, verified_until,
-  verified_phone, verified_email
+  verified_phone, verified_email, gallery_urls, gallery_video_url
 `;
 
 async function fetchBusinessRecord(slugParam: string) {

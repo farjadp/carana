@@ -295,6 +295,25 @@ export default function BusinessProfileClient({
               </div>
             </Section>
 
+            {/* Gallery — plan-tiered (see lib/billing/plans.ts GALLERY_LIMITS);
+                simply absent below its minimum photo, same as every other
+                honest-empty-state section on this page. */}
+            {business.gallery_urls?.length || business.gallery_video_url ? (
+              <Section title="گالری" icon={<Building2 size={16} />} meta={business.gallery_urls?.length ? `${faNumber(business.gallery_urls.length)} عکس` : undefined}>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {business.gallery_video_url ? (
+                    <video src={business.gallery_video_url} controls className="col-span-2 aspect-video w-full rounded-xl bg-black object-cover sm:col-span-3" />
+                  ) : null}
+                  {(business.gallery_urls ?? []).map((url: string) => (
+                    <a key={url} href={url} target="_blank" rel="noreferrer" className="aspect-square overflow-hidden rounded-xl">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt="" className="h-full w-full object-cover transition hover:scale-105" loading="lazy" />
+                    </a>
+                  ))}
+                </div>
+              </Section>
+            ) : null}
+
             {/* Services */}
             {services.length ? (
               <Section title="خدمات و تعرفه‌ها" icon={<CheckCircle2 size={16} />} meta={`${faNumber(services.length)} مورد`}>

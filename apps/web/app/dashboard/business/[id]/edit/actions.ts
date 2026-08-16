@@ -11,6 +11,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { logUserActivity } from "@/lib/actions/logs";
 import { reviewListingChange, type ChangeReview } from "@/lib/moderation/change-review";
+import { entitlementsFor } from "@/lib/billing/entitlements";
 
 export type EditActionResult = {
   success: boolean;
@@ -43,9 +44,16 @@ const OWNER_EDITABLE_COLUMNS = [
   "logo_url", "cover_url", "brand_color",
   "working_hours", "accepts_appointments", "booking_url",
   "services", "branches",
+  "gallery_urls", "gallery_video_url",
 ] as const;
 
-function pickOwnerFields(formData: Record<string, unknown>) {
+/**
+ * @param existing The row before this edit — needed to know the plan, so the
+ * gallery cap can't be raised by a client that just sends more URLs than the
+ * uploader UI allowed. The UI limit is a convenience; this is the gate (same
+ * rule as `lib/billing/entitlements.ts`: a UI check alone is not enough).
+ */
+function pickOwnerFields(formData: Record<string, unknown>, existing: Record<string, unknown>) {
   const payload: Record<string, unknown> = {};
 
   for (const key of OWNER_EDITABLE_COLUMNS) {
@@ -59,6 +67,15 @@ function pickOwnerFields(formData: Record<string, unknown>) {
   } else if (typeof year === "string") {
     const parsed = Number.parseInt(year, 10);
     payload.established_year = Number.isNaN(parsed) ? null : parsed;
+  }
+
+  const ent = entitlementsFor(existing as { plan?: string | null; plan_until?: string | null });
+  if (Array.isArray(payload.gallery_urls)) {
+    const limit = ent.galleryLimit.photos;
+    payload.gallery_urls = limit === null ? payload.gallery_urls : payload.gallery_urls.slice(0, limit);
+  }
+  if (!ent.galleryLimit.video && "gallery_video_url" in payload) {
+    payload.gallery_video_url = existing.gallery_video_url ?? null;
   }
 
   return payload;
@@ -118,7 +135,7 @@ export async function saveBusinessEditDraft(formData: any, businessId: string): 
 
     if (!existing) return { success: false, error: "کسب‌وکار یافت نشد." };
 
-    const updates = pickOwnerFields(formData);
+    const updates = pickOwnerFields(formData, existing);
 
     // A listing that is not live yet can be edited freely — nothing public
     // changes until it is submitted and approved.
@@ -258,7 +275,7 @@ export async function resubmitBusinessForReview(formData: any, businessId: strin
         businessId,
         userId: user.id,
         existing,
-        updates: pickOwnerFields(formData),
+        updates: pickOwnerFields(formData, existing),
       });
     }
 
@@ -266,7 +283,7 @@ export async function resubmitBusinessForReview(formData: any, businessId: strin
     const { error } = await supabase
       .from("businesses")
       .update({
-        ...pickOwnerFields(formData),
+        ...pickOwnerFields(formData, existing),
         status: "SUBMITTED",
       })
       .eq("id", businessId)

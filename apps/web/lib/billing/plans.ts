@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: lib/billing/plans.ts
-// Version: 1.0.0 — 2026-08-16
+// Version: 2.0.0 — 2026-08-16
 // Why: One definition of what a plan costs and what it unlocks. The pricing
 //      page, the checkout, the entitlement gates and the Stripe seed script
 //      all read this, so a price can never be right in one place and wrong in
@@ -15,6 +15,15 @@
 //           may sit at the top of a list, but it carries a visible "ویژه"
 //           chip. Ranking that quietly favours payers is an unmarked
 //           advertisement.
+//
+//      v2 (16 Aug): renamed the product-facing tiers Pro → Starter and
+//      Featured → Premium after an audit found most of "Pro"'s bullets
+//      (gallery, announcements, review replies) sold features that did not
+//      exist yet. `PlanId` stays "pro"/"featured" on purpose — it is the
+//      Stripe price env var suffix, the DB check constraint, and what
+//      `sortFeaturedFirst`/webhook logic compare against; renaming the
+//      internal id would touch all of those for a label change alone. Only
+//      `name`/`nameEn` and the feature set changed.
 // Env / Identity: Pure data, safe on the client.
 // ============================================================================
 
@@ -24,13 +33,29 @@ export type BillingInterval = "month" | "year";
 export type Feature =
   | "insights_basic"      // views + total actions, 30 days
   | "insights_full"       // 90 days, per-action breakdown, referrers
-  | "gallery"             // more than one image
   | "announcements"       // discounts, events, news on the profile
   | "booking_link"
   | "review_replies"
   | "featured_placement"  // top of its city × category list, labelled
   | "homepage_slot"
   | "priority_support";
+
+/**
+ * Gallery and announcements are not yes/no — every plan gets some, the paid
+ * tiers get more. `null` means unlimited. Video is capped at one file even
+ * on Premium: bandwidth, not entitlement, is the limit on "unlimited".
+ */
+export const GALLERY_LIMITS: Record<PlanId, { photos: number | null; video: boolean }> = {
+  free: { photos: 3, video: false },
+  pro: { photos: 5, video: true },
+  featured: { photos: null, video: true },
+};
+
+export const ANNOUNCEMENT_LIMITS: Record<PlanId, number | null> = {
+  free: 1,
+  pro: 3,
+  featured: null,
+};
 
 export type Plan = {
   id: PlanId;
@@ -62,35 +87,45 @@ export const PLANS: Record<PlanId, Plan> = {
       "نشان تأیید بعد از اثبات شماره یا ایمیل — رایگان",
       "حضور در جستجو، دسته‌بندی و صفحه‌ی شهر",
       "آمار پایه: بازدید و مجموع اقدام‌ها (۳۰ روز)",
+      "۳ عکس گالری",
+      "۱ اعلان در ماه",
     ],
   },
+  // Product-facing name "استارتر" (Starter). id stays "pro" — see the file
+  // header note on why.
   pro: {
     id: "pro",
-    name: "حرفه‌ای",
-    nameEn: "Pro",
+    name: "استارتر",
+    nameEn: "Starter",
     tagline: "برای کسب‌وکاری که می‌خواهد بداند پروفایلش چه می‌کند و بیشتر بگوید.",
     price: { month: 1900, year: yearly(1900) },
-    features: ["insights_basic", "insights_full", "gallery", "announcements", "booking_link", "review_replies"],
+    features: ["insights_basic", "insights_full", "announcements", "booking_link", "review_replies"],
     bullets: [
       "آمار کامل: ۹۰ روز، تفکیک هر اقدام، مبدأ بازدید",
-      "اعلان‌ها: تخفیف، رویداد، خبر تازه روی پروفایل",
-      "گالری تصاویر به‌جای یک عکس",
-      "لینک رزرو نوبت",
+      "۵ عکس گالری + ۱ ویدئو",
+      "۳ اعلان در ماه: تخفیف، رویداد، خبر تازه",
+      "لینک رزرو نوبت — رایگان تا یک سال اول برای اعضای زودهنگام",
       "پاسخ عمومی به نظرات",
+      "وضعیت زنده «الان شلوغیم / خلوته»",
     ],
   },
+  // Product-facing name "پریمیوم" (Premium). id stays "featured" — same
+  // reason: it's what sortFeaturedFirst, the webhook and Stripe env vars
+  // compare against.
   featured: {
     id: "featured",
-    name: "ویژه",
-    nameEn: "Featured",
+    name: "پریمیوم",
+    nameEn: "Premium",
     tagline: "بالای فهرست شهر و دسته‌ی خودت — با برچسب «ویژه»، نه پنهانی.",
     price: { month: 4900, year: yearly(4900) },
     features: [
-      "insights_basic", "insights_full", "gallery", "announcements", "booking_link",
+      "insights_basic", "insights_full", "announcements", "booking_link",
       "review_replies", "featured_placement", "homepage_slot", "priority_support",
     ],
     bullets: [
-      "همه‌ی امکانات حرفه‌ای",
+      "همه‌ی امکانات استارتر",
+      "گالری و اعلان نامحدود",
+      "آدرس اختصاصی انگلیسی (charana.ca/b/...)",
       "جایگاه بالای فهرست شهر و دسته‌ی خودت، با برچسب «ویژه»",
       "حضور در بخش ویژه‌ی صفحه‌ی اول",
       "پشتیبانی با اولویت",

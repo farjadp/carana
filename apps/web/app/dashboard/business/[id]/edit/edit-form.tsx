@@ -25,6 +25,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ImageUploader } from "@/components/ui/image-uploader";
+import { GalleryUploader } from "@/components/ui/gallery-uploader";
+import { entitlementsFor } from "@/lib/billing/entitlements";
+import { PLANS } from "@/lib/billing/plans";
 
 // ============================================================================
 // ثوابت پیکربندی
@@ -173,10 +176,17 @@ export default function BusinessEditForm({ businessId, initialData }: EditFormPr
       working_hours:      initialData.working_hours || {},
       accepts_appointments: initialData.accepts_appointments ?? false,
       booking_url:        initialData.booking_url || "",
+      gallery_urls:       initialData.gallery_urls || [],
+      gallery_video_url:  initialData.gallery_video_url || "",
     },
   });
 
   const { getValues, setValue, watch, formState: { errors } } = methods;
+
+  // Same expiry-aware check as everywhere else — a lapsed plan can't keep an
+  // over-cap gallery either; entitlementsFor recomputes it every render.
+  const galleryEnt = entitlementsFor({ plan: initialData.plan, plan_until: initialData.plan_until });
+  const nextPlanName = galleryEnt.plan === "free" ? PLANS.pro.name : galleryEnt.plan === "pro" ? PLANS.featured.name : undefined;
 
   // ============================================================================
   // ناوبری
@@ -616,6 +626,29 @@ export default function BusinessEditForm({ businessId, initialData }: EditFormPr
                       </div>
                     </FormField>
                   </div>
+
+                  <Controller
+                    name="gallery_urls"
+                    control={methods.control}
+                    render={({ field: photoField }) => (
+                      <Controller
+                        name="gallery_video_url"
+                        control={methods.control}
+                        render={({ field: videoField }) => (
+                          <GalleryUploader
+                            photos={(photoField.value as string[] | undefined) ?? []}
+                            onPhotosChange={photoField.onChange}
+                            video={(videoField.value as string | null | undefined) || null}
+                            onVideoChange={(url) => videoField.onChange(url ?? "")}
+                            photoLimit={galleryEnt.galleryLimit.photos}
+                            videoAllowed={galleryEnt.galleryLimit.video}
+                            folderPath="gallery"
+                            upsellPlanName={nextPlanName}
+                          />
+                        )}
+                      />
+                    )}
+                  />
                 </StepWrapper>
               )}
 

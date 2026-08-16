@@ -16,7 +16,7 @@
 // ============================================================================
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { PLANS, planOf, type Feature, type PlanId } from "./plans";
+import { ANNOUNCEMENT_LIMITS, GALLERY_LIMITS, PLANS, planOf, type Feature, type PlanId } from "./plans";
 
 export type Entitlements = {
   plan: PlanId;
@@ -25,6 +25,10 @@ export type Entitlements = {
   expired: boolean;
   until: string | null;
   has: (feature: Feature) => boolean;
+  /** `photos: null` means unlimited. */
+  galleryLimit: { photos: number | null; video: boolean };
+  /** `null` means unlimited. */
+  announcementLimit: number | null;
 };
 
 type BillingRow = { plan?: string | null; plan_until?: string | null };
@@ -42,6 +46,8 @@ export function entitlementsFor(row: BillingRow | null | undefined, now = new Da
     expired,
     until,
     has: (feature) => features.has(feature),
+    galleryLimit: GALLERY_LIMITS[plan],
+    announcementLimit: ANNOUNCEMENT_LIMITS[plan],
   };
 }
 
