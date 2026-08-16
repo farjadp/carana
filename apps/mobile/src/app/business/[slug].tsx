@@ -24,10 +24,10 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  AtSign, BadgeCheck, Briefcase, CalendarDays, ChevronLeft, ChevronRight, Globe,
-  Mail, MapPin, MessageCircle, Navigation, Phone, Send, Share2, ShieldCheck, Star,
+  AtSign, BadgeCheck, Briefcase, CalendarDays, ChevronLeft, ChevronRight, Flame, Globe,
+  Mail, MapPin, MessageCircle, Moon, Navigation, Phone, Send, Share2, ShieldCheck, Star,
 } from "lucide-react-native";
-import { getVerificationStatus, PROVINCES } from "@charana/core";
+import { activeBusyStatus, getVerificationStatus, PROVINCES } from "@charana/core";
 
 import { BrandLoading, BrandMark, MerlonGlyph, MerlonRow } from "../../components/brand-mark";
 import { InteractionBar } from "../../components/interaction-bar";
@@ -90,6 +90,7 @@ export default function BusinessScreen() {
 
   const verification = getVerificationStatus(business);
   const verified = verification.state === "verified" || verification.state === "expiring";
+  const busy = activeBusyStatus(business);
   const provinceName = PROVINCES.find((p) => p.code === business.province)?.name ?? business.province;
   // Category images are stored site-relative; the app must make them absolute.
   const catImg = category?.image_url ? (category.image_url.startsWith("http") ? category.image_url : `${WEB}${category.image_url}`) : null;
@@ -136,6 +137,12 @@ export default function BusinessScreen() {
               <View style={styles.chipRow}>
                 {verified ? (
                   <View style={styles.verifiedChip}><BadgeCheck size={13} color={colors.onAnnabi} /><Text style={styles.verifiedText}>مالکیت احرازشده</Text></View>
+                ) : null}
+                {busy ? (
+                  <View style={[styles.verifiedChip, { backgroundColor: busy === "busy" ? "#dc2626" : "#059669" }]}>
+                    {busy === "busy" ? <Flame size={13} color={colors.onAnnabi} /> : <Moon size={13} color={colors.onAnnabi} />}
+                    <Text style={styles.verifiedText}>{busy === "busy" ? "الان شلوغیم" : "الان خلوته"}</Text>
+                  </View>
                 ) : null}
                 {category ? (
                   <Pressable onPress={() => router.push(`/categories/${category.slug}`)} style={styles.catChip}><Text style={styles.catChipText}>{category.name}</Text></Pressable>

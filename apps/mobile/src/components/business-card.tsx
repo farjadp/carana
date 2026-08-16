@@ -6,6 +6,8 @@
 // ============================================================================
 import { useRouter } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Flame, Moon } from "lucide-react-native";
+import { activeBusyStatus } from "@charana/core";
 
 import type { BusinessCard as Business } from "../lib/businesses";
 import { colors, fonts, radius, shadow, space, type } from "../theme";
@@ -24,6 +26,9 @@ export function BusinessCardView({
 
   const initial = business.name.trim().charAt(0);
   const router = useRouter();
+  // Self-expiring — activeBusyStatus checks busy_status_until, not just
+  // whether the column is set, same as everywhere else this renders.
+  const busy = activeBusyStatus(business);
 
   return (
     // Not Link asChild: expo-router's Slot drops a Pressable's function-style,
@@ -45,6 +50,12 @@ export function BusinessCardView({
             <Text style={styles.name} numberOfLines={1}>
               {business.name}
             </Text>
+            {busy ? (
+              <View style={[styles.busyChip, busy === "busy" ? styles.busyChipBusy : styles.busyChipQuiet]}>
+                {busy === "busy" ? <Flame size={11} color="#fff" /> : <Moon size={11} color="#fff" />}
+                <Text style={styles.busyChipText}>{busy === "busy" ? "الان شلوغه" : "الان خلوته"}</Text>
+              </View>
+            ) : null}
             {business.short_description ? (
               <Text style={styles.desc} numberOfLines={2}>
                 {business.short_description}
@@ -79,6 +90,19 @@ const styles = StyleSheet.create({
   avatarText: { fontSize: 20, fontFamily: fonts.heavy, color: colors.annabi },
   body: { flex: 1 },
   name: { ...type.h2, textAlign: "right" },
+  busyChip: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 4,
+    alignSelf: "flex-start",
+    borderRadius: radius.pill,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginTop: 4,
+  },
+  busyChipBusy: { backgroundColor: "#dc2626" },
+  busyChipQuiet: { backgroundColor: "#059669" },
+  busyChipText: { fontSize: 10, fontFamily: fonts.heavy, color: "#fff" },
   desc: { ...type.body, color: colors.mutedText, textAlign: "right", marginTop: 4 },
   meta: { ...type.muted, textAlign: "right", marginTop: 8 },
 });

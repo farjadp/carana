@@ -28,5 +28,8 @@ export * from "./provinces";
 // One definition of "verified" for web and mobile.
 export * from "./verification-status";
 
+// One definition of "busy now / quiet now" for web and mobile.
+export * from "./live-status";
+
 // Persian messages for Supabase Auth errors (web + mobile).
 export * from "./auth-errors";
