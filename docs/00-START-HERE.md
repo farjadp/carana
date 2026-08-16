@@ -8,6 +8,10 @@
 truth for what is open, who owns it, and per-task instructions). Standing
 rule: every piece of work — planned, in progress, done — is also recorded
 there, not only in git.
+**Docs mirror:** Notion → 🧿 Charana → 📄 Docs, with 🕓 Doc Revisions as the
+durable change log (version, commit, and *why*). Git stays the source of
+truth; if a Notion page disagrees with a file here, the file wins. When a
+doc changes, update its Notion page and add one Revisions row.
 
 ---
 
