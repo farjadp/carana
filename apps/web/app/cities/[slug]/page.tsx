@@ -27,6 +27,10 @@ import { cityConfigs, getCityConfig } from "@/lib/data/cities";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { VerificationBadge } from "@/components/verification-badge";
 import { getVerificationStatus, isTrusted } from "@/lib/verification/status";
+import { CATEGORY_DETAILS } from "@/lib/data/category-details";
+import { LOCAL_CARD_COLUMNS, cityFilterOr, countCityCategories } from "@/lib/seo/local";
+import { JsonLd } from "@/components/json-ld";
+import { breadcrumbLd } from "@/lib/seo/local";
 
 export const revalidate = 60;
 
@@ -83,29 +87,35 @@ export default async function CityDetailPage({ params }: CityPageParams) {
 
   const supabase = await createSupabaseServerClient();
   
-  // Build OR condition for city names and neighborhoods
-  const cityConditions = [
-    `city.ilike.%${city.nameEn}%`,
-    `city.ilike.%${city.nameFa}%`,
-    ...city.neighborhoods.map(n => `city.ilike.%${n}%`)
-  ].join(',');
+  // The counters used to be computed from a 24-row page, so every city said
+  // "24". Count over the full set; show 24.
+  const cityConditions = cityFilterOr(city);
+  const allCategories = Object.values(CATEGORY_DETAILS).map((c) => ({ slug: c.slug, name: c.name }));
+  const [{ data: businesses }, { data: allRows }, categoryCounts] = await Promise.all([
+    supabase
+      .from("businesses")
+      .select(LOCAL_CARD_COLUMNS)
+      .in("status", ["APPROVED", "PUBLISHED"])
+      .or(cityConditions)
+      .order("created_at", { ascending: false })
+      .limit(24),
+    supabase
+      .from("businesses")
+      .select("id, category, verified_until, verified_phone, verified_email, verification_method, verified_at, phone, contact_email")
+      .in("status", ["APPROVED", "PUBLISHED"])
+      .or(cityConditions),
+    countCityCategories(supabase, city, allCategories),
+  ]);
 
-  const { data: businesses, error } = await supabase
-    .from("businesses")
-    .select("*")
-    .in("status", ["APPROVED", "PUBLISHED"])
-    .or(cityConditions)
-    .order("created_at", { ascending: false })
-    .limit(24);
-
-  const cityBusinesses = (businesses ?? []) as BusinessCard[];
-  const verifiedCount = cityBusinesses.filter((business) =>
-    isTrusted(getVerificationStatus(business))
-  ).length;
-  const categoryCount = new Set(cityBusinesses.map((business) => business.category).filter(Boolean)).size;
+  const cityBusinesses = (businesses ?? []) as unknown as BusinessCard[];
+  const totalCount = (allRows ?? []).length;
+  const verifiedCount = ((allRows ?? []) as never[]).filter((b) => isTrusted(getVerificationStatus(b))).length;
+  const categoryCount = categoryCounts.filter((c) => c.count > 0).length;
+  const topCategories = categoryCounts.filter((c) => c.count > 0).slice(0, 8);
 
   return (
     <PageShell currentPath={`/cities/${city.slug}`} currentSection="business">
+      <JsonLd data={breadcrumbLd([{ name: "خانه", url: "/" }, { name: "شهرها", url: "/cities" }, { name: city.nameFa, url: `/cities/${city.slug}` }])} />
       <main className="min-h-screen bg-gray-50/60">
         <section className="relative overflow-hidden bg-gray-950 text-white px-4 py-12 md:py-16">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,71,171,0.35),transparent_32%),linear-gradient(135deg,rgba(128,0,0,0.42),transparent_42%)]" />
@@ -134,7 +144,7 @@ export default async function CityDetailPage({ params }: CityPageParams) {
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-2xl border border-white/10 bg-white/10 p-4 text-center">
-                  <strong className="block text-2xl font-black">{cityBusinesses.length}</strong>
+                  <strong className="block text-2xl font-black">{totalCount}</strong>
                   <span className="text-xs text-white/60">کسب‌وکار</span>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/10 p-4 text-center">
@@ -153,21 +163,23 @@ export default async function CityDetailPage({ params }: CityPageParams) {
         <section className="max-w-7xl mx-auto px-4 -mt-6 relative z-10">
           <Card className="bg-white border-0 rounded-2xl shadow-xl">
             <CardContent className="p-4 md:p-5">
-              <form className="grid grid-cols-1 md:grid-cols-[1fr_220px_160px] gap-3">
+              <form action="/search" method="get" className="grid grid-cols-1 md:grid-cols-[1fr_220px_160px] gap-3">
+                <input type="hidden" name="city" value={city.nameEn} />
                 <div className="relative">
                   <Search className="absolute right-4 top-4 h-4 w-4 text-gray-400" />
                   <Input
+                    name="q"
                     className="pr-11 h-12 rounded-xl bg-gray-50 border-gray-200"
                     placeholder={`جستجو در کسب‌وکارهای ${city.nameFa}...`}
                   />
                 </div>
-                <select className="h-12 rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-gray-700 outline-none">
-                  <option>همه دسته‌بندی‌ها</option>
-                  {city.priorityCategories.map((category) => (
-                    <option key={category}>{category}</option>
+                <select name="category" defaultValue="" className="h-12 rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-gray-700 outline-none">
+                  <option value="">همه دسته‌بندی‌ها</option>
+                  {topCategories.map((category) => (
+                    <option key={category.slug} value={category.slug}>{category.name}</option>
                   ))}
                 </select>
-                <Button type="button" className="h-12 rounded-xl bg-[color:var(--lajvard)] text-white">
+                <Button type="submit" className="h-12 rounded-xl bg-[color:var(--lajvard)] text-white">
                   جستجو
                 </Button>
               </form>
@@ -193,16 +205,16 @@ export default async function CityDetailPage({ params }: CityPageParams) {
 
               <Card className="bg-white border-gray-100 rounded-2xl">
                 <CardContent className="p-5">
-                  <h2 className="font-black text-gray-900 mb-4">دسته‌های مهم در {city.nameFa}</h2>
+                  <h2 className="font-black text-gray-900 mb-4">خدمات ایرانی در {city.nameFa}</h2>
                   <div className="space-y-2">
-                    {city.priorityCategories.map((category) => (
+                    {topCategories.map((category) => (
                       <Link
-                        key={category}
-                        href="/categories"
+                        key={category.slug}
+                        href={`/cities/${city.slug}/${category.slug}`}
                         className="flex items-center justify-between rounded-xl border border-gray-100 px-3 py-2 text-sm font-bold text-gray-600 hover:border-[color:var(--lajvard)] hover:text-[color:var(--lajvard)] transition"
                       >
-                        <span>{category}</span>
-                        <ArrowLeft className="h-3.5 w-3.5" />
+                        <span>{category.name}</span>
+                        <span className="text-xs text-gray-400">{category.count.toLocaleString("fa-IR")}</span>
                       </Link>
                     ))}
                   </div>

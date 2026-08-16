@@ -11,6 +11,8 @@ import { notFound } from "next/navigation";
 import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { PageShell } from "@/components/page-shell";
 import BusinessProfileClient from "./business-profile-client";
+import { JsonLd } from "@/components/json-ld";
+import { breadcrumbLd, localBusinessLd } from "@/lib/seo/local";
 
 export const revalidate = 60; // ISR cache 1 minute
 
@@ -219,6 +221,16 @@ export default async function BusinessProfilePage({
 
   return (
     <PageShell currentPath={`/businesses/${rawSlug}`} currentSection="business">
+      <JsonLd
+        data={[
+          localBusinessLd(business as never, categoryRow?.name ?? null),
+          breadcrumbLd([
+            { name: "خانه", url: "/" },
+            ...(categoryRow ? [{ name: categoryRow.name as string, url: `/categories/${categoryRow.slug}` }] : []),
+            { name: business.name, url: `/businesses/${rawSlug}` },
+          ]),
+        ]}
+      />
       <BusinessProfileClient
         business={business}
         category={categoryRow ?? null}

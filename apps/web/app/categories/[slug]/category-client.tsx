@@ -53,9 +53,12 @@ const PROVINCES = [
 export default function CategoryClientPage({
   categoryConfig,
   initialBusinesses,
+  cityLinks = [],
 }: {
   categoryConfig: CategoryDetailConfig;
   initialBusinesses: BusinessItem[];
+  /** City × category pages that actually have listings — the interlink hub. */
+  cityLinks?: { slug: string; nameFa: string; count: number }[];
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProvince, setSelectedProvince] = useState("ALL");
@@ -526,6 +529,25 @@ export default function CategoryClientPage({
               </Card>
             ))}
           </div>
+        )}
+
+        {/* 7b. By city — links into the city × category pages */}
+        {cityLinks.length > 0 && (
+          <section className="mb-12" aria-labelledby="bycity-h">
+            <h2 id="bycity-h" className="text-xl font-black text-gray-900 mb-4">{categoryConfig.name} به تفکیک شهر</h2>
+            <div className="flex flex-wrap gap-2">
+              {cityLinks.map((c) => (
+                <Link
+                  key={c.slug}
+                  href={`/cities/${c.slug}/${categoryConfig.slug}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-700 hover:border-[color:var(--lajvard)] hover:text-[color:var(--lajvard)] transition"
+                >
+                  {c.nameFa}
+                  <span className="text-xs text-gray-400">{c.count.toLocaleString("fa-IR")}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* 8. Decision Guide Section */}

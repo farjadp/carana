@@ -12,6 +12,8 @@ import { PROVINCES, PUBLIC_STATUSES } from "@charana/core";
 import { cityConfigs } from "@/lib/data/cities";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { CATEGORY_DETAILS } from "@/lib/data/category-details";
+import { MIN_INDEXABLE, countCategoryCities } from "@/lib/seo/local";
 
 // Revalidate hourly; listings do not change often enough to justify more.
 export const revalidate = 3600;
@@ -75,6 +77,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.7,
     });
+  }
+
+  // City × category pages — only the ones that clear the indexability bar,
+  // so the sitemap never advertises a noindex page.
+  for (const cat of Object.values(CATEGORY_DETAILS)) {
+    const perCity = await countCategoryCities(supabase, cat.slug, cat.name);
+    for (const { city, count } of perCity) {
+      if (count < MIN_INDEXABLE) continue;
+      entries.push({
+        url: `${base}/cities/${city.slug}/${cat.slug}`,
+        changeFrequency: "daily",
+        priority: 0.75,
+      });
+    }
   }
 
   const { data: businesses } = await supabase

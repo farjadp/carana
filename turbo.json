@@ -37,6 +37,7 @@
         "TWILIO_API_KEY_SECRET",
         "TWILIO_FROM_NUMBER",
         "OPENAI_API_KEY",
+        "FAL_KEY",
         "APPLE_TEAM_ID",
         "ANDROID_SHA256_FINGERPRINT",
         "GEMINI_API_KEY"
