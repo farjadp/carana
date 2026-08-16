@@ -37,6 +37,7 @@ export type Feature =
   | "booking_link"
   | "review_replies"
   | "busy_status"         // manual, self-expiring "busy now / quiet now"
+  | "vanity_url"          // charana.ca/b/[custom-english-slug]
   | "featured_placement"  // top of its city × category list, labelled
   | "homepage_slot"
   | "priority_support";
@@ -121,7 +122,7 @@ export const PLANS: Record<PlanId, Plan> = {
     price: { month: 4900, year: yearly(4900) },
     features: [
       "insights_basic", "insights_full", "announcements", "booking_link",
-      "review_replies", "busy_status", "featured_placement", "homepage_slot", "priority_support",
+      "review_replies", "busy_status", "vanity_url", "featured_placement", "homepage_slot", "priority_support",
     ],
     bullets: [
       "همه‌ی امکانات استارتر",

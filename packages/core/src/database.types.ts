@@ -505,6 +505,7 @@ export type Database = {
           tagline: string | null
           telegram: string | null
           updated_at: string
+          vanity_slug: string | null
           verification_documents: string[] | null
           verification_method: string | null
           verification_notes: string | null
@@ -573,6 +574,7 @@ export type Database = {
           tagline?: string | null
           telegram?: string | null
           updated_at?: string
+          vanity_slug?: string | null
           verification_documents?: string[] | null
           verification_method?: string | null
           verification_notes?: string | null
@@ -641,6 +643,7 @@ export type Database = {
           tagline?: string | null
           telegram?: string | null
           updated_at?: string
+          vanity_slug?: string | null
           verification_documents?: string[] | null
           verification_method?: string | null
           verification_notes?: string | null

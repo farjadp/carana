@@ -26,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ImageUploader } from "@/components/ui/image-uploader";
 import { GalleryUploader } from "@/components/ui/gallery-uploader";
+import { VanityUrlEditor } from "@/components/business/vanity-url-editor";
 import { entitlementsFor } from "@/lib/billing/entitlements";
 import { PLANS } from "@/lib/billing/plans";
 
@@ -626,6 +627,10 @@ export default function BusinessEditForm({ businessId, initialData }: EditFormPr
                       </div>
                     </FormField>
                   </div>
+
+                  <FormField label="آدرس اختصاصی">
+                    <VanityUrlEditor business={{ id: businessId, plan: initialData.plan, plan_until: initialData.plan_until, vanity_slug: initialData.vanity_slug }} />
+                  </FormField>
 
                   <Controller
                     name="gallery_urls"
