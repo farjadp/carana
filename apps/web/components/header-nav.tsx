@@ -103,12 +103,17 @@ export function HeaderNav({
 
   useEffect(() => () => cancelClose(), [cancelClose]);
 
-  // Close everything on route change, and stop the page scrolling behind the
-  // mobile panel.
-  useEffect(() => {
+  // Close everything on route change. Adjusting state during render is the
+  // documented pattern for "reset when a prop changes"; doing it in an effect
+  // renders the stale menu once first, and trips react-hooks/set-state-in-effect.
+  const [lastPath, setLastPath] = useState(currentPath);
+  if (lastPath !== currentPath) {
+    setLastPath(currentPath);
     setOpen(false);
     setOpenGroup(null);
-  }, [currentPath]);
+  }
+
+  // Stop the page scrolling behind the mobile panel.
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
