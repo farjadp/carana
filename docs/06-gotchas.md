@@ -611,3 +611,36 @@ busy-status entitlement, nothing.
 bug that shows up in testing with a self-registered demo account — it only
 bites claimed listings, which is exactly the case least likely to get
 manually tested.
+
+---
+
+## A rebuilt CSS component silently inherited its predecessor's rules
+
+**Symptom:** Farjad: "the top menu feels off, I don't have a good sense of
+why." No error, no obviously broken layout in a quick look — a floating
+rounded-pill header at some widths, a flat sticky bar at others, and below
+720px the header stopped sticking while scrolling at all.
+
+**Cause:** `globals.css` had two full definitions of `.site-header` — an old
+pill-shaped floating-card design (`position`, `display:grid`, `padding`,
+`margin-top`, `border`, `box-shadow`, `border-radius:999px`) and the
+"rebuilt 2026-08-23" flat sticky bar that only redeclares `position`,
+`background`, `backdrop-filter` and `border-bottom`. CSS cascade only
+overrides properties a later rule actually redeclares — every property the
+new rule didn't mention (padding, margin, border-radius, box-shadow, the
+grid layout) kept coming from the old rule, at every viewport width, not
+just the ones two leftover `@media` blocks also touched. One of those media
+blocks set `position: static` below 720px, so the header lost `sticky`
+entirely on phones.
+
+**Fix:** deleted the old base rule and the two leftover `@media` overrides
+entirely — nothing in the current header component (`site-header.tsx` /
+`header-nav.tsx`) uses the old classnames these predate (`.brand-copy`,
+`.nav-group`, `.nav-menu`, etc.), so nothing else depended on them.
+
+**Lesson:** when a component gets "rebuilt," check whether its old CSS rule
+was actually deleted or just no longer referenced by new markup — a
+same-selector rule left behind doesn't error, doesn't show up in a diff of
+the component file, and only shows up later as a vague "something's off"
+because the cascade quietly fills in whatever the new rule forgot to
+override, not what the new rule's author intended.

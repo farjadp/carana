@@ -283,6 +283,57 @@ populated feed/email — that would mean writing throwaway content into
 production data — so the full populated-state render path is unverified
 by eye, only by code review and the isolated query check.
 
+## 16 August, actually closing — Farjad asked, so a test row went in and came back out (`ac3cef6` render check)
+
+Farjad asked directly for the thing noted as unverified above: create a
+test announcement and delete it. Did exactly that — a temp Node script
+using the service-role key (outside the repo, in the scratchpad), created
+one row on Ashavid, confirmed it live in the browser on both the homepage
+feed and the profile banner via `read_page` (screenshots were unreliable
+this session, see below), then deleted it and re-queried to confirm zero
+rows left. No repo files touched, nothing committed — this was a
+verification pass, not a feature.
+
+**A pattern worth naming:** the Browser pane's `navigate` call reported
+"denied or failed" on the *first* attempt against a fresh or just-restarted
+dev server, repeatedly, this entire session — but the page had usually
+already loaded by the time a follow-up `screenshot` or `get_page_text` ran.
+Screenshots taken in that window sometimes came back blank even once the
+page was live; `read_page`'s accessibility-tree dump was reliable every
+time it was tried instead. Once, the dev server actually had died between
+attempts (`preview_list` returned empty) and needed a real restart. Lesson
+for next time: don't trust a bare `navigate` failure or a blank screenshot
+at face value — check `read_page` or re-navigate on a fresh tab before
+concluding the server itself is broken.
+
+## 16 August, one more — header CSS fixed, Tehran clock + rates ship (`256876c`, `ea375fb`)
+
+Farjad flagged the header ("something's off, can't say why") alongside
+three other asks. Investigated first rather than guessing: `globals.css`
+had two full `.site-header` definitions, the pre-rebuild pill-header
+rule's padding/margin/border-radius/box-shadow leaking through at every
+width since the Aug 23 rebuild only redeclared position/background/
+backdrop-filter, plus two leftover `@media` blocks piling more of the same
+on top — one of which killed `position: sticky` entirely below 720px.
+Deleted the dead rule and both media blocks; verified computed styles at
+390px and desktop width directly, not just visually. Full writeup in
+`06-gotchas.md`.
+
+Then built the other three asks, footer-only per Farjad's "don't get in
+the way": Tehran clock + Jalali + Shahanshahi date (own Gregorian<->Jalali
+conversion in `@charana/core`, the standard non-table astronomical
+algorithm — verified against known Nowruz dates with `tsx` before wiring
+it in anywhere), and real free-market USD/EUR/CAD via Navasan (Farjad's
+choice over other sources). No `NAVASAN_API_KEY` exists yet, so the rates
+line is correctly absent — asked Farjad for the key rather than guessing
+at Navasan's exact response field names with no way to verify them; the
+fetcher logs the raw response's key names on its first real call so the
+guessed `SYMBOL_CANDIDATES` can be corrected from that instead of the
+widget just staying silently empty. Shipped to mobile too: a new public
+`/api/mobile/exchange-rates` route (the key can't ship in the Expo
+bundle), clock computed on-device since Hermes has full Intl/ICU on this
+Expo SDK.
+
 ## Commits, oldest first
 
 ```

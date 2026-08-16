@@ -33,6 +33,16 @@ The live board is Notion → 🧿 Charana → Mission Control; this is the narra
 **Needs a real device:**
 - Test the voice suggestion box on an iPhone (the simulator has no microphone)
 
+**New, 16 Aug — footer currency rates:**
+- Get a Navasan (api.navasan.tech) API key and set `NAVASAN_API_KEY` in
+  Vercel + `apps/web/.env.local` — not pasted in chat, same rule as every
+  other live key. Without it the footer's USD/EUR/CAD line just stays
+  absent (correct, not broken). First real run with the key: check the
+  Vercel log for a `quiet-failure: exchange_rates_shape` line — the exact
+  Navasan field names weren't verifiable without a live key, so
+  `lib/exchange-rates.ts` may need its `SYMBOL_CANDIDATES` adjusted once
+  the real response shape is visible.
+
 ## Blocked on something external
 
 - D-U-N-S for Ashavid Inc. → Apple Developer and Google Play organisations →
@@ -135,3 +145,15 @@ Shipped: homepage feed (10 newest sitewide) + opt-in follow-and-email via
 `/profile/interactions`. Not built this pass, tracked above as items 12–13:
 SMS (costs money, needs a budget call) and push (mobile has zero
 notification infrastructure to send to).
+
+## Header CSS bug + Tehran clock/rates (16 Aug, `256876c` / `ea375fb`)
+
+- Fixed a real bug Farjad noticed but couldn't name: `globals.css` had two
+  full `.site-header` definitions, one from before the 2026-08-23 header
+  rebuild. The old one leaked padding/margin/border-radius/box-shadow
+  through at every width and killed `position: sticky` below 720px. See
+  the gotcha in `06-gotchas.md`.
+- Footer now shows Tehran time + Jalali + Shahanshahi date (web and app,
+  shared conversion in `@charana/core`), plus a real free-market USD/EUR/
+  CAD line via Navasan once `NAVASAN_API_KEY` is set (see Farjad's action
+  items above) — absent, not fabricated, until then.
