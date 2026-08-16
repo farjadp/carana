@@ -12,7 +12,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { PUBLIC_STATUSES } from "@charana/core";
-import { cityConfigs, type CityConfig } from "@/lib/data/cities";
+import { citySlug, cityConfigs, dynamicCityConfig, findCityConfig, type CityConfig } from "@/lib/data/cities";
+import { resolveProvince } from "@charana/core";
 import { getCategoryDetail } from "@/lib/data/category-details";
 import { env } from "@/lib/env";
 import { getVerificationStatus, isTrusted, type VerificationMethod } from "@/lib/verification/status";
@@ -43,9 +44,36 @@ export function getCategoryAliases(slug: string, name?: string): string[] {
   return [...aliases];
 }
 
+/**
+ * Resolve a URL segment to a city: a curated config (toronto…) or, failing
+ * that, any city name present in the data ("richmond-hill" → Richmond Hill),
+ * with its Persian name from `city_aliases`. Null when nothing matches.
+ */
+export async function resolveCity(supabase: SupabaseClient, segment: string): Promise<CityConfig | null> {
+  const cfg = findCityConfig(segment);
+  if (cfg) return cfg;
+  const key = decodeURIComponent(segment).trim().toLowerCase();
+  const { data } = await supabase
+    .from("businesses")
+    .select("city, province")
+    .in("status", PUBLIC_STATUSES)
+    .not("city", "is", null);
+  const rows = (data ?? []) as { city: string; province: string | null }[];
+  const hit = rows.find((r) => citySlug(r.city) === key || r.city.toLowerCase() === key);
+  if (!hit) return null;
+  const nameEn = hit.city.trim();
+  const provinceRow = rows.filter((r) => r.city === hit.city).map((r) => r.province).find(Boolean) ?? null;
+  const province = resolveProvince(provinceRow);
+  const { data: alias } = await supabase.from("city_aliases").select("aliases").ilike("city_en", nameEn).maybeSingle();
+  // Aliases are space-separated; a two-word English name gets its first two tokens.
+  const words = nameEn.split(/\s+/).length;
+  const nameFa = alias?.aliases ? String(alias.aliases).split(/\s+/).slice(0, words).join(" ") : null;
+  return dynamicCityConfig(nameEn, { nameFa, province: province?.code ?? provinceRow, provinceFa: province?.name ?? null });
+}
+
 /** PostgREST `or=` filter matching a city config's name and neighbourhoods. */
 export function cityFilterOr(city: CityConfig): string {
-  const terms = [city.nameEn, city.nameFa, ...city.neighborhoods];
+  const terms = [city.nameEn, ...(city.nameFa !== city.nameEn ? [city.nameFa] : []), ...city.neighborhoods];
   // ilike patterns; commas would break the or() grammar, none of ours have any.
   return terms.map((t) => `city.ilike.%${t.replace(/[,()]/g, "")}%`).join(",");
 }

@@ -23,12 +23,12 @@ import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { cityConfigs, getCityConfig } from "@/lib/data/cities";
+import { cityConfigs } from "@/lib/data/cities";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { VerificationBadge } from "@/components/verification-badge";
 import { getVerificationStatus, isTrusted } from "@/lib/verification/status";
 import { CATEGORY_DETAILS } from "@/lib/data/category-details";
-import { LOCAL_CARD_COLUMNS, cityFilterOr, countCityCategories } from "@/lib/seo/local";
+import { LOCAL_CARD_COLUMNS, cityFilterOr, countCityCategories, resolveCity } from "@/lib/seo/local";
 import { JsonLd } from "@/components/json-ld";
 import { breadcrumbLd } from "@/lib/seo/local";
 
@@ -63,7 +63,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: CityPageParams): Promise<Metadata> {
   const { slug } = await params;
-  const city = getCityConfig(slug);
+  const city = await resolveCity(await createSupabaseServerClient(), slug);
 
   if (!city) {
     return {
@@ -74,18 +74,18 @@ export async function generateMetadata({ params }: CityPageParams): Promise<Meta
   return {
     title: `${city.nameFa} | کسب‌وکارهای ایرانی`,
     description: city.description,
+    alternates: { canonical: `/cities/${city.slug}` },
   };
 }
 
 export default async function CityDetailPage({ params }: CityPageParams) {
   const { slug } = await params;
-  const city = getCityConfig(slug);
+  const supabase = await createSupabaseServerClient();
+  const city = await resolveCity(supabase, slug);
 
   if (!city) {
     notFound();
   }
-
-  const supabase = await createSupabaseServerClient();
   
   // The counters used to be computed from a 24-row page, so every city said
   // "24". Count over the full set; show 24.
@@ -190,6 +190,7 @@ export default async function CityDetailPage({ params }: CityPageParams) {
         <section className="max-w-7xl mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
             <aside className="space-y-5">
+              {city.neighborhoods.length > 0 ? (
               <Card className="bg-white border-gray-100 rounded-2xl">
                 <CardContent className="p-5">
                   <h2 className="font-black text-gray-900 mb-4">محله‌ها و محدوده‌ها</h2>
@@ -202,6 +203,7 @@ export default async function CityDetailPage({ params }: CityPageParams) {
                   </div>
                 </CardContent>
               </Card>
+              ) : null}
 
               <Card className="bg-white border-gray-100 rounded-2xl">
                 <CardContent className="p-5">

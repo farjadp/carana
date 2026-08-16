@@ -118,3 +118,43 @@ export const cityConfigs = [
 export function getCityConfig(slug: string) {
   return cityConfigs.find((city) => city.slug === slug);
 }
+
+/** URL slug for any city name: "Richmond Hill" → "richmond-hill". */
+export function citySlug(nameEn: string) {
+  return nameEn
+    .trim()
+    .toLowerCase()
+    .replace(/['’.]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Case-insensitive lookup by slug OR English name, so `/cities/Toronto`
+ * (as the index used to link) and `/cities/toronto` both resolve.
+ */
+export function findCityConfig(slugOrName: string) {
+  const key = decodeURIComponent(slugOrName).trim().toLowerCase();
+  return cityConfigs.find(
+    (c) => c.slug === key || c.nameEn.toLowerCase() === key || citySlug(c.nameEn) === key || c.nameFa === key
+  );
+}
+
+/**
+ * Build a config for a city that only exists in the data (Markham,
+ * Newmarket…). Persian name comes from `city_aliases` when known.
+ */
+export function dynamicCityConfig(nameEn: string, opts: { nameFa?: string | null; province?: string | null; provinceFa?: string | null }): CityConfig {
+  const fa = opts.nameFa?.trim() || nameEn;
+  return {
+    slug: citySlug(nameEn),
+    nameEn,
+    nameFa: fa,
+    province: opts.province ?? "",
+    provinceFa: opts.provinceFa ?? "",
+    headline: `کسب‌وکارهای ایرانی در ${fa}`,
+    description: `فهرست زنده‌ی کسب‌وکارهای ایرانی ${fa}${opts.provinceFa ? ` در ${opts.provinceFa}` : ""} — شماره، ساعت کاری، مسیر و نشان تأیید، از پایگاه داده‌ی چارانا.`,
+    neighborhoods: [],
+    priorityCategories: [],
+  };
+}

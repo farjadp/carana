@@ -19,7 +19,7 @@ import { PageShell } from "@/components/page-shell";
 import { BusinessCard } from "@/components/business/business-card";
 import { JsonLd } from "@/components/json-ld";
 import { SuggestionBox } from "@/components/suggestion-box";
-import { cityConfigs, getCityConfig } from "@/lib/data/cities";
+import { cityConfigs } from "@/lib/data/cities";
 import { CATEGORY_DETAILS, getCategoryDetail } from "@/lib/data/category-details";
 import {
   MIN_INDEXABLE,
@@ -32,6 +32,7 @@ import {
   localFaqs,
   localHeadline,
   localIntro,
+  resolveCity,
   summarise,
 } from "@/lib/seo/local";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -48,10 +49,10 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug, category } = await params;
-  const city = getCityConfig(slug);
+  const supabase = await createSupabaseServerClient();
+  const city = await resolveCity(supabase, slug);
   if (!city || !CATEGORY_DETAILS[category]) notFound();
   const cat = getCategoryDetail(category);
-  const supabase = await createSupabaseServerClient();
   const rows = await fetchLocalBusinesses(supabase, city, category, cat.name);
   const s = summarise(rows);
   const h1 = localHeadline(city.nameFa, cat.name);
@@ -69,11 +70,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function CityCategoryPage({ params }: Params) {
   const { slug, category } = await params;
-  const city = getCityConfig(slug);
+  const supabase = await createSupabaseServerClient();
+  const city = await resolveCity(supabase, slug);
   if (!city || !CATEGORY_DETAILS[category]) notFound();
   const cat = getCategoryDetail(category);
 
-  const supabase = await createSupabaseServerClient();
   const allCategories = Object.values(CATEGORY_DETAILS).map((c) => ({ slug: c.slug, name: c.name }));
   const [rows, siblings, elsewhere] = await Promise.all([
     fetchLocalBusinesses(supabase, city, category, cat.name),
