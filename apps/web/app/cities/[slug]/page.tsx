@@ -264,6 +264,7 @@ export default async function CityDetailPage({ params }: CityPageParams) {
                   </CardContent>
                 </Card>
               ) : (
+                <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {cityBusinesses.map((business) => (
                     <Card key={business.id} className="bg-white border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow">
@@ -322,6 +323,14 @@ export default async function CityDetailPage({ params }: CityPageParams) {
                     </Card>
                   ))}
                 </div>
+              {totalCount > cityBusinesses.length ? (
+                <div className="mt-6 text-center">
+                  <Link href={`/search?city=${encodeURIComponent(city.nameEn)}`} className="inline-flex h-11 items-center gap-2 rounded-full bg-[color:var(--text)] px-6 font-bold text-[#f6f1e8]">
+                    مشاهده‌ی همه‌ی {totalCount.toLocaleString("fa-IR")} کسب‌وکار {city.nameFa} <ArrowLeft className="h-4 w-4" />
+                  </Link>
+                </div>
+              ) : null}
+                </>
               )}
             </div>
           </div>

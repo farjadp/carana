@@ -36,11 +36,20 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
   const supabase = await createSupabaseServerClient();
-  const [{ hits, total }, { data: categories }, { data: cityRows }] = await Promise.all([
+  const [first, { data: categories }, { data: cityRows }] = await Promise.all([
     q || city || category ? searchBusinesses(supabase, { q, city, category, verifiedOnly, limit: PAGE, offset: (page - 1) * PAGE }) : Promise.resolve({ hits: [], total: 0 }),
     supabase.from("categories").select("slug, name").eq("is_active", true).order("display_order"),
     supabase.from("businesses").select("city").in("status", ["APPROVED", "PUBLISHED"]).not("city", "is", null),
   ]);
+  // A city filter that finds nothing should not be a dead end: rerun without
+  // it and say so. The query is still logged with the city, so the demand
+  // signal ("رستوران in Toronto") is not lost.
+  let { hits, total } = first;
+  let widened = false;
+  if (q && city && total === 0) {
+    const wide = await searchBusinesses(supabase, { q, category, verifiedOnly, limit: PAGE, offset: (page - 1) * PAGE });
+    if (wide.total > 0) { hits = wide.hits; total = wide.total; widened = true; }
+  }
   const catLabel = new Map((categories ?? []).map((c) => [c.slug as string, c.name as string]));
   const cityFreq = new Map<string, number>();
   for (const r of cityRows ?? []) { const c = String(r.city).trim(); if (c) cityFreq.set(c, (cityFreq.get(c) ?? 0) + 1); }
@@ -101,8 +110,14 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               {q ? <>نتایج برای «{q}»</> : city || category ? <>{[category ? catLabel.get(category) : null, city].filter(Boolean).join(" در ")}</> : "جستجو در چارانا"}
             </h1>
             <p className="text-sm text-[color:var(--muted-text)] mt-1">
-              {q || city || category ? <>{fa(total)} کسب‌وکار{city ? ` در ${city}` : ""}{verifiedOnly ? " · فقط احرازشده" : ""}</> : "نام، خدمت، دسته یا شهر را بنویس — فارسی یا انگلیسی، فرقی نمی‌کند."}
+              {q || city || category ? <>{fa(total)} کسب‌وکار{city && !widened ? ` در ${city}` : ""}{verifiedOnly ? " · فقط احرازشده" : ""}</> : "نام، خدمت، دسته یا شهر را بنویس — فارسی یا انگلیسی، فرقی نمی‌کند."}
             </p>
+            {widened ? (
+              <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-[color:var(--gold)]/15 px-3 py-1 text-xs font-bold text-[color:var(--text)]">
+                در {city} چیزی برای «{q}» نبود — این‌ها از همه‌ی کاناداست.
+                <Link href={href({ city: null })} className="text-[color:var(--lajvard)] underline-offset-4 hover:underline">حذف فیلتر شهر</Link>
+              </p>
+            ) : null}
           </div>
         </div>
 

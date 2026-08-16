@@ -39,7 +39,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const revalidate = 3600;
 
-type Params = { params: Promise<{ slug: string; category: string }> };
+type Params = { params: Promise<{ slug: string; category: string }>; searchParams?: Promise<{ page?: string }> };
+const PAGE = 24;
 
 const fa = (n: number) => n.toLocaleString("fa-IR");
 
@@ -68,8 +69,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   };
 }
 
-export default async function CityCategoryPage({ params }: Params) {
+export default async function CityCategoryPage({ params, searchParams }: Params) {
   const { slug, category } = await params;
+  const page = Math.max(1, parseInt((await searchParams)?.page ?? "1", 10) || 1);
   const supabase = await createSupabaseServerClient();
   const city = await resolveCity(supabase, slug);
   if (!city || !CATEGORY_DETAILS[category]) notFound();
@@ -87,6 +89,8 @@ export default async function CityCategoryPage({ params }: Params) {
   const path = `/cities/${city.slug}/${category}`;
   const faqs = localFaqs(city, cat.name, s);
   const otherHere = siblings.filter((c) => c.slug !== category && c.count > 0).slice(0, 8);
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE));
+  const pageRows = rows.slice((page - 1) * PAGE, page * PAGE);
   const sameElsewhere = elsewhere.filter((e) => e.city.slug !== city.slug && e.count > 0).slice(0, 8);
 
   return (
@@ -154,10 +158,17 @@ export default async function CityCategoryPage({ params }: Params) {
                     <p className="text-xs text-[color:var(--muted-text)]">تأییدشده‌ها اول · به‌روزرسانی {updated.toLocaleDateString("fa-IR")}</p>
                   </div>
                   <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                    {rows.map((b) => (
+                    {pageRows.map((b) => (
                       <BusinessCard key={b.id} business={b as never} categoryLabel={cat.name} />
                     ))}
                   </div>
+                  {totalPages > 1 ? (
+                    <nav className="mt-8 flex items-center justify-center gap-2 text-sm" aria-label="صفحه‌بندی">
+                      {page > 1 ? <Link href={`${path}?page=${page - 1}`} className="rounded-lg border border-[color:var(--line)] bg-white px-3 py-1.5 font-bold">قبلی</Link> : null}
+                      <span className="text-[color:var(--muted-text)]">صفحه‌ی {fa(page)} از {fa(totalPages)}</span>
+                      {page < totalPages ? <Link href={`${path}?page=${page + 1}`} className="rounded-lg border border-[color:var(--line)] bg-white px-3 py-1.5 font-bold">بعدی</Link> : null}
+                    </nav>
+                  ) : null}
                 </>
               ) : (
                 <div className="rounded-3xl border border-[color:var(--line)] bg-white p-10 text-center">

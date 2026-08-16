@@ -39,12 +39,17 @@ export async function generateMetadata({
   };
 }
 
+const PAGE = 24;
+
 export default async function ProvincePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ page?: string }>;
 }) {
   const { slug } = await params;
+  const page = Math.max(1, parseInt((await searchParams)?.page ?? "1", 10) || 1);
   const province = getProvinceBySlug(slug);
 
   if (!province) notFound();
@@ -52,13 +57,14 @@ export default async function ProvincePage({
   const summary = await getProvinceSummary(slug);
 
   const supabase = await createSupabaseServerClient();
-  const { data: businesses } = await supabase
+  const { data: businesses, count } = await supabase
     .from("businesses")
-    .select(CARD_COLUMNS)
+    .select(CARD_COLUMNS, { count: "exact" })
     .eq("province", province.nameEn)
     .in("status", PUBLIC_STATUSES)
     .order("created_at", { ascending: false })
-    .limit(60);
+    .range((page - 1) * PAGE, page * PAGE - 1);
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE));
 
   const cities = summary?.cities ?? [];
 
@@ -114,6 +120,14 @@ export default async function ProvincePage({
 
         {(businesses ?? []).length === 0 ? (
           <p className="empty-note">هنوز کسب‌وکاری در این استان ثبت نشده است.</p>
+        ) : null}
+
+        {totalPages > 1 ? (
+          <nav className="pager" aria-label="صفحه‌بندی">
+            {page > 1 ? <Link href={`/provinces/${slug}?page=${page - 1}`} className="pager-btn">قبلی</Link> : <span className="pager-btn is-disabled">قبلی</span>}
+            <span className="pager-status">صفحه‌ی {page.toLocaleString("fa-IR")} از {totalPages.toLocaleString("fa-IR")}</span>
+            {page < totalPages ? <Link href={`/provinces/${slug}?page=${page + 1}`} className="pager-btn">بعدی</Link> : <span className="pager-btn is-disabled">بعدی</span>}
+          </nav>
         ) : null}
       </section>
     </InnerPage>

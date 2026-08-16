@@ -61,6 +61,10 @@ export default function CategoryClientPage({
   cityLinks?: { slug: string; nameFa: string; count: number }[];
 }) {
   const [searchQuery, setSearchQuery] = useState("");
+  // Client-side paging: the list is already in memory (filters are local),
+  // so a "show more" step of 24 keeps first paint light without a round trip.
+  const PAGE = 24;
+  const [visible, setVisible] = useState(PAGE);
   const [selectedProvince, setSelectedProvince] = useState("ALL");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [serviceTypeFilter, setServiceTypeFilter] = useState("ALL");
@@ -420,8 +424,9 @@ export default function CategoryClientPage({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {filteredBusinesses.map((b) => (
+          <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {filteredBusinesses.slice(0, visible).map((b) => (
               <Card key={b.id} className="group hover:shadow-md transition-all duration-300 border-gray-200/80 bg-white overflow-hidden rounded-2xl flex flex-col">
                 {/* Card Banner / Header Image */}
                 <div className="relative h-40 bg-gray-100 overflow-hidden">
@@ -529,6 +534,19 @@ export default function CategoryClientPage({
               </Card>
             ))}
           </div>
+          {filteredBusinesses.length > visible ? (
+            <div className="mb-12 text-center">
+              <button
+                type="button"
+                onClick={() => setVisible((v) => v + PAGE)}
+                className="inline-flex h-11 items-center gap-2 rounded-full border border-gray-200 bg-white px-6 font-bold text-gray-800 shadow-sm transition hover:border-[color:var(--lajvard)] hover:text-[color:var(--lajvard)]"
+              >
+                نمایش {Math.min(PAGE, filteredBusinesses.length - visible).toLocaleString("fa-IR")} مورد بیشتر
+                <span className="text-xs text-gray-400">({visible.toLocaleString("fa-IR")} از {filteredBusinesses.length.toLocaleString("fa-IR")})</span>
+              </button>
+            </div>
+          ) : <div className="mb-6" />}
+          </>
         )}
 
         {/* 7b. By city — links into the city × category pages */}
