@@ -475,3 +475,25 @@ text path were verified; only the simulator mic was not.
 **Also:** device console output was not showing in a `nohup`-started Metro
 log. Use `xcrun simctl spawn booted log stream --predicate 'process == "Charana"'`
 to see the native side when JS logs are silent.
+
+---
+
+## Simulator taps are in points; screenshots come back in pixels
+
+**Symptom:** every tap on the app's tab bar did nothing, while taps on cards
+in the middle of the screen worked. It looked like a broken tab bar.
+
+**Cause:** the returned screenshot is 919×1972 (a scaled render of the 3×
+frame buffer), but `mcp__Claude_Code_iOS_Simulator__control` takes **device
+points** — iPhone 17 is 402×874. A tab bar at y≈1874 in the image is y≈830 in
+points; y=1874 is simply off the bottom of the screen, so the tap landed
+nowhere and reported success.
+
+**Fix:** read the real size (`xcrun simctl io booted screenshot` → 1206×2622
+pixels ÷ 3 = 402×874 points) and scale image coordinates by
+`points = pixels_in_image × 402 / image_width` before tapping. Tab bar row is
+y≈830; tab centres x ≈ 39 / 120 / 201 / 281 / 362.
+
+**Lesson:** a tool that reports "Tapped at (x, y)" has not confirmed anything
+landed. Verify with the next screenshot, and suspect the coordinate space
+before suspecting the app.
