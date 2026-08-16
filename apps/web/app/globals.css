@@ -94,22 +94,16 @@ a {
   padding-bottom: 48px;
 }
 
-.site-header {
-  position: sticky;
-  top: 18px;
-  z-index: 10;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 24px;
-  padding: 18px 22px;
-  margin-top: 20px;
-  background: rgba(255, 252, 246, 0.74);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(18px);
-  border-radius: 999px;
-}
+/* .site-header itself is defined once, near "Site header — rebuilt", further
+   down this file. A second, older definition used to live here too (a
+   pill-shaped floating card — position, display:grid, padding, margin-top,
+   border, box-shadow, border-radius:999px) from before the 2026-08-23
+   rebuild. Same specificity, later rule wins only for the properties it
+   redeclares (background, backdrop-filter, border-bottom) — everything
+   else (padding, margin-top, border-radius:999px, box-shadow, the grid
+   layout) was silently leaking through from this old rule at every
+   viewport width, not just the narrow ones the media queries also touched.
+   Removed 16 Aug 2026, along with the matching media-query overrides. */
 
 .brand {
   display: inline-flex;
@@ -1190,8 +1184,16 @@ section {
   box-shadow: 0 0 0 8px rgba(24, 169, 87, 0.12);
 }
 
+/* .site-header used to be listed in both media blocks below (border-radius
+   28px at 1080px; position:static + its own padding/margin/gap at 720px) —
+   leftover from the pill-shaped floating header this file predates. The
+   2026-08-23 rebuild (see "Site header — rebuilt" further down) replaced
+   that with .site-header-inner + .header-nav's own breakpoint at 1100px,
+   but nobody removed the old .site-header overrides, so every viewport
+   under 1080px was silently reapplying the old rounded corners, and every
+   viewport under 720px lost position:sticky entirely — the header stopped
+   sticking on phones. Removed 16 Aug 2026. */
 @media (max-width: 1080px) {
-  .site-header,
   .hero,
   .category-grid,
   .download,
@@ -1209,10 +1211,6 @@ section {
     display: none;
   }
 
-  .site-header {
-    border-radius: 28px;
-  }
-
   .hero h1 {
     max-width: 13ch;
   }
@@ -1225,13 +1223,6 @@ section {
 
   .page-shell {
     padding-bottom: 28px;
-  }
-
-  .site-header {
-    position: static;
-    padding: 16px;
-    margin-top: 12px;
-    gap: 16px;
   }
 
   .brand {
