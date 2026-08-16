@@ -60,6 +60,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "درباره ما",
     items: [
       { href: "/about", label: "درباره محصول" },
+      { href: "/story", label: "داستان برند" },
       { href: "/team", label: "معرفی تیم" },
       { href: "/roadmap", label: "رودمپ" },
       { href: "/releases", label: "نسخه‌ها" },
