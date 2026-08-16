@@ -2,28 +2,30 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Bookmark, MapPin, CheckCircle, NotebookPen, MessageSquare, Star, Clock, AlertTriangle, Building2 } from "lucide-react";
+import { Bookmark, MapPin, CheckCircle, NotebookPen, MessageSquare, Star, Clock, AlertTriangle, Building2, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface InteractionsClientProps {
   interactions: any[];
   publicReviews: any[];
+  followedAnnouncements: any[];
 }
 
-export default function InteractionsClient({ interactions, publicReviews }: InteractionsClientProps) {
+export default function InteractionsClient({ interactions, publicReviews, followedAnnouncements }: InteractionsClientProps) {
   const [activeTab, setActiveTab] = useState<string>("want_to_go");
 
   const wantToGo = interactions.filter(i => i.personal_status === "want_to_go");
   const visited = interactions.filter(i => i.personal_status.startsWith("visited_") || i.personal_status === "customer");
   const saved = interactions.filter(i => i.personal_status === "saved");
   const withNotes = interactions.filter(i => i.private_note || i.private_title);
-  
+
   const tabs = [
     { id: "want_to_go", label: "می‌خواهم بروم", count: wantToGo.length, icon: MapPin },
     { id: "saved", label: "علاقه‌مندی‌ها", count: saved.length, icon: Bookmark },
     { id: "visited", label: "رفتم", count: visited.length, icon: CheckCircle },
     { id: "notes", label: "یادداشت‌ها", count: withNotes.length, icon: NotebookPen },
     { id: "reviews", label: "نظرات عمومی", count: publicReviews.length, icon: MessageSquare },
+    { id: "announcements", label: "اعلان‌ها", count: followedAnnouncements.length, icon: Megaphone },
   ];
 
   const getReviewStatusLabel = (status: string) => {
@@ -189,6 +191,55 @@ export default function InteractionsClient({ interactions, publicReviews }: Inte
     );
   };
 
+  const renderAnnouncements = () => {
+    if (followedAnnouncements.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-4">
+            <Megaphone size={32} />
+          </div>
+          <h3 className="text-lg font-bold text-gray-700 mb-1">هنوز خبری نیست</h3>
+          <p className="text-sm text-gray-500 text-center max-w-sm">
+            روی صفحه‌ی هر کسب‌وکار دکمه‌ی «باخبرم کن» را بزن تا اعلان‌های تازه‌اش این‌جا و در ایمیلت جمع شود.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {followedAnnouncements.map((a) => (
+          <div key={a.id} className="bg-white/80 backdrop-blur-sm border border-gray-100/80 rounded-2xl p-6 shadow-[0_2px_15px_rgb(0,0,0,0.03)]">
+            <div className="mb-3 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
+                {a.business?.logo_url ? (
+                  <img src={a.business.logo_url} alt={a.business.name} className="w-full h-full object-cover" />
+                ) : (
+                  <Building2 size={16} className="text-gray-400" />
+                )}
+              </div>
+              <h4 className="font-bold text-[color:var(--text)] text-base">
+                <Link href={`/businesses/${a.business?.slug}`} className="hover:text-[color:var(--lajvard)] transition">
+                  {a.business?.name}
+                </Link>
+              </h4>
+            </div>
+            <div className="flex items-start gap-2">
+              <Megaphone size={15} className="mt-0.5 shrink-0 text-[color:var(--annabi)]" />
+              <div>
+                <p className="font-bold text-sm text-gray-900">{a.title}</p>
+                {a.body ? <p className="mt-1 text-xs text-gray-600 leading-relaxed">{a.body}</p> : null}
+              </div>
+            </div>
+            <p className="mt-3 border-t border-gray-100 pt-3 text-xs text-gray-400">
+              {new Date(a.created_at).toLocaleDateString("fa-IR")}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div dir="rtl">
       {/* Tabs */}
@@ -223,6 +274,7 @@ export default function InteractionsClient({ interactions, publicReviews }: Inte
         {activeTab === "visited" && renderInteractions(visited)}
         {activeTab === "notes" && renderInteractions(withNotes)}
         {activeTab === "reviews" && renderReviews()}
+        {activeTab === "announcements" && renderAnnouncements()}
       </div>
     </div>
   );

@@ -28,6 +28,9 @@ interface InteractionData {
   would_return?: "yes" | "maybe" | "no" | null;
   private_media_urls?: string[];
   private_media_types?: string[];
+  /** Explicit opt-in for an email when this business posts an announcement.
+   *  Not implied by personal_status = "saved" — see the migration. */
+  notify_announcements?: boolean;
 }
 
 interface PublicReviewData {

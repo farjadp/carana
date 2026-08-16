@@ -37,6 +37,25 @@ export default async function InteractionsPage() {
     .neq("status", "deleted_by_user")
     .order("updated_at", { ascending: false });
 
+  // اعلان‌های کسب‌وکارهایی که کاربر صریحاً برایشان اطلاع‌رسانی روشن کرده —
+  // نه هر «ذخیره‌شده»‌ای، فقط notify_announcements = true.
+  const followedIds = (interactions ?? [])
+    .filter((i) => i.notify_announcements)
+    .map((i) => i.business_id);
+
+  let followedAnnouncements: any[] = [];
+  if (followedIds.length > 0) {
+    const nowIso = new Date().toISOString();
+    const { data } = await supabase
+      .from("business_announcements")
+      .select("id, business_id, title, body, created_at, expires_at, business:businesses(id, name, slug, logo_url)")
+      .in("business_id", followedIds)
+      .or(`expires_at.is.null,expires_at.gte.${nowIso}`)
+      .order("created_at", { ascending: false })
+      .limit(30);
+    followedAnnouncements = data ?? [];
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
       <div className="bg-white/60 backdrop-blur-xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-6 md:p-10">
@@ -52,9 +71,10 @@ export default async function InteractionsPage() {
           </p>
         </div>
 
-        <InteractionsClient 
-          interactions={interactions || []} 
-          publicReviews={publicReviews || []} 
+        <InteractionsClient
+          interactions={interactions || []}
+          publicReviews={publicReviews || []}
+          followedAnnouncements={followedAnnouncements}
         />
       </div>
     </div>

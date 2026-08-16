@@ -95,6 +95,36 @@ export function listingNeedsChangesEmail(input: { name: string; reason?: string 
   };
 }
 
+/**
+ * Sent only to users who explicitly opted in (notify_announcements = true
+ * on their own saved-business row) — never inferred from "saved" alone.
+ * See lib/actions/announcements.ts::createAnnouncement.
+ */
+export function newAnnouncementEmail(input: {
+  businessName: string;
+  businessSlug: string;
+  title: string;
+  body?: string | null;
+}) {
+  const url = `https://charana.ca/businesses/${encodeURIComponent(input.businessSlug)}`;
+  return {
+    subject: `اعلان تازه از ${input.businessName}: ${input.title}`,
+    html: shell(`
+      <p style="margin:0 0 14px;">سلام،</p>
+      <p style="margin:0 0 18px;"><strong>${input.businessName}</strong> که دنبالش می‌کنی، اعلان تازه‌ای گذاشته:</p>
+      <div style="background:${CREAM};border-radius:10px;padding:16px 18px;margin:0 0 18px;">
+        <div style="font-weight:bold;margin:0 0 6px;">${input.title}</div>
+        ${input.body ? `<div style="color:${MUTED};font-size:14px;">${input.body}</div>` : ""}
+      </div>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${url}" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">دیدن پروفایل</a>
+      </div>
+      <p style="margin:0;color:${MUTED};font-size:13px;">این ایمیل را می‌گیری چون تصمیم گرفتی از اعلان‌های این کسب‌وکار باخبر شوی — از پروفایلش یا <a href="https://charana.ca/profile/interactions" style="color:${MUTED};">دفترچه‌ی خودت</a> می‌توانی خاموشش کنی.</p>
+    `),
+    text: `${input.businessName} اعلان تازه گذاشت: ${input.title}\n${input.body ?? ""}\n${url}\n\nاین ایمیل را می‌گیری چون از اعلان‌های این کسب‌وکار باخبر می‌شوی — از پروفایلش می‌توانی خاموشش کنی.`,
+  };
+}
+
 export function contactMessageEmail(input: {
   name: string;
   email: string;

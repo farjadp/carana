@@ -1201,6 +1201,7 @@ export type Database = {
           created_at: string | null
           cultural_fit_rating: number | null
           id: string
+          notify_announcements: boolean
           personal_rating: number | null
           personal_status: Database["public"]["Enums"]["personal_interaction_status"]
           planned_visit_at: string | null
@@ -1223,6 +1224,7 @@ export type Database = {
           created_at?: string | null
           cultural_fit_rating?: number | null
           id?: string
+          notify_announcements?: boolean
           personal_rating?: number | null
           personal_status?: Database["public"]["Enums"]["personal_interaction_status"]
           planned_visit_at?: string | null
@@ -1245,6 +1247,7 @@ export type Database = {
           created_at?: string | null
           cultural_fit_rating?: number | null
           id?: string
+          notify_announcements?: boolean
           personal_rating?: number | null
           personal_status?: Database["public"]["Enums"]["personal_interaction_status"]
           planned_visit_at?: string | null

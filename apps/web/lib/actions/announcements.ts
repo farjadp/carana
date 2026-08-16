@@ -16,6 +16,8 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { entitlementsFor } from "@/lib/billing/entitlements";
+import { sendEmail } from "@/lib/email/send";
+import { newAnnouncementEmail } from "@/lib/email/templates";
 
 const THIRTY_DAYS_MS = 30 * 24 * 3600_000;
 
@@ -23,7 +25,7 @@ async function loadOwnedBusiness(businessId: string, userId: string) {
   const supabase = await createSupabaseActionClient();
   const { data: business } = await supabase
     .from("businesses")
-    .select("id, slug, plan, plan_until, created_by, owner_user_id")
+    .select("id, name, slug, plan, plan_until, created_by, owner_user_id")
     .eq("id", businessId)
     .maybeSingle();
   if (!business || (business.created_by !== userId && business.owner_user_id !== userId)) return null;
@@ -74,6 +76,15 @@ export async function createAnnouncement(
 
     revalidatePath(`/dashboard/business/${businessId}/announcements`);
     if (business.slug) revalidatePath(`/businesses/${business.slug}`);
+
+    // Best-effort, never awaited past the point of blocking this action's
+    // response — a slow or failed mail run must not make "انتشار اعلان"
+    // hang or fail for the owner. Failures are swallowed here on purpose;
+    // sendEmail() already reports quiet failures on its own.
+    if (business.slug) {
+      void notifyFollowers(admin, businessId, business.name, business.slug, title, body);
+    }
+
     return { success: true };
   } catch (error: any) {
     console.error("Create Announcement Error:", error);
@@ -104,5 +115,41 @@ export async function deleteAnnouncement(announcementId: string, businessId: str
   } catch (error: any) {
     console.error("Delete Announcement Error:", error);
     return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Emails everyone who explicitly opted in to this business's announcements
+ * (`notify_announcements = true` on their own saved-business row — never
+ * inferred from "saved" alone, see the migration). Runs after the
+ * announcement is already saved and never throws past that point: a mail
+ * problem must not turn a successful post into a failed one for the owner.
+ */
+async function notifyFollowers(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  businessId: string,
+  businessName: string,
+  businessSlug: string,
+  title: string,
+  body: string | null
+) {
+  try {
+    const { data: followers } = await admin
+      .from("user_business_interactions")
+      .select("user_id")
+      .eq("business_id", businessId)
+      .eq("notify_announcements", true);
+    if (!followers?.length) return;
+
+    const { data: recipients } = await admin
+      .from("profiles")
+      .select("email")
+      .in("id", followers.map((f) => f.user_id))
+      .not("email", "is", null);
+
+    const mail = newAnnouncementEmail({ businessName, businessSlug, title, body });
+    await Promise.all((recipients ?? []).map((r) => sendEmail({ to: r.email as string, ...mail })));
+  } catch (error) {
+    console.error("Notify Followers Error:", error);
   }
 }

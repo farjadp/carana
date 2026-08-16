@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, MapPin, ArrowLeft, Star, ShieldCheck, Bookmark, Navigation, MessageSquare, Plus, CheckCircle2, Download } from "lucide-react";
+import { Search, MapPin, ArrowLeft, Star, ShieldCheck, Bookmark, Navigation, MessageSquare, Plus, CheckCircle2, Download, Megaphone } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
@@ -69,6 +69,18 @@ export default async function HomePage() {
     .order("plan_until", { ascending: true, nullsFirst: false })
     .limit(6);
 
+  // Fetch 0b. Newest announcements sitewide — how a visitor who follows no
+  // one in particular finds out anything got posted at all. Capped at 10,
+  // as asked; scoped to businesses that are actually public and
+  // announcements that haven't expired, same rule as the profile banner.
+  const { data: latestAnnouncements } = await supabase
+    .from("business_announcements")
+    .select("id, title, body, created_at, business:businesses!inner(id, name, slug, logo_url, status)")
+    .in("business.status", ["APPROVED", "PUBLISHED"])
+    .or(`expires_at.is.null,expires_at.gte.${nowIso}`)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
   // Fetch 1. Newest verified businesses
   const { data: latestBusinesses } = await supabase
     .from("businesses")
@@ -127,6 +139,35 @@ export default async function HomePage() {
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {featuredBusinesses.map((biz) => (
                   <BusinessCard key={biz.id} business={biz} categoryLabel={catLabel.get(biz.category)} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* 2c. Newest announcements sitewide — absent when there are none,
+            same rule as the featured section above it. */}
+        {latestAnnouncements && latestAnnouncements.length > 0 && (
+          <section className="border-t border-gray-100 bg-white px-4 py-16">
+            <div className="mx-auto max-w-7xl">
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold md:text-3xl">تازه‌ترین اعلان‌ها</h2>
+                <p className="mt-1 text-sm text-gray-500">تخفیف، رویداد و خبر تازه از کسب‌وکارهای چارانا</p>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {latestAnnouncements.map((a: any) => (
+                  <Link
+                    key={a.id}
+                    href={`/businesses/${a.business?.slug}`}
+                    className="flex items-start gap-3 rounded-2xl border border-[color:var(--gold)]/25 bg-[color:var(--gold)]/6 p-4 transition hover:-translate-y-0.5 hover:shadow-md"
+                  >
+                    <Megaphone size={16} className="mt-0.5 shrink-0 text-[color:var(--gold)]" />
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-bold text-[color:var(--lajvard)]">{a.business?.name}</p>
+                      <p className="mt-0.5 text-sm font-bold text-gray-900 line-clamp-1">{a.title}</p>
+                      {a.body ? <p className="mt-0.5 text-xs text-gray-500 line-clamp-2">{a.body}</p> : null}
+                    </div>
+                  </Link>
                 ))}
               </div>
             </div>
