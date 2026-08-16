@@ -28,6 +28,8 @@ import InteractionBar from "@/components/business/interaction-bar";
 import { PrivateNoteCard } from "@/components/business/private-note-card";
 import { VerificationBadge, VerificationDetail, faNumber } from "@/components/verification-badge";
 import { ViewCounter } from "@/components/business/view-counter";
+import { ReportDialog } from "@/components/business/report-dialog";
+import { trackEvent } from "@/lib/analytics/track";
 import { BrandMark } from "@/components/brand-mark";
 import { getVerificationStatus } from "@/lib/verification/status";
 import { PROVINCES } from "@charana/core";
@@ -230,27 +232,27 @@ export default function BusinessProfileClient({
             style={{ ["--bp-cols" as string]: business.accepts_appointments && business.booking_url ? 5 : 4 }}
           >
             {business.phone ? (
-              <a href={`tel:${business.phone}`} className="bp-action is-primary">
+              <a href={`tel:${business.phone}`} className="bp-action is-primary" onClick={() => trackEvent(business.id, "call")}>
                 <span className="bp-action-icon"><Phone size={16} /></span> تماس
               </a>
             ) : null}
             {wa ? (
-              <a href={wa} target="_blank" rel="noopener noreferrer" className="bp-action is-whatsapp">
+              <a href={wa} target="_blank" rel="noopener noreferrer" className="bp-action is-whatsapp" onClick={() => trackEvent(business.id, "whatsapp")}>
                 <span className="bp-action-icon"><MessageCircle size={16} /></span> واتساپ
               </a>
             ) : null}
             {business.address || business.google_maps_url ? (
-              <a href={directions} target="_blank" rel="noreferrer" className="bp-action is-directions">
+              <a href={directions} target="_blank" rel="noreferrer" className="bp-action is-directions" onClick={() => trackEvent(business.id, "directions")}>
                 <span className="bp-action-icon"><Navigation size={16} /></span> مسیریابی
               </a>
             ) : null}
             {website ? (
-              <a href={website} target="_blank" rel="noreferrer" className="bp-action is-website">
+              <a href={website} target="_blank" rel="noreferrer" className="bp-action is-website" onClick={() => trackEvent(business.id, "website")}>
                 <span className="bp-action-icon"><Globe size={16} /></span> وب‌سایت
               </a>
             ) : null}
             {business.accepts_appointments && business.booking_url ? (
-              <a href={business.booking_url} target="_blank" rel="noreferrer" className="bp-action is-book">
+              <a href={business.booking_url} target="_blank" rel="noreferrer" className="bp-action is-book" onClick={() => trackEvent(business.id, "booking")}>
                 <span className="bp-action-icon"><CalendarDays size={16} /></span> رزرو نوبت
               </a>
             ) : null}
@@ -443,6 +445,11 @@ export default function BusinessProfileClient({
                   </div>
                 ) : null}
                 {business.ref_no ? <p className="text-[11px] text-[color:var(--muted-text)]">در تماس با پشتیبانی یا احراز مالکیت، این شماره را بگویید.</p> : null}
+                {/* A real report: posts to /api/reports and lands in the admin
+                    queue. The old button raised a toast and wrote nothing. */}
+                <div className="pt-3 mt-1 border-t border-[color:var(--line)]">
+                  <ReportDialog businessId={business.id} businessName={business.name} />
+                </div>
               </div>
             </Section>
           </aside>

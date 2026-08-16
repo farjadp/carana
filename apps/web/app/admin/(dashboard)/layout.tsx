@@ -13,7 +13,7 @@ import {
 
 import { getOptionalUser } from "@/lib/auth/session";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import { AdminSidebarNav } from "./sidebar-nav";
+import { AdminSidebarNav, type AdminCounts } from "./sidebar-nav";
 
 
 
@@ -39,6 +39,19 @@ export default async function AdminDashboardLayout({
     redirect("/auth/login?error=unauthorized");
   }
 
+  // Live badge counts. head+exact costs one round trip each and keeps the
+  // sidebar honest — these were hard-coded strings until 16 Aug.
+  const n = async (q: PromiseLike<{ count: number | null }>) => (await q).count ?? 0;
+  const [claims, reviews, suggestions, blog, reports, unknownCity] = await Promise.all([
+    n(adminClient.from("business_claims").select("id", { count: "exact", head: true }).eq("status", "pending")),
+    n(adminClient.from("public_reviews").select("id", { count: "exact", head: true }).eq("status", "pending_moderation")),
+    n(adminClient.from("suggestions").select("id", { count: "exact", head: true }).eq("status", "new")),
+    n(adminClient.from("blog_posts").select("id", { count: "exact", head: true }).eq("status", "review")),
+    n(adminClient.from("business_reports").select("id", { count: "exact", head: true }).eq("status", "new")),
+    n(adminClient.from("businesses").select("id", { count: "exact", head: true }).eq("city", "نامشخص")),
+  ]);
+  const counts: AdminCounts = { claims, reviews, suggestions, blog, reports, unknownCity };
+
   return (
     <div className="admin-layout">
       {/* Sidebar Navigation */}
@@ -51,7 +64,7 @@ export default async function AdminDashboardLayout({
           </div>
         </div>
 
-        <AdminSidebarNav />
+        <AdminSidebarNav counts={counts} />
 
         <div className="admin-sidebar-footer">
           <form action="/auth/logout" method="post">
