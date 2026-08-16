@@ -32,6 +32,9 @@ import { ReportDialog } from "@/components/business/report-dialog";
 import { trackEvent } from "@/lib/analytics/track";
 import { BrandMark } from "@/components/brand-mark";
 import { getVerificationStatus } from "@/lib/verification/status";
+import { entitlementsFor } from "@/lib/billing/entitlements";
+import { PLANS } from "@/lib/billing/plans";
+import { replyToReview } from "@/lib/actions/interactions";
 import { PROVINCES } from "@charana/core";
 
 interface Props {
@@ -109,6 +112,11 @@ export default function BusinessProfileClient({
   const avgRating = approvedReviews.length
     ? approvedReviews.reduce((s, r) => s + (r.rating || 0), 0) / approvedReviews.length
     : null;
+  // review_replies is a Starter+ feature — entitlementsFor recomputes it
+  // from plan/plan_until every render, same expiry rule as the server
+  // action that actually writes the reply.
+  const canReplyToReviews = isOwnerOrAdmin && entitlementsFor(business).has("review_replies");
+  const ownerSeesUpsell = isOwnerOrAdmin && !canReplyToReviews;
 
   const share = async () => {
     const url = window.location.href;
@@ -364,10 +372,19 @@ export default function BusinessProfileClient({
                       </div>
                       {rev.title ? <div className="font-bold text-sm text-[color:var(--text)] mb-1">{rev.title}</div> : null}
                       <p className="text-xs md:text-sm text-[color:var(--text)]/80 leading-relaxed">{rev.content}</p>
+
+                      <OwnerReply review={rev} canReply={canReplyToReviews} />
                     </li>
                   ))}
                 </ul>
               )}
+
+              {ownerSeesUpsell ? (
+                <p className="mt-4 text-xs text-[color:var(--muted-text)]">
+                  پاسخ عمومی به نظرات از پلن {PLANS.pro.name} به بالا فعال می‌شود —{" "}
+                  <Link href={`/dashboard/business/${business.id}/billing`} className="text-[color:var(--lajvard)] underline underline-offset-4">ارتقا بده</Link>.
+                </p>
+              ) : null}
             </Section>
           </div>
 
@@ -526,6 +543,88 @@ function Fact({ label, value, icon }: { label: string; value: string | null; ico
       <div className="text-sm font-bold text-[color:var(--text)] mt-0.5">{value}</div>
     </div>
   );
+}
+
+/**
+ * The reply itself is always shown once it exists — it's public the moment
+ * it's written, same as the review. `canReply` only controls whether *this*
+ * viewer (the owner, on an entitled plan) gets the write UI; everyone else
+ * only ever sees the read-only branch.
+ */
+function OwnerReply({ review, canReply }: { review: { id: string; owner_reply?: string | null; owner_reply_at?: string | null }; canReply: boolean }) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(review.owner_reply || "");
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    setSaving(true);
+    const result = await replyToReview(review.id, text);
+    setSaving(false);
+    if (result.success) {
+      setEditing(false);
+      toast.success("پاسخ ثبت شد");
+    } else {
+      toast.error(result.error || "خطا در ثبت پاسخ");
+    }
+  };
+
+  const remove = async () => {
+    setSaving(true);
+    const result = await replyToReview(review.id, null);
+    setSaving(false);
+    if (result.success) { setText(""); setEditing(false); toast.success("پاسخ حذف شد"); }
+    else toast.error(result.error || "خطا در حذف پاسخ");
+  };
+
+  if (editing) {
+    return (
+      <div className="mt-3 rounded-xl border border-[color:var(--line)] bg-white p-3">
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="پاسخ به عنوان صاحب کسب‌وکار…"
+          rows={3}
+          maxLength={1000}
+          className="w-full resize-none rounded-lg border border-[color:var(--line)] p-2 text-xs outline-none focus:border-[color:var(--lajvard)]"
+        />
+        <div className="mt-2 flex items-center gap-2">
+          <Button type="button" onClick={save} disabled={saving || !text.trim()} className="h-8 rounded-lg px-3 text-xs">
+            {saving ? "در حال ثبت…" : "ثبت پاسخ"}
+          </Button>
+          <button type="button" onClick={() => { setEditing(false); setText(review.owner_reply || ""); }} className="text-xs text-[color:var(--muted-text)]">
+            انصراف
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (review.owner_reply) {
+    return (
+      <div className="mt-3 rounded-xl border-r-2 border-[color:var(--annabi)]/30 bg-white p-3">
+        <div className="mb-1 flex items-center justify-between">
+          <span className="text-[11px] font-black text-[color:var(--annabi)]">پاسخ صاحب کسب‌وکار</span>
+          {canReply ? (
+            <div className="flex items-center gap-2 text-[11px]">
+              <button type="button" onClick={() => setEditing(true)} className="text-[color:var(--lajvard)]">ویرایش</button>
+              <button type="button" onClick={remove} disabled={saving} className="text-red-600">حذف</button>
+            </div>
+          ) : null}
+        </div>
+        <p className="text-xs leading-relaxed text-[color:var(--text)]/80">{review.owner_reply}</p>
+      </div>
+    );
+  }
+
+  if (canReply) {
+    return (
+      <button type="button" onClick={() => setEditing(true)} className="mt-3 text-xs font-bold text-[color:var(--lajvard)]">
+        پاسخ به این نظر
+      </button>
+    );
+  }
+
+  return null;
 }
 
 function ContactRow({ icon, label, value, href, ltr, external }: { icon: React.ReactNode; label: string; value: string; href: string; ltr?: boolean; external?: boolean }) {

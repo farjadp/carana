@@ -9,7 +9,8 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { createSupabaseActionClient } from "@/lib/supabase/server";
+import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
+import { entitlementsFor } from "@/lib/billing/entitlements";
 
 // ----------------------------------------------------------------------------
 // انواع داده
@@ -190,6 +191,64 @@ export async function moderateReview(reviewId: string, status: string, reason?: 
     return { success: true };
   } catch (error: any) {
     console.error("Moderate Review Error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * پاسخ صاحب کسب‌وکار به یک نظر منتشرشده (فیچر پلن استارتر به بالا).
+ *
+ * No RLS policy grants a business owner UPDATE on public_reviews — only the
+ * review's author or an admin. That's correct; this action is the gate
+ * instead, and it checks two things a client payload could otherwise lie
+ * about: that the review actually belongs to *this* user's business, and
+ * that the business's plan currently includes "review_replies" (recomputed
+ * from plan/plan_until, not read off the stored column — a lapsed
+ * subscription loses the ability to reply, same as everywhere else).
+ * `reply` of `null` clears an existing reply.
+ */
+export async function replyToReview(reviewId: string, reply: string | null) {
+  try {
+    const supabase = await createSupabaseActionClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "ابتدا وارد حساب کاربری شوید." };
+
+    const trimmed = reply?.trim() || null;
+    if (trimmed && trimmed.length > 1000) {
+      return { success: false, error: "پاسخ نباید بیشتر از ۱۰۰۰ کاراکتر باشد." };
+    }
+
+    const { data: review } = await supabase
+      .from("public_reviews")
+      .select("id, business_id, status")
+      .eq("id", reviewId)
+      .eq("status", "published")
+      .maybeSingle();
+    if (!review) return { success: false, error: "نظر یافت نشد." };
+
+    const { data: business } = await supabase
+      .from("businesses")
+      .select("id, plan, plan_until, created_by")
+      .eq("id", review.business_id)
+      .eq("created_by", user.id)
+      .maybeSingle();
+    if (!business) return { success: false, error: "این کسب‌وکار متعلق به تو نیست." };
+
+    if (!entitlementsFor(business).has("review_replies")) {
+      return { success: false, error: "پاسخ به نظرات فقط برای پلن استارتر به بالا فعال است." };
+    }
+
+    const admin = createSupabaseAdminClient();
+    const { error } = await admin
+      .from("public_reviews")
+      .update({ owner_reply: trimmed, owner_reply_at: trimmed ? new Date().toISOString() : null })
+      .eq("id", reviewId);
+    if (error) throw error;
+
+    revalidatePath(`/businesses`, "layout");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Reply To Review Error:", error);
     return { success: false, error: error.message };
   }
 }

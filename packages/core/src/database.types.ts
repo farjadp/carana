@@ -860,6 +860,8 @@ export type Database = {
           experience_date: string | null
           id: string
           moderation_reason: string | null
+          owner_reply: string | null
+          owner_reply_at: string | null
           public_body: string
           public_rating: number
           public_title: string | null
@@ -879,6 +881,8 @@ export type Database = {
           experience_date?: string | null
           id?: string
           moderation_reason?: string | null
+          owner_reply?: string | null
+          owner_reply_at?: string | null
           public_body: string
           public_rating: number
           public_title?: string | null
@@ -898,6 +902,8 @@ export type Database = {
           experience_date?: string | null
           id?: string
           moderation_reason?: string | null
+          owner_reply?: string | null
+          owner_reply_at?: string | null
           public_body?: string
           public_rating?: number
           public_title?: string | null

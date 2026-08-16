@@ -30,7 +30,8 @@ const PUBLIC_BUSINESS_COLUMNS = `
   working_hours, accepts_appointments, booking_url,
   services, branches, status, created_by, created_at, updated_at,
   owner_user_id, verification_method, verified_at, verified_until,
-  verified_phone, verified_email, gallery_urls, gallery_video_url
+  verified_phone, verified_email, gallery_urls, gallery_video_url,
+  plan, plan_until
 `;
 
 async function fetchBusinessRecord(slugParam: string) {
@@ -150,7 +151,7 @@ export default async function BusinessProfilePage({
   // are only visible once moderation has set status = 'published'.
   const { data: reviewsData } = await supabase
     .from("public_reviews")
-    .select("id, public_title, public_body, public_rating, display_identity, published_at, created_at, user_id")
+    .select("id, public_title, public_body, public_rating, display_identity, published_at, created_at, user_id, owner_reply, owner_reply_at")
     .eq("business_id", business.id)
     .eq("status", "published")
     .order("published_at", { ascending: false });
@@ -183,6 +184,8 @@ export default async function BusinessProfilePage({
       r.display_identity === "anonymous"
         ? "کاربر ناشناس"
         : reviewerNames.get(r.user_id) ?? "کاربر چارانا",
+    owner_reply: r.owner_reply,
+    owner_reply_at: r.owner_reply_at,
   }));
 
   // Similar businesses: same category or same city. Built with separate eq()
