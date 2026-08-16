@@ -101,13 +101,24 @@ server-side (`e6071c5`). **Not built yet, in priority-ish order:**
 10. Real multi-branch UI with a map (Premium) — the `branches` column exists
     on `businesses` already but has no UI, same class of gap as the earlier
     `is_featured` dead-code bug.
-11. Mobile gallery parity — the web edit form has it, `apps/mobile` doesn't yet.
-12. Mobile owner-management screens — `apps/mobile` has no edit/insights/
-    billing/announcements at all, only registration and the public views.
-    Busy-status *display* shipped to mobile (16 Aug, `76f8f27`, moved the
-    expiry logic to `@charana/core` so both apps share it); the *toggle*
-    stays web-only until there's somewhere on mobile to put one. Same gap
-    blocks a mobile announcements manager and any future owner control.
+11. Mobile owner-management screens (gallery parity included) —
+    `apps/mobile` has no edit/insights/billing/announcements at all, only
+    registration and the public views. Busy-status *display* shipped to
+    mobile (16 Aug, `76f8f27`, moved the expiry logic to `@charana/core` so
+    both apps share it); the *toggle*, gallery uploads, and any future
+    owner control stay web-only until there's somewhere on mobile to put
+    them.
+12. SMS announcement notifications — a third channel for the
+    announcement-follow system (item 13 below); costs real money per
+    message via the existing Twilio integration, needs a budget/UX
+    decision from Farjad before it's an engineering task.
+13. Push notification infrastructure (mobile) — no Expo push token
+    registration or device-token storage exists at all; a bigger
+    prerequisite than any one feature that would use it.
+14. Website price list extraction (Premium) — Farjad's idea: reuse the
+    existing AI website-scrape (`scrapeWebsiteForBusiness`, already used at
+    onboarding) to pull a structured price list from a business's own site
+    instead of the free-text services list. Scope not yet defined.
 
 **Cross-cutting finding, not tied to a plan:** business profile and blog
 post URLs are Persian-language slugs today (`packages/core/src/slug.ts`
@@ -116,3 +127,11 @@ new standing rule ("all URLs must be English"). Affects ~680 indexed
 business URLs and every blog post URL; fixing it site-wide needs 301
 redirects to keep the SEO built up over the last few weeks. Bigger and
 separate from item 4 above, which should just be English from the start.
+
+## Announcement discovery (16 Aug, `ac3cef6`)
+
+Shipped: homepage feed (10 newest sitewide) + opt-in follow-and-email via
+`user_business_interactions.notify_announcements`, new "اعلان‌ها" tab on
+`/profile/interactions`. Not built this pass, tracked above as items 12–13:
+SMS (costs money, needs a budget call) and push (mobile has zero
+notification infrastructure to send to).

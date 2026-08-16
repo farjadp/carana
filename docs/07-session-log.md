@@ -238,6 +238,51 @@ raw Postgres `23505` unique-violation into a Persian message instead of
 leaking the constraint name — small thing, but a raw pg error surfacing in
 a save-toast is exactly the kind of rough edge this project keeps catching.
 
+## 16 August, closing slice — announcements can actually be found (`ac3cef6`)
+
+Farjad's question, paraphrased: a business posts an announcement — how
+does anyone find out? Two modes, as he framed it: newest announcements on
+the home page (max 10), and a user picking a specific business to follow,
+notified by email, SMS, push, or in their own panel.
+
+Built the first two channels, deliberately not the other two:
+
+- **Homepage feed** — up to 10 newest active announcements sitewide,
+  absent when there are none.
+- **Follow + email + in-app panel** — reused `user_business_interactions`
+  rather than a new table (a user already "saves" a business there; RLS
+  already lets them read/write only their own rows, no service-role gate
+  needed for the toggle itself). Added `notify_announcements`, defaulted
+  **false** — "saved" already means something else, and defaulting it to
+  "email me" would have been an unannounced email nobody asked for. New
+  "باخبرم کن" button in `InteractionBar`, separate from "ذخیره". New
+  "اعلان‌ها" tab on `/profile/interactions`. `createAnnouncement` fires a
+  best-effort, non-blocking `notifyFollowers()` after the insert succeeds
+  via the existing Resend setup.
+
+**SMS and push, explicitly not built, said plainly rather than silently
+dropped:** SMS costs real per-message money through the existing Twilio
+integration and needs a budget/opt-in decision from Farjad first, not just
+an engineering slice. Push has no infrastructure to build on at all —
+`apps/mobile` has never registered an Expo push token or stored a device
+token, for this or anything else. Both written up as their own Notion
+backlog items rather than folded into "later."
+
+Also captured two more ideas Farjad wants tracked, not built this
+session: a website price-list extraction feature (reusing the existing AI
+scrape used at onboarding) and confirmation that real in-app booking was
+already tracked from the earlier brainstorm.
+
+Verified: `tsc` + build clean. The one part that couldn't be checked purely
+by type-checking — the PostgREST embedded-filter syntax
+(`businesses!inner` + `business.status=in.(...)`) for the homepage
+query — was confirmed with a direct REST call against the live database,
+since a wrong embed-filter string compiles fine and just silently returns
+the wrong rows. Did not fabricate a test announcement to screenshot the
+populated feed/email — that would mean writing throwaway content into
+production data — so the full populated-state render path is unverified
+by eye, only by code review and the isolated query check.
+
 ## Commits, oldest first
 
 ```
