@@ -14,6 +14,146 @@ export type Database = {
   }
   public: {
     Tables: {
+      blog_categories: {
+        Row: {
+          description: string | null
+          display_order: number
+          name: string
+          name_en: string
+          slug: string
+        }
+        Insert: {
+          description?: string | null
+          display_order?: number
+          name: string
+          name_en: string
+          slug: string
+        }
+        Update: {
+          description?: string | null
+          display_order?: number
+          name?: string
+          name_en?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      blog_posts: {
+        Row: {
+          admin_note: string | null
+          ai_model: string | null
+          author_name: string
+          body_md: string
+          category_slug: string | null
+          cover_alt: string | null
+          cover_url: string | null
+          created_at: string
+          excerpt: string | null
+          faq: Json | null
+          id: string
+          internal_links: string[]
+          published_at: string | null
+          reading_minutes: number | null
+          slug: string
+          sources: Json | null
+          status: string
+          summary_en: string | null
+          tags: string[]
+          title: string
+          title_en: string | null
+          topic_seed: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          ai_model?: string | null
+          author_name?: string
+          body_md: string
+          category_slug?: string | null
+          cover_alt?: string | null
+          cover_url?: string | null
+          created_at?: string
+          excerpt?: string | null
+          faq?: Json | null
+          id?: string
+          internal_links?: string[]
+          published_at?: string | null
+          reading_minutes?: number | null
+          slug: string
+          sources?: Json | null
+          status?: string
+          summary_en?: string | null
+          tags?: string[]
+          title: string
+          title_en?: string | null
+          topic_seed?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          ai_model?: string | null
+          author_name?: string
+          body_md?: string
+          category_slug?: string | null
+          cover_alt?: string | null
+          cover_url?: string | null
+          created_at?: string
+          excerpt?: string | null
+          faq?: Json | null
+          id?: string
+          internal_links?: string[]
+          published_at?: string | null
+          reading_minutes?: number | null
+          slug?: string
+          sources?: Json | null
+          status?: string
+          summary_en?: string | null
+          tags?: string[]
+          title?: string
+          title_en?: string | null
+          topic_seed?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_category_slug_fkey"
+            columns: ["category_slug"]
+            isOneToOne: false
+            referencedRelation: "blog_categories"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
+      blog_runs: {
+        Row: {
+          created: number
+          errors: Json | null
+          finished_at: string | null
+          id: string
+          notes: string | null
+          requested: number
+          started_at: string
+        }
+        Insert: {
+          created?: number
+          errors?: Json | null
+          finished_at?: string | null
+          id?: string
+          notes?: string | null
+          requested: number
+          started_at?: string
+        }
+        Update: {
+          created?: number
+          errors?: Json | null
+          finished_at?: string | null
+          id?: string
+          notes?: string | null
+          requested?: number
+          started_at?: string
+        }
+        Relationships: []
+      }
       business_change_reviews: {
         Row: {
           ai_verdict: Json | null
@@ -145,6 +285,44 @@ export type Database = {
           },
         ]
       }
+      business_events: {
+        Row: {
+          business_id: string
+          created_at: string
+          event_type: string
+          id: number
+          referrer: string | null
+          source: string
+          visitor_hash: string | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          event_type: string
+          id?: number
+          referrer?: string | null
+          source?: string
+          visitor_hash?: string | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          event_type?: string
+          id?: number
+          referrer?: string | null
+          source?: string
+          visitor_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_events_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_memberships: {
         Row: {
           business_id: string
@@ -184,6 +362,59 @@ export type Database = {
           },
         ]
       }
+      business_reports: {
+        Row: {
+          admin_note: string | null
+          business_id: string
+          contact: string | null
+          created_at: string
+          details: string | null
+          id: string
+          reason: string
+          reporter_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          source: string
+          status: string
+        }
+        Insert: {
+          admin_note?: string | null
+          business_id: string
+          contact?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason: string
+          reporter_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source?: string
+          status?: string
+        }
+        Update: {
+          admin_note?: string | null
+          business_id?: string
+          contact?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason?: string
+          reporter_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_reports_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           accepts_appointments: boolean | null
@@ -194,6 +425,7 @@ export type Database = {
           business_number: string | null
           category: string
           city: string
+          city_source: string | null
           contact_email: string | null
           country: string | null
           cover_url: string | null
@@ -254,6 +486,7 @@ export type Database = {
           business_number?: string | null
           category: string
           city: string
+          city_source?: string | null
           contact_email?: string | null
           country?: string | null
           cover_url?: string | null
@@ -314,6 +547,7 @@ export type Database = {
           business_number?: string | null
           category?: string
           city?: string
+          city_source?: string | null
           contact_email?: string | null
           country?: string | null
           cover_url?: string | null
@@ -421,6 +655,21 @@ export type Database = {
         }
         Relationships: []
       }
+      category_aliases: {
+        Row: {
+          alias: string
+          category_slug: string
+        }
+        Insert: {
+          alias: string
+          category_slug: string
+        }
+        Update: {
+          alias?: string
+          category_slug?: string
+        }
+        Relationships: []
+      }
       city_aliases: {
         Row: {
           aliases: string
@@ -433,6 +682,21 @@ export type Database = {
         Update: {
           aliases?: string
           city_en?: string
+        }
+        Relationships: []
+      }
+      city_metro: {
+        Row: {
+          city_en: string
+          metro_en: string
+        }
+        Insert: {
+          city_en: string
+          metro_en: string
+        }
+        Update: {
+          city_en?: string
+          metro_en?: string
         }
         Relationships: []
       }
@@ -616,6 +880,48 @@ export type Database = {
           result_count?: number
           source?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      suggestions: {
+        Row: {
+          admin_note: string | null
+          body: string | null
+          contact: string | null
+          created_at: string
+          id: string
+          page: string | null
+          source: string
+          status: string
+          user_id: string | null
+          voice_path: string | null
+          voice_seconds: number | null
+        }
+        Insert: {
+          admin_note?: string | null
+          body?: string | null
+          contact?: string | null
+          created_at?: string
+          id?: string
+          page?: string | null
+          source?: string
+          status?: string
+          user_id?: string | null
+          voice_path?: string | null
+          voice_seconds?: number | null
+        }
+        Update: {
+          admin_note?: string | null
+          body?: string | null
+          contact?: string | null
+          created_at?: string
+          id?: string
+          page?: string | null
+          source?: string
+          status?: string
+          user_id?: string | null
+          voice_path?: string | null
+          voice_seconds?: number | null
         }
         Relationships: []
       }
@@ -815,6 +1121,14 @@ export type Database = {
         Args: { target_business_id: string }
         Returns: Database["public"]["Enums"]["business_status"]
       }
+      business_event_summary: {
+        Args: { p_business_id: string; p_days?: number }
+        Returns: {
+          day: string
+          event_type: string
+          n: number
+        }[]
+      }
       business_search_text: {
         Args: { b: Database["public"]["Tables"]["businesses"]["Row"] }
         Returns: string
@@ -833,6 +1147,7 @@ export type Database = {
         Returns: undefined
       }
       is_admin: { Args: { user_id: string }; Returns: boolean }
+      keyboard_swap: { Args: { t: string }; Returns: string }
       review_current_status: {
         Args: { target_review_id: string }
         Returns: Database["public"]["Enums"]["public_review_status"]

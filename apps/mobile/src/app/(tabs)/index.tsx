@@ -54,6 +54,7 @@ import {
   type BusinessSignals,
   type Category,
 } from "../../lib/businesses";
+import { listPosts, type PostCard } from "../../lib/blog";
 import { openNow } from "../../lib/hours";
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
@@ -96,6 +97,7 @@ export default function HomeScreen() {
   const [verified, setVerified] = useState<BusinessSignals[]>([]);
   const [cities, setCities] = useState<{ city: string; count: number }[]>([]);
   const [total, setTotal] = useState(0);
+  const [posts, setPosts] = useState<PostCard[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -103,13 +105,14 @@ export default function HomeScreen() {
 
   const load = useCallback(async () => {
     try {
-      const [cats, counted, latest, cityList, withSignals, verifiedRows] = await Promise.all([
+      const [cats, counted, latest, cityList, withSignals, verifiedRows, blogPosts] = await Promise.all([
         listCategories(),
         countByCategory(),
         listBusinesses({ limit: 5 }),
         listCities(),
         listWithSignals(80),
         listVerified(8),
+        listPosts({ limit: 6 }),
       ]);
       setCategories(cats);
       setCounts(counted);
@@ -124,6 +127,7 @@ export default function HomeScreen() {
         })
       );
       setTotal(Object.values(counted).reduce((a, b) => a + b, 0));
+      setPosts(blogPosts);
     } catch (err) {
       setError(err instanceof Error ? err.message : "خطای ناشناخته");
     } finally {
@@ -367,6 +371,28 @@ export default function HomeScreen() {
               </Pressable>
             ))}
           </View>
+        ) : null}
+
+        {/* ── From the blog ────────────────────────────────────────────── */}
+        {posts.length ? (
+          <>
+            <SectionHeader title="خواندنی‌ها" onPress={() => router.push("/blog")} />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.shelf} style={styles.shelfScroll}>
+              {posts.map((p) => (
+                <Pressable
+                  key={p.id}
+                  onPress={() => router.push(`/blog/${p.slug}`)}
+                  style={({ pressed }) => [styles.postCard, pressed && styles.pressed]}
+                >
+                  {p.cover_url ? <Image source={{ uri: p.cover_url }} style={styles.postCover} resizeMode="cover" /> : null}
+                  <View style={styles.postBody}>
+                    <Text style={styles.postTitle} numberOfLines={3}>{p.title}</Text>
+                    {p.reading_minutes ? <Text style={styles.postMeta}>{fa(p.reading_minutes)} دقیقه خواندن</Text> : null}
+                  </View>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </>
         ) : null}
 
         {/* ── Owner door ───────────────────────────────────────────────── */}
@@ -657,6 +683,12 @@ const styles = StyleSheet.create({
   cityChipCount: { fontSize: 11, fontFamily: fonts.medium, color: colors.lajvard, opacity: 0.7 },
 
   // Owner card
+  postCard: { width: 250, backgroundColor: colors.surface, borderRadius: radius.lg, overflow: "hidden", ...shadow.card },
+  postCover: { width: "100%", height: 132, backgroundColor: colors.bg },
+  postBody: { padding: space.sm + 2, gap: 4 },
+  postTitle: { fontSize: 14.5, fontFamily: fonts.bold, color: colors.text, lineHeight: 25, textAlign: "right" },
+  postMeta: { fontSize: 11.5, fontFamily: fonts.medium, color: colors.mutedText, textAlign: "right" },
+
   ownerCard: {
     flexDirection: "row-reverse",
     alignItems: "center",
