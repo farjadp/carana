@@ -2698,3 +2698,26 @@ section {
 .sbox.is-done strong { display: block; color: var(--text); font-size: 15px; }
 .sbox.is-done p { margin: 2px 0 0; font-size: 13px; color: var(--muted-text); }
 .sbox-again { border: 0; background: var(--bg); color: var(--text); font-weight: 700; font-size: 13px; padding: 8px 14px; border-radius: 999px; cursor: pointer; }
+
+/* Blog prose — Persian long-form. 2026-08-16 */
+.prose-fa { color: var(--text); font-size: 17px; line-height: 2; }
+.prose-fa > * + * { margin-top: 1.1em; }
+.prose-fa h2 { font-size: 1.5rem; font-weight: 800; line-height: 1.5; margin-top: 2.2em; color: var(--text); }
+.prose-fa h3 { font-size: 1.2rem; font-weight: 800; line-height: 1.5; margin-top: 1.8em; }
+.prose-fa h2 + *, .prose-fa h3 + * { margin-top: 0.6em; }
+.prose-fa p { margin: 0; }
+.prose-fa a { color: var(--lajvard); font-weight: 700; text-decoration: underline; text-decoration-color: rgba(0,71,171,0.3); text-underline-offset: 4px; }
+.prose-fa a:hover { text-decoration-color: var(--lajvard); }
+.prose-fa strong { font-weight: 800; }
+.prose-fa ul, .prose-fa ol { padding-right: 1.4em; }
+.prose-fa li { margin: 0.35em 0; }
+.prose-fa ul li::marker { color: var(--annabi); }
+.prose-fa ol li::marker { color: var(--annabi); font-weight: 800; }
+.prose-fa blockquote { border-right: 4px solid var(--gold); padding: 0.4em 1em; background: #fff; border-radius: 12px; color: var(--muted-text); }
+.prose-fa img { width: 100%; height: auto; border-radius: 22px; margin: 1.6em 0; }
+.prose-fa hr { border: 0; border-top: 1px solid var(--line); margin: 2.4em 0; }
+.prose-fa table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 15px; background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.prose-fa th, .prose-fa td { padding: 0.65em 0.9em; text-align: right; border-bottom: 1px solid var(--line); }
+.prose-fa th { background: var(--bg); font-weight: 800; }
+.prose-fa tr:last-child td { border-bottom: 0; }
+.prose-fa code { background: #fff; padding: 0.1em 0.4em; border-radius: 6px; font-size: 0.9em; direction: ltr; unicode-bidi: embed; }

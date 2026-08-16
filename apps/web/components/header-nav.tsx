@@ -49,6 +49,7 @@ export const NAV_GROUPS: NavGroup[] = [
     id: "help",
     label: "راهنما",
     items: [
+      { href: "/blog", label: "وبلاگ" },
       { href: "/how-it-works", label: "چطور کار می‌کند" },
       { href: "/trust", label: "اعتماد و بررسی" },
       { href: "/support", label: "پشتیبانی" },

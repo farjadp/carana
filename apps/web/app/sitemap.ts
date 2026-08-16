@@ -93,6 +93,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
+  // Blog
+  entries.push({ url: `${base}/blog`, changeFrequency: "daily", priority: 0.7 });
+  const { data: blogCats } = await supabase.from("blog_categories").select("slug");
+  for (const c of blogCats ?? []) entries.push({ url: `${base}/blog/category/${c.slug}`, changeFrequency: "daily", priority: 0.5 });
+  const { data: posts } = await supabase.from("blog_posts").select("slug, updated_at").eq("status", "published");
+  for (const p of posts ?? []) entries.push({ url: `${base}/blog/${p.slug}`, lastModified: p.updated_at ? new Date(p.updated_at) : undefined, changeFrequency: "weekly", priority: 0.7 });
+
   const { data: businesses } = await supabase
     .from("businesses")
     .select("slug, updated_at")

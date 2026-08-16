@@ -50,6 +50,7 @@ A listing is verified when its owner confirmed a one-time code sent to the liste
 - [How it works](${SITE}/how-it-works)
 - [About](${SITE}/about) · [Team](${SITE}/team) · [Roadmap](${SITE}/roadmap)
 - [Register a business (free)](${SITE}/dashboard/business/new)
+- [Blog](${SITE}/blog) · [RSS](${SITE}/blog/feed.xml) — guides for Iranians in Canada, city life, business, and what the directory's data shows
 - [Sitemap](${SITE}/sitemap.xml)
 
 ## Categories

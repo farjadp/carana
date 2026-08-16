@@ -32,6 +32,8 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-hook-form": "^7.85.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "resend": "^4.0.1",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0",
