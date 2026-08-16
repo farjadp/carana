@@ -497,3 +497,36 @@ y≈830; tab centres x ≈ 39 / 120 / 201 / 281 / 362.
 **Lesson:** a tool that reports "Tapped at (x, y)" has not confirmed anything
 landed. Verify with the next screenshot, and suspect the coordinate space
 before suspecting the app.
+
+---
+
+## A Sensitive Vercel variable that exists but is empty looks exactly like a correct one
+
+**Symptom, twice in one night:** `/profile` and `/admin` returned the branded
+error page (`Missing required environment variable: SUPABASE_SECRET_KEY`), and
+later every anonymous POST to `/api/reports` failed with
+`Missing required environment variable: SUPABASE_PUBLISHABLE_KEY` — while the
+whole rest of the site rendered fine.
+
+**Cause:** both variables were present in the Vercel dashboard, marked
+Sensitive, with an empty value. `vercel env ls` shows the name, the
+environment and the age; it cannot show the value, so "it is configured" and
+"it is correct" are indistinguishable from outside.
+
+The site kept working because `lib/env.ts` has two accessors: `env.*` falls
+back to the `NEXT_PUBLIC_*` copy (which was set), while `serverEnv.*` reads the
+bare name strictly. Everything rendering through `env` was fine; only the
+paths that use `serverEnv` — the admin client, `authenticateBearer`, and so
+every `/api/mobile/*` route — were broken.
+
+**Fix:** re-set the value from `apps/web/.env.local`, redeploy, and verify with
+a real request rather than by looking at the dashboard:
+
+```bash
+curl -s -X POST https://charana.ca/api/reports -H "Content-Type: application/json" \
+  -d '{"businessId":"<uuid>","reason":"closed"}'
+```
+
+**Lesson:** after any key rotation, exercise one route per accessor —
+a page (`env`), an admin page (`serverEnv` + service role) and a mobile API
+route (`serverEnv` + publishable). A green dashboard is not evidence.

@@ -34,6 +34,8 @@ import { InteractionBar } from "../../components/interaction-bar";
 import { getBusinessBySlug, listCategories, type BusinessDetail, type Category } from "../../lib/businesses";
 import { listPublishedReviews, type PublicReview } from "../../lib/interactions";
 import { DAYS, openNow as computeOpenNow } from "../../lib/hours";
+import { trackEvent } from "../../lib/analytics";
+import { ReportSheet } from "../../components/report-sheet";
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
 const SERVICE_TYPE_FA: Record<string, string> = { in_person: "حضوری", online: "آنلاین", both: "حضوری و آنلاین" };
@@ -59,6 +61,8 @@ export default function BusinessScreen() {
         const found = await getBusinessBySlug(decodeURIComponent(slug ?? ""));
         setBusiness(found);
         if (found) {
+          // One view per screen open, same event the website records.
+          trackEvent(found.id, "view");
           const [revs, cats] = await Promise.all([listPublishedReviews(found.id), listCategories()]);
           setReviews(revs);
           setCategory(cats.find((c) => c.slug === found.category) ?? null);
@@ -160,13 +164,13 @@ export default function BusinessScreen() {
 
           {/* Actions */}
           <View style={styles.actions}>
-            {business.phone ? <Action primary icon={<Phone size={17} color={colors.onAnnabi} />} label="تماس" onPress={() => Linking.openURL(`tel:${business.phone}`)} /> : null}
-            {wa ? <Action icon={<MessageCircle size={17} color={colors.success} />} label="واتساپ" onPress={() => Linking.openURL(wa)} /> : null}
-            {business.address || business.google_maps_url ? <Action icon={<Navigation size={17} color={colors.lajvard} />} label="مسیریابی" onPress={() => Linking.openURL(directions)} /> : null}
-            {website ? <Action icon={<Globe size={17} color={colors.lajvard} />} label="وب‌سایت" onPress={() => Linking.openURL(website)} /> : null}
+            {business.phone ? <Action primary icon={<Phone size={17} color={colors.onAnnabi} />} label="تماس" onPress={() => { trackEvent(business.id, "call"); Linking.openURL(`tel:${business.phone}`); }} /> : null}
+            {wa ? <Action icon={<MessageCircle size={17} color={colors.success} />} label="واتساپ" onPress={() => { trackEvent(business.id, "whatsapp"); Linking.openURL(wa); }} /> : null}
+            {business.address || business.google_maps_url ? <Action icon={<Navigation size={17} color={colors.lajvard} />} label="مسیریابی" onPress={() => { trackEvent(business.id, "directions"); Linking.openURL(directions); }} /> : null}
+            {website ? <Action icon={<Globe size={17} color={colors.lajvard} />} label="وب‌سایت" onPress={() => { trackEvent(business.id, "website"); Linking.openURL(website); }} /> : null}
           </View>
           {business.accepts_appointments && business.booking_url ? (
-            <Pressable onPress={() => Linking.openURL(business.booking_url!)} style={({ pressed }) => [styles.bookBtn, pressed && { opacity: 0.85 }]}>
+            <Pressable onPress={() => { trackEvent(business.id, "booking"); Linking.openURL(business.booking_url!); }} style={({ pressed }) => [styles.bookBtn, pressed && { opacity: 0.85 }]}>
               <CalendarDays size={17} color="#fff" /><Text style={styles.bookText}>رزرو نوبت</Text>
             </Pressable>
           ) : null}
@@ -310,6 +314,10 @@ export default function BusinessScreen() {
                 </View>
               </Pressable>
             ) : null}
+            {/* Same report flow and same queue as the website. */}
+            <View style={{ borderTopWidth: 1, borderTopColor: colors.line, paddingTop: space.sm, marginTop: 2 }}>
+              <ReportSheet businessId={business.id} businessName={business.name} />
+            </View>
           </Section>
         </View>
       </ScrollView>

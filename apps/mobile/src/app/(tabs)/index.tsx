@@ -103,7 +103,6 @@ export default function HomeScreen() {
 
   const load = useCallback(async () => {
     try {
-      setError(null);
       const [cats, counted, latest, cityList, withSignals, verifiedRows] = await Promise.all([
         listCategories(),
         countByCategory(),
@@ -134,6 +133,8 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
+    // load() is a fetch: its first statement is an await, so every setState inside it lands in a promise continuation, not during this effect. The rule only sees a call into a function that touches state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, [load]);
 

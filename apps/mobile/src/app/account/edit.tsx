@@ -33,14 +33,29 @@ export default function EditProfileScreen() {
     if (!loading && !user) router.replace("/auth/login?next=/account/edit");
   }, [loading, user, router]);
 
-  useEffect(() => {
+  // Seed the form from the profile the moment it arrives (and whenever it
+  // changes underneath us). Adjusting state during render is React's
+  // documented pattern for this; doing it in an effect renders the empty form
+  // once first and trips react-hooks/set-state-in-effect.
+  const [seededFrom, setSeededFrom] = useState<typeof profile | undefined>(undefined);
+  if (seededFrom !== profile) {
+    setSeededFrom(profile);
     setName(profile?.full_name ?? "");
     setMobile(profile?.mobile_number ?? "");
-    // bio is not on the app's Profile type yet; fetch it once here.
-    if (user) {
-      supabase.from("profiles").select("bio").eq("id", user.id).maybeSingle().then(({ data }) => setBio(data?.bio ?? ""));
-    }
-  }, [profile, user]);
+  }
+
+  // bio is not on the app's Profile type yet, so it is fetched separately.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from("profiles").select("bio").eq("id", user.id).maybeSingle();
+      if (!cancelled) setBio(data?.bio ?? "");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   if (!user) return null;
 

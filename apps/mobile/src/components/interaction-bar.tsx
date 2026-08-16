@@ -54,6 +54,8 @@ export function InteractionBar({
   }, [user, businessId]);
 
   useEffect(() => {
+    // Same as the home screen: load() awaits before it sets anything, so this is subscribe-then-update, not a synchronous cascade.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, [load]);
 

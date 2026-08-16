@@ -27,13 +27,12 @@ export default function ProvinceScreen() {
   const [items, setItems] = useState<BusinessCard[]>([]);
   const [cities, setCities] = useState<{ city: string; count: number }[]>([]);
   const [labels, setLabels] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
+  // A missing province has nothing to load, so it starts settled rather than
+  // starting "loading" and being corrected inside an effect.
+  const [loading, setLoading] = useState(!!province);
 
   useEffect(() => {
-    if (!province) {
-      setLoading(false);
-      return;
-    }
+    if (!province) return;
     (async () => {
       try {
         const [rows, cats, summaries] = await Promise.all([
