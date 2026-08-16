@@ -73,7 +73,9 @@ server-side (`e6071c5`). **Not built yet, in priority-ish order:**
    policy lets an owner update someone else's review row, so the action is
    the gate), rendered publicly under the review with inline write/edit/
    delete for an entitled owner.
-3. "Busy now / quiet now" live status toggle (Starter) — cheap, high-signal.
+3. ~~"Busy now / quiet now" live status toggle (Starter)~~ — **shipped 16
+   Aug, `ac00070`.** Self-expiring (4h), toggled from the owner dashboard,
+   shown on `BusinessCard` everywhere and the profile hero.
 4. Vanity English URL, e.g. `charana.ca/b/dr-ahmadi` (Premium) — build this
    one English-slugged from day one regardless of item 8 below.
 5. Personalized targeted search suggestion — e.g. an "Iranian restaurant"

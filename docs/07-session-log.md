@@ -155,6 +155,27 @@ plan/plan_until, not the stored column) before writing via the service
 role. An owner on a lower plan sees an upsell line under the review
 instead of a mysteriously missing button.
 
+Notion Mission Control finally reachable again a bit later this same
+session — connector needed re-authorization (a different failure mode than
+the earlier 503s, which were a genuine outage; five attempts total across
+the two causes). Wrote up all 13 backlog items from the plans-v2 brainstorm
+in one pass once it was back: the 2 shipped so far marked Done with commit
+hashes, the Persian-slug finding at P1, the rest at P2/P3. See Mission
+Control, area "Product" — `docs/05-open-tasks.md` stays the durable local
+copy either way.
+
+## 16 August, one more slice — busy now / quiet now ships (`ac00070`)
+
+Third item off the backlog: a manual, self-expiring (4h) "الان شلوغیم /
+خلوته" toggle for Starter+ owners, on the dashboard. Shows on every
+`BusinessCard` (search, city pages, home — one place decides it, same as
+the featured chip) and the profile hero. `businesses.busy_status` /
+`busy_status_until`; expiry checked in `lib/business/live-status.ts`, never
+trusted past its own timestamp, same pattern as `verified_until` and
+`plan_until`. `search_businesses` needed a third drop+recreate (same
+OUT-parameter constraint discovered two migrations back) to pass the new
+columns through paginated results.
+
 ## Commits, oldest first
 
 ```
