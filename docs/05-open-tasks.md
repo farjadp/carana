@@ -1,63 +1,58 @@
 # Open tasks
 
-**Updated:** 2026-08-15 (late night). The operational board is Notion → 🧿 Charana
-→ Mission Control; this file is the readable snapshot for a cold session.
-Every task below also exists there with owner, priority and instructions.
+**Updated:** 2026-08-16, end of the 15–16 Aug session.
+The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
----
+## Farjad — dashboard work, minutes each
 
-## Farjad-side, each minutes
+**Stripe, before any real charge:**
+- **Roll the live secret key** — it was pasted into a chat transcript on 16 Aug
+- Settings → Tax → set the head office address (automatic tax fails without it)
+- Settings → Billing → enable the Customer Portal
+- Create the production webhook endpoint at `https://charana.ca/api/stripe/webhook`
+  and put its signing secret in Vercel as `STRIPE_WEBHOOK_SECRET`
+- Run `scripts/seed-stripe-plans.mts` against live (it refuses live keys by
+  design — create the live products deliberately), then set the four
+  `STRIPE_PRICE_*` variables on Vercel
+- Confirm the account's legal entity: the sidebar reads "Charana / Visa Roads"
+  while the site says Ashavid Inc. The account owner is the merchant of record
 
-- **Change the two passwords and delete the credentials file.**
-  `apps/web/.admin-credentials.local.txt` (git-ignored) holds temporary
-  passwords for `farjad@ashavid.ca` (admin) and `its@farjadp.com` (personal,
-  owner of the three showcase listings). Log in, change, delete the file.
-- **Retire `admin@charana.ca`** once you are in as the new admin (tell Claude).
-- **Rotate the exposed Twilio auth token** and **delete `GEMINI_API_KEY`**
-  from Vercel (revoke at Google). P0 since 14 Aug.
-- **`CRON_SECRET` on Vercel Production** — the renewal-reminder cron refuses
-  to run without it.
-- **Point carana.ca DNS to Vercel** (misspelled domain → 308).
-- **Enable Maps Embed API** on the Google key → the profile map iframe can
-  come back (two-line restore, marked in `business-profile-client.tsx`).
-- **Delete the Supabase personal access token** `sbp_fcb5…` at
-  supabase.com/dashboard/account/tokens — it was pasted in chat on 15 Aug and
-  used for the auth config; already removed from `.env.local`.
-- **D-U-N-S → Apple + Google organisation accounts** (external; blocks
-  TestFlight, App Store, Play, `APPLE_TEAM_ID`).
-- **Decide:** re-review on edits to published listings? Tiers for paid
-  packages? Offer for early-stage businesses? (three Notion decisions).
+**Security and config:**
+- Rotate the Twilio auth token (pasted into a transcript)
+- Remove the unused `GEMINI_API_KEY` from Vercel
+- Delete the personal Supabase token from the dashboard
+- Change the two temporary admin passwords, then delete
+  `apps/web/.admin-credentials.local.txt`
+- Point `carana.ca` DNS at Vercel
+- Enable the Maps Embed API on the Google key to bring the profile map back
+
+**One click, highest leverage:**
+- `/admin/cleanup/cities` → "apply all" sets 365 Toronto-area listings that
+  currently have no city. Then work the ~44 rows that need a human.
+
+**Needs a real device:**
+- Test the voice suggestion box on an iPhone (the simulator has no microphone)
+
+## Blocked on something external
+
+- D-U-N-S for Ashavid Inc. → Apple Developer and Google Play organisations →
+  App Store / TestFlight → store screenshots
 
 ## Code — next slices, in order
 
-0. **Verify mobile voice on a real iPhone** and then **build APK 1.2.0**
-   (expo-audio is a new native module — the 1.1.0 APK cannot record). Then
-   admin sidebar badges "۵"/"۲" → live counts (Notion mission exists).
-
-1. **Report button tells a falsehood** (P0, small): either a
-   `business_reports` table + admin queue, or remove the button. The toast
-   was already deleted from the profile; the button in older surfaces may
-   remain — grep for it.
-2. **Instrument the conversion moment** (P1): count call / WhatsApp /
-   directions / website taps per business per day (`business_events`).
-   Unblocks the owner analytics dashboard.
-3. **Onboarding draft duplication** (P2, web only): `saveBusinessDraft`
-   fires before the first `businessId` returns → several DRAFT rows per
-   session. Mobile awaits and does not have the bug.
-4. **Missing-city cleanup queue** (P1): 409 imported rows have no city.
-5. **Search follow-ups**: admin view of `search_queries` zero-result
-   queries; search by ref number; suggestions/autocomplete; category
-   synonyms table (کافه ↔ رستوران is one category today).
-6. **Big backlog ideas** (all in Notion with notes): anti-scraping, subdomain
-   per business, paid packages, AI assistant, business announcements, user
-   wall, "why is there no X in Newmarket" requests, early-stage support,
-   jobs board.
-
-## Housekeeping
-
-- Test user `charana-onboarding-test@charana.ca` (verified email + phone,
-  no listings) exists for exercising flows; keep or delete.
-- Four pre-existing ESLint errors (recorder hooks, use-color-scheme) are
-  untouched — their own Notion mission.
-- `docs/13-supabase-email-templates.md` is now historical: the templates are
-  applied on the project. Keep as the source if they ever need re-pasting.
+1. **APK 1.2.0.** It carries the blog, conversion events, the report sheet and
+   the voice suggestion box. None of it reaches users until it ships.
+2. **Featured placement rendering.** The entitlement and the sort helper exist
+   (`sortFeaturedFirst`); the city × category and search lists do not use them
+   yet. When they do, the «ویژه» chip must render — an unlabelled paid position
+   is an advertisement.
+3. **Blog E-E-A-T pass.** Two or three first-hand sentences per post that a
+   model cannot invent. Farjad supplies; I fold in.
+4. RLS and authorization regression tests.
+5. Rate limiting to shared infrastructure — it is per-instance memory today, so
+   it resets on every deploy and does not hold across regions.
+6. Anti-scraping for the directory.
+7. `businesses.category` is free text, not a foreign key; category labels have
+   two sources of truth.
+8. `notFound()` in the city routes returns 200 (pre-existing, cosmetic —
+   the body is noindex).

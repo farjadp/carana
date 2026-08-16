@@ -2,6 +2,61 @@
 
 14 commits, from a codebase that would not build to a live site.
 
+
+## 15–16 August 2026 — search follow-through, SEO layer, blog, money
+
+A long session, roughly in this order.
+
+**Suggestion box.** Text or voice, no sign-in, on the home page, `/support` and
+the zero-result search; the same box in the app via `expo-audio`; an admin
+inbox with signed-URL playback.
+
+**Search, properly fixed.** «رستوران in Toronto» returned nothing because the
+filter was `lower(city) = 'toronto'` and every restaurant sits in North York,
+Richmond Hill or «نامشخص». Added `city_metro` and `category_aliases` and made
+the RPC expand through both; the search page now widens the query when a city
+filter finds nothing and says so.
+
+**SEO/GEO layer 1.** City × category pages with live counts, data-derived FAQ
+and full structured data; `llms.txt`; interlinking; pagination on every long
+list. Two old bugs fell out: city counters were computed from a 24-row page,
+and the city search form submitted nowhere.
+
+**Cities and 404.** Every city resolves now, not just the eight configured
+ones. The index was redesigned and the 404 rebuilt around a real search box.
+
+**Blog.** Tables, seven categories, a generator anchored to the directory's own
+data (counts, zero-result searches, suggestions, the calendar), a humanising
+pass, brand imagery through fal.ai, an admin desk, public pages, RSS — and the
+same blog inside the app with a hand-written markdown renderer.
+
+**Report button, conversion events, owner insights, city cleanup queue,** and
+live admin sidebar counts.
+
+**Billing.** Stripe subscriptions end to end in sandbox: plans in code,
+checkout with server-side ownership and price selection, a signature-verified
+idempotent webhook, invoices, `/pricing`, and entitlements that recompute from
+`plan_until` rather than trusting the stored plan.
+
+**Docs.** Fifteen files merged into eight, a root `CLAUDE.md` added, and both
+mirrored into Notion with a durable revision log.
+
+### What I said wrongly
+
+- Reported the app's **tab bar as unresponsive** and started looking for a bug.
+  It was fine: the simulator tool takes device points (402×874) and I was
+  feeding it screenshot pixels. Nothing was broken.
+- Published five first-generation blog posts before checking them properly; one
+  stated a Canada-wide number («۶۸۰») as a Vancouver number, live on the site.
+  Unpublished, prompts fixed, replacements generated.
+- Left `EXPO_PUBLIC_API_URL` pointing at my laptop's LAN address in
+  `apps/mobile/.env.local` after testing. Harmless locally, but `EXPO_PUBLIC_*`
+  is inlined at build time, so an APK built from that checkout would have
+  shipped pointing at 192.168.1.211.
+- Twice told Farjad production was healthy while `/profile`, `/admin` and every
+  `/api/mobile/*` route were failing on empty Sensitive environment variables.
+  The site rendered, so I believed it. Only the runtime log told the truth.
+
 ## Commits, oldest first
 
 ```

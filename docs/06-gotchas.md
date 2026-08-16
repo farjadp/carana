@@ -530,3 +530,35 @@ curl -s -X POST https://charana.ca/api/reports -H "Content-Type: application/jso
 **Lesson:** after any key rotation, exercise one route per accessor —
 a page (`env`), an admin page (`serverEnv` + service role) and a mobile API
 route (`serverEnv` + publishable). A green dashboard is not evidence.
+
+---
+
+## Stripe automatic tax refuses to work without a head-office address
+
+**Symptom:** `subscriptions.create` with `automatic_tax: { enabled: true }`
+fails in **test** mode with *"You must have a valid head office address to
+enable automatic tax calculation"*.
+
+**Cause:** Stripe Tax needs the origin address before it can decide a rate, and
+a brand-new account has none. Checkout with `automatic_tax` will fail the same
+way, so this is a launch blocker rather than a nicety.
+
+**Fix:** Dashboard → Settings → Tax → set the head office address, in test and
+in live. Nothing in the repo changes.
+
+---
+
+## Generated database types go stale silently, and only the typed client notices
+
+**Symptom:** `apps/mobile` failed to compile with *"Argument of type
+'blog_categories' is not assignable"* while `apps/web` built fine against the
+same tables.
+
+**Cause:** `packages/core/src/database.types.ts` is generated, not live. Six
+tables added over two sessions (blog, suggestions, events, reports, city_metro,
+category_aliases) were missing from it. The web client is loosely typed and did
+not care; the mobile client is typed and did.
+
+**Fix:** regenerate after every migration —
+`npx supabase gen types typescript --project-id <ref> > packages/core/src/database.types.ts`
+— and typecheck **both** apps, because only one of them will tell you.

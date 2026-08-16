@@ -1,6 +1,6 @@
 # čārana — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-16 · **Docs version:** 2.0
+**Written:** 2026-08-24 · **Updated:** 2026-08-16 · **Docs version:** 2.1
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://charana.ca
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -27,19 +27,17 @@ simulator and Farjad's iPhone; store publishing is blocked on D-U-N-S.
 
 | Area | State |
 |---|---|
-| Search | **Built 15 Aug.** `search_businesses` RPC + `/search` + header + hero + mobile tab; every query logged in `search_queries` |
-| Home | Brand hero, live counters (680 · 3 verified · 24 cities · 12 categories), real search, direct APK button |
-| Business profile | Redesigned web + mobile: cover, verified badge, open-now, actions, services, hours, ref number |
-| Registration | Web + mobile: verify email+phone → optional "read it from my website" (AI) → 7 steps → review → submit |
-| Claim | `/claim` = find-your-business search; `/claim?businessId=` = 3-step SMS proof; Persian-digit-safe |
-| Auth mail | Supabase → Resend SMTP, four Persian templates, Site URL + redirects incl. `charana://**` — verified with a live signup |
-| Reference numbers | `businesses.ref_no` five-digit random unique on all rows, shown on profiles |
-| Accounts | Admin `farjad@ashavid.ca` (role admin); personal `its@farjadp.com` (owner of the 3 listings); old `admin@charana.ca` can retire |
-| Pages | About / Team / Roadmap / Releases / Download / Contact / Support written for real; About dropdown in header |
-| Mobile | v1.1.0 APK on EAS under @ashavid; deep links verified via assetlinks; in-app profile edit; brand redesign |
-| Android app links | `ANDROID_SHA256_FINGERPRINT` live on Vercel; assetlinks.json serves it |
-| Verification | Built end to end; renewal cron still needs `CRON_SECRET` |
-| App Store / Play | Blocked on D-U-N-S for Ashavid Inc.; store URLs live in `lib/data/releases.ts` — fill and every surface flips |
+| Search | Persian-aware RPC, **metro-aware city filter** (Toronto ⊃ North York…), wrong-keyboard forgiving, widen-on-empty; every query logged |
+| SEO / GEO | City × category pages (96 combos, 21 indexable), JSON-LD everywhere, `LocalBusiness` on profiles, `llms.txt` + `llms-full.txt` |
+| Blog | 7 categories, generator runs daily 11:00 UTC into a review queue, fal.ai brand imagery; live on web **and in the app** |
+| Business profile | Web + mobile: cover, verified badge, open-now, action row, ref number, **working report button** |
+| Conversion events | `business_events` from both surfaces; owner insights at `/dashboard/business/[id]/insights` |
+| Billing | **Stripe subscriptions built and tested in sandbox**: checkout, portal, webhook, invoices, `/pricing`, server-side entitlements. Live mode needs the dashboard work in `05-open-tasks` |
+| Suggestions | Text or voice, web + app, admin inbox |
+| Admin | Listings, categories, reviews, users, logs, suggestions, blog desk, **reports queue**, **city cleanup queue**; sidebar badges are live counts |
+| Data gap | **409 listings still say «نامشخص»** — the cleanup queue is built; 365 of them are one click away |
+| Mobile | Runs on simulator and a real iPhone. APK 1.1.0 is live; **1.2.0 not built yet** and it carries four features |
+| App Store / Play | Blocked on D-U-N-S for Ashavid Inc. |
 
 ## What to do first when you wake up
 
