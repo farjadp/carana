@@ -81,8 +81,12 @@ server-side (`e6071c5`). **Not built yet, in priority-ish order:**
 3. ~~"Busy now / quiet now" live status toggle (Starter)~~ — **shipped 16
    Aug, `ac00070`.** Self-expiring (4h), toggled from the owner dashboard,
    shown on `BusinessCard` everywhere and the profile hero.
-4. Vanity English URL, e.g. `charana.ca/b/dr-ahmadi` (Premium) — build this
-   one English-slugged from day one regardless of item 8 below.
+4. ~~Vanity English URL~~ — **shipped 16 Aug, `9451290`.**
+   `charana.ca/b/[slug]`, English-slugged from day one, 301s to the real
+   profile (an alias, not a second indexable page). Case-insensitive
+   unique index; format + entitlement checked in
+   `lib/actions/vanity-url.ts`. Does not touch the wider Persian-slug
+   retrofit noted further down.
 5. Personalized targeted search suggestion — e.g. an "Iranian restaurant"
    search surfaces a Premium business as a custom suggestion.
 6. Real in-app booking calendar replacing the external `booking_url` link,

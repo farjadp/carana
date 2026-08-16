@@ -220,6 +220,24 @@ already running, and reloading it to exercise a JSX-only change that
 mirrors an already-shipped pattern didn't seem worth the cycle, but noting
 that plainly rather than implying a device check happened.
 
+## 16 August, one more — vanity URL ships (`9451290`)
+
+Fifth item off the backlog: Premium businesses can set
+`charana.ca/b/[english-slug]`. Built English-slugged from day one, on
+purpose — this is exactly the kind of new URL the standing "all URLs must
+be English" rule exists for, and it does not touch or depend on the wider
+retrofit that the existing Persian business/blog slugs still need.
+`app/b/[slug]/route.ts` 301s to the real `/businesses/[slug]` profile
+rather than rendering a second page, so there's still only one indexable
+URL per business — verified live: an unknown vanity slug correctly redirects
+through to `/businesses` (dev server had died between browser-verification
+attempts this session; restarted it, then confirmed). Case-insensitive
+uniqueness via a `lower(vanity_slug)` index, since a naive constraint would
+let `Dr-Ahmadi` and `dr-ahmadi` collide invisibly. `setVanitySlug` turns a
+raw Postgres `23505` unique-violation into a Persian message instead of
+leaking the constraint name — small thing, but a raw pg error surfacing in
+a save-toast is exactly the kind of rough edge this project keeps catching.
+
 ## Commits, oldest first
 
 ```
