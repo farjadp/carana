@@ -152,6 +152,24 @@ was never built. RLS uses `created_by` only.
 | Google Play | — | blocked on D-U-N-S |
 | Domains | charana.ca, carana.ca | charana live; carana DNS not pointed |
 
+### Stripe (added 16 Aug 2026)
+
+| Item | Value |
+|---|---|
+| Profile | display name **Charana**, handle `@charana` |
+| Network ID | `profile_61VEWMEFjAxTJ5LqbA6VEWMDIsA82MjEvYYItmIgy2Fs` (public identifier, not a secret) |
+| Mode | **sandbox only.** Test keys live in `apps/web/.env.local`; nothing is on Vercel yet |
+| Profile address | 205 Parkview Crescent, Newmarket, ON L3Y 2C9 |
+| Profile email | `farjad@visaroads.com` |
+
+**Open question before a single charge is taken:** the Stripe account sits
+under **Visa Roads**, while every legal surface of čārana — `lib/data/company.ts`,
+the Terms, the Privacy page, the App Store plan and the Twilio account — names
+**Ashavid Inc.** of Toronto. Whoever owns the Stripe account is the merchant of
+record: their name appears on receipts and disputes, and their address is the
+seller's address for tax. Either move the account under Ashavid Inc., or change
+the legal entity on the site to match. Do not take money until these agree.
+
 ### Legal entity
 
 **Ashavid Inc.**, Toronto, Ontario, Canada. čārana is one of its products.
