@@ -66,8 +66,13 @@ names only, `PlanId` unchanged (`lib/billing/plans.ts`). **Shipped:** tiered
 gallery — free 3 photos, Starter 5 + 1 video, Premium unlimited, enforced
 server-side (`e6071c5`). **Not built yet, in priority-ish order:**
 
-1. Announcements — free 1/month, Starter 3/month, Premium unlimited (schema
-   and UI both new).
+1. ~~Announcements~~ — **shipped 16 Aug, `86e85e4`.** Free 1 / Starter 3 /
+   Premium unlimited, over a rolling 30 days. `business_announcements`
+   table, no client-side RLS write policy at all — quota needs
+   `entitlementsFor()` plus a count query, not a row check, so
+   `lib/actions/announcements.ts` is the only writer. New dashboard page
+   at `/dashboard/business/[id]/announcements`; active ones render in a
+   banner on the public profile.
 2. ~~Review replies (Starter)~~ — **shipped 16 Aug, `d5625e5`.**
    `public_reviews.owner_reply`, written through a server action (no RLS
    policy lets an owner update someone else's review row, so the action is

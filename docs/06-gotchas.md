@@ -587,3 +587,27 @@ signature exactly (positional types, not names).
 **Lesson:** any time a migration changes what a function *returns* rather
 than what it *does*, drop it first. Changing the argument list has the same
 restriction.
+
+---
+
+## A claimed business's real owner never saw their own owner-only controls
+
+**Symptom:** none reported — found while wiring the review-reply feature,
+which is gated on `isOwnerOrAdmin`.
+
+**Cause:** `app/businesses/[slug]/page.tsx` computed `isOwnerOrAdmin` from
+`business.created_by === user.id` only. There are two routes to ownership
+in this schema: `created_by` (registered the listing through onboarding)
+and `owner_user_id` (claimed a listing an admin originally imported) — the
+dashboard's listing query already `.or()`s both. The public profile page
+checked only the first, so the owner of any *claimed* (not self-registered)
+business saw their own profile as a stranger would: no reply button, no
+busy-status entitlement, nothing.
+
+**Fix:** `business.created_by === user.id || business.owner_user_id === user.id`.
+
+**Lesson:** ownership has two columns in this schema (see
+`02-engineering.md`); a check written against only one of them is not a
+bug that shows up in testing with a self-registered demo account — it only
+bites claimed listings, which is exactly the case least likely to get
+manually tested.

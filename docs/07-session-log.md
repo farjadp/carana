@@ -176,6 +176,27 @@ trusted past its own timestamp, same pattern as `verified_until` and
 OUT-parameter constraint discovered two migrations back) to pass the new
 columns through paginated results.
 
+## 16 August, last slice tonight — announcements ship (`86e85e4`)
+
+Fourth item off the backlog: owners post a discount/event/news line to
+their profile, capped by plan (free 1, Starter 3, Premium unlimited) over a
+rolling 30 days rather than the calendar month the pricing copy implies —
+deliberate, so there is no reset job and no edge case around the last day
+of a month. `business_announcements` has no client-facing insert/update/
+delete RLS policy at all: the quota needs `entitlementsFor()` plus a count
+query, which RLS can't express, so `lib/actions/announcements.ts` is the
+only writer, via the service role. New dashboard sub-page shows the quota
+up front; the create form disables past it with an inline upgrade link
+instead of letting the submit fail. Active (non-expired) ones render in a
+banner on the public profile, absent entirely otherwise.
+
+Found and fixed in passing: `isOwnerOrAdmin` on the public profile page
+only checked `created_by`, never `owner_user_id` — a claimed listing's real
+owner has been unable to see any owner-only control (including today's
+review-reply feature) on their own profile since that feature shipped
+earlier tonight. Two-line fix, written up as a gotcha (same "silently wrong
+for a case nobody tests" shape as the earlier `is_featured` dead code).
+
 ## Commits, oldest first
 
 ```
