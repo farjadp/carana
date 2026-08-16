@@ -14,6 +14,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { PUBLIC_STATUSES } from "@charana/core";
 import { citySlug, cityConfigs, dynamicCityConfig, findCityConfig, type CityConfig } from "@/lib/data/cities";
 import { resolveProvince } from "@charana/core";
+import { sortFeaturedFirst } from "@/lib/billing/entitlements";
 import { getCategoryDetail } from "@/lib/data/category-details";
 import { env } from "@/lib/env";
 import { getVerificationStatus, isTrusted, type VerificationMethod } from "@/lib/verification/status";
@@ -22,7 +23,7 @@ export const MIN_INDEXABLE = 3;
 
 /** Columns a public list page is allowed to read. Never `*`. */
 export const LOCAL_CARD_COLUMNS =
-  "id, slug, name, name_en, category, sub_category, tagline, short_description, city, province, phone, website, logo_url, cover_url, working_hours, view_count, verified_at, verified_until, verified_phone, verified_email, verification_method";
+  "id, slug, name, name_en, category, sub_category, tagline, short_description, city, province, phone, website, logo_url, cover_url, working_hours, view_count, verified_at, verified_until, verified_phone, verified_email, verification_method, plan, plan_until";
 
 /**
  * `businesses.category` is free text (see Notion "businesses.category is not
@@ -100,6 +101,8 @@ export type LocalBusiness = {
   verified_phone: string | null;
   verified_email: string | null;
   verification_method: VerificationMethod | null;
+  plan: string | null;
+  plan_until: string | null;
 };
 
 const DAY_KEYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -147,7 +150,8 @@ export function summarise(rows: LocalBusiness[]): LocalStats {
   };
 }
 
-/** All public rows for one city × category. Sorted verified-first, then newest. */
+/** All public rows for one city × category. Sorted featured-first (labelled — see
+ *  sortFeaturedFirst), then verified-first, then newest. */
 export async function fetchLocalBusinesses(
   supabase: SupabaseClient,
   city: CityConfig,
@@ -164,7 +168,10 @@ export async function fetchLocalBusinesses(
     .limit(200);
   if (error) throw error;
   const rows = (data ?? []) as unknown as LocalBusiness[];
-  return rows.sort((a, b) => Number(isTrusted(getVerificationStatus(b))) - Number(isTrusted(getVerificationStatus(a))));
+  const verifiedFirst = rows.sort(
+    (a, b) => Number(isTrusted(getVerificationStatus(b))) - Number(isTrusted(getVerificationStatus(a)))
+  );
+  return sortFeaturedFirst(verifiedFirst).map((x) => x.row);
 }
 
 /**

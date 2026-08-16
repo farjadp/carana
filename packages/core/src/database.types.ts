@@ -447,6 +447,8 @@ export type Database = {
           owner_user_id: string | null
           ownership_status: string | null
           phone: string | null
+          plan: string
+          plan_until: string | null
           postal_code: string | null
           preferred_contact: string | null
           province: string | null
@@ -459,6 +461,7 @@ export type Database = {
           slug: string
           social_media: Json | null
           status: Database["public"]["Enums"]["business_status"]
+          stripe_customer_id: string | null
           sub_category: string | null
           tagline: string | null
           telegram: string | null
@@ -508,6 +511,8 @@ export type Database = {
           owner_user_id?: string | null
           ownership_status?: string | null
           phone?: string | null
+          plan?: string
+          plan_until?: string | null
           postal_code?: string | null
           preferred_contact?: string | null
           province?: string | null
@@ -520,6 +525,7 @@ export type Database = {
           slug: string
           social_media?: Json | null
           status?: Database["public"]["Enums"]["business_status"]
+          stripe_customer_id?: string | null
           sub_category?: string | null
           tagline?: string | null
           telegram?: string | null
@@ -569,6 +575,8 @@ export type Database = {
           owner_user_id?: string | null
           ownership_status?: string | null
           phone?: string | null
+          plan?: string
+          plan_until?: string | null
           postal_code?: string | null
           preferred_contact?: string | null
           province?: string | null
@@ -581,6 +589,7 @@ export type Database = {
           slug?: string
           social_media?: Json | null
           status?: Database["public"]["Enums"]["business_status"]
+          stripe_customer_id?: string | null
           sub_category?: string | null
           tagline?: string | null
           telegram?: string | null
@@ -726,6 +735,71 @@ export type Database = {
           summary?: Json
         }
         Relationships: []
+      }
+      invoices: {
+        Row: {
+          amount_due: number | null
+          amount_paid: number | null
+          business_id: string | null
+          created_at: string
+          currency: string
+          hosted_invoice_url: string | null
+          id: string
+          invoice_pdf: string | null
+          number: string | null
+          paid_at: string | null
+          period_end: string | null
+          period_start: string | null
+          status: string | null
+          stripe_customer_id: string | null
+          stripe_invoice_id: string
+          tax: number | null
+        }
+        Insert: {
+          amount_due?: number | null
+          amount_paid?: number | null
+          business_id?: string | null
+          created_at?: string
+          currency?: string
+          hosted_invoice_url?: string | null
+          id?: string
+          invoice_pdf?: string | null
+          number?: string | null
+          paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_invoice_id: string
+          tax?: number | null
+        }
+        Update: {
+          amount_due?: number | null
+          amount_paid?: number | null
+          business_id?: string | null
+          created_at?: string
+          currency?: string
+          hosted_invoice_url?: string | null
+          id?: string
+          invoice_pdf?: string | null
+          number?: string | null
+          paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_invoice_id?: string
+          tax?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -882,6 +956,86 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      stripe_events: {
+        Row: {
+          id: string
+          payload: Json | null
+          processed_at: string
+          type: string
+        }
+        Insert: {
+          id: string
+          payload?: Json | null
+          processed_at?: string
+          type: string
+        }
+        Update: {
+          id?: string
+          payload?: Json | null
+          processed_at?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          business_id: string
+          cancel_at_period_end: boolean
+          canceled_at: string | null
+          created_at: string
+          current_period_end: string | null
+          id: string
+          interval: string | null
+          owner_user_id: string | null
+          plan: string
+          status: string
+          stripe_customer_id: string
+          stripe_price_id: string | null
+          stripe_subscription_id: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          cancel_at_period_end?: boolean
+          canceled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          interval?: string | null
+          owner_user_id?: string | null
+          plan: string
+          status: string
+          stripe_customer_id: string
+          stripe_price_id?: string | null
+          stripe_subscription_id: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          cancel_at_period_end?: boolean
+          canceled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          interval?: string | null
+          owner_user_id?: string | null
+          plan?: string
+          status?: string
+          stripe_customer_id?: string
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suggestions: {
         Row: {
@@ -1170,6 +1324,8 @@ export type Database = {
           name: string
           name_en: string
           phone: string
+          plan: string
+          plan_until: string
           province: string
           rank: number
           ref_no: number

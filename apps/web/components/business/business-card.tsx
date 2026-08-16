@@ -9,9 +9,10 @@
 "use client";
 
 import Link from "next/link";
-import { Building2, Eye, MapPin } from "lucide-react";
+import { Building2, Eye, MapPin, Sparkles } from "lucide-react";
 
 import { VerificationBadge, faNumber } from "@/components/verification-badge";
+import { entitlementsFor } from "@/lib/billing/entitlements";
 import { getVerificationStatus, type VerifiableBusiness } from "@/lib/verification/status";
 
 export interface BusinessCardData extends VerifiableBusiness {
@@ -25,6 +26,8 @@ export interface BusinessCardData extends VerifiableBusiness {
   description?: string | null;
   logo_url?: string | null;
   view_count?: number | null;
+  plan?: string | null;
+  plan_until?: string | null;
   [key: string]: unknown;
 }
 
@@ -39,6 +42,10 @@ export function BusinessCard({
   categoryLabel?: string | null;
 }) {
   const status = getVerificationStatus(business);
+  // Recomputed here, not read off `business.plan` directly — a late downgrade
+  // webhook must never leave a lapsed listing wearing the chip. This is the
+  // only place the card decides "featured"; every caller gets it for free.
+  const featured = entitlementsFor(business).has("featured_placement");
   const href = `/businesses/${business.slug || business.id}`;
 
   return (
@@ -75,8 +82,18 @@ export function BusinessCard({
         </div>
 
         {/* Badge only appears when a listing is genuinely verified. Most are
-            not, and an absent badge is the honest signal. */}
-        <VerificationBadge status={status} audience="public" className="mb-3 self-start" />
+            not, and an absent badge is the honest signal. Same rule for
+            "ویژه": it only renders when the paid placement is actually
+            active, right on the card it paid to move — an unlabelled paid
+            position is an advertisement pretending to be a search result. */}
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <VerificationBadge status={status} audience="public" />
+          {featured && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-1 text-[10px] font-black text-white">
+              <Sparkles size={11} /> ویژه
+            </span>
+          )}
+        </div>
 
         <p className="mb-4 line-clamp-2 flex-1 text-xs leading-relaxed text-[#5f6472]">
           {business.short_description ||

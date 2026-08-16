@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { cityConfigs } from "@/lib/data/cities";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { VerificationBadge } from "@/components/verification-badge";
+import { entitlementsFor, sortFeaturedFirst } from "@/lib/billing/entitlements";
 import { getVerificationStatus, isTrusted } from "@/lib/verification/status";
 import { CATEGORY_DETAILS } from "@/lib/data/category-details";
 import { LOCAL_CARD_COLUMNS, cityFilterOr, countCityCategories, resolveCity } from "@/lib/seo/local";
@@ -54,7 +55,8 @@ type BusinessCard = {
   logo_url?: string | null;
   is_verified?: boolean | null;
   is_claimed?: boolean | null;
-  is_featured?: boolean | null;
+  plan?: string | null;
+  plan_until?: string | null;
 };
 
 export function generateStaticParams() {
@@ -107,7 +109,9 @@ export default async function CityDetailPage({ params }: CityPageParams) {
     countCityCategories(supabase, city, allCategories),
   ]);
 
-  const cityBusinesses = (businesses ?? []) as unknown as BusinessCard[];
+  // Featured sorts first *and* is labelled below — an unlabelled paid
+  // position is an advertisement pretending to be a search result.
+  const cityBusinesses = sortFeaturedFirst((businesses ?? []) as unknown as BusinessCard[]).map((x) => x.row);
   const totalCount = (allRows ?? []).length;
   const verifiedCount = ((allRows ?? []) as never[]).filter((b) => isTrusted(getVerificationStatus(b))).length;
   const categoryCount = categoryCounts.filter((c) => c.count > 0).length;
@@ -288,7 +292,7 @@ export default async function CityDetailPage({ params }: CityPageParams) {
                             status={getVerificationStatus(business)}
                             audience="public"
                           />
-                          {business.is_featured ? (
+                          {entitlementsFor(business).has("featured_placement") ? (
                             <span className="rounded-full bg-amber-500 text-white px-2 py-1 text-[10px] font-black inline-flex items-center gap-1">
                               <Sparkles className="h-3 w-3" />
                               ویژه
