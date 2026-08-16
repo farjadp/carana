@@ -6,7 +6,7 @@
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PlusCircle, Building2, Calendar, Clock, BarChart3, CreditCard } from "lucide-react";
+import { PlusCircle, Building2, Calendar, Clock, BarChart3, CreditCard, Megaphone } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -138,22 +138,28 @@ export default async function BusinessDashboardPage() {
                     ) : null}
                   </div>
 
-                  <div className="mt-6 pt-4 flex gap-2">
-                    <Link 
+                  <div className="mt-6 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
+                    <Link
                       href={`/dashboard/business/${b.id}/edit`}
-                      className="flex-1 text-center py-2 text-sm font-medium text-[color:var(--lajvard)] bg-[color:var(--lajvard)]/10 hover:bg-[color:var(--lajvard)]/20 rounded-lg transition"
+                      className="flex-1 min-w-[45%] text-center py-2 text-sm font-medium text-[color:var(--lajvard)] bg-[color:var(--lajvard)]/10 hover:bg-[color:var(--lajvard)]/20 rounded-lg transition"
                     >
                       ویرایش اطلاعات
                     </Link>
                     <Link
                       href={`/dashboard/business/${b.id}/insights`}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-[color:var(--text)] bg-[color:var(--bg)] hover:bg-[color:var(--line)] rounded-lg transition"
+                      className="flex-1 min-w-[45%] inline-flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-[color:var(--text)] bg-[color:var(--bg)] hover:bg-[color:var(--line)] rounded-lg transition"
                     >
                       <BarChart3 className="h-4 w-4" /> آمار
                     </Link>
                     <Link
+                      href={`/dashboard/business/${b.id}/announcements`}
+                      className="flex-1 min-w-[45%] inline-flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-[color:var(--text)] bg-[color:var(--bg)] hover:bg-[color:var(--line)] rounded-lg transition"
+                    >
+                      <Megaphone className="h-4 w-4" /> اعلان‌ها
+                    </Link>
+                    <Link
                       href={`/dashboard/business/${b.id}/billing`}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-[color:var(--text)] bg-[color:var(--bg)] hover:bg-[color:var(--line)] rounded-lg transition"
+                      className="flex-1 min-w-[45%] inline-flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-[color:var(--text)] bg-[color:var(--bg)] hover:bg-[color:var(--line)] rounded-lg transition"
                     >
                       <CreditCard className="h-4 w-4" /> اشتراک
                     </Link>

@@ -154,6 +154,41 @@ export type Database = {
         }
         Relationships: []
       }
+      business_announcements: {
+        Row: {
+          body: string | null
+          business_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          business_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          body?: string | null
+          business_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_announcements_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_change_reviews: {
         Row: {
           ai_verdict: Json | null

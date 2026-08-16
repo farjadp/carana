@@ -19,7 +19,7 @@ import {
   MapPin, Globe, Phone, Mail, Clock, ShieldCheck, Sparkles, MessageCircle,
   ExternalLink, CalendarDays, ChevronLeft, Star, Share2, Send, AtSign,
   Briefcase, Languages, Navigation, Edit3, Building2, CheckCircle2, BadgeCheck,
-  Check, Bookmark, Hash, Copy, Flame, Moon,
+  Check, Bookmark, Hash, Copy, Flame, Moon, Megaphone,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -44,6 +44,7 @@ interface Props {
   user: any;
   initialInteraction: any;
   approvedReviews: any[];
+  announcements: { id: string; title: string; body: string | null; expires_at: string | null; created_at: string }[];
   similarBusinesses: any[];
   isOwnerOrAdmin: boolean;
 }
@@ -87,7 +88,7 @@ function useOpenNow(hours: Record<string, { open?: string; close?: string; close
 }
 
 export default function BusinessProfileClient({
-  business, category, user, initialInteraction, approvedReviews, similarBusinesses, isOwnerOrAdmin,
+  business, category, user, initialInteraction, approvedReviews, announcements, similarBusinesses, isOwnerOrAdmin,
 }: Props) {
   const [copied, setCopied] = useState(false);
   const [refCopied, setRefCopied] = useState(false);
@@ -277,6 +278,24 @@ export default function BusinessProfileClient({
             ) : null}
           </div>
         </div>
+
+        {/* Announcements — quota by plan (lib/billing/plans.ts
+            ANNOUNCEMENT_LIMITS), fetched pre-filtered to non-expired ones.
+            Absent entirely for the ~everyone who hasn't posted one; an
+            empty "اعلان‌ها" section would be noise, not honesty. */}
+        {announcements.length > 0 ? (
+          <div className="mt-6 space-y-2">
+            {announcements.map((a) => (
+              <div key={a.id} className="flex items-start gap-3 rounded-2xl border border-[color:var(--gold)]/30 bg-[color:var(--gold)]/8 p-4">
+                <Megaphone size={16} className="mt-0.5 shrink-0 text-[color:var(--gold)]" />
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-[color:var(--text)]">{a.title}</p>
+                  {a.body ? <p className="mt-0.5 text-xs leading-relaxed text-[color:var(--text)]/80">{a.body}</p> : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         {/* ───────────────────────── Personal (signed-in) ───────────────────────── */}
         <div className="mt-6">

@@ -115,9 +115,12 @@ export default async function BusinessProfilePage({
   // Check if current logged in user is owner or admin
   let isOwnerOrAdmin = false;
   if (user) {
-    // `created_by` is the only ownership column in the schema; the previous
-    // owner_id / owner_user_id checks referenced columns that never existed.
-    if (business.created_by === user.id) {
+    // Two routes to ownership: `created_by` (registered it through onboarding)
+    // and `owner_user_id` (claimed a listing an admin originally imported).
+    // Checking created_by alone — as this did until 16 Aug — silently hid
+    // owner-only controls (review replies, the busy-status toggle's
+    // upstream entitlement) from every claimed business's real owner.
+    if (business.created_by === user.id || business.owner_user_id === user.id) {
       isOwnerOrAdmin = true;
     } else {
       const adminClient = createSupabaseAdminClient();
@@ -146,6 +149,17 @@ export default async function BusinessProfilePage({
 
     initialInteraction = interaction ?? null;
   }
+
+  // Active announcements — expired ones stay in the table (the owner's
+  // history) but never render publicly.
+  const nowIso = new Date().toISOString();
+  const { data: announcements } = await supabase
+    .from("business_announcements")
+    .select("id, title, body, expires_at, created_at")
+    .eq("business_id", business.id)
+    .or(`expires_at.is.null,expires_at.gte.${nowIso}`)
+    .order("created_at", { ascending: false })
+    .limit(5);
 
   // Public reviews live in `public_reviews`, not on the interaction row, and
   // are only visible once moderation has set status = 'published'.
@@ -240,6 +254,7 @@ export default async function BusinessProfilePage({
         user={user}
         initialInteraction={initialInteraction}
         approvedReviews={approvedReviews}
+        announcements={announcements ?? []}
         similarBusinesses={similarBusinesses || []}
         isOwnerOrAdmin={isOwnerOrAdmin}
       />
