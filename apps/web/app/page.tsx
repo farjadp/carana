@@ -42,12 +42,32 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   const supabase = await createSupabaseServerClient();
 
+  const nowIso = new Date().toISOString();
+
   const { data: categories } = await supabase
     .from("categories")
     .select("*")
     .eq("is_active", true)
     .order("display_order", { ascending: true })
     .limit(10);
+
+  // Fetch 0. Featured businesses — the plan's homepage_slot feature
+  // (lib/billing/plans.ts). Filtered here the same way entitlementsFor()
+  // decides "featured": plan = 'featured' and not expired. That's a
+  // performance filter, not the source of truth — BusinessCard recomputes
+  // the entitlement itself from plan/plan_until before it renders the چیپ,
+  // so a row that slipped past this query still can't wear an unearned
+  // label. Section renders only when it actually has something to show:
+  // an empty "ویژه" section would be the same broken promise as a search
+  // box that doesn't search.
+  const { data: featuredBusinesses } = await supabase
+    .from("businesses")
+    .select("*")
+    .or("status.eq.APPROVED,status.eq.PUBLISHED")
+    .eq("plan", "featured")
+    .or(`plan_until.is.null,plan_until.gte.${nowIso}`)
+    .order("plan_until", { ascending: true, nullsFirst: false })
+    .limit(6);
 
   // Fetch 1. Newest verified businesses
   const { data: latestBusinesses } = await supabase
@@ -66,7 +86,6 @@ export default async function HomePage() {
     .limit(6);
 
   // Live numbers for the hero — every one is a real count, never a claim.
-  const nowIso = new Date().toISOString();
   const [{ count: totalCount }, { count: verifiedCount }, { data: cityRows }, { count: categoryCount }] =
     await Promise.all([
       supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", ["APPROVED", "PUBLISHED"]),
@@ -86,6 +105,33 @@ export default async function HomePage() {
       <main className="min-h-screen">
         {/* 1 & 2. Hero — brand-first, live numbers, real search */}
         <HomeHero stats={stats} cities={topCities} />
+
+        {/* 2b. Featured — the plan's homepage_slot. Only appears when someone
+            actually holds it; see the fetch above for why an empty version of
+            this section is not an option. */}
+        {featuredBusinesses && featuredBusinesses.length > 0 && (
+          <section className="border-t border-gray-100 bg-gradient-to-b from-amber-50/60 to-white px-4 py-16">
+            <div className="mx-auto max-w-7xl">
+              <div className="mb-8 flex items-end justify-between gap-4">
+                <div>
+                  <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1 text-xs font-black text-white">
+                    <Star className="h-3.5 w-3.5" fill="currentColor" /> ویژه
+                  </div>
+                  <h2 className="text-2xl font-bold md:text-3xl">کسب‌وکارهای ویژه</h2>
+                  <p className="mt-1 text-sm text-gray-500">
+                    این‌ها جایگاه ویژه را خریده‌اند — با برچسب، نه پنهانی.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {featuredBusinesses.map((biz) => (
+                  <BusinessCard key={biz.id} business={biz} categoryLabel={catLabel.get(biz.category)} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* 3. Popular Categories */}
         <section className="py-16 px-4 bg-white">

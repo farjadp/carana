@@ -52,8 +52,8 @@ The live board is Notion → 🧿 Charana → Mission Control; this is the narra
    two sources of truth.
 7. `notFound()` in the city routes returns 200 (pre-existing, cosmetic —
    the body is noindex).
-8. **Homepage "featured" slot.** The Featured plan's `homepage_slot` feature
-   (see `lib/billing/plans.ts`) still isn't rendered anywhere — city × category,
-   `/cities/[slug]` and `/search` are done (16 Aug, `8580d7a`), but the
-   pricing page's promise of "حضور در بخش ویژه‌ی صفحه‌ی اول" is not backed
-   yet. Don't let the plan sell it until it exists — same rule as before.
+
+Featured placement is now fully backed: city × category, `/cities/[slug]`,
+`/search`, and (16 Aug) the home page's `homepage_slot` section all sort and
+label it. The section on `/` only renders when a business actually holds an
+active Featured plan — today that's nobody, so it's correctly invisible.

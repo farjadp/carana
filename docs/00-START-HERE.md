@@ -1,6 +1,6 @@
 # čārana — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-16 · **Docs version:** 2.2
+**Written:** 2026-08-24 · **Updated:** 2026-08-16 · **Docs version:** 2.3
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://charana.ca
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -33,7 +33,7 @@ simulator and Farjad's iPhone; store publishing is blocked on D-U-N-S.
 | Business profile | Web + mobile: cover, verified badge, open-now, action row, ref number, **working report button** |
 | Conversion events | `business_events` from both surfaces; owner insights at `/dashboard/business/[id]/insights` |
 | Billing | **Stripe subscriptions built and tested in sandbox**: checkout, portal, webhook, invoices, `/pricing`, server-side entitlements. Live mode needs the dashboard work in `05-open-tasks` |
-| Featured placement | **Now renders.** City × category lists, `/cities/[slug]`, and `/search` sort featured-first (expiry-aware) and show the «ویژه» chip on `BusinessCard`; nobody has bought it yet, so nothing shows today — that's correct, not broken |
+| Featured placement | **Fully renders.** City × category lists, `/cities/[slug]`, `/search`, and the home page's «ویژه» section all sort featured-first (expiry-aware) and show the chip on `BusinessCard`; nobody has bought it yet, so nothing shows today — that's correct, not broken |
 | Suggestions | Text or voice, web + app, admin inbox |
 | Admin | Listings, categories, reviews, users, logs, suggestions, blog desk, **reports queue**, **city cleanup queue**; sidebar badges are live counts |
 | Data gap | **409 listings still say «نامشخص»** — the cleanup queue is built; 365 of them are one click away |

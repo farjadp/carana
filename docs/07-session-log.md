@@ -87,6 +87,17 @@ never render" — different file, same mistake).
 a home page "ویژه" section (`homepage_slot`) that nothing renders yet. Don't
 let that plan sell it until it exists.
 
+## 16 August, still continued — the homepage slot too
+
+Closed the gap noted above the same session: `/` now has a «ویژه» section
+(`app/page.tsx`), fetched with the same expiry rule as `entitlementsFor`
+(`plan = 'featured' and (plan_until is null or plan_until >= now())`) and
+gated on `featuredBusinesses.length > 0` — an empty version of the section
+would have been the exact violation this whole slice existed to fix. Verified
+in the browser: it doesn't render today, correctly, because no business holds
+an active Featured plan yet. Featured placement is now backed everywhere the
+pricing page claims it is.
+
 ## Commits, oldest first
 
 ```
