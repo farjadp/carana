@@ -25,7 +25,10 @@ export type QuietFailure =
   | "verification_write_failed"
   | "reminder_send_failed"
   | "cron_run_failed"
-  | "request_error";
+  | "request_error"
+  | "exchange_rates_http"
+  | "exchange_rates_shape"
+  | "exchange_rates_fetch_failed";
 
 /**
  * Record a failure the product deliberately swallowed.

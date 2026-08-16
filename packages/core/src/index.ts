@@ -31,5 +31,8 @@ export * from "./verification-status";
 // One definition of "busy now / quiet now" for web and mobile.
 export * from "./live-status";
 
+// Tehran clock + Jalali/Shahanshahi date, shared so web and mobile agree.
+export * from "./iran-calendar";
+
 // Persian messages for Supabase Auth errors (web + mobile).
 export * from "./auth-errors";

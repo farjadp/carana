@@ -42,6 +42,7 @@ import { getVerificationStatus } from "@charana/core";
 
 import { BrandLoading, BrandMark, MerlonGlyph, MerlonRow } from "../../components/brand-mark";
 import { BusinessCardView } from "../../components/business-card";
+import { IranStatusBar } from "../../components/iran-status-bar";
 import { SuggestionBox } from "../../components/suggestion-box";
 import {
   countByCategory,
@@ -420,6 +421,7 @@ export default function HomeScreen() {
         <View style={styles.foot}>
           <MerlonRow color={colors.gold} height={7} opacity={0.6} />
           <Text style={styles.footText}>با اطمینان پیدا کن.</Text>
+          <IranStatusBar />
         </View>
 
         <View style={{ height: space.xl }} />

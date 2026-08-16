@@ -12,11 +12,17 @@
 // Env / Identity: Uses shared legal link metadata only.
 // ============================================================================
 import Link from "next/link";
+import { formatTehranDate, formatTehranTime, nowInTehran } from "@charana/core";
 
 import { BrandMark } from "@/components/brand-mark";
+import { IranStatusBar } from "@/components/iran-status-bar";
+import { getExchangeRates } from "@/lib/exchange-rates";
 import { legalLinks } from "@/lib/site-content";
 
-export function SiteFooter({ currentPath }: { currentPath: string }) {
+export async function SiteFooter({ currentPath }: { currentPath: string }) {
+  const t = nowInTehran();
+  const rates = await getExchangeRates();
+
   return (
     <footer className="border-t border-gray-100 bg-gray-50 py-10 mt-20">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 px-4 text-center">
@@ -43,6 +49,12 @@ export function SiteFooter({ currentPath }: { currentPath: string }) {
         <p className="max-w-2xl text-xs leading-relaxed text-gray-400">
           © 2026 <span dir="ltr" className="font-bold">čārana</span> — ساخته‌شده برای پیوند دادن جامعه ایرانیان کانادا با کسب‌وکارهایی که می‌شناسند، می‌سازند و به آنها اعتماد می‌کنند.
         </p>
+
+        <IranStatusBar
+          initialTime={formatTehranTime(t)}
+          initialDate={formatTehranDate(t)}
+          rates={rates}
+        />
       </div>
     </footer>
   );
