@@ -17,6 +17,7 @@ import { ArrowRight, CalendarDays, Eye, Globe, MapPin, MessageCircle, Phone } fr
 
 import { PageShell } from "@/components/page-shell";
 import { requireUser } from "@/lib/auth/session";
+import { entitlementsFor } from "@/lib/billing/entitlements";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "آمار کسب‌وکار" };
@@ -40,13 +41,13 @@ type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ days?: 
 
 export default async function InsightsPage({ params, searchParams }: Params) {
   const { id } = await params;
-  const days = Math.min(90, Math.max(7, parseInt((await searchParams).days ?? "30", 10) || 30));
+  const requestedDays = Math.min(90, Math.max(7, parseInt((await searchParams).days ?? "30", 10) || 30));
   const user = await requireUser(`/dashboard/business/${id}/insights`);
   const supabase = await createSupabaseServerClient();
 
   const { data: business } = await supabase
     .from("businesses")
-    .select("id, name, slug, city, status, created_by, owner_user_id, view_count")
+    .select("id, name, slug, city, status, created_by, owner_user_id, view_count, plan, plan_until")
     .eq("id", id)
     .maybeSingle();
   if (!business) notFound();
@@ -54,6 +55,13 @@ export default async function InsightsPage({ params, searchParams }: Params) {
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
     if (profile?.role !== "admin" && profile?.role !== "moderator") redirect("/dashboard/business");
   }
+
+  // The window is an entitlement, enforced here rather than by hiding a
+  // button: a free plan asking for ?days=90 gets 30 days and is told why.
+  const ent = entitlementsFor(business);
+  const maxDays = ent.has("insights_full") ? 90 : 30;
+  const days = Math.min(requestedDays, maxDays);
+  const capped = requestedDays > maxDays;
 
   // One clock reading for the whole render: reading the clock twice mid-render
   // can straddle a midnight boundary and shift the window under itself. The
@@ -95,11 +103,18 @@ export default async function InsightsPage({ params, searchParams }: Params) {
             <p className="mt-1 text-sm text-[color:var(--muted-text)]">{fa(days)} روز گذشته{business.city ? ` · ${business.city}` : ""}</p>
           </div>
           <nav className="flex gap-1.5 text-sm">
-            {[7, 30, 90].map((d) => (
+            {[7, 30, 90].filter((d) => d <= maxDays).map((d) => (
               <Link key={d} href={`?days=${d}`} className={`rounded-full px-3 py-1.5 font-bold ${d === days ? "bg-[color:var(--text)] text-[#f6f1e8]" : "border border-[color:var(--line)] bg-white text-[color:var(--text)]"}`}>{fa(d)} روز</Link>
             ))}
           </nav>
         </div>
+
+        {capped ? (
+          <p className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-[color:var(--annabi)]/8 px-4 py-2.5 text-xs leading-6 text-[color:var(--text)]">
+            بازه‌ی بلندتر از {fa(maxDays)} روز و تفکیک هر اقدام در پلن حرفه‌ای است.
+            <Link href={`/dashboard/business/${id}/billing`} className="font-bold text-[color:var(--annabi)] underline-offset-4 hover:underline">دیدن پلن‌ها</Link>
+          </p>
+        ) : null}
 
         {partial ? (
           <p className="mt-4 rounded-xl bg-[color:var(--gold)]/15 px-4 py-2.5 text-xs leading-6 text-[color:var(--text)]">

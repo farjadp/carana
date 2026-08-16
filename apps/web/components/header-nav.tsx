@@ -50,6 +50,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "راهنما",
     items: [
       { href: "/blog", label: "وبلاگ" },
+      { href: "/pricing", label: "تعرفه‌ها" },
       { href: "/how-it-works", label: "چطور کار می‌کند" },
       { href: "/trust", label: "اعتماد و بررسی" },
       { href: "/support", label: "پشتیبانی" },

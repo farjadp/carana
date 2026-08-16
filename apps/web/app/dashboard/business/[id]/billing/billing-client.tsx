@@ -1,0 +1,207 @@
+// ============================================================================
+// Source: app/dashboard/business/[id]/billing/billing-client.tsx
+// Version: 1.0.0 — 2026-08-16
+// Why: The interactive half: monthly/annual switch, upgrade buttons that call
+//      /api/stripe/checkout, the portal button, and the invoice table.
+// ============================================================================
+"use client";
+
+import { useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
+import { AlertTriangle, CheckCircle2, CreditCard, Download, ExternalLink } from "lucide-react";
+
+import { formatCad, type BillingInterval, type Plan, type PlanId } from "@/lib/billing/plans";
+
+export type SubscriptionRow = {
+  id: string; plan: string; status: string; interval: string | null;
+  current_period_end: string | null; cancel_at_period_end: boolean; stripe_subscription_id: string;
+};
+export type InvoiceRow = {
+  id: string; number: string | null; status: string | null; amount_paid: number | null;
+  amount_due: number | null; currency: string; tax: number | null;
+  hosted_invoice_url: string | null; invoice_pdf: string | null; created_at: string;
+};
+
+const fa = (n: number) => n.toLocaleString("fa-IR");
+const date = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("fa-IR", { dateStyle: "long" }) : "—");
+const money = (cents: number | null, currency: string) =>
+  cents === null ? "—" : `${(cents / 100).toLocaleString("fa-IR", { maximumFractionDigits: 2 })} ${currency.toUpperCase()}`;
+
+const STATUS_FA: Record<string, string> = {
+  trialing: "دوره‌ی آزمایشی", active: "فعال", past_due: "پرداخت عقب‌افتاده", canceled: "لغو شده",
+  unpaid: "پرداخت‌نشده", incomplete: "ناتمام", incomplete_expired: "منقضی", paused: "متوقف",
+};
+
+export function BillingClient({
+  businessId, planId, storedPlan, expired, until, hasCustomer, plans, subscription, invoices,
+}: {
+  businessId: string; planId: PlanId; storedPlan: PlanId; expired: boolean; until: string | null;
+  hasCustomer: boolean; plans: Plan[]; subscription: SubscriptionRow | null; invoices: InvoiceRow[];
+}) {
+  const params = useSearchParams();
+  const [interval, setInterval] = useState<BillingInterval>("month");
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  const go = (path: string, body: object) =>
+    start(async () => {
+      setError(null);
+      try {
+        const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        const json = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+        if (!res.ok || !json.url) throw new Error(json.error || "اتصال به Stripe ناموفق بود.");
+        window.location.href = json.url;
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "خطا");
+      }
+    });
+
+  const checkoutState = params.get("checkout");
+
+  return (
+    <div className="mt-6 space-y-6" dir="rtl">
+      {checkoutState === "success" ? (
+        <p className="flex items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+          <CheckCircle2 size={18} /> پرداخت انجام شد. اگر پلن هنوز به‌روز نشده، چند ثانیه صبر کنید — تأیید از Stripe می‌آید.
+        </p>
+      ) : null}
+      {checkoutState === "cancelled" ? (
+        <p className="rounded-2xl bg-[color:var(--bg)] px-4 py-3 text-sm text-[color:var(--muted-text)]">پرداخت نیمه‌کاره رها شد. چیزی از حساب شما کم نشده است.</p>
+      ) : null}
+      {error ? <p className="rounded-2xl bg-[color:var(--annabi)]/10 px-4 py-3 text-sm font-bold text-[color:var(--annabi)]">{error}</p> : null}
+
+      {/* Current state */}
+      <section className="rounded-3xl border border-[color:var(--line)] bg-white p-5 md:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold text-[color:var(--muted-text)]">پلن فعلی</p>
+            <p className="text-2xl font-black text-[color:var(--text)]">
+              {planId === "free" ? "رایگان" : planId === "pro" ? "حرفه‌ای" : "ویژه"}
+            </p>
+            {subscription ? (
+              <p className="mt-1 text-xs text-[color:var(--muted-text)]">
+                وضعیت: {STATUS_FA[subscription.status] ?? subscription.status}
+                {subscription.current_period_end ? ` · ${subscription.cancel_at_period_end ? "تا" : "تمدید در"} ${date(subscription.current_period_end)}` : ""}
+              </p>
+            ) : (
+              <p className="mt-1 text-xs text-[color:var(--muted-text)]">ثبت و نشان تأیید در این پلن هم رایگان است.</p>
+            )}
+          </div>
+          {hasCustomer ? (
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => go("/api/stripe/portal", { businessId })}
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-[color:var(--line)] bg-white px-5 text-sm font-bold text-[color:var(--text)] disabled:opacity-50"
+            >
+              <CreditCard size={16} /> مدیریت اشتراک و کارت
+            </button>
+          ) : null}
+        </div>
+
+        {expired ? (
+          <p className="mt-4 flex items-start gap-2 rounded-xl bg-[color:var(--gold)]/15 px-4 py-3 text-xs leading-6 text-[color:var(--text)]">
+            <AlertTriangle size={15} className="mt-0.5 flex-none" />
+            دوره‌ی پرداخت‌شده‌ی پلن «{storedPlan === "featured" ? "ویژه" : "حرفه‌ای"}» در {date(until)} تمام شده است، پس امکانات به رایگان برگشته‌اند.
+          </p>
+        ) : null}
+        {subscription?.cancel_at_period_end ? (
+          <p className="mt-4 rounded-xl bg-[color:var(--bg)] px-4 py-3 text-xs leading-6 text-[color:var(--text)]">
+            لغو ثبت شده است. امکانات تا {date(subscription.current_period_end)} فعال می‌مانند و بعد به رایگان برمی‌گردند.
+          </p>
+        ) : null}
+      </section>
+
+      {/* Upgrade */}
+      <section className="rounded-3xl border border-[color:var(--line)] bg-white p-5 md:p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-black text-[color:var(--text)]">ارتقا</h2>
+          <div className="inline-flex rounded-full bg-[color:var(--bg)] p-1 text-sm">
+            {(["month", "year"] as const).map((i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setInterval(i)}
+                className={`rounded-full px-4 py-1.5 font-bold transition ${interval === i ? "bg-[color:var(--text)] text-[#f6f1e8]" : "text-[color:var(--text)]"}`}
+              >
+                {i === "month" ? "ماهانه" : "سالانه (۲ ماه رایگان)"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {plans.map((plan) => {
+            const current = plan.id === planId;
+            const amount = plan.price[interval]!;
+            return (
+              <div key={plan.id} className={`rounded-2xl border p-4 ${current ? "border-[color:var(--success,#0f7b4f)]/40 bg-emerald-50/40" : "border-[color:var(--line)]"}`}>
+                <div className="flex items-baseline justify-between gap-2">
+                  <h3 className="font-black text-[color:var(--text)]">{plan.name}</h3>
+                  <span className="text-sm font-black text-[color:var(--text)]">
+                    {formatCad(amount)}<span className="text-xs font-normal text-[color:var(--muted-text)]">/{interval === "month" ? "ماه" : "سال"}</span>
+                  </span>
+                </div>
+                <ul className="mt-3 space-y-1.5 text-xs leading-6 text-[color:var(--muted-text)]">
+                  {plan.bullets.slice(0, 4).map((b) => <li key={b}>· {b}</li>)}
+                </ul>
+                <button
+                  type="button"
+                  disabled={pending || current}
+                  onClick={() => go("/api/stripe/checkout", { businessId, plan: plan.id, interval })}
+                  className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-full bg-[color:var(--annabi)] text-sm font-black text-[#f6f1e8] transition hover:bg-[#5c0000] disabled:opacity-40"
+                >
+                  {current ? "پلن فعلی شما" : pending ? "…" : `ارتقا به ${plan.name}`}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-4 text-[11px] leading-6 text-[color:var(--muted-text)]">
+          قیمت‌ها بدون مالیات‌اند؛ GST/HST بر اساس استان شما هنگام پرداخت اضافه می‌شود. پرداخت روی صفحه‌ی امن Stripe انجام می‌شود و چارانا شماره‌ی کارت شما را نمی‌بیند و ذخیره نمی‌کند.
+        </p>
+      </section>
+
+      {/* Invoices */}
+      <section className="rounded-3xl border border-[color:var(--line)] bg-white p-5 md:p-6">
+        <h2 className="mb-4 text-lg font-black text-[color:var(--text)]">فاکتورها</h2>
+        {invoices.length === 0 ? (
+          <p className="py-6 text-center text-sm text-[color:var(--muted-text)]">هنوز فاکتوری صادر نشده است.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-xs text-[color:var(--muted-text)]">
+                <tr className="border-b border-[color:var(--line)]">
+                  <th className="p-2 text-right">شماره</th>
+                  <th className="p-2 text-right">تاریخ</th>
+                  <th className="p-2 text-right">مبلغ</th>
+                  <th className="p-2 text-right">مالیات</th>
+                  <th className="p-2 text-right">وضعیت</th>
+                  <th className="p-2 text-right"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoices.map((inv) => (
+                  <tr key={inv.id} className="border-b border-[color:var(--line)] last:border-0">
+                    <td className="p-2 font-mono text-xs" dir="ltr">{inv.number ?? "—"}</td>
+                    <td className="p-2">{date(inv.created_at)}</td>
+                    <td className="p-2 font-bold">{money(inv.amount_paid ?? inv.amount_due, inv.currency)}</td>
+                    <td className="p-2 text-[color:var(--muted-text)]">{money(inv.tax, inv.currency)}</td>
+                    <td className="p-2">{inv.status === "paid" ? "پرداخت شده" : inv.status ?? "—"}</td>
+                    <td className="p-2">
+                      <div className="flex gap-2">
+                        {inv.hosted_invoice_url ? <a href={inv.hosted_invoice_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[color:var(--lajvard)]">مشاهده <ExternalLink size={11} /></a> : null}
+                        {inv.invoice_pdf ? <a href={inv.invoice_pdf} className="inline-flex items-center gap-1 text-xs font-bold text-[color:var(--muted-text)]">PDF <Download size={11} /></a> : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <p className="mt-3 text-[11px] text-[color:var(--muted-text)]">{fa(invoices.length)} فاکتور. نسخه‌ی رسمی هر فاکتور نزد Stripe نگهداری می‌شود.</p>
+      </section>
+    </div>
+  );
+}
