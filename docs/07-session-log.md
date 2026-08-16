@@ -135,9 +135,25 @@ Everything else from the brainstorm (announcements, review replies, vanity
 URLs, personalized suggestions, real in-app booking, the AI blog-article
 perk, competitor-block suppression, QR tracking, real multi-branch UI, the
 Persian-slug finding, and mobile gallery parity) is written up in
-`05-open-tasks.md` and tracked as Notion Mission Control entries — not
-built this session. Eleven items is more than one slice; said so rather than
-half-building several.
+`05-open-tasks.md` — not built this session. Eleven items is more than one
+slice; said so rather than half-building several. **Notion Mission Control
+was not updated for this list** — the connector returned 503 on every call,
+including a bare identity check, on two separate attempts with pauses
+between retries. Service-side outage, not a query problem; retry once it's
+confirmed healthy (open-tasks.md is the durable record in the meantime).
+
+## 16 August, one more slice — review replies ship (`d5625e5`)
+
+Second item off the plans-v2 backlog above, same session: business owners on
+Starter+ can now publicly reply to a review on their own profile.
+`public_reviews.owner_reply`/`owner_reply_at`, written through
+`replyToReview` in `lib/actions/interactions.ts`. Deliberately did **not**
+add an RLS policy letting an owner UPDATE someone else's review row — the
+server action re-proves ownership of the business and rechecks
+`entitlementsFor(business).has("review_replies")` (recomputed from
+plan/plan_until, not the stored column) before writing via the service
+role. An owner on a lower plan sees an upsell line under the review
+instead of a mysteriously missing button.
 
 ## Commits, oldest first
 

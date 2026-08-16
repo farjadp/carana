@@ -68,7 +68,11 @@ server-side (`e6071c5`). **Not built yet, in priority-ish order:**
 
 1. Announcements — free 1/month, Starter 3/month, Premium unlimited (schema
    and UI both new).
-2. Review replies (Starter) — one `owner_reply` column + a small form.
+2. ~~Review replies (Starter)~~ — **shipped 16 Aug, `d5625e5`.**
+   `public_reviews.owner_reply`, written through a server action (no RLS
+   policy lets an owner update someone else's review row, so the action is
+   the gate), rendered publicly under the review with inline write/edit/
+   delete for an entitled owner.
 3. "Busy now / quiet now" live status toggle (Starter) — cheap, high-signal.
 4. Vanity English URL, e.g. `charana.ca/b/dr-ahmadi` (Premium) — build this
    one English-slugged from day one regardless of item 8 below.
