@@ -7,12 +7,18 @@
 //      stale-looking number — same "no key, no feature, never a fake value"
 //      rule as sendEmail() without RESEND_API_KEY.
 //
-//      Navasan's `/latest/` response has more symbol keys than we use, and
-//      the exact key names for the three we want (buy vs. sell, `_sell`
-//      suffix or bare) aren't something I could verify without a live key —
-//      FIRST TIME THIS RUNS WITH A REAL KEY, check the logged raw response
-//      shape (see `reportQuietFailure("exchange_rates_shape", ...)` below)
-//      and adjust SYMBOL_CANDIDATES if the values come back null.
+//      Key names verified against a live response 16 Aug 2026 (300 keys in
+//      `/latest/`). The bare `usd` / `eur` / `cad` keys are the headline
+//      free-market rates and — checked, not assumed — share one timestamp,
+//      so the three shown together are a coherent snapshot rather than
+//      three unrelated moments. Values are in **Toman**; sanity-checked
+//      against real cross rates at the time (EUR/USD 1.157, CAD/USD 0.72).
+//
+//      STALENESS IS THE REAL TRAP HERE, not the key names. Navasan keeps
+//      returning long-dead symbols with a straight face: `cad_cash` was
+//      299 days old and 42% off the live `cad` value. A fallback chain that
+//      reached it would print a year-old number as today's rate. Hence
+//      MAX_AGE_DAYS — an absent rate is fine, a confidently wrong one is not.
 // Env / Identity: Server only.
 // ============================================================================
 import "server-only";
@@ -21,24 +27,36 @@ import { reportQuietFailure } from "@/lib/observability/report";
 
 export type ExchangeRates = { usd: number | null; eur: number | null; cad: number | null };
 
-/** Tried in order per currency — Navasan's key naming isn't fully settled
- *  without a live response to check against. */
+/** Tried in order per currency. Bare key first: it is the headline rate and
+ *  the one all three currencies publish on the same snapshot. */
 const SYMBOL_CANDIDATES: Record<keyof ExchangeRates, string[]> = {
-  usd: ["usd_sell", "usd"],
-  eur: ["eur_sell", "eur"],
-  cad: ["cad_sell", "cad", "cad_harat_naghdi"],
+  usd: ["usd", "usd_sell"],
+  eur: ["eur", "eur_hav"],
+  cad: ["cad", "cad_hav"],
 };
 
-type NavasanEntry = { value?: string | number } | string | number;
+/** Older than this and the rate is not shown at all. */
+const MAX_AGE_DAYS = 3;
 
-function readValue(raw: unknown, keys: string[]): number | null {
+type NavasanEntry = { value?: string | number; timestamp?: number } | string | number;
+
+function readValue(raw: unknown, keys: string[], now: number): number | null {
   if (!raw || typeof raw !== "object") return null;
   const obj = raw as Record<string, NavasanEntry>;
   for (const key of keys) {
     const entry = obj[key];
-    const value = typeof entry === "object" && entry !== null ? entry.value : entry;
+    if (entry === undefined) continue;
+    const isObj = typeof entry === "object" && entry !== null;
+    const value = isObj ? entry.value : entry;
     const n = typeof value === "string" ? Number(value.replace(/,/g, "")) : value;
-    if (typeof n === "number" && Number.isFinite(n) && n > 0) return n;
+    if (typeof n !== "number" || !Number.isFinite(n) || n <= 0) continue;
+
+    // Navasan's `timestamp` is unix seconds. A symbol with no timestamp at
+    // all can't be shown to be current, so it is not shown.
+    const ts = isObj ? entry.timestamp : undefined;
+    if (typeof ts !== "number" || (now - ts * 1000) / 86_400_000 > MAX_AGE_DAYS) continue;
+
+    return n;
   }
   return null;
 }
@@ -58,17 +76,18 @@ export async function getExchangeRates(): Promise<ExchangeRates | null> {
       return null;
     }
     const data: unknown = await res.json();
+    const now = Date.now();
 
     const rates: ExchangeRates = {
-      usd: readValue(data, SYMBOL_CANDIDATES.usd),
-      eur: readValue(data, SYMBOL_CANDIDATES.eur),
-      cad: readValue(data, SYMBOL_CANDIDATES.cad),
+      usd: readValue(data, SYMBOL_CANDIDATES.usd, now),
+      eur: readValue(data, SYMBOL_CANDIDATES.eur, now),
+      cad: readValue(data, SYMBOL_CANDIDATES.cad, now),
     };
 
     if (rates.usd === null && rates.eur === null && rates.cad === null) {
-      // The call worked but none of our guessed keys matched — surfaces the
-      // first time this runs against a real key so the mapping can be fixed
-      // instead of the widget just staying empty forever, silently.
+      // Either the key names moved or every candidate went stale. Both are
+      // silent failures otherwise — the widget would just stay blank forever
+      // with nothing saying why.
       reportQuietFailure("exchange_rates_shape", { sampleKeys: Object.keys(data as object).slice(0, 20) });
       return null;
     }
