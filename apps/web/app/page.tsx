@@ -1,12 +1,47 @@
+// ============================================================================
+// Source: app/page.tsx
+// Version: 2.0.0 — 2026-08-16
+// Why: The home page. v2 is a redesign around the one job a directory home
+//      page has — get someone to the right business — after Farjad flagged it
+//      as repetitive and unfocused. What was actually wrong, and what changed:
+//
+//      DUPLICATION (the complaint, and it was real)
+//        • "جدیدترین" and "پربازدیدترین" were two identical 6-card grids run
+//          back to back, and on today's data the *same three* businesses
+//          filled both. Popular is now deduplicated against newest, so the
+//          two sections can never restate each other.
+//        • The owner CTA appeared three times (hero, sticky header, dedicated
+//          section). Removed from the hero; the header carries it everywhere
+//          and the dedicated section explains it properly.
+//        • "چرا čārana؟" (4 cards) and "اطلاعات قابل اعتماد" (a paragraph)
+//          were the same trust argument told twice. Merged into one section.
+//        • The three legal links were repeated here and in the footer, which
+//          renders directly beneath. Kept the footer's.
+//
+//      BROKEN LINK
+//        • "مشاهده همه" pointed at /categories/all, which is not a route —
+//          `categories/[slug]` has no "all" case, so it 404s. Now /businesses,
+//          which is the real full paginated listing.
+//
+//      STALE CLAIM
+//        • The app mock's floating chip hard-coded "+۶۷۷ کسب‌وکار" while the
+//          hero counted 680 from the database on the same screen. It takes
+//          the live count now — same rule as every other number here.
+//
+//      ORDER
+//        • Categories moved directly under the hero: browsing by category is
+//          the main path for a visitor who does not have a search term ready,
+//          and it used to sit below two conditional sections that are empty
+//          on most days.
+// Env / Identity: Server Component. Public reads only.
+// ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, MapPin, ArrowLeft, Star, ShieldCheck, Bookmark, Navigation, MessageSquare, Plus, CheckCircle2, Download, Megaphone } from "lucide-react";
+import { Search, MapPin, ArrowLeft, Star, ShieldCheck, Bookmark, MessageSquare, CheckCircle2, Download, Megaphone, Users } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BusinessCard } from "@/components/business/business-card";
 import { HomeHero } from "@/components/home-hero";
@@ -30,10 +65,12 @@ const CITY_CARDS = [
 // The app is built and runs, but is not on either store yet — that path is
 // blocked on the Apple organization account. Store URLs live in
 // lib/data/releases.ts; the direct APK is live today.
-// on the day it ships; nothing else needs to change.
 const APP_LIVE = !!(STORES.appStore || STORES.playStore);
 const APP_STORE_URL = STORES.appStore;
 const PLAY_STORE_URL = STORES.playStore;
+
+const FA = "۰۱۲۳۴۵۶۷۸۹";
+const fa = (n: number) => String(n).replace(/\d/g, (d) => FA[Number(d)]);
 
 export const metadata: Metadata = {
   title: "čārana | دایرکتوری کسب‌وکارهای ایرانیان کانادا",
@@ -51,7 +88,7 @@ export default async function HomePage() {
     .order("display_order", { ascending: true })
     .limit(10);
 
-  // Fetch 0. Featured businesses — the plan's homepage_slot feature
+  // Featured businesses — the plan's homepage_slot feature
   // (lib/billing/plans.ts). Filtered here the same way entitlementsFor()
   // decides "featured": plan = 'featured' and not expired. That's a
   // performance filter, not the source of truth — BusinessCard recomputes
@@ -69,10 +106,10 @@ export default async function HomePage() {
     .order("plan_until", { ascending: true, nullsFirst: false })
     .limit(6);
 
-  // Fetch 0b. Newest announcements sitewide — how a visitor who follows no
-  // one in particular finds out anything got posted at all. Capped at 10,
-  // as asked; scoped to businesses that are actually public and
-  // announcements that haven't expired, same rule as the profile banner.
+  // Newest announcements sitewide — how a visitor who follows no one in
+  // particular finds out anything got posted at all. Capped at 10, scoped to
+  // businesses that are actually public and announcements that haven't
+  // expired, same rule as the profile banner.
   const { data: latestAnnouncements } = await supabase
     .from("business_announcements")
     .select("id, title, body, created_at, business:businesses!inner(id, name, slug, logo_url, status)")
@@ -81,7 +118,6 @@ export default async function HomePage() {
     .order("created_at", { ascending: false })
     .limit(10);
 
-  // Fetch 1. Newest verified businesses
   const { data: latestBusinesses } = await supabase
     .from("businesses")
     .select("*")
@@ -89,13 +125,15 @@ export default async function HomePage() {
     .order("created_at", { ascending: false })
     .limit(6);
 
-  // Fetch 2. Most visited businesses
-  const { data: popularBusinesses } = await supabase
+  // Over-fetched on purpose: the six newest are removed below, so asking for
+  // exactly six here would leave the "most visited" row short (or empty) on a
+  // young directory where the newest listings are also the most viewed.
+  const { data: popularPool } = await supabase
     .from("businesses")
     .select("*")
     .or("status.eq.APPROVED,status.eq.PUBLISHED")
     .order("view_count", { ascending: false })
-    .limit(6);
+    .limit(18);
 
   // Live numbers for the hero — every one is a real count, never a claim.
   const [{ count: totalCount }, { count: verifiedCount }, { data: cityRows }, { count: categoryCount }] =
@@ -112,30 +150,77 @@ export default async function HomePage() {
   for (const r of cityRows ?? []) { const c = (r.city as string).trim(); if (c) cityFreq.set(c, (cityFreq.get(c) ?? 0) + 1); }
   const topCities = [...cityFreq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([c]) => c);
 
+  // The fix for the repetition Farjad saw: a business already shown as "newest"
+  // never appears again as "most visited". Two sections that restate each
+  // other are worse than one.
+  const latestIds = new Set((latestBusinesses ?? []).map((b) => b.id as string));
+  const popularBusinesses = (popularPool ?? [])
+    .filter((b) => !latestIds.has(b.id as string) && (b.view_count ?? 0) > 0)
+    .slice(0, 6);
+
   return (
     <PageShell currentPath="/" currentSection="home">
       <main className="min-h-screen">
-        {/* 1 & 2. Hero — brand-first, live numbers, real search */}
+        {/* 1. Hero — search-first, live numbers */}
         <HomeHero stats={stats} cities={topCities} />
 
-        {/* 2b. Featured — the plan's homepage_slot. Only appears when someone
+        {/* 2. Browse by category — the main path for someone without a search
+            term ready, so it comes first after the hero. */}
+        <section className="bg-white px-4 py-16">
+          <div className="mx-auto max-w-7xl">
+            <SectionHead
+              title="دنبال چه خدمتی می‌گردی؟"
+              subtitle="دسته‌بندی‌های پرجستجوی چارانا"
+              center
+            />
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+              {(categories || []).map((category) => (
+                <Link
+                  key={category.id}
+                  href={`/categories/${category.slug}`}
+                  className="group relative block h-32 overflow-hidden rounded-2xl border border-gray-100 shadow-sm transition-all hover:shadow-lg md:h-40"
+                >
+                  {category.image_url ? (
+                    <img
+                      src={category.image_url}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 h-full w-full bg-gray-100" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/30 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                    <div className="mb-1 text-xl drop-shadow-md md:text-2xl">{category.icon}</div>
+                    <h3 className="text-sm font-bold drop-shadow-md md:text-base">{category.name}</h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-6 text-center">
+              <Button asChild variant="ghost" className="text-[color:var(--lajvard)]">
+                <Link href="/categories">همه‌ی دسته‌بندی‌ها <ArrowLeft className="mr-1 h-4 w-4" /></Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* 3. Featured — the plan's homepage_slot. Only appears when someone
             actually holds it; see the fetch above for why an empty version of
             this section is not an option. */}
         {featuredBusinesses && featuredBusinesses.length > 0 && (
           <section className="border-t border-gray-100 bg-gradient-to-b from-amber-50/60 to-white px-4 py-16">
             <div className="mx-auto max-w-7xl">
-              <div className="mb-8 flex items-end justify-between gap-4">
-                <div>
-                  <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1 text-xs font-black text-white">
-                    <Star className="h-3.5 w-3.5" fill="currentColor" /> ویژه
-                  </div>
-                  <h2 className="text-2xl font-bold md:text-3xl">کسب‌وکارهای ویژه</h2>
-                  <p className="mt-1 text-sm text-gray-500">
-                    این‌ها جایگاه ویژه را خریده‌اند — با برچسب، نه پنهانی.
-                  </p>
+              <div className="mb-8">
+                <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1 text-xs font-black text-white">
+                  <Star className="h-3.5 w-3.5" fill="currentColor" /> ویژه
                 </div>
+                <SectionHead
+                  title="کسب‌وکارهای ویژه"
+                  subtitle="این‌ها جایگاه ویژه را خریده‌اند — با برچسب، نه پنهانی."
+                  bare
+                />
               </div>
-
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {featuredBusinesses.map((biz) => (
                   <BusinessCard key={biz.id} business={biz} categoryLabel={catLabel.get(biz.category)} />
@@ -145,15 +230,12 @@ export default async function HomePage() {
           </section>
         )}
 
-        {/* 2c. Newest announcements sitewide — absent when there are none,
+        {/* 4. Newest announcements sitewide — absent when there are none,
             same rule as the featured section above it. */}
         {latestAnnouncements && latestAnnouncements.length > 0 && (
           <section className="border-t border-gray-100 bg-white px-4 py-16">
             <div className="mx-auto max-w-7xl">
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold md:text-3xl">تازه‌ترین اعلان‌ها</h2>
-                <p className="mt-1 text-sm text-gray-500">تخفیف، رویداد و خبر تازه از کسب‌وکارهای چارانا</p>
-              </div>
+              <SectionHead title="تازه‌ترین اعلان‌ها" subtitle="تخفیف، رویداد و خبر تازه از کسب‌وکارهای چارانا" />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {latestAnnouncements.map((a: any) => (
                   <Link
@@ -164,8 +246,8 @@ export default async function HomePage() {
                     <Megaphone size={16} className="mt-0.5 shrink-0 text-[color:var(--gold)]" />
                     <div className="min-w-0">
                       <p className="truncate text-xs font-bold text-[color:var(--lajvard)]">{a.business?.name}</p>
-                      <p className="mt-0.5 text-sm font-bold text-gray-900 line-clamp-1">{a.title}</p>
-                      {a.body ? <p className="mt-0.5 text-xs text-gray-500 line-clamp-2">{a.body}</p> : null}
+                      <p className="mt-0.5 line-clamp-1 text-sm font-bold text-gray-900">{a.title}</p>
+                      {a.body ? <p className="mt-0.5 line-clamp-2 text-xs text-gray-500">{a.body}</p> : null}
                     </div>
                   </Link>
                 ))}
@@ -174,53 +256,19 @@ export default async function HomePage() {
           </section>
         )}
 
-        {/* 3. Popular Categories */}
-        <section className="py-16 px-4 bg-white">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">دسته‌بندی‌های پرجستجو</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {(categories || []).map((category) => (
-                <Link key={category.id} href={`/categories/${category.slug}`} className="group block h-32 md:h-40 rounded-xl overflow-hidden relative shadow-sm hover:shadow-lg transition-all border border-gray-100">
-                  {category.image_url ? (
-                    <img 
-                      src={category.image_url} 
-                      alt={category.name} 
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 w-full h-full bg-gray-100" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/30 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-                    <div className="text-xl md:text-2xl mb-1 drop-shadow-md">{category.icon}</div>
-                    <h3 className="font-bold text-sm md:text-base drop-shadow-md">{category.name}</h3>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* 4. Section: Newest Verified Businesses */}
+        {/* 5. Newest businesses. The heading used to read "newest *verified*"
+            and claim each had been reviewed by the team — both asserted over a
+            query that filters on publication status alone, which described 677
+            imported listings as verified. Say what the query actually selects. */}
         {latestBusinesses && latestBusinesses.length > 0 && (
-          <section className="py-16 px-4 bg-white border-t border-gray-100">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex justify-between items-end mb-8">
-                <div>
-                  {/* The heading used to read "newest *verified* businesses"
-                      and the subtitle claimed each had been reviewed by the
-                      team. Both were asserted over a query that filters on
-                      publication status alone, so 677 imported listings were
-                      described as verified. Say what the query actually
-                      selects. */}
-                  <h2 className="text-2xl md:text-3xl font-bold mb-2">جدیدترین کسب‌وکارها</h2>
-                  <p className="text-sm text-gray-500">تازه‌ترین کسب‌وکارهایی که در چارانا منتشر شده‌اند</p>
-                </div>
-                <Button asChild variant="ghost" className="hidden sm:inline-flex text-[color:var(--lajvard)]">
-                  <Link href="/categories/all">مشاهده همه <ArrowLeft className="mr-1 h-4 w-4" /></Link>
+          <section className="border-t border-gray-100 bg-white px-4 py-16">
+            <div className="mx-auto max-w-7xl">
+              <div className="mb-8 flex items-end justify-between gap-4">
+                <SectionHead title="جدیدترین کسب‌وکارها" subtitle="تازه‌ترین کسب‌وکارهایی که در چارانا منتشر شده‌اند" bare />
+                <Button asChild variant="ghost" className="hidden shrink-0 text-[color:var(--lajvard)] sm:inline-flex">
+                  <Link href="/businesses">مشاهده همه <ArrowLeft className="mr-1 h-4 w-4" /></Link>
                 </Button>
               </div>
-              
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {latestBusinesses.map((biz) => (
                   <BusinessCard key={biz.id} business={biz} categoryLabel={catLabel.get(biz.category)} />
@@ -230,17 +278,12 @@ export default async function HomePage() {
           </section>
         )}
 
-        {/* 5. Section: Most Visited Businesses */}
-        {popularBusinesses && popularBusinesses.length > 0 && (
-          <section className="py-16 px-4 bg-gray-50/70 border-t border-gray-100">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex justify-between items-end mb-8">
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-2">پربازدیدترین کسب‌وکارها</h2>
-                  <p className="text-sm text-gray-500">بیشترین بازدید در چارانا</p>
-                </div>
-              </div>
-              
+        {/* 6. Most visited — deduplicated against the section above, and
+            gated on a real view count, so this is never a second copy of it. */}
+        {popularBusinesses.length > 0 && (
+          <section className="border-t border-gray-100 bg-gray-50/70 px-4 py-16">
+            <div className="mx-auto max-w-7xl">
+              <SectionHead title="پربازدیدترین کسب‌وکارها" subtitle="بیشترین بازدید در چارانا" />
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {popularBusinesses.map((biz) => (
                   <BusinessCard key={biz.id} business={biz} showViews categoryLabel={catLabel.get(biz.category)} />
@@ -250,16 +293,10 @@ export default async function HomePage() {
           </section>
         )}
 
-        {/* 6. Explore by city */}
+        {/* 7. Explore by city */}
         <section className="border-t border-gray-100 bg-white px-4 py-16">
           <div className="mx-auto max-w-7xl">
-            <div className="mb-8 text-center">
-              <h2 className="mb-2 text-2xl font-bold md:text-3xl">کاوش بر اساس شهر</h2>
-              <p className="text-sm text-gray-500">
-                کسب‌وکارهای ایرانی را در شهر خودت پیدا کن
-              </p>
-            </div>
-
+            <SectionHead title="کاوش بر اساس شهر" subtitle="کسب‌وکارهای ایرانی را در شهر خودت پیدا کن" center />
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {CITY_CARDS.map((city) => (
                 <Link
@@ -283,12 +320,8 @@ export default async function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#14213d] via-[#14213d]/40 to-transparent" />
 
                   <div className="absolute inset-x-0 bottom-0 p-4">
-                    <p className="text-lg font-black text-[#f6f1e8] drop-shadow-sm">
-                      {city.nameFa}
-                    </p>
-                    <p className="text-xs text-[#f6f1e8]/70" dir="ltr">
-                      {city.nameEn}
-                    </p>
+                    <p className="text-lg font-black text-[#f6f1e8] drop-shadow-sm">{city.nameFa}</p>
+                    <p className="text-xs text-[#f6f1e8]/70" dir="ltr">{city.nameEn}</p>
                   </div>
                 </Link>
               ))}
@@ -296,113 +329,76 @@ export default async function HomePage() {
 
             <div className="mt-6 text-center">
               <Button asChild variant="ghost" className="text-[color:var(--lajvard)]">
-                <Link href="/cities">
-                  همه‌ی شهرها <ArrowLeft className="mr-1 h-4 w-4" />
-                </Link>
+                <Link href="/cities">همه‌ی شهرها <ArrowLeft className="mr-1 h-4 w-4" /></Link>
               </Button>
             </div>
           </div>
         </section>
 
-        {/* 6. Business Owner Path */}
-        <section className="py-20 px-4 bg-[color:var(--lajvard)] text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-black/10"></div>
-          <div className="max-w-4xl mx-auto text-center relative z-10">
-            <h2 className="text-3xl md:text-4xl font-black mb-6">کسب‌وکار ایرانی داری؟ در čārana معرفی‌اش کن.</h2>
-            <p className="text-lg text-white/90 mb-12 max-w-2xl mx-auto leading-relaxed">
-              اگر صاحب یا نماینده یک کسب‌وکار ایرانی در کانادا هستی، می‌توانی پروفایل کسب‌وکارت را ثبت کنی تا بعد از بررسی در دایرکتوری منتشر شود.
+        {/* 8. Why this directory, and how it stays honest. Previously two
+            sections — a four-card "چرا čārana؟" and a paragraph headed
+            "اطلاعات قابل اعتماد" — making the same argument twice. */}
+        <section className="border-t border-gray-100 bg-gray-50 px-4 py-16">
+          <div className="mx-auto max-w-7xl">
+            <SectionHead
+              title="چرا čārana؟"
+              subtitle="یک دایرکتوری که فقط چیزی را نشان می‌دهد که پشتش داده‌ی واقعی هست."
+              center
+            />
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+              <Why icon={<MapPin className="h-6 w-6" />} title="تمرکز اختصاصی">
+                مرجع تخصصی کسب‌وکارهای ایرانیان کانادا، بدون نتایج نامربوط.
+              </Why>
+              <Why icon={<Search className="h-6 w-6" />} title="جستجوی فارسی‌فهم">
+                نام، خدمت، دسته یا شهر — فارسی یا انگلیسی، حتی با کیبورد اشتباه.
+              </Why>
+              <Why icon={<ShieldCheck className="h-6 w-6" />} title="نشان تأیید واقعی">
+                نشان یعنی مالکیت با پیامک یا ایمیل اثبات شده — فروشی نیست، و شش‌ماهه تازه می‌شود.
+              </Why>
+              <Why icon={<CheckCircle2 className="h-6 w-6" />} title="انتشار کنترل‌شده">
+                پروفایل‌ها و نظرهای عمومی پیش از انتشار بررسی می‌شوند؛ یادداشت‌های شخصی خصوصی می‌مانند.
+              </Why>
+            </div>
+          </div>
+        </section>
+
+        {/* 9. Business owner path */}
+        <section className="relative overflow-hidden bg-[color:var(--lajvard)] px-4 py-20 text-white">
+          <div className="absolute inset-0 bg-black/10" />
+          <div className="relative z-10 mx-auto max-w-4xl text-center">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold">
+              <Users className="h-3.5 w-3.5" /> برای صاحبان کسب‌وکار
+            </div>
+            <h2 className="mb-5 text-3xl font-black md:text-4xl">کسب‌وکار ایرانی داری؟ در čārana معرفی‌اش کن.</h2>
+            <p className="mx-auto mb-12 max-w-2xl leading-relaxed text-white/90">
+              ثبت رایگان است و همیشه رایگان می‌ماند. آدرس سایتت را بده — بقیه‌ی اطلاعات را خودمان می‌خوانیم و پر می‌کنیم.
             </p>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 mb-12 text-sm font-bold">
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-3">1</div>
-                <span>حساب بساز</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-3">2</div>
-                <span>اطلاعات وارد کن</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-3">3</div>
-                <span>تیم ما بررسی می‌کند</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-3">4</div>
-                <span>منتشر می‌شود</span>
-              </div>
-            </div>
 
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button asChild className="bg-white text-[color:var(--lajvard)] hover:bg-gray-100 font-bold px-8 h-14 text-base">
-                <Link href="/dashboard/business/new">شروع ثبت کسب‌وکار</Link>
-              </Button>
-              <Button asChild variant="muted" className="border-white text-[color:var(--lajvard)] hover:bg-white/10 hover:text-white font-bold px-8 h-14 text-base">
-                <Link href="/auth/login">ورود به حساب</Link>
-              </Button>
-            </div>
+            <ol className="mb-12 grid grid-cols-2 gap-6 text-sm font-bold sm:grid-cols-4">
+              {["حساب بساز", "اطلاعات وارد کن", "تیم ما بررسی می‌کند", "منتشر می‌شود"].map((step, i) => (
+                <li key={step} className="flex flex-col items-center">
+                  <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 tabular-nums">
+                    {fa(i + 1)}
+                  </span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+
+            <Button asChild className="h-14 bg-white px-8 text-base font-bold text-[color:var(--lajvard)] hover:bg-gray-100">
+              <Link href="/dashboard/business/new">شروع ثبت کسب‌وکار</Link>
+            </Button>
           </div>
         </section>
 
-        {/* 6b. Ask the visitor what is missing — text or voice */}
-        <section className="px-4 py-16 bg-white border-t border-gray-100">
+        {/* 10. Ask the visitor what is missing — text or voice */}
+        <section className="border-t border-gray-100 bg-white px-4 py-16">
           <div className="mx-auto max-w-3xl">
             <SuggestionBox page="/" />
           </div>
         </section>
 
-        {/* 7. Why Charana */}
-        <section className="py-20 px-4 bg-gray-50">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-3xl font-bold mb-12 text-center">چرا čārana؟</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div className="w-12 h-12 bg-[color:var(--lajvard-light)]/20 text-[color:var(--lajvard)] rounded-lg flex items-center justify-center mb-4">
-                  <MapPin className="h-6 w-6" />
-                </div>
-                <h3 className="font-bold text-lg mb-2">تمرکز اختصاصی</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">مرجع تخصصی کسب‌وکارهای ایرانیان کانادا، بدون نتایج نامربوط.</p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div className="w-12 h-12 bg-[color:var(--lajvard-light)]/20 text-[color:var(--lajvard)] rounded-lg flex items-center justify-center mb-4">
-                  <Search className="h-6 w-6" />
-                </div>
-                <h3 className="font-bold text-lg mb-2">جستجوی دقیق</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">پیدا کردن سریع خدمات بر اساس شهر، دسته‌بندی و کلمات کلیدی.</p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div className="w-12 h-12 bg-[color:var(--lajvard-light)]/20 text-[color:var(--lajvard)] rounded-lg flex items-center justify-center mb-4">
-                  <CheckCircle2 className="h-6 w-6" />
-                </div>
-                <h3 className="font-bold text-lg mb-2">ثبت و Claim</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">امکان ثبت آسان کسب‌وکار جدید یا Claim کردن پروفایل از پیش موجود.</p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div className="w-12 h-12 bg-[color:var(--lajvard-light)]/20 text-[color:var(--lajvard)] rounded-lg flex items-center justify-center mb-4">
-                  <ShieldCheck className="h-6 w-6" />
-                </div>
-                <h3 className="font-bold text-lg mb-2">بررسی دستی</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">جلوگیری از اسپم با بررسی و تایید انسانی پروفایل‌ها قبل از انتشار.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 8. Trust & Policy */}
-        <section className="py-16 px-4 bg-white border-b border-gray-100">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-2xl font-bold mb-4">اطلاعات قابل اعتماد، انتشار کنترل‌شده</h2>
-            <p className="text-gray-600 leading-relaxed mb-8">
-              در <strong dir="ltr">čārana</strong> اطلاعات کسب‌وکارها قبل از انتشار بررسی می‌شود. نظرهای عمومی کاربران هم فقط بعد از تایید مدیر نمایش داده می‌شوند. یادداشت‌ها و ذخیره‌های شخصی کاربران خصوصی می‌مانند مگر خودشان تصمیم بگیرند نسخه‌ای از تجربه‌شان را برای انتشار عمومی ارسال کنند.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-sm font-medium">
-              <Link href="/privacy" className="text-[color:var(--lajvard)] hover:underline">حریم خصوصی</Link>
-              <Link href="/disclaimer" className="text-[color:var(--lajvard)] hover:underline">سلب مسئولیت</Link>
-              <Link href="/terms" className="text-[color:var(--lajvard)] hover:underline">شرایط استفاده</Link>
-            </div>
-          </div>
-        </section>
-
-        {/* 9. The app — a working miniature of the real UI, not a dead frame */}
+        {/* 11. The app — a working miniature of the real UI, not a dead frame */}
         <section className="relative overflow-hidden bg-[#14213d] px-4 py-24 text-[#f6f1e8]">
           <style>{`
             @keyframes app-float { 0%,100% { transform: rotate(-5deg) translateY(0); } 50% { transform: rotate(-5deg) translateY(-10px); } }
@@ -420,8 +416,7 @@ export default async function HomePage() {
           <div
             className="pointer-events-none absolute inset-x-0 bottom-0 h-16 opacity-[0.12]"
             style={{
-              backgroundImage:
-                "linear-gradient(to top, #f6f1e8 0, #f6f1e8 100%)",
+              backgroundImage: "linear-gradient(to top, #f6f1e8 0, #f6f1e8 100%)",
               maskImage:
                 "repeating-linear-gradient(90deg, black 0 48px, transparent 48px 96px), linear-gradient(to top, black 0 16px, transparent 16px 32px, black 32px 48px, transparent 48px)",
               WebkitMaskComposite: "source-in",
@@ -505,12 +500,14 @@ export default async function HomePage() {
                 </div>
               </div>
 
-              {/* floating proof chips */}
+              {/* Floating proof chips. The count is the live one — this chip
+                  used to hard-code "+۶۷۷" while the hero counted 680 from the
+                  database on the same screen. */}
               <div
                 className="chip-float-a absolute -right-14 top-14 rounded-xl bg-[#f6f1e8] px-3 py-2 text-[10px] font-black text-[#14213d] shadow-xl"
                 style={{ animation: "chip-float-a 5.5s ease-in-out infinite" }}
               >
-                +۶۷۷ کسب‌وکار
+                {fa(stats.total)} کسب‌وکار
               </div>
               <div
                 className="chip-float-b absolute -left-16 bottom-24 flex items-center gap-1 rounded-xl bg-[#800000] px-3 py-2 text-[10px] font-black text-[#f6f1e8] shadow-xl"
@@ -541,25 +538,19 @@ export default async function HomePage() {
                   <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f6f1e8]/10">
                     <Bookmark className="h-4 w-4 text-[#c9a24b]" />
                   </span>
-                  <span className="leading-relaxed">
-                    کسب‌وکارها را ذخیره کن و لیست «می‌خواهم بروم» بساز
-                  </span>
+                  <span className="leading-relaxed">کسب‌وکارها را ذخیره کن و لیست «می‌خواهم بروم» بساز</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f6f1e8]/10">
                     <MessageSquare className="h-4 w-4 text-[#c9a24b]" />
                   </span>
-                  <span className="leading-relaxed">
-                    یادداشت خصوصی بنویس — فقط خودت می‌بینی، حتی ما هم نه
-                  </span>
+                  <span className="leading-relaxed">یادداشت خصوصی بنویس — فقط خودت می‌بینی، حتی ما هم نه</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f6f1e8]/10">
                     <ShieldCheck className="h-4 w-4 text-[#c9a24b]" />
                   </span>
-                  <span className="leading-relaxed">
-                    نشان تایید یعنی مالکیت با پیامک به شماره‌ی خود آگهی اثبات شده
-                  </span>
+                  <span className="leading-relaxed">نشان تایید یعنی مالکیت با پیامک به شماره‌ی خود آگهی اثبات شده</span>
                 </li>
               </ul>
 
@@ -598,5 +589,38 @@ export default async function HomePage() {
         </section>
       </main>
     </PageShell>
+  );
+}
+
+/** One heading shape for every section, so eleven sections read as one page.
+ *  `bare` drops the wrapper margin for headings that sit inside a flex row. */
+function SectionHead({
+  title,
+  subtitle,
+  center,
+  bare,
+}: {
+  title: string;
+  subtitle?: string;
+  center?: boolean;
+  bare?: boolean;
+}) {
+  return (
+    <div className={`${bare ? "" : "mb-8"} ${center ? "text-center" : ""}`}>
+      <h2 className="text-2xl font-bold md:text-3xl">{title}</h2>
+      {subtitle ? <p className="mt-1.5 text-sm text-gray-500">{subtitle}</p> : null}
+    </div>
+  );
+}
+
+function Why({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[color:var(--lajvard-light)]/20 text-[color:var(--lajvard)]">
+        {icon}
+      </div>
+      <h3 className="mb-2 text-lg font-bold">{title}</h3>
+      <p className="text-sm leading-relaxed text-gray-600">{children}</p>
+    </div>
   );
 }
