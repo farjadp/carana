@@ -334,6 +334,48 @@ widget just staying silently empty. Shipped to mobile too: a new public
 bundle), clock computed on-device since Hermes has full Intl/ICU on this
 Expo SDK.
 
+## 16 August — home page redesign (`484866f`)
+
+Farjad: "redesign the home page, there's some repetition, make it
+attractive and standards-based and user-need-driven." Read the whole page
+before touching it, because "repetitive" turned out to name three real
+defects rather than a style preference:
+
+1. **جدیدترین and پربازدیدترین were the same list.** Two identical 6-card
+   grids back to back, and with today's data the *same three* businesses
+   (آشاوید، فرجاد پورمحمد، صرافی لومیر) filled both. Now popular is
+   deduplicated against newest and gated on a real `view_count`, fed from
+   an over-fetched pool of 18 so the row doesn't go short after the
+   subtraction. Verified in the rendered DOM, not just in source: six and
+   six, zero overlapping hrefs.
+2. **The owner CTA appeared three times** — hero, sticky header, dedicated
+   section. Dropped the hero's; the header carries it on every page.
+3. **Trust was argued twice** — a four-card "چرا čārana؟" and a paragraph
+   headed "اطلاعات قابل اعتماد" — and the second one repeated the three
+   legal links that the footer renders immediately beneath it. Merged.
+
+Two genuine bugs fell out of the reading:
+
+- **"مشاهده همه" was a 404.** It pointed at `/categories/all`;
+  `categories/[slug]` has no "all" case. Now `/businesses`, which is the
+  real paginated listing.
+- **The app mock hard-coded `+۶۷۷ کسب‌وکار`** while the hero counted 680
+  live from the database on the same screen. Takes the live count now.
+  Exactly the class the house honesty rule exists for, and it had been
+  sitting in the most-designed section of the page.
+
+Layout work: the hero was a 7/5 split that put a 2×2 block of large stat
+cards level with the search box, so the page's primary action competed
+with four numbers nobody arrives for. It's centred and single-column now,
+search widest and highest-contrast, the four counts demoted to one thin
+strip beneath it (same real numbers, still counting up). Categories moved
+directly under the hero — it's the main path for a visitor with no search
+term ready, and it had been sitting below two conditional sections that
+are empty on most days. One shared `SectionHead` so ten sections read as
+one page.
+
+Checked at 375px and 1280px wide, `tsc` and production build clean.
+
 ## Commits, oldest first
 
 ```
