@@ -52,8 +52,17 @@ The live board is Notion → 🧿 Charana → Mission Control; this is the narra
 
 ## Code — next slices, in order
 
-1. **APK 1.2.0.** It carries the blog, conversion events, the report sheet and
-   the voice suggestion box. None of it reaches users until it ships.
+1. ~~**APK 1.2.0**~~ — **shipped 16 Aug, `229669c`** (EAS build
+   `7d468902`, 110MB). Carries the blog, conversion events, the report
+   sheet, the voice suggestion box, busy-status display, the Tehran
+   clock/FX card and the announcement surfaces.
+   **Found in the process: APK 1.1.0 was broken the whole time it was
+   linked** — no `EXPO_PUBLIC_SUPABASE_*` reached the build, so the app
+   threw on launch. Fixed by adding them as EAS project variables; see the
+   gotcha in `06-gotchas.md`. **Still unverified: nobody has run 1.2.0 on
+   a real Android device or emulator** — the credentials are confirmed
+   inlined in the bundle, but that is static evidence only. Install it
+   once before promoting it anywhere.
 2. **Blog E-E-A-T pass.** Two or three first-hand sentences per post that a
    model cannot invent. Farjad supplies; I fold in.
 3. RLS and authorization regression tests.

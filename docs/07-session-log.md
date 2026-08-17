@@ -407,6 +407,46 @@ rotation list next to the Stripe and Twilio keys. It is free-tier
 does not bend for cheap keys. It is also only in local `.env.local` — the
 production line stays absent until it is set in Vercel.
 
+## 16 August, last — APK 1.2.0, and the outage it uncovered (`c6bd835`, `229669c`)
+
+Farjad asked for the 1.2.0 build. Checking the preconditions first turned
+out to matter more than the build:
+
+**APK 1.1.0 — publicly downloadable from `/download` for a day — could not
+start.** `.env.local` is gitignored, there is no `.easignore`, no `eas.json`
+profile declares `env`, and all three EAS environments were empty. So
+`EXPO_PUBLIC_SUPABASE_URL` was `undefined` at build time and
+`lib/supabase.ts` threw on launch. EAS reported the build as successful,
+because from its side nothing failed.
+
+Proved it rather than inferring it: downloaded the 1.1.0 artifact and read
+the Hermes bundle. The project ref appeared **zero** times; `charana.ca`,
+hardcoded in `lib/api.ts`, appeared once and served as the control.
+
+**A method error worth recording.** The first pass used `grep -c` on the
+bundle and reported that `charana.ca` was missing too. That is a binary —
+`strings` is the right tool. Had the control string not been in the check,
+the broken method would have produced a confident answer that happened to
+point the same direction. Include a string you know must be present, and
+when it comes back absent, distrust the method before the artifact.
+
+Fixed by creating the two `EXPO_PUBLIC_SUPABASE_*` values as EAS project
+variables across all three environments — plaintext, since `EXPO_PUBLIC_*`
+is inlined into the client bundle by definition and is not a secret. `eas
+build` then printed the variables it loaded, which is the line to read.
+
+1.2.0 built (`7d468902`, 110MB) and verified the same way before the site
+link was changed: project ref now present, real publishable key present,
+and the `Missing EXPO_PUBLIC` error string **gone** — with the URL a
+compile-time constant, Metro drops the `if (!supabaseUrl) throw` branch as
+unreachable. In 1.1.0 that branch survived precisely because it was the
+only reachable path.
+
+**Not verified, said plainly:** no Android emulator or device is available
+on this machine, so 1.2.0 has never actually been launched on Android. The
+credentials are demonstrably in the bundle; that is static evidence, not a
+running app. Someone should install it once before it is promoted further.
+
 ## Commits, oldest first
 
 ```

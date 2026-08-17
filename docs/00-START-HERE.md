@@ -22,8 +22,9 @@ imported + Farjad's three showcase listings), a brand-first home page with
 live counters, **real search** (Persian-aware, ranked, wrong-keyboard
 forgiving), redesigned business profiles on web + mobile, business
 registration with AI website import on web + mobile, branded auth mail via
-Resend, and a downloadable Android APK (1.1.0). The mobile app runs on the
-simulator and Farjad's iPhone; store publishing is blocked on D-U-N-S.
+Resend, and a downloadable Android APK (**1.2.0**, 16 Aug). The mobile app
+runs on the simulator and Farjad's iPhone; store publishing is blocked on
+D-U-N-S.
 
 | Area | State |
 |---|---|
@@ -37,11 +38,11 @@ simulator and Farjad's iPhone; store publishing is blocked on D-U-N-S.
 | Plans v2 | Pro → **استارتر (Starter)**, Featured → **پریمیوم (Premium)** (display names only — `PlanId` stays `pro`/`featured`, see `lib/billing/plans.ts`). Five tiered features shipped: **gallery**, **review replies**, **busy now/quiet now** (mobile display too), **announcements**, **vanity English URL**. Plus **announcement discovery** (not plan-gated): homepage feed + opt-in follow-and-email. SMS/push channels, price-list extraction, and mobile owner screens are backlog — tracked in Notion Mission Control |
 | Header CSS bug | **Fixed 16 Aug.** Two `.site-header` definitions were fighting since the Aug 23 rebuild — old padding/border-radius/box-shadow leaked through at every width, and `position: sticky` was lost entirely below 720px. See `06-gotchas.md` |
 | Home page | **Redesigned 16 Aug (`484866f`)** around search-first. Killed three duplications (newest/popular showed the same businesses, owner CTA appeared 3×, trust argued twice + legal links repeated from the footer) and two bugs (`/categories/all` 404 link, hard-coded `+۶۷۷` chip vs the live 680) |
-| Footer status bar | **Live, web + app.** Tehran clock, Jalali + Shahanshahi date (shared logic in `@charana/core`), real free-market USD/EUR/CAD via Navasan — needs `NAVASAN_API_KEY` from Farjad before the rates line shows anything |
+| Footer status bar | **Live, web + app.** Tehran clock, Jalali + Shahanshahi date (shared logic in `@charana/core`), real free-market USD/EUR/CAD via Navasan. Key is now set in Vercel, so rates render in production; a 3-day staleness guard drops dead symbols |
 | Suggestions | Text or voice, web + app, admin inbox |
 | Admin | Listings, categories, reviews, users, logs, suggestions, blog desk, **reports queue**, **city cleanup queue**; sidebar badges are live counts |
 | Data gap | **409 listings still say «نامشخص»** — the cleanup queue is built; 365 of them are one click away |
-| Mobile | Runs on simulator and a real iPhone. APK 1.1.0 is live; **1.2.0 not built yet** and it carries four features |
+| Mobile | Runs on simulator and a real iPhone. **APK 1.2.0 built and linked 16 Aug** (`229669c`) — and it fixed a real outage: 1.1.0 shipped with no Supabase credentials and could not start at all. 1.2.0 not yet run on a real Android device |
 | App Store / Play | Blocked on D-U-N-S for Ashavid Inc. |
 
 ## What to do first when you wake up

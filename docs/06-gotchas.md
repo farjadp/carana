@@ -675,3 +675,42 @@ the time) is a cheap way to confirm both the unit and the mapping.
 **Lesson:** for any third-party quote feed, freshness is a separate
 question from correctness, and the API will not raise it for you. If a
 payload carries timestamps, use them as a filter, not decoration.
+
+---
+
+## An EAS build has none of your local `.env` — and fails silently, at runtime
+
+**Symptom:** APK 1.1.0 was downloadable from the site for a day and could
+not start at all. No build error — EAS reported success and produced a
+107MB artifact.
+
+**Cause:** `apps/mobile/.env.local` is gitignored, and there is no
+`.easignore`, so EAS never receives it. No build profile in `eas.json`
+declared `env`, and all three EAS environments were empty. So
+`process.env.EXPO_PUBLIC_SUPABASE_URL` was `undefined` at build time,
+`lib/supabase.ts` threw on launch, and the app died before its first
+screen. The build could not fail — from EAS's point of view nothing was
+wrong.
+
+**Fix:** the two `EXPO_PUBLIC_SUPABASE_*` values are now EAS project
+variables in development/preview/production (`eas env:create`, plaintext —
+`EXPO_PUBLIC_*` is inlined into the client bundle by definition and is not
+a secret). `eas build` prints which variables it loaded; read that line.
+
+**How to check an APK before publishing the link:**
+
+```bash
+unzip -q app.apk -d out && strings out/assets/index.android.bundle | grep -c <project-ref>
+```
+
+**Use `strings`, not `grep`.** The bundle is Hermes bytecode. Running
+`grep -c` straight at it reported zero matches for `charana.ca` too — a
+string that is hardcoded in `lib/api.ts` and definitely present. That false
+negative looked exactly like the true one. Always include a control string
+you know must be there; if the control comes back absent, the method is
+broken, not the build.
+
+**Lesson:** "the build succeeded" says nothing about whether the app runs.
+Anything inlined at build time — every `EXPO_PUBLIC_*` — has to be verified
+in the artifact, because the failure surfaces on a user's phone, not in CI.
+
