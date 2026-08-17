@@ -17,7 +17,11 @@ import { formatTehranDate, formatTehranTime, nowInTehran } from "@charana/core";
 import { fetchExchangeRates, type ExchangeRates } from "../lib/exchange-rates";
 import { colors, fonts } from "../theme";
 
-const fa = (n: number) => String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
+// Same formatter as the web footer: grouped thousands, Persian digits.
+// A bare digit-swap renders 186800 as ۱۸۶۸۰۰, which nobody can read at a
+// glance. `Intl` is available here — the Jalali date above is already
+// proof of that, since nowInTehran() goes through Intl.DateTimeFormat.
+const fa = (n: number) => n.toLocaleString("fa-IR", { maximumFractionDigits: 0 });
 
 export function IranStatusBar() {
   const [t, setT] = useState(() => nowInTehran());
