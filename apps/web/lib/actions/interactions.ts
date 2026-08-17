@@ -11,6 +11,8 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { entitlementsFor } from "@/lib/billing/entitlements";
+import { sendEmail } from "@/lib/email/send";
+import { newReviewEmail, reviewModeratedEmail } from "@/lib/email/templates";
 
 // ----------------------------------------------------------------------------
 // انواع داده
@@ -32,6 +34,16 @@ interface InteractionData {
    *  Not implied by personal_status = "saved" — see the migration. */
   notify_announcements?: boolean;
 }
+
+/**
+ * Review guards. The numbers are deliberately generous for a real person
+ * and cheap for a script to hit: someone writing thoughtfully about five
+ * businesses in a day is plausible, someone writing about fifty is not.
+ */
+const MIN_REVIEW_LENGTH = 10;
+const MAX_REVIEW_LENGTH = 2000;
+const MAX_REVIEWS_PER_WINDOW = 5;
+const REVIEW_WINDOW_HOURS = 24;
 
 interface PublicReviewData {
   public_title?: string;
@@ -107,6 +119,32 @@ export async function submitPublicReview(businessId: string, data: PublicReviewD
 
     if (!user) return { success: false, error: "ابتدا وارد حساب کاربری شوید." };
 
+    // The client checks this too; the client is not the gate. A request
+    // straight to the action skips that form entirely.
+    const body = data.public_body?.trim() ?? "";
+    if (body.length < MIN_REVIEW_LENGTH) {
+      return { success: false, error: `متن نظر باید حداقل ${MIN_REVIEW_LENGTH} کاراکتر باشد.` };
+    }
+    if (body.length > MAX_REVIEW_LENGTH) {
+      return { success: false, error: `متن نظر نباید بیشتر از ${MAX_REVIEW_LENGTH} کاراکتر باشد.` };
+    }
+    if (!Number.isInteger(data.public_rating) || data.public_rating < 1 || data.public_rating > 5) {
+      return { success: false, error: "امتیاز باید بین ۱ تا ۵ باشد." };
+    }
+
+    // A business owner reviewing their own listing is not a review, it is a
+    // testimonial they wrote about themselves. Both ownership columns are
+    // checked — created_by alone misses every claimed listing.
+    const { data: target } = await supabase
+      .from("businesses")
+      .select("id, created_by, owner_user_id")
+      .eq("id", businessId)
+      .maybeSingle();
+    if (!target) return { success: false, error: "کسب‌وکار یافت نشد." };
+    if (target.created_by === user.id || target.owner_user_id === user.id) {
+      return { success: false, error: "برای کسب‌وکار خودت نمی‌توانی نظر ثبت کنی." };
+    }
+
     // آیا کاربر از قبل نظری برای این کسب‌وکار دارد؟
     const { data: existingReview } = await supabase
       .from("public_reviews")
@@ -129,6 +167,26 @@ export async function submitPublicReview(businessId: string, data: PublicReviewD
 
       if (error) throw error;
     } else {
+      // Cap NEW reviews only — editing your own existing one is not the
+      // abuse case. Counted in the database over a rolling window rather
+      // than lib/utils/rate-limit.ts, whose own header says it resets on
+      // deploy and is not shared between instances: a spammer just needs a
+      // different instance or a deploy to reset it. Same approach as the
+      // announcement quota.
+      const since = new Date(Date.now() - REVIEW_WINDOW_HOURS * 3600_000).toISOString();
+      const { count } = await supabase
+        .from("public_reviews")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .gte("created_at", since);
+
+      if ((count ?? 0) >= MAX_REVIEWS_PER_WINDOW) {
+        return {
+          success: false,
+          error: `در ${REVIEW_WINDOW_HOURS} ساعت گذشته ${MAX_REVIEWS_PER_WINDOW} نظر ثبت کرده‌ای. کمی بعد دوباره امتحان کن.`,
+        };
+      }
+
       // گرفتن interaction_id (در صورت وجود) برای پیوند دادن
       const { data: interaction } = await supabase
         .from("user_business_interactions")
@@ -189,12 +247,90 @@ export async function moderateReview(reviewId: string, status: string, reason?: 
       .eq("id", reviewId);
 
     if (error) throw error;
-    
+
+    // Best-effort and never awaited to completion: a mail failure must not
+    // make a moderation decision that already landed look like it failed.
+    void notifyAboutModeration(reviewId, status);
+
     revalidatePath("/admin/reviews");
     return { success: true };
   } catch (error: any) {
     console.error("Moderate Review Error:", error);
     return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Tells the two people a moderation decision actually affects.
+ *
+ * Before this, both were left in silence: the reviewer never learned why a
+ * rejection happened (the reason sat unread in a column) and the owner
+ * never learned a review had appeared on their own listing.
+ *
+ * Runs after the status is already written, and swallows its own errors —
+ * sendEmail() reports quiet failures on its own.
+ */
+async function notifyAboutModeration(reviewId: string, status: string) {
+  try {
+    const outcome =
+      status === "published" ? "published"
+      : status === "needs_changes" ? "needs_changes"
+      : status === "rejected" ? "rejected"
+      : null;
+    if (!outcome) return; // 'approved'/'hidden' are internal states, not news
+
+    const admin = createSupabaseAdminClient();
+    const { data: review } = await admin
+      .from("public_reviews")
+      .select("id, user_id, business_id, public_title, public_body, public_rating, moderation_reason")
+      .eq("id", reviewId)
+      .maybeSingle();
+    if (!review) return;
+
+    const { data: business } = await admin
+      .from("businesses")
+      .select("id, name, slug, plan, plan_until, created_by, owner_user_id")
+      .eq("id", review.business_id)
+      .maybeSingle();
+    if (!business?.slug) return;
+
+    // 1. The reviewer, on every outcome.
+    const { data: reviewer } = await admin
+      .from("profiles").select("email").eq("id", review.user_id).maybeSingle();
+    if (reviewer?.email) {
+      await sendEmail({
+        to: reviewer.email,
+        ...reviewModeratedEmail({
+          businessName: business.name,
+          businessSlug: business.slug,
+          outcome,
+          reason: review.moderation_reason,
+        }),
+      });
+    }
+
+    // 2. The business owner, only once the review is actually public.
+    if (outcome !== "published") return;
+    const ownerId = business.owner_user_id ?? business.created_by;
+    if (!ownerId) return;
+    const { data: owner } = await admin
+      .from("profiles").select("email").eq("id", ownerId).maybeSingle();
+    if (!owner?.email) return;
+
+    await sendEmail({
+      to: owner.email,
+      ...newReviewEmail({
+        businessName: business.name,
+        businessSlug: business.slug,
+        rating: review.public_rating ?? 5,
+        title: review.public_title,
+        body: review.public_body,
+        // The mail should not invite a reply the plan does not allow.
+        canReply: entitlementsFor(business).has("review_replies"),
+      }),
+    });
+  } catch (err) {
+    console.error("Notify About Moderation Error:", err);
   }
 }
 

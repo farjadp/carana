@@ -125,6 +125,102 @@ export function newAnnouncementEmail(input: {
   };
 }
 
+/**
+ * Moderation outcome, to the person who wrote the review.
+ *
+ * Until now this was silence: a rejected review left `moderation_reason`
+ * filled in a column nobody ever read. Someone who took the time to write
+ * about a business deserves to know what happened to it, and a rejection
+ * without a reason reads as arbitrary.
+ */
+export function reviewModeratedEmail(input: {
+  businessName: string;
+  businessSlug: string;
+  outcome: "published" | "needs_changes" | "rejected";
+  reason?: string | null;
+}) {
+  const url = `https://charana.ca/businesses/${encodeURIComponent(input.businessSlug)}`;
+  const mine = "https://charana.ca/profile/interactions";
+
+  if (input.outcome === "published") {
+    return {
+      subject: `نظرت درباره‌ی ${input.businessName} منتشر شد`,
+      html: shell(`
+        <p style="margin:0 0 14px;">ممنون که وقت گذاشتی،</p>
+        <p style="margin:0 0 18px;">نظرت درباره‌ی <strong>${input.businessName}</strong> بررسی شد و حالا روی پروفایلش منتشر است.</p>
+        <div style="text-align:center;margin:24px 0;">
+          <a href="${url}" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">دیدن نظرت</a>
+        </div>
+        <p style="margin:0;color:${MUTED};font-size:13px;">هر وقت خواستی می‌توانی از <a href="${mine}" style="color:${MUTED};">دفترچه‌ی خودت</a> ویرایشش کنی.</p>
+      `),
+      text: `نظرت درباره‌ی ${input.businessName} منتشر شد.\n${url}`,
+    };
+  }
+
+  const needsChanges = input.outcome === "needs_changes";
+  return {
+    subject: needsChanges
+      ? `نظرت درباره‌ی ${input.businessName} نیاز به اصلاح دارد`
+      : `نظرت درباره‌ی ${input.businessName} منتشر نشد`,
+    html: shell(`
+      <p style="margin:0 0 14px;">سلام،</p>
+      <p style="margin:0 0 18px;">${
+        needsChanges
+          ? `نظرت درباره‌ی <strong>${input.businessName}</strong> بررسی شد و پیش از انتشار به اصلاح نیاز دارد.`
+          : `نظرت درباره‌ی <strong>${input.businessName}</strong> بررسی شد و منتشر نشد.`
+      }</p>
+      ${
+        input.reason
+          ? `<div style="background:${CREAM};border-radius:10px;padding:14px 16px;margin:0 0 18px;"><strong>دلیل:</strong><br>${input.reason}</div>`
+          : ""
+      }
+      ${
+        needsChanges
+          ? `<div style="text-align:center;margin:24px 0;">
+               <a href="${mine}" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">ویرایش نظر</a>
+             </div>`
+          : ""
+      }
+      <p style="margin:0;color:${MUTED};font-size:13px;">اگر فکر می‌کنی اشتباهی شده، به ${company.email.support} بنویس.</p>
+    `),
+    text: `${needsChanges ? "نظرت نیاز به اصلاح دارد" : "نظرت منتشر نشد"} — ${input.businessName}\n${input.reason ?? ""}\n${mine}`,
+  };
+}
+
+/** New published review, to the business owner. */
+export function newReviewEmail(input: {
+  businessName: string;
+  businessSlug: string;
+  rating: number;
+  title?: string | null;
+  body: string;
+  canReply: boolean;
+}) {
+  const url = `https://charana.ca/businesses/${encodeURIComponent(input.businessSlug)}`;
+  const stars = "★".repeat(input.rating) + "☆".repeat(5 - input.rating);
+  return {
+    subject: `نظر تازه درباره‌ی ${input.businessName}`,
+    html: shell(`
+      <p style="margin:0 0 14px;">سلام،</p>
+      <p style="margin:0 0 18px;">نظر تازه‌ای درباره‌ی <strong>${input.businessName}</strong> منتشر شد.</p>
+      <div style="background:${CREAM};border-radius:10px;padding:16px 18px;margin:0 0 18px;">
+        <div style="color:${ANNABI};font-size:18px;letter-spacing:2px;direction:ltr;">${stars}</div>
+        ${input.title ? `<div style="font-weight:bold;margin:6px 0 4px;">${input.title}</div>` : ""}
+        <div style="color:${MUTED};font-size:14px;">${input.body}</div>
+      </div>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${url}" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">${input.canReply ? "دیدن و پاسخ دادن" : "دیدن نظر"}</a>
+      </div>
+      <p style="margin:0;color:${MUTED};font-size:13px;">${
+        input.canReply
+          ? "می‌توانی زیر نظر، پاسخ عمومی بگذاری."
+          : "پاسخ عمومی به نظرات از پلن استارتر به بالا فعال می‌شود."
+      }</p>
+    `),
+    text: `نظر تازه درباره‌ی ${input.businessName} (${input.rating} از ۵)\n${input.title ?? ""}\n${input.body}\n${url}`,
+  };
+}
+
 export function contactMessageEmail(input: {
   name: string;
   email: string;
