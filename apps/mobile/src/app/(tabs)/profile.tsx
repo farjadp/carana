@@ -32,6 +32,8 @@ import { BrandLoading, BrandMark } from "../../components/brand-mark";
 import { PrimaryButton } from "../../components/ui";
 import { useAuth } from "../../context/auth";
 import { listMyNotes, listSaved, type SavedBusiness } from "../../lib/interactions";
+import { listFollowedAnnouncements, type Announcement } from "../../lib/announcements";
+import { AnnouncementCard } from "../../components/announcement-card";
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
 const WEB = "https://charana.ca";
@@ -42,6 +44,7 @@ export default function ProfileScreen() {
 
   const [saved, setSaved] = useState<SavedBusiness[]>([]);
   const [notes, setNotes] = useState<SavedBusiness[]>([]);
+  const [followed, setFollowed] = useState<Announcement[]>([]);
   const [busy, setBusy] = useState(false);
 
   // Refetch on focus: the counts change from the business screen.
@@ -50,15 +53,17 @@ export default function ProfileScreen() {
       if (!user) {
         setSaved([]);
         setNotes([]);
+        setFollowed([]);
         return;
       }
       let active = true;
       setBusy(true);
-      Promise.all([listSaved(), listMyNotes()])
-        .then(([s, n]) => {
+      Promise.all([listSaved(), listMyNotes(), listFollowedAnnouncements()])
+        .then(([s, n, news]) => {
           if (!active) return;
           setSaved(s);
           setNotes(n);
+          setFollowed(news);
         })
         .catch(() => {})
         .finally(() => active && setBusy(false));
@@ -156,6 +161,18 @@ export default function ProfileScreen() {
                 </View>
               </Pressable>
             ))
+          )}
+        </Section>
+
+        <Section title="اعلان‌های دنبال‌شده">
+          {busy ? (
+            <ActivityIndicator color={colors.annabi} style={{ marginVertical: space.md }} />
+          ) : followed.length === 0 ? (
+            <Text style={styles.empty}>
+              در صفحه‌ی هر کسب‌وکار دکمه‌ی «باخبرم کن» را بزن تا اعلان‌های تازه‌اش این‌جا و در ایمیلت جمع شود.
+            </Text>
+          ) : (
+            followed.map((a) => <AnnouncementCard key={a.id} announcement={a} variant="row" />)
           )}
         </Section>
 

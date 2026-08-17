@@ -37,11 +37,12 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ArrowLeft, BadgeCheck, ChevronLeft, Clock3, Search, Store } from "lucide-react-native";
+import { ArrowLeft, BadgeCheck, ChevronLeft, Clock3, Megaphone, Search, Store } from "lucide-react-native";
 import { getVerificationStatus } from "@charana/core";
 
 import { BrandLoading, BrandMark, MerlonGlyph, MerlonRow } from "../../components/brand-mark";
 import { BusinessCardView } from "../../components/business-card";
+import { AnnouncementCard } from "../../components/announcement-card";
 import { IranStatusBar } from "../../components/iran-status-bar";
 import { SuggestionBox } from "../../components/suggestion-box";
 import {
@@ -56,6 +57,7 @@ import {
   type Category,
 } from "../../lib/businesses";
 import { listPosts, type PostCard } from "../../lib/blog";
+import { listLatestAnnouncements, type Announcement } from "../../lib/announcements";
 import { openNow } from "../../lib/hours";
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
@@ -99,6 +101,7 @@ export default function HomeScreen() {
   const [cities, setCities] = useState<{ city: string; count: number }[]>([]);
   const [total, setTotal] = useState(0);
   const [posts, setPosts] = useState<PostCard[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -106,7 +109,7 @@ export default function HomeScreen() {
 
   const load = useCallback(async () => {
     try {
-      const [cats, counted, latest, cityList, withSignals, verifiedRows, blogPosts] = await Promise.all([
+      const [cats, counted, latest, cityList, withSignals, verifiedRows, blogPosts, news] = await Promise.all([
         listCategories(),
         countByCategory(),
         listBusinesses({ limit: 5 }),
@@ -114,6 +117,7 @@ export default function HomeScreen() {
         listWithSignals(80),
         listVerified(8),
         listPosts({ limit: 6 }),
+        listLatestAnnouncements(10),
       ]);
       setCategories(cats);
       setCounts(counted);
@@ -129,6 +133,7 @@ export default function HomeScreen() {
       );
       setTotal(Object.values(counted).reduce((a, b) => a + b, 0));
       setPosts(blogPosts);
+      setAnnouncements(news);
     } catch (err) {
       setError(err instanceof Error ? err.message : "خطای ناشناخته");
     } finally {
@@ -372,6 +377,19 @@ export default function HomeScreen() {
               </Pressable>
             ))}
           </View>
+        ) : null}
+
+        {/* ── Announcements — absent when nobody has posted one, same rule
+               as every other conditional rail on this screen ───────────── */}
+        {announcements.length > 0 ? (
+          <>
+            <SectionHeader title="تازه‌ترین اعلان‌ها" icon={<Megaphone size={15} color={colors.gold} />} />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rail} style={styles.shelfScroll}>
+              {announcements.map((a) => (
+                <AnnouncementCard key={a.id} announcement={a} variant="rail" />
+              ))}
+            </ScrollView>
+          </>
         ) : null}
 
         {/* ── From the blog ────────────────────────────────────────────── */}

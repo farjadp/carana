@@ -9,13 +9,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { Bookmark, BookmarkCheck, PenLine, Star, X } from "lucide-react-native";
+import { Bell, BellOff, Bookmark, BookmarkCheck, PenLine, Star, X } from "lucide-react-native";
 
 import { PrimaryButton } from "./ui";
 import { useAuth } from "../context/auth";
 import {
   getInteraction,
   isSaved,
+  toggleNotify,
   toggleSaved,
   upsertInteraction,
   type Interaction,
@@ -75,6 +76,18 @@ export function InteractionBar({
     }
   }
 
+  const notifying = !!interaction?.notify_announcements;
+
+  async function onToggleNotify() {
+    if (!user) return requireAuth();
+    setBusy(true);
+    try {
+      setInteraction(await toggleNotify(user.id, businessId, notifying));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function saveNote() {
     if (!user) return requireAuth();
     setBusy(true);
@@ -113,13 +126,31 @@ export function InteractionBar({
           </Text>
         </Pressable>
 
+        {/* Separate from "ذخیره" on purpose: bookmarking and asking to be
+            emailed about news are different intents, and defaulting one to
+            the other would be mail nobody asked for. */}
+        <Pressable
+          onPress={onToggleNotify}
+          disabled={busy}
+          style={({ pressed }) => [
+            styles.action,
+            notifying && styles.actionOn,
+            pressed && { opacity: 0.75 },
+          ]}
+        >
+          {notifying ? <Bell size={18} color="#fff" /> : <BellOff size={18} color={colors.text} />}
+          <Text style={[styles.actionText, notifying && styles.actionTextOn]}>
+            {notifying ? "باخبرم" : "باخبرم کن"}
+          </Text>
+        </Pressable>
+
         <Pressable
           onPress={() => (user ? setNoteOpen(true) : requireAuth())}
           style={({ pressed }) => [styles.action, pressed && { opacity: 0.75 }]}
         >
           <PenLine size={18} color={colors.text} />
           <Text style={styles.actionText}>
-            {interaction?.private_note ? "ویرایش یادداشت" : "یادداشت خصوصی"}
+            {interaction?.private_note ? "ویرایش یادداشت" : "یادداشت"}
           </Text>
         </Pressable>
       </View>

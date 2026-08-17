@@ -28,6 +28,10 @@ export type Interaction = {
   private_note: string | null;
   visited_at: string | null;
   updated_at: string | null;
+  /** Explicit opt-in for announcement notifications. Deliberately NOT
+   *  implied by personal_status = "saved" — bookmarking and asking to be
+   *  told about news are different intents. Mirrors the web. */
+  notify_announcements: boolean;
 };
 
 export type SavedBusiness = Interaction & {
@@ -43,7 +47,7 @@ export type SavedBusiness = Interaction & {
 };
 
 const INTERACTION_COLUMNS =
-  "id, business_id, personal_status, personal_rating, private_title, private_note, visited_at, updated_at";
+  "id, business_id, personal_status, personal_rating, private_title, private_note, visited_at, updated_at, notify_announcements";
 
 /** The statuses that mean "this is on my list". */
 const SAVED_STATUSES: PersonalStatus[] = [
@@ -76,7 +80,12 @@ export async function upsertInteraction(
   patch: Partial<
     Pick<
       Interaction,
-      "personal_status" | "personal_rating" | "private_title" | "private_note" | "visited_at"
+      | "personal_status"
+      | "personal_rating"
+      | "private_title"
+      | "private_note"
+      | "visited_at"
+      | "notify_announcements"
     >
   >
 ): Promise<Interaction> {
@@ -101,6 +110,15 @@ export async function toggleSaved(
   return upsertInteraction(userId, businessId, {
     personal_status: currentlySaved ? "none" : "saved",
   });
+}
+
+/** Turn announcement emails for this business on or off. */
+export async function toggleNotify(
+  userId: string,
+  businessId: string,
+  currentlyOn: boolean
+) {
+  return upsertInteraction(userId, businessId, { notify_announcements: !currentlyOn });
 }
 
 export function isSaved(interaction: Interaction | null) {

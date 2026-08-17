@@ -30,8 +30,10 @@ import {
 import { activeBusyStatus, getVerificationStatus, PROVINCES } from "@charana/core";
 
 import { BrandLoading, BrandMark, MerlonGlyph, MerlonRow } from "../../components/brand-mark";
+import { AnnouncementCard } from "../../components/announcement-card";
 import { InteractionBar } from "../../components/interaction-bar";
 import { getBusinessBySlug, listCategories, type BusinessDetail, type Category } from "../../lib/businesses";
+import { listBusinessAnnouncements, type Announcement } from "../../lib/announcements";
 import { listPublishedReviews, type PublicReview } from "../../lib/interactions";
 import { DAYS, openNow as computeOpenNow } from "../../lib/hours";
 import { trackEvent } from "../../lib/analytics";
@@ -52,6 +54,7 @@ export default function BusinessScreen() {
   const [business, setBusiness] = useState<BusinessDetail | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [reviews, setReviews] = useState<PublicReview[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,8 +66,13 @@ export default function BusinessScreen() {
         if (found) {
           // One view per screen open, same event the website records.
           trackEvent(found.id, "view");
-          const [revs, cats] = await Promise.all([listPublishedReviews(found.id), listCategories()]);
+          const [revs, cats, news] = await Promise.all([
+            listPublishedReviews(found.id),
+            listCategories(),
+            listBusinessAnnouncements(found.id),
+          ]);
           setReviews(revs);
+          setAnnouncements(news);
           setCategory(cats.find((c) => c.slug === found.category) ?? null);
         }
       } catch (err) {
@@ -185,6 +193,12 @@ export default function BusinessScreen() {
 
         <View style={styles.body}>
           <InteractionBar businessId={business.id} businessName={business.name} />
+
+          {/* Announcements — active ones only (expiry is filtered in the
+              query). Absent entirely when there are none, like the web. */}
+          {announcements.map((a) => (
+            <AnnouncementCard key={a.id} announcement={a} variant="banner" />
+          ))}
 
           {/* About */}
           <Section title="درباره">
