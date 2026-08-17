@@ -25,7 +25,10 @@ import "server-only";
 
 import { reportQuietFailure } from "@/lib/observability/report";
 
-export type ExchangeRates = { usd: number | null; eur: number | null; cad: number | null };
+/** `change` is the move since the previous close, in Toman. Navasan sends
+ *  it alongside every quote; null when the symbol omits it. */
+export type Rate = { value: number; change: number | null };
+export type ExchangeRates = { usd: Rate | null; eur: Rate | null; cad: Rate | null };
 
 /** Tried in order per currency. Bare key first: it is the headline rate and
  *  the one all three currencies publish on the same snapshot. */
@@ -38,9 +41,9 @@ const SYMBOL_CANDIDATES: Record<keyof ExchangeRates, string[]> = {
 /** Older than this and the rate is not shown at all. */
 const MAX_AGE_DAYS = 3;
 
-type NavasanEntry = { value?: string | number; timestamp?: number } | string | number;
+type NavasanEntry = { value?: string | number; change?: number; timestamp?: number } | string | number;
 
-function readValue(raw: unknown, keys: string[], now: number): number | null {
+function readValue(raw: unknown, keys: string[], now: number): Rate | null {
   if (!raw || typeof raw !== "object") return null;
   const obj = raw as Record<string, NavasanEntry>;
   for (const key of keys) {
@@ -56,7 +59,8 @@ function readValue(raw: unknown, keys: string[], now: number): number | null {
     const ts = isObj ? entry.timestamp : undefined;
     if (typeof ts !== "number" || (now - ts * 1000) / 86_400_000 > MAX_AGE_DAYS) continue;
 
-    return n;
+    const change = isObj && typeof entry.change === "number" && Number.isFinite(entry.change) ? entry.change : null;
+    return { value: n, change };
   }
   return null;
 }

@@ -18,6 +18,8 @@
 import { useEffect, useState } from "react";
 import { formatTehranDate, formatTehranTime, nowInTehran } from "@charana/core";
 
+import type { Rate } from "@/lib/exchange-rates";
+
 const faDigits = (n: number) => n.toLocaleString("fa-IR", { maximumFractionDigits: 0 });
 
 export function IranStatusBar({
@@ -27,7 +29,7 @@ export function IranStatusBar({
 }: {
   initialTime: string;
   initialDate: string;
-  rates: { usd: number | null; eur: number | null; cad: number | null } | null;
+  rates: { usd: Rate | null; eur: Rate | null; cad: Rate | null } | null;
 }) {
   const [time, setTime] = useState(initialTime);
   const [date, setDate] = useState(initialDate);
@@ -43,9 +45,9 @@ export function IranStatusBar({
   }, []);
 
   const rateParts: string[] = [];
-  if (rates?.usd) rateParts.push(`دلار ${faDigits(rates.usd)}`);
-  if (rates?.eur) rateParts.push(`یورو ${faDigits(rates.eur)}`);
-  if (rates?.cad) rateParts.push(`دلار کانادا ${faDigits(rates.cad)}`);
+  if (rates?.usd) rateParts.push(`دلار ${faDigits(rates.usd.value)}`);
+  if (rates?.eur) rateParts.push(`یورو ${faDigits(rates.eur.value)}`);
+  if (rates?.cad) rateParts.push(`دلار کانادا ${faDigits(rates.cad.value)}`);
 
   return (
     <p className="max-w-2xl text-center text-[11px] leading-relaxed text-gray-400" dir="rtl">

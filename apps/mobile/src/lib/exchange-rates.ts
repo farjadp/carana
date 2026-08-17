@@ -9,7 +9,10 @@
 // ============================================================================
 const BASE = (process.env.EXPO_PUBLIC_API_URL ?? "https://charana.ca").replace(/\/$/, "");
 
-export type ExchangeRates = { usd: number | null; eur: number | null; cad: number | null };
+/** Mirrors apps/web/lib/exchange-rates.ts — `change` is the move since the
+ *  previous close, in Toman. */
+export type Rate = { value: number; change: number | null };
+export type ExchangeRates = { usd: Rate | null; eur: Rate | null; cad: Rate | null };
 
 /** Returns null on any failure — the status bar just omits the rates line
  *  rather than showing a stale or fabricated number. */
