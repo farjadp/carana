@@ -1,6 +1,6 @@
 # Open tasks
 
-**Updated:** 2026-08-16, end of the 15–16 Aug session.
+**Updated:** 2026-08-17, end of the 15–17 Aug session.
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
 ## Farjad — dashboard work, minutes each
@@ -123,12 +123,14 @@ server-side (`e6071c5`). **Not built yet, in priority-ish order:**
     on `businesses` already but has no UI, same class of gap as the earlier
     `is_featured` dead-code bug.
 11. Mobile owner-management screens (gallery parity included) —
-    `apps/mobile` has no edit/insights/billing/announcements at all, only
-    registration and the public views. Busy-status *display* shipped to
-    mobile (16 Aug, `76f8f27`, moved the expiry logic to `@charana/core` so
-    both apps share it); the *toggle*, gallery uploads, and any future
-    owner control stay web-only until there's somewhere on mobile to put
-    them.
+    `apps/mobile` still has no edit/insights/billing/announcement-*writing*
+    at all. What has reached mobile is the **read** side: busy-status
+    display (`76f8f27`), announcements in three surfaces + the «باخبرم کن»
+    follow toggle (`6aaf06e`), the FX/clock card (`5046d9a`) and the
+    features screen (`8540df1`). Owner *controls* — the busy toggle,
+    gallery upload, posting an announcement — stay web-only until there is
+    somewhere on mobile to put them. This is the single biggest remaining
+    mobile gap.
 12. SMS announcement notifications — a third channel for the
     announcement-follow system (item 13 below); costs real money per
     message via the existing Twilio integration, needs a budget/UX
@@ -149,6 +151,15 @@ business URLs and every blog post URL; fixing it site-wide needs 301
 redirects to keep the SEO built up over the last few weeks. Bigger and
 separate from item 4 above, which should just be English from the start.
 
+## Features page (16 Aug, `016c8f8` web / `8540df1` mobile)
+
+`/features` on web and a native screen on mobile, both reading plan
+quantities from `@charana/core` so they cannot drift from what the server
+clamps. Both carry a "چیزهایی که هنوز نداریم" section listing everything
+audited as absent — removing it is what would make the rest untrustworthy.
+`plans.ts` moved into `@charana/core` for this (fourth module to make that
+move); `apps/web/lib/billing/plans.ts` is now a re-export.
+
 ## Announcement discovery (16 Aug, `ac3cef6`)
 
 Shipped: homepage feed (10 newest sitewide) + opt-in follow-and-email via
@@ -156,6 +167,29 @@ Shipped: homepage feed (10 newest sitewide) + opt-in follow-and-email via
 `/profile/interactions`. Not built this pass, tracked above as items 12–13:
 SMS (costs money, needs a budget call) and push (mobile has zero
 notification infrastructure to send to).
+
+## Review moderation (17 Aug, `5c80228`)
+
+Shipped: moderation-outcome email to the reviewer (carrying the moderator's
+reason on reject/needs-changes), new-review email to the owner (which does
+not offer a reply button the plan refuses), and server-side guards — 5 new
+reviews per user per rolling 24h counted in the database, 10–2000 chars,
+integer 1–5 rating, and no reviewing a business you own.
+
+**Three product questions deliberately left open** — nothing was built on a
+guess:
+
+1. Does moderation stay fully manual? It works at zero reviews; it does not
+   work at fifty a day. Options discussed: keep manual, auto-publish with
+   post-review, or auto-publish for verified users only.
+2. Should writing a review require a verified email/phone, or having marked
+   the business «رفتم»?
+3. Should a business be able to contest a review it believes is unfair?
+   Today it can only reply.
+
+**Not verified:** the one line inside `moderateReview` that calls the
+notifier. Delivery itself was tested for real (both mails sent via Resend,
+test review deleted after); exercising the call site needs an admin session.
 
 ## Header CSS bug + Tehran clock/rates (16 Aug, `256876c` / `ea375fb`)
 

@@ -1,6 +1,6 @@
 # čārana — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-16 · **Docs version:** 2.6
+**Written:** 2026-08-24 · **Updated:** 2026-08-17 · **Docs version:** 2.7
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://charana.ca
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -35,14 +35,16 @@ D-U-N-S.
 | Conversion events | `business_events` from both surfaces; owner insights at `/dashboard/business/[id]/insights` |
 | Billing | **Stripe subscriptions built and tested in sandbox**: checkout, portal, webhook, invoices, `/pricing`, server-side entitlements. Live mode needs the dashboard work in `05-open-tasks` |
 | Featured placement | **Fully renders.** City × category lists, `/cities/[slug]`, `/search`, and the home page's «ویژه» section all sort featured-first (expiry-aware) and show the chip on `BusinessCard`; nobody has bought it yet, so nothing shows today — that's correct, not broken |
-| Plans v2 | Pro → **استارتر (Starter)**, Featured → **پریمیوم (Premium)** (display names only — `PlanId` stays `pro`/`featured`, see `lib/billing/plans.ts`). Five tiered features shipped: **gallery**, **review replies**, **busy now/quiet now** (mobile display too), **announcements**, **vanity English URL**. Plus **announcement discovery** (not plan-gated): homepage feed + opt-in follow-and-email. SMS/push channels, price-list extraction, and mobile owner screens are backlog — tracked in Notion Mission Control |
+| Plans v2 | Pro → **استارتر (Starter)**, Featured → **پریمیوم (Premium)** (display names only — `PlanId` stays `pro`/`featured`). Five tiered features shipped: **gallery**, **review replies**, **busy now/quiet now**, **announcements**, **vanity English URL**. Plus **announcement discovery** (not plan-gated). `plans.ts` now lives in `@charana/core`, so web, mobile and the server clamps read one table. SMS/push, price-list extraction and mobile owner screens are backlog |
 | Header CSS bug | **Fixed 16 Aug.** Two `.site-header` definitions were fighting since the Aug 23 rebuild — old padding/border-radius/box-shadow leaked through at every width, and `position: sticky` was lost entirely below 720px. See `06-gotchas.md` |
 | Home page | **Redesigned 16 Aug (`484866f`)** around search-first. Killed three duplications (newest/popular showed the same businesses, owner CTA appeared 3×, trust argued twice + legal links repeated from the footer) and two bugs (`/categories/all` 404 link, hard-coded `+۶۷۷` chip vs the live 680) |
 | Footer status bar | **Live, web + app.** Tehran clock, Jalali + Shahanshahi date (shared logic in `@charana/core`), real free-market USD/EUR/CAD via Navasan. Key is now set in Vercel, so rates render in production; a 3-day staleness guard drops dead symbols |
 | Suggestions | Text or voice, web + app, admin inbox |
 | Admin | Listings, categories, reviews, users, logs, suggestions, blog desk, **reports queue**, **city cleanup queue**; sidebar badges are live counts |
 | Data gap | **409 listings still say «نامشخص»** — the cleanup queue is built; 365 of them are one click away |
-| Mobile | Runs on simulator and a real iPhone. **APK 1.2.0 built and linked 16 Aug** (`229669c`) — and it fixed a real outage: 1.1.0 shipped with no Supabase credentials and could not start at all. 1.2.0 not yet run on a real Android device |
+| Mobile | **APK 1.2.0 built and linked 16 Aug** (`229669c`) — it fixed a real outage: 1.1.0 shipped with no Supabase credentials and could not start at all. **1.2.0 has still never run on a real Android device.** Mobile now has the *read* side of everything (announcements ×3 surfaces, busy status, FX/clock card, features screen) but **no owner controls at all** — no edit, insights, billing, or announcement writing |
+| Reviews | Submit → `pending_moderation` → admin publishes/rejects. **17 Aug (`5c80228`)**: outcome emails to the reviewer (with the moderator's reason), new-review email to the owner (which won't offer a reply the plan refuses), and server-side caps — 5 per user per 24h, 10–2000 chars, no reviewing your own business. **Three product questions still open** — see `05-open-tasks` |
+| Features page | `/features` on web + a native mobile screen. Plan quantities read from `@charana/core`; both carry an explicit "what we don't have yet" list |
 | App Store / Play | Blocked on D-U-N-S for Ashavid Inc. |
 
 ## What to do first when you wake up

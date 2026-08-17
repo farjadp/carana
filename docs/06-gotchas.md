@@ -714,3 +714,24 @@ broken, not the build.
 Anything inlined at build time — every `EXPO_PUBLIC_*` — has to be verified
 in the artifact, because the failure surfaces on a user's phone, not in CI.
 
+---
+
+## `server-only` refuses to be imported into a test script — and that is correct
+
+**Symptom:** a throwaway `tsx` script that imported `lib/email/send.ts` to
+test the real send path died inside `node_modules/server-only/index.js`.
+
+**Cause:** working as designed. `sendEmail` imports `server-only` precisely
+so that a future accidental import from a client component fails the build
+instead of shipping `RESEND_API_KEY` into a browser bundle.
+
+**Fix, when you need to verify delivery:** import the *templates* (which
+have no `server-only`) and send through the vendor SDK directly. That still
+exercises the real templates, the real credentials and the real data joins;
+what it skips is the thin wrapper (FROM address + quiet-failure reporting).
+Say which half you tested.
+
+**Related:** `tsx` needs the file named `.mts`, not `.ts`, for top-level
+`await` — otherwise it emits CJS and fails with
+`ERR_REQUIRE_ASYNC_MODULE`.
+

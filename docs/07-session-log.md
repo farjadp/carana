@@ -447,6 +447,86 @@ on this machine, so 1.2.0 has never actually been launched on Android. The
 credentials are demonstrably in the bundle; that is static evidence, not a
 running app. Someone should install it once before it is promoted further.
 
+## 16 August — mobile catches up, then the features page (`5046d9a`, `6aaf06e`, `016c8f8`, `8540df1`)
+
+**Mobile FX card (`d5a1ce2`, `5046d9a`).** Farjad's note was fair: v1 was a
+wrapping muted sentence at the foot of the home tab that read like a debug
+string. Two rounds — first grouping thousands (`۱۸۶۸۰۰` → `۱۸۶,۸۰۰`, which
+the web already did and mobile did not), then a real card with the ▲/▼
+move. That delta is Navasan's own `change` field, which v1 was fetching and
+discarding.
+
+**Announcements reached mobile (`6aaf06e`).** They existed only on web — a
+business could post and no app user could ever see it. Three surfaces now
+mirror the web: home rail, profile banner, and an "اعلان‌های دنبال‌شده" list
+in the account tab, plus the «باخبرم کن» toggle in `InteractionBar`.
+`listFollowedAnnouncements()` runs two queries rather than a join on
+purpose — the follow flag lives on the RLS-scoped interactions table while
+announcements are public, and filtering a public table by a private one in
+one statement is the shape to avoid.
+
+**Features page (`016c8f8` web, `8540df1` mobile).** Farjad asked for a page
+saying exactly what a user gets. A page that is nothing but claims is the
+easiest place here to break the honesty rule, so it was audited before it
+was written — and the audit changed the copy twice: `booking_link` is gated
+by zero files, so it is described as free for every plan rather than sold
+as a Starter perk; `homepage_slot` is gated by no flag either, but the
+behaviour is real (`app/page.tsx` filters `plan='featured'` directly), so
+it stays listed.
+
+That page is also why `plans.ts` moved into `@charana/core` — the fourth
+thing to make that move, after verification status, live status and the
+Tehran calendar. Hand-typing "۵ عکس" into a mobile screen is exactly how a
+promise drifts from a server that clamps at 3. Web, mobile and
+`edit/actions.ts` now read one table.
+
+Both versions carry a "چیزهایی که هنوز نداریم" section. On mobile it gains
+a line the web does not need — owner management does not exist in the app
+at all — and dropping that section on mobile would have removed the
+disclosures most relevant to whoever is reading it on a phone.
+
+## 16 August — review moderation gets a voice and a ceiling (`5c80228`)
+
+Farjad wanted to think through review moderation before building. Auditing
+first was the right call: the flow was safe but silent, and uncapped.
+
+**Safe:** the 20 Aug security migration already caps the status a user may
+write (`draft`/`submitted`/`pending_moderation` only), so nobody can
+self-publish. Confirmed empirically — an anon insert with
+`status='published'` is refused with 42501.
+
+**Silent:** a rejected review left its reason in `moderation_reason` where
+nobody would ever read it, and a published review appeared on an owner's
+listing without the owner knowing. `moderateReview` now mails both. The
+owner mail checks `has('review_replies')` and does not offer a reply
+button the plan will refuse.
+
+**Uncapped:** nothing stopped one account reviewing every business in the
+directory. Added, all server-side because the only existing checks lived in
+the modal: 5 new reviews per user per rolling 24h (counted in the database,
+not `lib/utils/rate-limit.ts`, whose own header says it resets on deploy
+and is not shared between instances), 10–2000 characters, an integer 1–5
+rating, and a block on reviewing a business you own — checking both
+`created_by` and `owner_user_id`, since `created_by` alone would repeat
+yesterday's claimed-listing bug.
+
+**Email delivery was tested for real**, at Farjad's request: a test review
+was inserted, both mails sent through Resend to his two addresses
+(`farjadp@live.com`, `its@farjadp.com`), and the review deleted afterwards.
+What that did *not* cover, said plainly: the one line inside
+`moderateReview` that calls the notifier. Exercising it needs an admin
+session, and the admin password — still sitting in
+`.admin-credentials.local.txt`, itself an open task — is not something to
+type. `server-only` also correctly refused to be imported into a plain
+script, which is the guard working as intended.
+
+### Still undecided, deliberately
+
+Three product questions were raised and not answered, so nothing was built
+on a guess: whether moderation stays fully manual as volume grows, whether
+writing a review should require a verified contact, and whether a business
+should be able to contest a review it believes is unfair.
+
 ## Commits, oldest first
 
 ```
