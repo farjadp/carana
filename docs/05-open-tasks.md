@@ -44,12 +44,13 @@ The live board is Notion → 🧿 Charana → Mission Control; this is the narra
   Drywall ↔ M.P Renovation, Maral Landscape ↔ خدمات باغبانی شایسته,
   HelloTutors ↔ هدا زمانی, Moe Car Detailing ↔ M&A صافکاری, BSW World Cargo
   ↔ راه آسمان آبی. Eyeball them; merging is one admin action each.
-- **Pre-existing IranJavan duplicates surfaced by the same phone check** (not
-  created by this import): `مهــرانه-طباطبایی`/`مهرانه-طباطبایی`,
-  `علیرضا-درستکار`/`-1`, `صرافی-این-آپدیت`/`صرافی-این`, `master-work`/
-  `چمن-کاری-و-چمن-زنی-مستر`, `آموزشگاه-رانندگی-داریوش`/`هانی`.
-- **Junk row `شسیشسیش`** carries Farjad's own phone alongside `visa-roads`,
-  `ashavid`, `farjad-pourmohammad` — a test listing; delete it.
+- ~~Pre-existing IranJavan duplicates + the `شسیشسیش` test row~~ — **deleted
+  17 Aug** (5 rows, none had reviews/events/claims): `شسیشسیش`,
+  `مهرانه-طباطبایی` (placeholder, no provenance — the immigration one stays),
+  `علیرضا-درستکار-1`, `صرافی-این-آپدیت` (a test edit), `چمن-کاری-و-چمن-زنی-مستر`
+  (`master-work` stays). **Not deleted:** `آموزشگاه-رانندگی-داریوش` /
+  `-هانی` — same phone but different names and different source pages; that
+  is the shared-phone ambiguity, not a proven duplicate. Total now 2,060.
 - Hamvatan rows have the placeholder logo (the source has none). Consider a
   logo pass from each listing's own website favicon/OG image later.
 
