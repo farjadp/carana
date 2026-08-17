@@ -30,6 +30,29 @@ The live board is Notion → 🧿 Charana → Mission Control; this is the narra
 - `/admin/cleanup/cities` → "apply all" sets 365 Toronto-area listings that
   currently have no city. Then work the ~44 rows that need a human.
 
+**Data hygiene, after the Hamvatan import (17 Aug, `2384aa5`):**
+- **7 listings held for review** — each shares a phone with an existing row
+  and gpt-4o would not say same/different. They are in the import report
+  (`hamvatan-import-report.json`, regenerate with a dry run) and were
+  **not inserted**: Smart Home Developer ↔ `handyman-service`, Arya
+  renovations ↔ `aria-renovation`, Milad Elmi ↔ M.P Renovation, Sunlight
+  Dental Clinic ↔ دکتر داریوش رادمان, Golden Cover ↔ `mjinsurace`, مجید ↔
+  ریما استودیو, Top Appliance Repair ↔ نصب و تعمیر اپلاینس. Decide merge vs
+  add in `/admin`.
+- **7 inserted despite a shared phone** because the model said "different
+  business" with a reason: Golden Beaver Construction + GBC ↔ کاوه, Lad's
+  Drywall ↔ M.P Renovation, Maral Landscape ↔ خدمات باغبانی شایسته,
+  HelloTutors ↔ هدا زمانی, Moe Car Detailing ↔ M&A صافکاری, BSW World Cargo
+  ↔ راه آسمان آبی. Eyeball them; merging is one admin action each.
+- **Pre-existing IranJavan duplicates surfaced by the same phone check** (not
+  created by this import): `مهــرانه-طباطبایی`/`مهرانه-طباطبایی`,
+  `علیرضا-درستکار`/`-1`, `صرافی-این-آپدیت`/`صرافی-این`, `master-work`/
+  `چمن-کاری-و-چمن-زنی-مستر`, `آموزشگاه-رانندگی-داریوش`/`هانی`.
+- **Junk row `شسیشسیش`** carries Farjad's own phone alongside `visa-roads`,
+  `ashavid`, `farjad-pourmohammad` — a test listing; delete it.
+- Hamvatan rows have the placeholder logo (the source has none). Consider a
+  logo pass from each listing's own website favicon/OG image later.
+
 **Needs a real device:**
 - Test the voice suggestion box on an iPhone (the simulator has no microphone)
 
@@ -38,8 +61,8 @@ The live board is Notion → 🧿 Charana → Mission Control; this is the narra
   same rule as the Stripe and Twilio keys above. It is a free-tier key
   (120 requests/month), so the blast radius is a quota, not money — but
   rotate it anyway and put the new one in Vercel + `apps/web/.env.local`.
-- Set `NAVASAN_API_KEY` in **Vercel** — it is only in local `.env.local`
-  today, so production still shows no rates line until this is done.
+- ~~Set `NAVASAN_API_KEY` in **Vercel**~~ — done; verified 17 Aug by
+  reading charana.ca's footer, which renders all three rates.
 - ~~Check the response shape once a real key exists~~ — done 16 Aug
   (`c85a42b`). Field names are the bare `usd`/`eur`/`cad` keys; a
   3-day staleness guard now drops dead symbols (`cad_cash` was 299 days

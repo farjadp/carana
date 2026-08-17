@@ -783,6 +783,23 @@ npx tsx scripts/rehost-logos.mts --commit
 Idempotent — skips the placeholder and anything already re-hosted, so a re-run
 only retries what genuinely still lives elsewhere.
 
+### Hamvatan (17 Aug, `2384aa5`)
+
+```bash
+npx tsx scripts/scrape-hamvatan.mts --out hamvatan-toronto.json          # ~50 GETs, no creds
+npx tsx scripts/import-hamvatan.mts hamvatan-toronto.json                # dry run + report
+npx tsx scripts/import-hamvatan.mts hamvatan-toronto.json --commit
+```
+
+The scraper writes only what the source renders (name, tagline, paragraph,
+phones, street, postal, website, instagram/telegram/whatsapp/facebook, likes,
+category, a stable `biz-item-<id>`). The importer is idempotent — a row that
+already carries the hamvatan id in `verification_notes` is matched on that
+first — and dedupes on website host / instagram handle / phone+name, with a
+gpt-4o adjudication step for phone-only matches that merges only on a
+confident yes. City: street → postal FSA (`cityFromPostalCode`) → "Toronto".
+Both outputs are gitignored.
+
 ### Provenance and takedown
 
 Imported rows carry `verification_notes` of the form

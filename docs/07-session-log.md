@@ -485,6 +485,53 @@ a line the web does not need — owner management does not exist in the app
 at all — and dropping that section on mobile would have removed the
 disclosures most relevant to whoever is reading it on a phone.
 
+## 17 August — Hamvatan merged into the directory (`2384aa5`)
+
+Farjad asked for every listing on hamvatan.org/toronto, "complete, no
+duplicates, very clean". An Antigravity session had already produced a
+scrape (1,545 rows) served on a local dashboard; reading it against the live
+HTML showed why it could not be trusted as-is: descriptions carried the
+"لایک ۴۱ / website / instagram" chrome, every address was the literal
+"تورنتو، کانادا", the link column pointed at category pages, and the
+pagination logic paged past the end (the site re-serves page 1 for any
+out-of-range `?page=`).
+
+**Rebuilt from the source, in the repo's own conventions.** Read the HTML
+first: cards are schema.org `LocalBusiness` articles with a stable
+`biz-item-<id>`, 100 per page, `rel=next`. The source has **no** emails,
+logos, hours or per-business pages, so none were invented.
+`scrape-hamvatan.mts` → 1,481 unique listings across 29 categories (27
+nameless phone-only cards skipped, hence the per-category "short" counts).
+
+**Merge rules came from the data, not from a plan.** 80 phone numbers were
+shared across different ids — a realtor and their construction firm, one
+person doing hair *and* photography — so phone alone could not mean
+duplicate. Website host or instagram handle → same; phone + name token →
+same; phone only → gpt-4o with both full records, and "unsure" means "held
+for review, not inserted". gpt-4o-mini failed that step in testing.
+
+**Outcome (verified in the DB, not from the script's own counter):** 2,065
+listings total; 1,385 inserted, 59 IranJavan rows enriched (fills only —
+website 35, instagram 37, postal 28, tagline 58, sub_category 61), 7 held
+for review, 7 inserted despite a shared phone with the model's reason
+logged. New rows carry English slugs and `name_en` (the URL rule),
+`sub_category` = Hamvatan's own label (surfaces in city×category SEO), and
+`city_source='import'`. City: street → postal FSA → "Toronto"; the FSA rule
+(`cityFromPostalCode`, new in core) was added after seeing "Toronto 1051"
+in the plan and moved 231 rows to North York / Richmond Hill / Thornhill etc.
+A new Hamvatan listing returned 200 on charana.ca within a minute — the site
+reads the DB directly, so this went live on `--commit`, no deploy.
+
+**Found on the way, not fixed:** four pre-existing IranJavan duplicate pairs
+and one junk test row with Farjad's phone; PostgREST's silent 1000-row cap
+(gotcha logged); the docs still claimed the Navasan key was not in Vercel
+while the live footer had been rendering rates — corrected.
+
+**Said wrongly today:** first told Farjad the credentials file was "in the
+root" — it is `apps/web/.admin-credentials.local.txt`. And an earlier
+"memory corrected" claim was half true: the index line still said the
+Navasan key was needed; fixed this session.
+
 ## 16 August — review moderation gets a voice and a ceiling (`5c80228`)
 
 Farjad wanted to think through review moderation before building. Auditing

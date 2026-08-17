@@ -735,3 +735,50 @@ Say which half you tested.
 `await` — otherwise it emits CJS and fails with
 `ERR_REQUIRE_ASYNC_MODULE`.
 
+
+---
+
+## PostgREST silently caps a select at 1000 rows — `.limit(10000)` does not lift it
+
+**Symptom:** a "count cities" check over `businesses` returned ~1,000 rows
+and no «نامشخص» at all, right after the directory had grown to 2,065.
+
+**Cause:** Supabase's default `max-rows` is 1000. `.limit(n)` above that is
+clamped, with no error and no warning. Any script that loads "all rows"
+with a single select was correct only while the table was small.
+
+**Fix:** page with `.range(from, from + 999)` in a loop until a short page
+comes back (see `scripts/import-hamvatan.mts`). **Lesson:** every
+"load everything" query written before 17 Aug was tested against ≤680 rows;
+audit any you touch.
+
+---
+
+## A shared phone number is not proof of a duplicate
+
+**Symptom:** the first Hamvatan dry run wanted to merge a realtor into a
+construction company because they share a phone.
+
+**Cause:** in this directory the same number really is used by one person
+for two businesses (realty + renovation, hairstyling + photography). Phone
+is a strong *link*, not identity.
+
+**Fix:** phone + a shared name token → same; phone alone → adjudicate with
+the full model given both full records, and let it say "unsure" (which
+means: don't insert, don't merge, list for a human). gpt-4o-mini failed
+this test outright — it called گرین کیبلز الکتریک and Green Cables Tech
+different. **Lesson:** dedupe rules must be derived from the real data,
+and the cheap model is not good enough for Persian↔English identity.
+
+---
+
+## Hamvatan's `?page=` past the last page re-serves page 1
+
+**Symptom:** the Antigravity scraper's first pass produced duplicates and
+believed categories were larger than they are.
+
+**Cause:** out-of-range `?page=N` returns page 1 with HTTP 200 — no 404, no
+empty list. A page-counter loop never terminates on its own.
+
+**Fix:** follow `<link rel="next">` and stop on the first repeated card id.
+**Lesson:** never trust a paginator's counter; trust the ids.

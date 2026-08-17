@@ -1,6 +1,6 @@
 # čārana — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-17 · **Docs version:** 2.7
+**Written:** 2026-08-24 · **Updated:** 2026-08-17 · **Docs version:** 2.8
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://charana.ca
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -17,8 +17,9 @@ doc changes, update its Notion page and add one Revisions row.
 
 ## Where things stand, in sixty seconds
 
-The web app is **live** at charana.ca with 680 published listings (677
-imported + Farjad's three showcase listings), a brand-first home page with
+The web app is **live** at charana.ca with **2,065 published listings**
+(649 from IranJavan, **1,385 from Hamvatan — imported 17 Aug, `2384aa5`**,
+59 IranJavan rows enriched with Hamvatan data, and Farjad's showcase rows), a brand-first home page with
 live counters, **real search** (Persian-aware, ranked, wrong-keyboard
 forgiving), redesigned business profiles on web + mobile, business
 registration with AI website import on web + mobile, branded auth mail via
@@ -41,7 +42,8 @@ D-U-N-S.
 | Footer status bar | **Live, web + app.** Tehran clock, Jalali + Shahanshahi date (shared logic in `@charana/core`), real free-market USD/EUR/CAD via Navasan. Key is now set in Vercel, so rates render in production; a 3-day staleness guard drops dead symbols |
 | Suggestions | Text or voice, web + app, admin inbox |
 | Admin | Listings, categories, reviews, users, logs, suggestions, blog desk, **reports queue**, **city cleanup queue**; sidebar badges are live counts |
-| Data gap | **409 listings still say «نامشخص»** — the cleanup queue is built; 365 of them are one click away |
+| Data | **Hamvatan merged 17 Aug (`2384aa5`)**: 1,451 unique source listings → 1,385 inserted, 59 existing rows enriched (website/instagram/postal/tagline/sub_category), 7 held for review because they share a phone with an existing row and the model would not commit. City came from the street name, else the postal FSA (`cityFromPostalCode`, new in core), else the source's blanket "Toronto". |
+| Data gap | **409 listings still say «نامشخص»** (all pre-Hamvatan) — the cleanup queue is built; 365 of them are one click away. Also 4 pre-existing IranJavan duplicate pairs and one junk test row (`شسیشسیش`) — see `05-open-tasks` |
 | Mobile | **APK 1.2.0 built and linked 16 Aug** (`229669c`) — it fixed a real outage: 1.1.0 shipped with no Supabase credentials and could not start at all. **1.2.0 has still never run on a real Android device.** Mobile now has the *read* side of everything (announcements ×3 surfaces, busy status, FX/clock card, features screen) but **no owner controls at all** — no edit, insights, billing, or announcement writing |
 | Reviews | Submit → `pending_moderation` → admin publishes/rejects. **17 Aug (`5c80228`)**: outcome emails to the reviewer (with the moderator's reason), new-review email to the owner (which won't offer a reply the plan refuses), and server-side caps — 5 per user per 24h, 10–2000 chars, no reviewing your own business. **Three product questions still open** — see `05-open-tasks` |
 | Features page | `/features` on web + a native mobile screen. Plan quantities read from `@charana/core`; both carry an explicit "what we don't have yet" list |
