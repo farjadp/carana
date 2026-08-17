@@ -2,7 +2,7 @@
 // Source: scripts/scrape-hamvatan.mts
 // Version: 1.0.0 — 2026-08-17
 // Why: Pull every public listing from hamvatan.org/<city> into one clean JSON
-//      file, so import-hamvatan.mts can merge it into the directory without
+//      file, so import-listings.mts can merge it into the directory without
 //      duplicates. Read-only against the source; writes nothing to the DB.
 // Env / Identity: No credentials. Plain HTTPS GETs, one request per page.
 //
@@ -24,6 +24,7 @@
 // ============================================================================
 import fs from "node:fs";
 import * as cheerio from "cheerio";
+import { classifyLinks, clean, cleanPhone, toLatinDigits, type SourceListing } from "./lib/source-listing.ts";
 
 const args = process.argv.slice(2);
 const flag = (name: string, fallback: string) => {
@@ -36,25 +37,7 @@ const BASE = "https://hamvatan.org";
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
 
-export type HamvatanListing = {
-  hamvatan_id: string;
-  source_url: string;
-  category: string; // the source's own category label, Persian
-  category_slug: string; // the source's URL slug
-  name: string;
-  tagline: string | null;
-  description: string | null;
-  phones: string[]; // E.164 as the source prints them, e.g. +14165805000
-  street: string | null;
-  postal_code: string | null;
-  website: string | null;
-  instagram: string | null;
-  telegram: string | null;
-  whatsapp: string | null;
-  facebook: string | null;
-  likes: number;
-  scraped_at: string;
-};
+export type HamvatanListing = SourceListing;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -75,12 +58,6 @@ async function get(url: string): Promise<string> {
   return "";
 }
 
-const PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
-const toLatinDigits = (s: string) =>
-  s.replace(/[۰-۹]/g, (d) => String(PERSIAN_DIGITS.indexOf(d)));
-
-const clean = (s: string | undefined | null) =>
-  (s ?? "").replace(/\s+/g, " ").trim() || null;
 
 /** Discover the category slugs the city page links to. */
 async function discoverCategories(): Promise<{ slug: string; label: string }[]> {
@@ -113,8 +90,8 @@ function parseCards(html: string, cat: { slug: string; label: string }, pageUrl:
 
     const phones = new Set<string>();
     a.find('a[href^="tel:"]').each((__, t) => {
-      const p = toLatinDigits($(t).attr("href")!.slice(4)).replace(/[^\d+]/g, "");
-      if (p.replace(/\D/g, "").length >= 10) phones.add(p);
+      const p = cleanPhone($(t).attr("href")!);
+      if (p) phones.add(p);
     });
 
     const street = clean(a.find('span[itemprop="streetAddress"]').first().text());
@@ -122,28 +99,9 @@ function parseCards(html: string, cat: { slug: string; label: string }, pageUrl:
       a.find('span[itemprop="postalCode"]').first().text()?.replace(/^[\s,]+/, "")
     );
 
-    let website: string | null = null;
-    let instagram: string | null = null;
-    let telegram: string | null = null;
-    let whatsapp: string | null = null;
-    let facebook: string | null = null;
-
-    a.find("a[href]").each((__, l) => {
-      const href = ($(l).attr("href") ?? "").trim();
-      if (!/^https?:\/\//i.test(href)) return;
-      let host = "";
-      try {
-        host = new URL(href).hostname.replace(/^www\./, "").toLowerCase();
-      } catch {
-        return;
-      }
-      if (host.endsWith("instagram.com")) instagram ??= href;
-      else if (host === "t.me" || host.endsWith("telegram.me")) telegram ??= href;
-      else if (host === "wa.me" || host.endsWith("whatsapp.com")) whatsapp ??= href;
-      else if (host.endsWith("facebook.com") || host === "fb.com") facebook ??= href;
-      else if (host.endsWith("hamvatan.org")) return;
-      else website ??= href;
-    });
+    const hrefs: string[] = [];
+    a.find("a[href]").each((__, l) => { hrefs.push($(l).attr("href") ?? ""); });
+    const links = classifyLinks(hrefs, "hamvatan.org");
 
     // Likes: the last standalone number after the word لایک.
     const likesText = toLatinDigits(a.text());
@@ -151,21 +109,20 @@ function parseCards(html: string, cat: { slug: string; label: string }, pageUrl:
     const likes = m ? Number(m[1]) : 0;
 
     out.push({
-      hamvatan_id: id,
+      source: "hamvatan",
+      source_id: id,
       source_url: `${pageUrl}#biz-item-${id}`,
       category: cat.label,
-      category_slug: cat.slug,
       name,
       tagline,
       description,
       phones: [...phones],
+      email: null,
       street,
+      city_hint: clean(a.find('meta[itemprop="addressLocality"]').attr("content")),
       postal_code: postal,
-      website,
-      instagram,
-      telegram,
-      whatsapp,
-      facebook,
+      ...links,
+      logo_url: null,
       likes,
       scraped_at: now,
     });
@@ -195,15 +152,15 @@ async function main() {
       declared ||= d;
 
       // The site re-serves page 1 for out-of-range pages; a repeated id means stop.
-      const fresh = cards.filter((c) => !seenHere.has(c.hamvatan_id));
+      const fresh = cards.filter((c) => !seenHere.has(c.source_id));
       if (fresh.length === 0) break;
       for (const c of fresh) {
-        seenHere.add(c.hamvatan_id);
+        seenHere.add(c.source_id);
         // A listing can sit in two categories; keep the first, remember the other.
-        const prior = all.get(c.hamvatan_id);
+        const prior = all.get(c.source_id);
         if (prior) {
-          if (!prior.category.includes(c.category)) prior.category += ` / ${c.category}`;
-        } else all.set(c.hamvatan_id, c);
+          if (c.category && !(prior.category ?? "").includes(c.category)) prior.category = [prior.category, c.category].filter(Boolean).join(" / ");
+        } else all.set(c.source_id, c);
       }
 
       process.stdout.write(`\r  ${cat.label.padEnd(24)} page ${page}: ${seenHere.size}/${declared}   `);
@@ -216,6 +173,8 @@ async function main() {
   }
 
   const rows = [...all.values()];
+  // 27 cards on 17 Aug had a phone but no name; they are skipped, which is why
+  // some categories come out "short" against the declared count.
   fs.writeFileSync(OUT, JSON.stringify(rows, null, 1), "utf8");
 
   console.log("\n--- summary ---");

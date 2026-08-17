@@ -1,13 +1,14 @@
 // ============================================================================
-// Source: scripts/import-hamvatan.mts
-// Version: 1.0.0 — 2026-08-17
-// Why: Merge the hamvatan.org export produced by scrape-hamvatan.mts into the
-//      directory: enrich listings we already have, insert the ones we don't,
-//      and never create a duplicate.
+// Source: scripts/import-listings.mts
+// Version: 1.1.0 — 2026-08-17 (1.0.0 was import-hamvatan.mts, hamvatan-only)
+// Why: Merge a scraped directory export (SourceListing[] from
+//      scrape-hamvatan.mts or scrape-directories.mts) into the directory:
+//      enrich listings we already have, insert the ones we don't, and never
+//      create a duplicate.
 // Env / Identity: Service role (reads apps/web/.env.local). Never a route.
 //
 // Usage:
-//   npx tsx scripts/import-hamvatan.mts <hamvatan.json> [--commit] [--report out.json]
+//   npx tsx scripts/import-listings.mts <listings.json> [--commit] [--report out.json]
 //
 // Without --commit it is a dry run: matches, categorises, prints the plan and
 // writes the report, but changes nothing in the database.
@@ -35,11 +36,14 @@ import { z } from "zod";
 import {
   cityFromAddress,
   cityFromPostalCode,
+  normalizeCity,
+  normalizeImageUrl,
   normalizeText,
   normalizeWebsite,
   provinceForCity,
 } from "../packages/core/src/import-normalize.ts";
-import type { HamvatanListing } from "./scrape-hamvatan.mts";
+import type { SourceListing } from "./lib/source-listing.ts";
+type HamvatanListing = SourceListing; // historical name inside this file
 
 // ---------------------------------------------------------------------------
 const [, , inputPath, ...flags] = process.argv;
@@ -48,7 +52,7 @@ const reportIdx = flags.indexOf("--report");
 const REPORT = reportIdx >= 0 ? flags[reportIdx + 1] : "hamvatan-import-report.json";
 
 if (!inputPath) {
-  console.error("usage: tsx scripts/import-hamvatan.mts <hamvatan.json> [--commit] [--report out.json]");
+  console.error("usage: tsx scripts/import-listings.mts <listings.json> [--commit] [--report out.json]");
   process.exit(1);
 }
 
@@ -115,6 +119,14 @@ const instaKey = (u: string | null | undefined) => {
   return /^[a-z0-9._]{2,30}$/.test(bare) ? bare : null;
 };
 
+const PROVINCE_CODES: Record<string, string> = { ON: "Ontario", BC: "British Columbia", AB: "Alberta", QC: "Quebec", MB: "Manitoba", SK: "Saskatchewan", NS: "Nova Scotia", NB: "New Brunswick", NL: "Newfoundland and Labrador", PE: "Prince Edward Island" };
+function provinceFromAddress(s: string | null | undefined): string | null {
+  if (!s) return null;
+  const m = s.match(/\b(ON|BC|AB|QC|MB|SK|NS|NB|NL|PE)\b(?=[\s,]|$)/) ?? s.match(/\b(Ontario|British Columbia|Alberta|Quebec|Qu\u00e9bec|Manitoba|Saskatchewan|Nova Scotia|New Brunswick)\b/i);
+  if (!m) return null;
+  return PROVINCE_CODES[m[1].toUpperCase()] ?? Object.values(PROVINCE_CODES).find((v) => v.toLowerCase() === m[1].toLowerCase().replace("é", "e")) ?? null;
+}
+
 // Deterministic Latin fallback for slugs when the model gives nothing usable.
 const TRANSLIT: Record<string, string> = {
   ا:"a",آ:"a",ب:"b",پ:"p",ت:"t",ث:"s",ج:"j",چ:"ch",ح:"h",خ:"kh",د:"d",ذ:"z",ر:"r",ز:"z",ژ:"zh",س:"s",ش:"sh",
@@ -131,7 +143,7 @@ type DbRow = {
   city: string; phone: string | null; website: string | null; instagram: string | null; telegram: string | null;
   whatsapp: string | null; postal_code: string | null; address: string | null; tagline: string | null;
   description: string | null; short_description: string | null; social_media: Record<string, unknown> | null;
-  verification_notes: string | null;
+  verification_notes: string | null; contact_email: string | null; logo_url: string | null;
 };
 
 type Decision =
@@ -140,8 +152,12 @@ type Decision =
   | { kind: "review"; reason: string; listing?: HamvatanListing; db?: Pick<DbRow, "id" | "slug" | "name" | "phone" | "category"> };
 
 async function main() {
-  const listings: HamvatanListing[] = JSON.parse(fs.readFileSync(inputPath, "utf8"));
-  console.log(`loaded ${listings.length} hamvatan listings`);
+  const loaded: HamvatanListing[] = JSON.parse(fs.readFileSync(inputPath, "utf8"));
+  // This is a directory of businesses in Canada; some sources also carry Iran-based ads.
+  const OUTSIDE = /\b(iran|tehran|esfahan|isfahan|shiraz|mashhad|tabriz|karaj|dubai|istanbul|turkey|germany|usa|united states)\b/i;
+  const outside = loaded.filter((l) => OUTSIDE.test(`${l.city_hint ?? ""} ${l.street ?? ""}`) || (l.phones.length > 0 && l.phones.every((p) => /^\+?98/.test(p) && !/^\+?1/.test(p))));
+  const listings = loaded.filter((l) => !outside.includes(l));
+  console.log(`loaded ${loaded.length} listings from ${inputPath}; ${outside.length} outside Canada skipped`);
 
   // ---- 1. collapse duplicates inside the export (same phone + overlapping name)
   const collapsed: HamvatanListing[] = [];
@@ -155,7 +171,7 @@ async function main() {
           // Same business listed twice; keep the richer record, union the categories.
           const keep = richness(l) > richness(prior) ? l : prior;
           const drop = keep === l ? prior : l;
-          if (!keep.category.includes(drop.category)) keep.category += ` / ${drop.category}`;
+          if (drop.category && !(keep.category ?? "").includes(drop.category)) keep.category = [keep.category, drop.category].filter(Boolean).join(" / ");
           if (keep !== prior) {
             collapsed[collapsed.indexOf(prior)] = keep;
             for (const pp of prior.phones.map(phoneKey).filter(Boolean) as string[]) {
@@ -177,7 +193,7 @@ async function main() {
   for (let from = 0; ; from += 1000) {
     const { data: page, error } = await supabase
       .from("businesses")
-      .select("id,slug,name,name_en,category,sub_category,city,phone,website,instagram,telegram,whatsapp,postal_code,address,tagline,description,short_description,social_media,verification_notes")
+      .select("id,slug,name,name_en,category,sub_category,city,phone,website,instagram,telegram,whatsapp,postal_code,address,tagline,description,short_description,social_media,verification_notes,contact_email,logo_url")
       .order("created_at", { ascending: true })
       .range(from, from + 999);
     if (error) throw error;
@@ -189,13 +205,12 @@ async function main() {
   const dbByPhone = new Map<string, DbRow[]>();
   const dbByHost = new Map<string, DbRow>();
   const dbByInsta = new Map<string, DbRow>();
-  const dbByHamvatanId = new Map<string, DbRow>();
+  const dbBySourceUrl = new Map<string, DbRow>();
   for (const r of db) {
     const pk = phoneKey(r.phone); if (pk) dbByPhone.set(pk, [...(dbByPhone.get(pk) ?? []), r]);
     const hk = hostKey(r.website); if (hk && !dbByHost.has(hk)) dbByHost.set(hk, r);
     const ik = instaKey(r.instagram); if (ik && !dbByInsta.has(ik)) dbByInsta.set(ik, r);
-    const m = r.verification_notes?.match(/hamvatan\.org\/[^#\s]+#biz-item-([A-Za-z0-9]+)/);
-    if (m) dbByHamvatanId.set(m[1], r);
+    for (const m of (r.verification_notes ?? "").matchAll(/(?:imported from|also listed at) (\S+)/g)) dbBySourceUrl.set(m[1], r);
   }
 
   const { data: cats } = await supabase.from("categories").select("slug,name").eq("is_active", true);
@@ -213,11 +228,13 @@ async function main() {
     const patch: Record<string, unknown> = {};
     const set = (col: keyof DbRow, v: unknown) => { if (v && !row[col]) patch[col] = v; };
     set("website", normalizeWebsite(l.website));
+    set("contact_email", normalizeText(l.email, 120));
+    if (l.logo_url && (!row.logo_url || row.logo_url === PLACEHOLDER_LOGO)) patch.logo_url = normalizeImageUrl(l.logo_url);
     set("instagram", l.instagram);
     set("telegram", l.telegram);
     set("whatsapp", l.whatsapp);
     set("postal_code", l.postal_code);
-    set("address", l.street);
+    set("address", l.street && /\d/.test(l.street) ? normalizeText(l.street, 250) : null);
     set("tagline", normalizeText(l.tagline, 160));
     set("description", normalizeText([l.tagline, l.description].filter(Boolean).join(" — "), 2000));
     set("short_description", normalizeText(l.tagline ?? l.description, 120));
@@ -230,9 +247,9 @@ async function main() {
   };
 
   for (const l of collapsed) {
-    // Re-runs: a row that already carries this hamvatan id is this listing.
-    const prev = dbByHamvatanId.get(l.hamvatan_id);
-    if (prev) { decisions.push({ kind: "enrich", row: prev, via: "hamvatan_id", patch: enrichPatch(prev, l) }); continue; }
+    // Re-runs: a row that already carries this source URL is this listing.
+    const prev = dbBySourceUrl.get(l.source_url);
+    if (prev) { decisions.push({ kind: "enrich", row: prev, via: "source_url", patch: enrichPatch(prev, l) }); continue; }
 
     const hk = hostKey(l.website), ik = instaKey(l.instagram);
     const strong = (hk && dbByHost.get(hk)) || (ik && dbByInsta.get(ik)) || null;
@@ -321,8 +338,12 @@ ${JSON.stringify(chunk.map((l, k) => ({ rowId: i + k, name: l.name, source_categ
     while (taken.has(slug)) slug = `${base}-${n++}`;
     taken.add(slug);
 
-    // Street name beats postal code beats the source's blanket "Toronto" label.
-    const city = cityFromAddress(l.street) ?? cityFromPostalCode(l.postal_code) ?? "Toronto";
+    // Street name beats postal code beats the source's own city label. No city
+    // at all → DRAFT, same policy as import-businesses.mts, so the public
+    // directory never shows a listing nobody can place.
+    const cityHint = l.city_hint && /municipality|region\b|metro |province|county/i.test(l.city_hint) ? (/metro vancouver/i.test(l.city_hint) ? "Vancouver" : null) : l.city_hint;
+    const city = cityFromAddress(l.street) ?? cityFromPostalCode(l.postal_code) ?? normalizeCity(cityHint);
+    const province = provinceForCity(city) ?? provinceFromAddress(l.street) ?? provinceFromAddress(l.city_hint) ?? (city ? "Ontario" : null);
     const description = normalizeText([l.tagline, l.description].filter(Boolean).join(" — "), 2000);
 
     decisions.push({
@@ -333,14 +354,16 @@ ${JSON.stringify(chunk.map((l, k) => ({ rowId: i + k, name: l.name, source_categ
         name_en: nameEn,
         category,
         sub_category: normalizeText(l.category, 100),
-        city,
-        city_source: "import",
-        province: provinceForCity(city) ?? "Ontario",
+        city: city ?? "نامشخص",
+        city_source: city ? "import" : null,
+        province,
         country: "Canada",
-        address: l.street,
+        // A "street" with no digit is a locality label, not an address (same rule as import-normalize).
+        address: l.street && /\d/.test(l.street) ? normalizeText(l.street, 250) : null,
         postal_code: l.postal_code,
         phone: l.phones[0] ?? null,
         website: normalizeWebsite(l.website),
+        contact_email: normalizeText(l.email, 120),
         instagram: l.instagram,
         telegram: l.telegram,
         whatsapp: l.whatsapp,
@@ -348,8 +371,8 @@ ${JSON.stringify(chunk.map((l, k) => ({ rowId: i + k, name: l.name, source_categ
         tagline: normalizeText(l.tagline, 160),
         description,
         short_description: normalizeText(l.tagline ?? l.description, 120),
-        logo_url: PLACEHOLDER_LOGO,
-        status: "PUBLISHED",
+        logo_url: normalizeImageUrl(l.logo_url) ?? PLACEHOLDER_LOGO,
+        status: city ? "PUBLISHED" : "DRAFT",
         created_by: adminProfile.id,
         verification_notes: `imported from ${l.source_url}`,
       },
@@ -382,6 +405,7 @@ ${JSON.stringify(chunk.map((l, k) => ({ rowId: i + k, name: l.name, source_categ
     matched_no_change: enrich.length - enrichWithChanges.length,
     inserts: inserts.map((d) => d.payload),
     inserted_despite_shared_phone: phoneShared,
+    skipped_outside_canada: outside.map((l) => ({ name: l.name, city_hint: l.city_hint, source_url: l.source_url })),
     review: reviews,
   }, null, 1), "utf8");
   console.log(`  report -> ${REPORT}`);

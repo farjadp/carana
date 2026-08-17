@@ -37,3 +37,8 @@ apps/mobile/android
 # scraper exports and import reports (regenerate with scripts/scrape-hamvatan.mts)
 hamvatan-*.json
 hamvatan-import-report.json
+jabeh.json
+taablo.json
+bazaarche.json
+farsilink.json
+iranbusiness.json
