@@ -34,14 +34,16 @@ The live board is Notion → 🧿 Charana → Mission Control; this is the narra
 - Test the voice suggestion box on an iPhone (the simulator has no microphone)
 
 **New, 16 Aug — footer currency rates:**
-- Get a Navasan (api.navasan.tech) API key and set `NAVASAN_API_KEY` in
-  Vercel + `apps/web/.env.local` — not pasted in chat, same rule as every
-  other live key. Without it the footer's USD/EUR/CAD line just stays
-  absent (correct, not broken). First real run with the key: check the
-  Vercel log for a `quiet-failure: exchange_rates_shape` line — the exact
-  Navasan field names weren't verifiable without a live key, so
-  `lib/exchange-rates.ts` may need its `SYMBOL_CANDIDATES` adjusted once
-  the real response shape is visible.
+- **Roll the Navasan key** — `free4Bp…` was pasted into the chat on 16 Aug,
+  same rule as the Stripe and Twilio keys above. It is a free-tier key
+  (120 requests/month), so the blast radius is a quota, not money — but
+  rotate it anyway and put the new one in Vercel + `apps/web/.env.local`.
+- Set `NAVASAN_API_KEY` in **Vercel** — it is only in local `.env.local`
+  today, so production still shows no rates line until this is done.
+- ~~Check the response shape once a real key exists~~ — done 16 Aug
+  (`c85a42b`). Field names are the bare `usd`/`eur`/`cad` keys; a
+  3-day staleness guard now drops dead symbols (`cad_cash` was 299 days
+  old and 42% off).
 
 ## Blocked on something external
 

@@ -644,3 +644,34 @@ same-selector rule left behind doesn't error, doesn't show up in a diff of
 the component file, and only shows up later as a vague "something's off"
 because the cascade quietly fills in whatever the new rule forgot to
 override, not what the new rule's author intended.
+
+---
+
+## A rates API will hand you a year-old number without blinking
+
+**Symptom:** none shipped — caught while wiring the footer FX widget the
+first time a real Navasan key was available.
+
+**Cause:** Navasan's `/latest/` returns ~300 symbols, and *dead ones stay in
+the payload indefinitely with their last-known value*. `cad_cash` was 299
+days old and read 78,230 while the live `cad` read 134,580 — a 42% error.
+Nothing in the response marks it as retired; only its `timestamp` field
+gives it away. The original fallback chain (`cad_sell` → `cad` →
+`cad_harat_naghdi`) would have picked a stale symbol without complaint the
+day a preferred key went missing.
+
+**Fix:** `lib/exchange-rates.ts` rejects any quote older than
+`MAX_AGE_DAYS = 3`, and rejects entries with no `timestamp` at all — a
+symbol that cannot prove it is current is not shown. An absent rate is
+fine; a confidently wrong one is not.
+
+**Also worth knowing:** the guessed key names were half wrong. `usd_sell`
+exists, `eur_sell` and `cad_sell` do not. The bare `usd` / `eur` / `cad`
+keys are the headline free-market rates and share one timestamp, so
+showing those three together is a coherent snapshot. Values are **Toman**;
+cross-checking against real EUR/USD and CAD/USD ratios (1.157 and 0.720 at
+the time) is a cheap way to confirm both the unit and the mapping.
+
+**Lesson:** for any third-party quote feed, freshness is a separate
+question from correctness, and the API will not raise it for you. If a
+payload carries timestamps, use them as a filter, not decoration.

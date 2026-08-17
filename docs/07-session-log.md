@@ -376,6 +376,37 @@ one page.
 
 Checked at 375px and 1280px wide, `tsc` and production build clean.
 
+## 16 August, after the key arrived — Navasan mapping fixed (`c85a42b`)
+
+Farjad sent a Navasan key, which unblocked the one thing the earlier
+commit could not verify. Two corrections came out of the live response
+(300 symbols):
+
+- **The guessed key names were half wrong.** `usd_sell` exists; `eur_sell`
+  and `cad_sell` do not. Switched to the bare `usd`/`eur`/`cad` keys —
+  and checked, rather than assumed, that all three carry the *same*
+  timestamp, so the trio rendered together is one snapshot instead of
+  three unrelated moments. Confirmed the unit (Toman) by cross-checking
+  EUR/USD (1.157) and CAD/USD (0.720) against real-world ratios.
+- **The actual danger was staleness, not naming.** Navasan leaves retired
+  symbols in the payload with their last-known value and no marker other
+  than `timestamp`. `cad_cash` was 299 days old, reading 78,230 against a
+  live 134,580 — 42% off. The original fallback chain would have printed
+  that as today's rate the day a preferred key vanished. Added a 3-day
+  guard, plus a rule that an entry with no timestamp is not shown at all,
+  since it cannot prove it is current.
+
+Verified end to end this time: parsing against the real payload (including
+explicit proof the 299-day entry is rejected), the footer rendering the
+full line with live numbers, and `/api/mobile/exchange-rates` returning the
+same three values for the app.
+
+**Said plainly:** the key was pasted into the chat, so it goes on the
+rotation list next to the Stripe and Twilio keys. It is free-tier
+(120 req/month) so the exposure is a quota rather than money, but the rule
+does not bend for cheap keys. It is also only in local `.env.local` — the
+production line stays absent until it is set in Vercel.
+
 ## Commits, oldest first
 
 ```
