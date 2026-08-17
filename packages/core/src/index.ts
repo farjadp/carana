@@ -34,5 +34,9 @@ export * from "./live-status";
 // Tehran clock + Jalali/Shahanshahi date, shared so web and mobile agree.
 export * from "./iran-calendar";
 
+// Plan definitions and quantity limits — one source for web, mobile and
+// the server-side entitlement clamps.
+export * from "./plans";
+
 // Persian messages for Supabase Auth errors (web + mobile).
 export * from "./auth-errors";

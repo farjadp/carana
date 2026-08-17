@@ -26,7 +26,7 @@ import {
   LogOut,
   Shield,
   Store,
-  UserRound, Newspaper } from "lucide-react-native";
+  UserRound, Newspaper, Sparkles } from "lucide-react-native";
 
 import { BrandLoading, BrandMark } from "../../components/brand-mark";
 import { PrimaryButton } from "../../components/ui";
@@ -105,6 +105,7 @@ export default function ProfileScreen() {
 
           <View style={styles.linksBlock}>
             <InternalRow icon={<Store size={17} color={colors.annabi} />} label="ثبت کسب‌وکار" onPress={() => router.push("/register")} />
+            <InternalRow icon={<Sparkles size={17} color={colors.annabi} />} label="امکانات چارانا" onPress={() => router.push("/features")} />
             <InternalRow icon={<Newspaper size={17} color={colors.annabi} />} label="وبلاگ چارانا" onPress={() => router.push("/blog")} />
             <ExternalRow icon={<LifeBuoy size={17} color={colors.mutedText} />} label="پشتیبانی" url={`${WEB}/support`} />
             <ExternalRow icon={<Shield size={17} color={colors.mutedText} />} label="حریم خصوصی" url={`${WEB}/privacy`} />
@@ -179,6 +180,7 @@ export default function ProfileScreen() {
         <Section title="حساب کاربری">
           <InternalRow icon={<UserRound size={17} color={colors.annabi} />} label="ویرایش پروفایل" onPress={() => router.push("/account/edit")} />
           <InternalRow icon={<Store size={17} color={colors.annabi} />} label="کسب‌وکار من / ثبت کسب‌وکار" onPress={() => router.push("/register")} />
+          <InternalRow icon={<Sparkles size={17} color={colors.annabi} />} label="امکانات چارانا" onPress={() => router.push("/features")} />
           <InternalRow icon={<Newspaper size={17} color={colors.annabi} />} label="وبلاگ چارانا" onPress={() => router.push("/blog")} />
           <ExternalRow icon={<LifeBuoy size={17} color={colors.mutedText} />} label="پشتیبانی" url={`${WEB}/support`} />
           <ExternalRow icon={<Shield size={17} color={colors.mutedText} />} label="حریم خصوصی" url={`${WEB}/privacy`} />
