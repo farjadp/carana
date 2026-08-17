@@ -89,6 +89,49 @@ export function cityFromAddress(address: string | null | undefined): string | nu
   return null;
 }
 
+/**
+ * Forward sortation area (first three characters of a Canadian postal code)
+ * → the city name this directory uses. Only FSAs that map cleanly to one of
+ * CITY_ALIASES are listed; anything else returns null rather than a guess.
+ * A postal code is a far stronger city signal than a phone area code.
+ */
+const FSA_CITY: Record<string, string> = {
+  // City of Toronto — the former boroughs the directory lists as cities.
+  M1B: "Scarborough", M1C: "Scarborough", M1E: "Scarborough", M1G: "Scarborough", M1H: "Scarborough",
+  M1J: "Scarborough", M1K: "Scarborough", M1L: "Scarborough", M1M: "Scarborough", M1N: "Scarborough",
+  M1P: "Scarborough", M1R: "Scarborough", M1S: "Scarborough", M1T: "Scarborough", M1V: "Scarborough",
+  M1W: "Scarborough", M1X: "Scarborough",
+  M2H: "North York", M2J: "North York", M2K: "North York", M2L: "North York", M2M: "North York",
+  M2N: "North York", M2P: "North York", M2R: "North York",
+  M3A: "North York", M3B: "North York", M3C: "North York", M3H: "North York", M3J: "North York",
+  M3K: "North York", M3L: "North York", M3M: "North York", M3N: "North York",
+  M4A: "East York", M4B: "East York", M4C: "East York", M4G: "East York", M4H: "East York", M4J: "East York",
+  M8V: "Etobicoke", M8W: "Etobicoke", M8X: "Etobicoke", M8Y: "Etobicoke", M8Z: "Etobicoke",
+  M9A: "Etobicoke", M9B: "Etobicoke", M9C: "Etobicoke", M9P: "Etobicoke", M9R: "Etobicoke",
+  M9V: "Etobicoke", M9W: "Etobicoke",
+  // York Region
+  L4B: "Richmond Hill", L4C: "Richmond Hill", L4E: "Richmond Hill", L4S: "Richmond Hill",
+  L3T: "Thornhill", L4J: "Thornhill",
+  L4K: "Concord", L4L: "Woodbridge", L4H: "Woodbridge", L6A: "Maple",
+  L3P: "Markham", L3R: "Markham", L3S: "Markham", L6B: "Markham", L6C: "Markham", L6E: "Markham", L6G: "Markham",
+  L3X: "Newmarket", L3Y: "Newmarket", L4G: "Aurora", L4P: "Keswick",
+  // Elsewhere in Ontario
+  L4M: "Barrie", L4N: "Barrie", L3V: "Orillia", L1A: "Port Hope",
+  L4T: "Mississauga", L4V: "Mississauga", L4W: "Mississauga", L4X: "Mississauga", L4Y: "Mississauga",
+  L4Z: "Mississauga", L5A: "Mississauga", L5B: "Mississauga", L5C: "Mississauga", L5E: "Mississauga",
+  L5G: "Mississauga", L5H: "Mississauga", L5J: "Mississauga", L5K: "Mississauga", L5L: "Mississauga",
+  L5M: "Mississauga", L5N: "Mississauga", L5R: "Mississauga", L5S: "Mississauga", L5T: "Mississauga",
+  L5V: "Mississauga", L5W: "Mississauga",
+  L6H: "Oakville", L6J: "Oakville", L6K: "Oakville", L6L: "Oakville", L6M: "Oakville",
+  N1E: "Guelph", N1G: "Guelph", N1H: "Guelph", N1K: "Guelph", N1L: "Guelph",
+};
+
+export function cityFromPostalCode(postal: string | null | undefined): string | null {
+  if (!postal) return null;
+  const fsa = postal.replace(/\s+/g, "").toUpperCase().slice(0, 3);
+  return FSA_CITY[fsa] ?? null;
+}
+
 const PHONE_SPLIT = /[;,/]|\s+و\s+/;
 
 /** Keep the first number when a row lists several. */

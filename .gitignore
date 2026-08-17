@@ -33,3 +33,7 @@ apps/mobile/android
 .env*
 .expo/
 *.local.txt
+
+# scraper exports and import reports (regenerate with scripts/scrape-hamvatan.mts)
+hamvatan-*.json
+hamvatan-import-report.json
