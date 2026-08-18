@@ -473,6 +473,7 @@ export type Database = {
           gallery_urls: string[]
           gallery_video_url: string | null
           google_maps_url: string | null
+          hide_owner: boolean
           id: string
           instagram: string | null
           is_address_public: boolean | null
@@ -542,6 +543,7 @@ export type Database = {
           gallery_urls?: string[]
           gallery_video_url?: string | null
           google_maps_url?: string | null
+          hide_owner?: boolean
           id?: string
           instagram?: string | null
           is_address_public?: boolean | null
@@ -611,6 +613,7 @@ export type Database = {
           gallery_urls?: string[]
           gallery_video_url?: string | null
           google_maps_url?: string | null
+          hide_owner?: boolean
           id?: string
           instagram?: string | null
           is_address_public?: boolean | null

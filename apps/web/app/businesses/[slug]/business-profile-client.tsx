@@ -19,7 +19,7 @@ import {
   MapPin, Globe, Phone, Mail, Clock, ShieldCheck, Sparkles, MessageCircle,
   ExternalLink, CalendarDays, ChevronLeft, Star, Share2, Send, AtSign,
   Briefcase, Languages, Navigation, Edit3, Building2, CheckCircle2, BadgeCheck,
-  Check, Bookmark, Hash, Copy, Flame, Moon, Megaphone,
+  Check, Bookmark, Hash, Copy, Flame, Moon, Megaphone, UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,7 +36,9 @@ import { entitlementsFor } from "@/lib/billing/entitlements";
 import { PLANS } from "@/lib/billing/plans";
 import { activeBusyStatus } from "@/lib/business/live-status";
 import { replyToReview } from "@/lib/actions/interactions";
-import { PROVINCES } from "@charana/core";
+import {
+  OWNER_SECTION_NOTE, OWNER_SECTION_TITLE, PROVINCES, type PublicOwner,
+} from "@charana/core";
 
 interface Props {
   business: any;
@@ -47,6 +49,13 @@ interface Props {
   announcements: { id: string; title: string; body: string | null; expires_at: string | null; created_at: string }[];
   similarBusinesses: any[];
   isOwnerOrAdmin: boolean;
+  /**
+   * The person behind a verified listing, or null. Already gated server-side
+   * (app/businesses/[slug]/page.tsx): null when unverified, when nobody has
+   * claimed the row, when the profile has no name, or when a Premium owner
+   * hid it. This component only decides how it looks, never whether it shows.
+   */
+  publicOwner: PublicOwner | null;
 }
 
 const DAYS: { key: string; label: string; jsIndex: number }[] = [
@@ -65,6 +74,17 @@ const CONTACT_FA: Record<string, string> = { phone: "تماس تلفنی", whats
 
 /** Persian digits inside a time like 09:30 → ۰۹:۳۰ */
 const faTime = (t: string) => t.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
+
+/**
+ * "مرداد ۱۴۰۵" — fa-IR resolves to the Jalali calendar, same as the badge.
+ * Built from parts because `format()` with {year, month} emits "۱۴۰۵ مرداد"
+ * on this ICU, which reads backwards after "عضو چارانا از".
+ */
+const faMonthYear = (iso: string) => {
+  const parts = new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long" }).formatToParts(new Date(iso));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${get("month")} ${get("year")}`.trim();
+};
 
 function useOpenNow(hours: Record<string, { open?: string; close?: string; closed?: boolean }> | null | undefined) {
   return useMemo(() => {
@@ -89,6 +109,7 @@ function useOpenNow(hours: Record<string, { open?: string; close?: string; close
 
 export default function BusinessProfileClient({
   business, category, user, initialInteraction, approvedReviews, announcements, similarBusinesses, isOwnerOrAdmin,
+  publicOwner,
 }: Props) {
   const [copied, setCopied] = useState(false);
   const [refCopied, setRefCopied] = useState(false);
@@ -487,6 +508,48 @@ export default function BusinessProfileClient({
             ) : business.accepts_appointments ? (
               <Section title="ساعات کاری" icon={<Clock size={16} />} compact>
                 <p className="text-xs text-[color:var(--muted-text)]">با تعیین وقت قبلی.</p>
+              </Section>
+            ) : null}
+
+            {/* Owner — only ever rendered when the server resolved a real,
+                verified, non-hidden person (see the publicOwner prop). There
+                is no "owner unknown" empty state on purpose: on 5,600
+                imported listings that sentence would be the loudest thing on
+                the page and would say nothing the «تایید نشده» box above
+                doesn't already say. */}
+            {publicOwner ? (
+              <Section title={OWNER_SECTION_TITLE} icon={<UserRound size={16} />} compact>
+                <div className="flex items-center gap-3">
+                  {publicOwner.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={publicOwner.avatar_url}
+                      alt=""
+                      className="h-11 w-11 shrink-0 rounded-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[color:var(--annabi)]/10 text-sm font-black text-[color:var(--annabi)]">
+                      {publicOwner.full_name?.trim()[0] ?? "؟"}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-black text-[color:var(--text)]">
+                      {publicOwner.full_name}
+                    </div>
+                    {publicOwner.member_since ? (
+                      <div className="text-[11px] text-[color:var(--muted-text)]">
+                        عضو چارانا از {faMonthYear(publicOwner.member_since)}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                {verification.method ? (
+                  <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-[color:var(--muted-text)]">
+                    <BadgeCheck size={13} className="mt-px shrink-0 text-[color:var(--annabi)]" />
+                    {OWNER_SECTION_NOTE[verification.method]}
+                  </p>
+                ) : null}
               </Section>
             ) : null}
 

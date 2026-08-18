@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { ImageUploader } from "@/components/ui/image-uploader";
 import { GalleryUploader } from "@/components/ui/gallery-uploader";
 import { VanityUrlEditor } from "@/components/business/vanity-url-editor";
+import { OwnerVisibilityToggle } from "@/components/business/owner-visibility-toggle";
 import { entitlementsFor } from "@/lib/billing/entitlements";
 import { PLANS } from "@/lib/billing/plans";
 
@@ -104,12 +105,16 @@ const STATUS_LABELS: Record<string, { label: string; color: string; hint: string
 interface EditFormProps {
   businessId: string;
   initialData: any; // داده‌های موجود از دیتابیس
+  /** Resolved server-side: the name the public profile would print, and
+   *  whether the listing is verified at all. Both decide what the owner-
+   *  visibility control is allowed to claim. */
+  ownerIdentity: { name: string | null; verified: boolean };
 }
 
 // ============================================================================
 // کامپوننت اصلی
 // ============================================================================
-export default function BusinessEditForm({ businessId, initialData }: EditFormProps) {
+export default function BusinessEditForm({ businessId, initialData, ownerIdentity }: EditFormProps) {
   const router = useRouter();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -630,6 +635,19 @@ export default function BusinessEditForm({ businessId, initialData }: EditFormPr
 
                   <FormField label="آدرس اختصاصی">
                     <VanityUrlEditor business={{ id: businessId, plan: initialData.plan, plan_until: initialData.plan_until, vanity_slug: initialData.vanity_slug }} />
+                  </FormField>
+
+                  <FormField label="نمایش نام صاحب کسب‌وکار">
+                    <OwnerVisibilityToggle
+                      business={{
+                        id: businessId,
+                        plan: initialData.plan,
+                        plan_until: initialData.plan_until,
+                        hide_owner: initialData.hide_owner,
+                        owner_name: ownerIdentity.name,
+                        verified: ownerIdentity.verified,
+                      }}
+                    />
                   </FormField>
 
                   <Controller

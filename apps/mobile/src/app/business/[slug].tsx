@@ -27,7 +27,11 @@ import {
   AtSign, BadgeCheck, Briefcase, CalendarDays, ChevronLeft, ChevronRight, Flame, Globe,
   Mail, MapPin, MessageCircle, Moon, Navigation, Phone, Send, Share2, ShieldCheck, Star,
 } from "lucide-react-native";
-import { activeBusyStatus, getVerificationStatus, PROVINCES } from "@charana/core";
+import {
+  activeBusyStatus, getVerificationStatus, OWNER_SECTION_NOTE, OWNER_SECTION_TITLE,
+  PROVINCES, type PublicOwner,
+} from "@charana/core";
+import { fetchBusinessOwner } from "../../lib/business-owner";
 
 import { BrandLoading, BrandMark, MerlonGlyph, MerlonRow } from "../../components/brand-mark";
 import { AnnouncementCard } from "../../components/announcement-card";
@@ -44,6 +48,15 @@ const SERVICE_TYPE_FA: Record<string, string> = { in_person: "حضوری", onlin
 const SERVICE_AREA_FA: Record<string, string> = { city: "در سطح شهر", province: "در سطح استان", canada: "سراسر کانادا", international: "بین‌المللی" };
 const CONTACT_FA: Record<string, string> = { phone: "تماس تلفنی", whatsapp: "واتساپ", email: "ایمیل" };
 const fa = (n: number | string) => String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
+
+/** "مرداد ۱۴۰۵" — same Jalali month/year the web profile prints. Built from
+ *  parts because format() emits "۱۴۰۵ مرداد", which reads backwards here.
+ *  Hermes on this SDK ships full ICU, so no polyfill is needed. */
+const faMonthYear = (iso: string) => {
+  const parts = new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long" }).formatToParts(new Date(iso));
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("month")} ${get("year")}`.trim();
+};
 const WEB = "https://charana.ca";
 
 export default function BusinessScreen() {
@@ -57,6 +70,9 @@ export default function BusinessScreen() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Resolved by the web app's route, not read here: `profiles` is
+  // self-or-admin under RLS and the anon key cannot see a name.
+  const [owner, setOwner] = useState<PublicOwner | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -74,6 +90,9 @@ export default function BusinessScreen() {
           setReviews(revs);
           setAnnouncements(news);
           setCategory(cats.find((c) => c.slug === found.category) ?? null);
+          // Late and optional: the section appears when it resolves, and the
+          // screen is complete without it if the request fails.
+          fetchBusinessOwner(found.id).then(setOwner).catch(() => {});
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "خطای ناشناخته");
@@ -305,6 +324,32 @@ export default function BusinessScreen() {
             ))}
           </Section>
 
+          {/* Owner — the route already applied every gate the website does
+              (verified, a real person attached, has a name, not hidden by a
+              Premium owner), so a non-null value here is safe to print. */}
+          {owner?.full_name ? (
+            <Section title={OWNER_SECTION_TITLE}>
+              <View style={{ flexDirection: "row-reverse", alignItems: "center", gap: space.sm }}>
+                {owner.avatar_url ? (
+                  <Image source={{ uri: owner.avatar_url }} style={styles.ownerAvatar} />
+                ) : (
+                  <View style={[styles.ownerAvatar, styles.ownerAvatarFallback]}>
+                    <Text style={styles.ownerInitial}>{owner.full_name.trim()[0]}</Text>
+                  </View>
+                )}
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.subhead}>{owner.full_name}</Text>
+                  {owner.member_since ? (
+                    <Text style={styles.hint}>عضو چارانا از {faMonthYear(owner.member_since)}</Text>
+                  ) : null}
+                </View>
+              </View>
+              {verification.method ? (
+                <Text style={styles.hint}>{OWNER_SECTION_NOTE[verification.method]}</Text>
+              ) : null}
+            </Section>
+          ) : null}
+
           {/* Trust */}
           <Section title="اعتماد و شفافیت">
             <View style={{ flexDirection: "row-reverse", alignItems: "center", gap: space.sm }}>
@@ -446,6 +491,10 @@ const styles = StyleSheet.create({
   todayText: { fontSize: 10, fontFamily: fonts.bold, color: colors.annabi },
   hint: { ...type.muted, textAlign: "right" },
   subhead: { fontSize: 12.5, fontFamily: fonts.bold, color: colors.mutedText, textAlign: "right" },
+
+  ownerAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.line },
+  ownerAvatarFallback: { alignItems: "center", justifyContent: "center", backgroundColor: `${colors.annabi}1a` },
+  ownerInitial: { fontSize: 15, fontFamily: fonts.heavy, color: colors.annabi },
   address: { fontSize: 14.5, fontFamily: fonts.bold, color: colors.text, textAlign: "right", writingDirection: "ltr" },
   mapBtn: { flexDirection: "row-reverse", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: colors.softLajvard, borderRadius: radius.md, paddingVertical: 10 },
   mapBtnText: { fontSize: 13, fontFamily: fonts.bold, color: colors.lajvard },

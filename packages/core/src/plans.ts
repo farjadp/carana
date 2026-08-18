@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: packages/core/src/plans.ts
-// Version: 3.0.0 — 2026-08-16
+// Version: 3.1.0 — 2026-08-17
 // Why: One definition of what a plan costs and what it unlocks. The pricing
 //      page, the checkout, the entitlement gates and the Stripe seed script
 //      all read this, so a price can never be right in one place and wrong in
@@ -31,6 +31,11 @@
 //      hand-typed copy of GALLERY_LIMITS on mobile is exactly how a
 //      "5 photos" promise drifts from a server that allows 3.
 //      apps/web/lib/billing/plans.ts is now a re-export.
+//      v3.1 (17 Aug): added `owner_privacy`. The owner section on a verified
+//      profile is shown on every plan; Premium is the only one that can turn
+//      it off. Note the asymmetry with every other gate here — hiding is
+//      honoured after the plan lapses (see the migration note), because what
+//      would revert is a person's name, not a placement.
 // Env / Identity: Pure data, safe on the client — web and native. The one
 //      `process.env` read (priceIdFor) is server-side only in practice;
 //      it returns undefined in the Expo bundle, which is correct, because
@@ -50,6 +55,7 @@ export type Feature =
   | "vanity_url"          // charana.ca/b/[custom-english-slug]
   | "featured_placement"  // top of its city × category list, labelled
   | "homepage_slot"
+  | "owner_privacy"       // hide the "owner" section on the public profile
   | "priority_support";
 
 /**
@@ -132,7 +138,8 @@ export const PLANS: Record<PlanId, Plan> = {
     price: { month: 4900, year: yearly(4900) },
     features: [
       "insights_basic", "insights_full", "announcements", "booking_link",
-      "review_replies", "busy_status", "vanity_url", "featured_placement", "homepage_slot", "priority_support",
+      "review_replies", "busy_status", "vanity_url", "featured_placement", "homepage_slot",
+      "owner_privacy", "priority_support",
     ],
     bullets: [
       "همه‌ی امکانات استارتر",
@@ -140,6 +147,7 @@ export const PLANS: Record<PlanId, Plan> = {
       "آدرس اختصاصی انگلیسی (charana.ca/b/...)",
       "جایگاه بالای فهرست شهر و دسته‌ی خودت، با برچسب «ویژه»",
       "حضور در بخش ویژه‌ی صفحه‌ی اول",
+      "اختیار نمایش یا پنهان کردن نام صاحب کسب‌وکار",
       "پشتیبانی با اولویت",
     ],
   },

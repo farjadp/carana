@@ -1,8 +1,10 @@
 // ============================================================================
 // Source: app/businesses/[slug]/page.tsx
-// Version: 3.0.0 — 2026-08-15
+// Version: 3.1.0 — 2026-08-17
 // Why: Robust business detail page query with URL decoding, slug/name/id fallback.
 //      v3 also resolves the category label + image so the profile never shows a raw slug.
+//      v3.1 resolves the owner of a verified listing for the public "owner"
+//      section, and does not fetch that profile at all when it is hidden.
 // Env / Identity: Server Component.
 // ============================================================================
 
@@ -13,6 +15,8 @@ import { PageShell } from "@/components/page-shell";
 import BusinessProfileClient from "./business-profile-client";
 import { JsonLd } from "@/components/json-ld";
 import { breadcrumbLd, localBusinessLd } from "@/lib/seo/local";
+import { getVerificationStatus, isTrusted } from "@/lib/verification/status";
+import { ownerProfileId, ownerSectionVisible, type PublicOwner } from "@charana/core";
 
 export const revalidate = 60; // ISR cache 1 minute
 
@@ -31,7 +35,7 @@ const PUBLIC_BUSINESS_COLUMNS = `
   services, branches, status, created_by, created_at, updated_at,
   owner_user_id, verification_method, verified_at, verified_until,
   verified_phone, verified_email, gallery_urls, gallery_video_url,
-  plan, plan_until, busy_status, busy_status_until
+  plan, plan_until, busy_status, busy_status_until, hide_owner
 `;
 
 async function fetchBusinessRecord(slugParam: string) {
@@ -134,6 +138,41 @@ export default async function BusinessProfilePage({
       }
     }
   }
+
+  // The person behind the listing, for the public "صاحب کسب‌وکار" section.
+  //
+  // Resolved and gated entirely on the server, and only fetched when it will
+  // actually be shown — a name that must not be published should not travel
+  // to the browser at all, where "hidden" would only be a missing element in
+  // a payload anyone can read. `ownerSectionVisible` re-checks the same
+  // conditions afterwards for the name-is-empty case.
+  const verificationTrusted = isTrusted(getVerificationStatus(business));
+  const ownerId = business.hide_owner || !verificationTrusted ? null : ownerProfileId(business);
+
+  let publicOwner: PublicOwner | null = null;
+  if (ownerId) {
+    const adminClient = createSupabaseAdminClient();
+    // Name, picture and join date only. Email, phone and role stay server-side.
+    const { data: ownerProfile } = await adminClient
+      .from("profiles")
+      .select("full_name, avatar_url, created_at")
+      .eq("id", ownerId)
+      .maybeSingle();
+
+    if (ownerProfile) {
+      publicOwner = {
+        full_name: ownerProfile.full_name,
+        avatar_url: ownerProfile.avatar_url,
+        member_since: ownerProfile.created_at,
+      };
+    }
+  }
+
+  const showOwner = ownerSectionVisible({
+    verificationTrusted,
+    owner: publicOwner,
+    hide_owner: business.hide_owner,
+  });
 
   // Fetch this user's own interaction record (private notes, saved state).
   // The table is `user_business_interactions`; the previous `user_interactions`
@@ -257,6 +296,7 @@ export default async function BusinessProfilePage({
         announcements={announcements ?? []}
         similarBusinesses={similarBusinesses || []}
         isOwnerOrAdmin={isOwnerOrAdmin}
+        publicOwner={showOwner ? publicOwner : null}
       />
     </PageShell>
   );

@@ -96,7 +96,13 @@ export async function getBusinessForEdit(businessId: string) {
       .from("businesses")
       .select("*")
       .eq("id", businessId)
-      .eq("created_by", user.id) // اطمینان از مالکیت
+      // Both routes to ownership, same as the dashboard list and the public
+      // profile: `created_by` for a listing registered through onboarding,
+      // `owner_user_id` for one claimed by SMS after an admin imported it.
+      // `created_by` alone meant a claimed listing appeared on its owner's
+      // dashboard and then 404'd when they pressed Edit — on 5,600 imported
+      // rows created_by is the importer, not a person.
+      .or(`created_by.eq.${user.id},owner_user_id.eq.${user.id}`)
       .single();
 
     if (error || !business) {
@@ -130,7 +136,13 @@ export async function saveBusinessEditDraft(formData: any, businessId: string): 
       .from("businesses")
       .select("*")
       .eq("id", businessId)
-      .eq("created_by", user.id)
+      // Both routes to ownership, same as the dashboard list and the public
+      // profile: `created_by` for a listing registered through onboarding,
+      // `owner_user_id` for one claimed by SMS after an admin imported it.
+      // `created_by` alone meant a claimed listing appeared on its owner's
+      // dashboard and then 404'd when they pressed Edit — on 5,600 imported
+      // rows created_by is the importer, not a person.
+      .or(`created_by.eq.${user.id},owner_user_id.eq.${user.id}`)
       .single();
 
     if (!existing) return { success: false, error: "کسب‌وکار یافت نشد." };
@@ -144,7 +156,7 @@ export async function saveBusinessEditDraft(formData: any, businessId: string): 
         .from("businesses")
         .update(updates)
         .eq("id", businessId)
-        .eq("created_by", user.id);
+        .or(`created_by.eq.${user.id},owner_user_id.eq.${user.id}`);
 
       if (error) throw error;
 
@@ -179,7 +191,8 @@ export async function saveBusinessEditDraft(formData: any, businessId: string): 
  * The write itself uses the service role because RLS deliberately forbids an
  * owner from updating a PUBLISHED row — that is what stops a client from
  * skipping this function by talking to PostgREST directly. Ownership has
- * already been proven by the `created_by` filter above.
+ * already been proven by the ownership filter above (created_by OR
+ * owner_user_id — a claimed listing's owner is the latter).
  */
 async function applyReviewedEdit({
   businessId,
@@ -207,7 +220,7 @@ async function applyReviewedEdit({
     .from("businesses")
     .update({ ...updates, status: resultingStatus })
     .eq("id", businessId)
-    .eq("created_by", userId);
+    .or(`created_by.eq.${userId},owner_user_id.eq.${userId}`);
 
   if (error) throw error;
 
@@ -261,7 +274,13 @@ export async function resubmitBusinessForReview(formData: any, businessId: strin
       .from("businesses")
       .select("*")
       .eq("id", businessId)
-      .eq("created_by", user.id)
+      // Both routes to ownership, same as the dashboard list and the public
+      // profile: `created_by` for a listing registered through onboarding,
+      // `owner_user_id` for one claimed by SMS after an admin imported it.
+      // `created_by` alone meant a claimed listing appeared on its owner's
+      // dashboard and then 404'd when they pressed Edit — on 5,600 imported
+      // rows created_by is the importer, not a person.
+      .or(`created_by.eq.${user.id},owner_user_id.eq.${user.id}`)
       .single();
 
     if (!existing) return { success: false, error: "کسب‌وکار یافت نشد." };
@@ -287,7 +306,7 @@ export async function resubmitBusinessForReview(formData: any, businessId: strin
         status: "SUBMITTED",
       })
       .eq("id", businessId)
-      .eq("created_by", user.id);
+      .or(`created_by.eq.${user.id},owner_user_id.eq.${user.id}`);
 
     if (error) throw error;
 

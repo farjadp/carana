@@ -32,6 +32,7 @@ import {
   ArrowLeft, BadgeCheck, Bell, Bookmark, Building2, CalendarClock, Clock,
   Flame, Image as ImageIcon, Link2, Megaphone, MessageSquare, Mic, NotebookPen,
   Search, Sparkles, Star, TrendingUp,
+  UserRound,
 } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
@@ -193,6 +194,11 @@ const OWNER_PREMIUM: Item[] = [
     icon: <Sparkles size={18} />,
     title: "بخش ویژه‌ی صفحه‌ی اول",
     body: "در بالای صفحه‌ی نخست چارانا.",
+  },
+  {
+    icon: <UserRound size={18} />,
+    title: "اختیار نمایش نام صاحب کسب‌وکار",
+    body: "روی آگهی تاییدشده، نام صاحب کسب‌وکار به‌صورت پیش‌فرض دیده می‌شود — در همه‌ی پلن‌ها. فقط در پریمیوم می‌توانی خاموشش کنی. اگر اشتراکت تمام شود، پنهان می‌ماند؛ نامی که عمداً پنهان شده با پایان یک اشتراک دوباره منتشر نمی‌شود.",
   },
 ];
 
