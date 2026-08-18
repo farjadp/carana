@@ -485,6 +485,48 @@ a line the web does not need — owner management does not exist in the app
 at all — and dropping that section on mobile would have removed the
 disclosures most relevant to whoever is reading it on a phone.
 
+## 17 August, later — every other directory merged (`3cb8868`, `34185f5`)
+
+Farjad had run the Antigravity solution over Jabeh, IranBusiness, Taablo,
+Bazaarche and FarsiLink and offered its output or a rebuild. Read the output
+first: Jabeh's city column held page titles and the whole category menu;
+Taablo's included Iran-based ads and a `wa.me` link as the website; Bazaarche's
+description was UI chrome. Rebuilt — but reused the one thing that was sound
+in it, the idea of taking discovery from sitemaps / category pages and reading
+each detail page. Every parser was written after reading that site's HTML;
+farsilink additionally needed the WP REST taxonomy for category and city
+because its detail pages carry neither.
+
+**Numbers, verified in the DB:** 5,652 rows (from 2,060): Jabeh 1,393 new /
+375 enriched, Taablo 1,277 / 540, Bazaarche 500 / 80, FarsiLink 330 / 194,
+IranBusiness 62 / 6, plus 30 re-inserted after reverts. ≈520 DRAFT for lack
+of any city. Coverage now BC ≈540, Quebec ≈240, Alberta ≈20.
+
+**Three rules were wrong and were caught by auditing the result, not the
+plan.** (1) "same website host = same business" merged five RBC mortgage
+agents into one row — a brokerage host is a platform; (2) «مشاور املاک X»
+overlapped «مشاور املاک Y» on the word املاک; (3) paging the DB by
+`created_at` repeated and dropped rows at page boundaries, so the audit first
+showed phantom duplicates and, worse, an import could miss its match. All
+three fixed in `34185f5`; 51 wrong merges reverted field-by-field from the
+reports (patches only ever filled empty columns, so revert = null them) and
+re-imported under the new rules. This is the third time in one day the
+dedupe rule had to be derived from the data — phone, then host, then name
+tokens — which is the actual lesson.
+
+**Deliberately not imported:** Bazaarche's Google-Places boilerplate prose,
+Taablo's Kafka lorem ipsum and name-echo descriptions, seven Iran-based
+listings, jabeh's «در تورنتو» SEO tails on names.
+
+**Left for Farjad, all named in `05-open-tasks`:** ≈57 held shared-phone /
+shared-website cases; ≈40 inserted-despite-shared-phone with the model's
+reason; ≈520 city-less drafts; a taxonomy gap (travel, cargo, media,
+charities); Bazaarche/Taablo rows are thin by nature. Logos re-hosted from
+jabeh/bazaarche/farsilink/iranbusiness into Supabase storage.
+
+**Said wrongly today:** presented an audit's "41 same-name pairs" before
+noticing the audit's own pagination had manufactured most of them.
+
 ## 17 August — Hamvatan merged into the directory (`2384aa5`)
 
 Farjad asked for every listing on hamvatan.org/toronto, "complete, no
