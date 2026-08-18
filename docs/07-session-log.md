@@ -485,6 +485,54 @@ a line the web does not need — owner management does not exist in the app
 at all — and dropping that section on mobile would have removed the
 disclosures most relevant to whoever is reading it on a phone.
 
+## 17 August, night — the owner behind a verified listing (`5f5c03b`)
+
+Farjad: verified listings should say who owns them; visible on Free and
+Starter, Premium's choice.
+
+**What makes it honest** is what it refuses to show. Four gates, all
+server-side: the verification has to be currently trusted, a real person has
+to be attached, that person needs a name, and it must not be hidden.
+"A real person" is the load-bearing one — `created_by` counts only for
+`self_onboarded` listings, because on 5,600 imported rows created_by is
+imports@charana.ca. Using it unguarded would have printed "صاحب کسب‌وکار:
+واردات خودکار" across the directory. Imported listings therefore show
+nothing, which is right: nobody has proved anything about them.
+
+When hidden, the profile row is never fetched at all, so the name is not in
+the HTML payload. "Hidden" as a missing element in a JSON blob anyone can
+read is not hidden.
+
+**One deliberate asymmetry.** Every other plan gate here recomputes from
+`plan_until` and reverts on expiry. This one does not: the *write* is
+Premium-gated, the *read* is unconditional. A lapsed subscription must not
+republish someone's name — that is a privacy incident with a billing
+trigger, not a downgrade. Clearing the flag is allowed on any plan so nobody
+is locked into hidden either.
+
+**Found and fixed on the way:** the edit form gated ownership on
+`created_by` alone, so a *claimed* listing appeared on its owner's dashboard
+and 404'd when they pressed Edit — the same bug class already fixed twice
+(public profile 16 Aug, dashboard list 16 Aug), still live in the third
+place. It also happened to block exactly this feature's audience from
+reaching the new toggle.
+
+Mobile got the read side too. `profiles` is self-or-admin under RLS and
+stays that way, so `/api/mobile/business-owner` resolves it with the service
+role behind identical gates and returns name, avatar and join month only.
+
+**Verified against the dev server, not asserted:** the section renders on the
+three verified listings; absent on an imported one; with `hide_owner` set the
+section and the name both vanish from the payload; the mobile route returns
+null for a DRAFT row and 400 for a non-uuid. The one thing not verified in a
+browser is the owner-facing toggle — reaching it needs a signed-in session,
+and the admin password is not something to type.
+
+**Said wrongly today:** told Farjad the imports were "in his profile" only
+after he found it himself. `created_by` on an import had been pointing at a
+person since the very first CSV import in August; nobody noticed until the
+number went from 647 to 5,649.
+
 ## 17 August, later — every other directory merged (`3cb8868`, `34185f5`)
 
 Farjad had run the Antigravity solution over Jabeh, IranBusiness, Taablo,

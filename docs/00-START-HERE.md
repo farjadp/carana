@@ -1,6 +1,6 @@
 # čārana — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-17 · **Docs version:** 2.9
+**Written:** 2026-08-24 · **Updated:** 2026-08-17 · **Docs version:** 3.0
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://charana.ca
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -48,6 +48,7 @@ D-U-N-S.
 | Data | **All seven directories merged 17 Aug** (`2384aa5` Hamvatan; `3cb8868` + `34185f5` the rest). Per source, inserted / enriched: Hamvatan 1,385 / 59 · Jabeh 1,393 / 375 · Taablo 1,277 / 540 · Bazaarche 500 / 80 · FarsiLink 330 / 194 · IranBusiness 62 / 6 — plus 30 re-inserted after 51 wrong merges were reverted. One record shape (`scripts/lib/source-listing.ts`), one importer (`scripts/import-listings.mts`), one scraper per site (`scripts/scrape-directories.mts`). Coverage now spans Ontario (≈4,350), BC (≈540), Quebec (≈240), Alberta (≈20). Logos re-hosted into Supabase storage. |
 | Data gap | **≈930 listings say «نامشخص»** — 409 pre-existing (365 one click away in `/admin/cleanup/cities`) plus ≈520 new DRAFT rows whose source gave no city (mostly Jabeh realtors). ≈70 shared-phone / shared-website cases are held for a human — see `05-open-tasks`. Taxonomy gap: 12 categories have no home for travel agencies, cargo, media, charities; they sit in the closest slot with the source label in `sub_category` |
 | Mobile | **APK 1.2.0 built and linked 16 Aug** (`229669c`) — it fixed a real outage: 1.1.0 shipped with no Supabase credentials and could not start at all. **1.2.0 has still never run on a real Android device.** Mobile now has the *read* side of everything (announcements ×3 surfaces, busy status, FX/clock card, features screen) but **no owner controls at all** — no edit, insights, billing, or announcement writing |
+| Owner identity | **New 17 Aug (`5f5c03b`)** — a verified profile names the person behind it (web sidebar + mobile). Four server-side gates: trusted verification, a real person attached (`owner_user_id`, or `created_by` only when `self_onboarded`), a non-empty name, and not hidden. Free and Starter always show it; Premium can hide it (`hide_owner`, new `owner_privacy` feature). The hide is honoured after a plan lapses — a name is not a placement. Rule lives in `packages/core/src/owner-identity.ts` |
 | Reviews | Submit → `pending_moderation` → admin publishes/rejects. **17 Aug (`5c80228`)**: outcome emails to the reviewer (with the moderator's reason), new-review email to the owner (which won't offer a reply the plan refuses), and server-side caps — 5 per user per 24h, 10–2000 chars, no reviewing your own business. **Three product questions still open** — see `05-open-tasks` |
 | Features page | `/features` on web + a native mobile screen. Plan quantities read from `@charana/core`; both carry an explicit "what we don't have yet" list |
 | App Store / Play | Blocked on D-U-N-S for Ashavid Inc. |

@@ -80,6 +80,23 @@ The live board is Notion → 🧿 Charana → Mission Control; this is the narra
   3-day staleness guard now drops dead symbols (`cad_cash` was 299 days
   old and 42% off).
 
+## Owner identity on verified profiles (17 Aug, `5f5c03b`)
+
+Shipped. Two things a human should decide, neither of them code:
+
+- **Nobody was told.** The three currently-verified listings are all
+  Farjad's, so nothing was published about a stranger today — but the next
+  person who verifies gets their profile name printed on a public page with
+  no prompt at the moment of verification. Worth adding a line to the claim
+  flow and the verification email, or a one-time notice, before the fourth
+  verified listing exists.
+- **Free and Starter cannot opt out at all.** That is the product decision as
+  asked. If someone writes in and wants their name off a Free listing, the
+  server action refuses them; an admin has to flip `hide_owner` by hand.
+  Decide whether "remove my name on request" should be free for everyone
+  (it costs nothing to allow, and refusing it is the kind of thing that gets
+  screenshotted).
+
 ## Blocked on something external
 
 - D-U-N-S for Ashavid Inc. → Apple Developer and Google Play organisations →
