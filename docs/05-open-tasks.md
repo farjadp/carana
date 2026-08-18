@@ -107,6 +107,11 @@ or features page may present it as a paid perk); jobs only.
 **Salary is optional** — Farjad's call on 18 Aug, taken with the Ontario
 question still open.
 
+**The description is Markdown** (`c2deb42`), with an AI drafting endpoint at
+`/api/ai/job-description`. AI spend is counted in the new `ai_usage` table —
+10 drafts per user per 24h — because `lib/utils/rate-limit.ts` resets on
+deploy. Not a plan quantity; do not move it into `plans.ts`.
+
 Still open:
 
 - **Farjad, before the board is promoted anywhere:** verify Ontario's 2026
@@ -123,7 +128,13 @@ Still open:
   moderator's reason. Reuse `reviewModeratedEmail` (`5c80228`).
 - **Expiry nudge** — "تمدید کن یا ببند" three days out, reusing the
   reminder-stage pattern in `verification-status.ts`.
-- **Mobile** — read side only: list + detail, like every other feature.
+- **Mobile** — read side only: list + detail, like every other feature. The
+  description is Markdown now, so mobile needs the same normalise-then-render
+  path (`normalizeJobMarkdown` is in `@charana/core`; the app already has a
+  hand-written Markdown renderer for the blog).
+- **`.prose-fa` list markers** — the blog has the same Tailwind-preflight bug
+  that `.job-md` just fixed: `list-style: none` means its `li::marker` colour
+  rules have never rendered. One line in `globals.css`.
 - `/jobs/[slug]` returns **200 on a missing or expired post**, not 404. Same
   pre-existing streaming/`notFound()` issue as the city routes (below), but it
   matters more here: Google treats a soft-404 on a `JobPosting` URL as a

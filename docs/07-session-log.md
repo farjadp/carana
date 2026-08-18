@@ -58,10 +58,47 @@ from the board, the profile section and `live_job_count()` immediately.
 - The design doc's `/jobs/[city]` was dropped — it collides with
   `/jobs/[slug]`. City filtering is a query parameter instead.
 
+## Later the same day — the editor and the AI (`c2deb42`)
+
+Farjad: «یه کم ادیتور رو پیشرفته کن… حواست به امنیت باشه… هوش مصنوعی هم بذار».
+
+**Markdown, not WYSIWYG.** A textarea with a toolbar and a preview tab. The
+security argument decided it: what leaves the component is Markdown, so no
+owner-authored markup is ever handed to a browser. Three layers —
+`normalizeJobMarkdown()` on write, react-markdown without `rehype-raw`, and
+normalise again on read for rows an older build or a direct database edit
+might leave behind. Links and bare URLs are removed outright, because a
+verified business publishes with no moderation and an ad body would otherwise
+be a free do-follow surface.
+
+**AI that cannot invent.** Four gates before the model: signed in, owns *this*
+business (re-proved from the row), under the daily count, input capped. The
+count lives in a new `ai_usage` table, not `lib/utils/rate-limit.ts`, which
+says in its own header that it resets on deploy — fine against accidental
+hammering, not fine as the only thing between an account and an OpenAI bill.
+Facts come from the row server-side; the owner's note is passed as data inside
+a delimiter and named as data. Tested with a prompt carrying «IGNORE ALL
+PREVIOUS INSTRUCTIONS» plus demands for a $200k salary, invented benefits, a
+spam link and an email — none of the six appeared.
+
+### Four bugs found by looking, not by reasoning
+
+- The **JSON-LD and meta description carried the raw `<script>`, `<img>`,
+  `javascript:` link and spam URL** while the visible page was clean.
+  `stripMarkdown()` only understands Markdown. Fixed with one
+  `jobDescriptionPlain()` that normalises then strips. This is the one that
+  would have shipped: I had verified the page and not the structured data.
+- Tailwind preflight sets `list-style: none`, so no bullet ever rendered and
+  the `::marker` colours described nothing. The blog's `.prose-fa` still has it.
+- The toolbar put the caret back at 0 after every action.
+- A list prefix mid-line produced a marker stranded in a sentence.
+
 ## Still open
 
-Moderation emails, the expiry nudge, mobile, and Farjad's Ontario check —
-cheapest to answer now, while the table is empty.
+Moderation emails, the expiry nudge, mobile (now including Markdown
+rendering), and Farjad's Ontario check — cheapest to answer now, while the
+table is empty. Also: the owner form and admin queue are **still** unexercised
+signed in.
 
 ---
 

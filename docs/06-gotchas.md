@@ -876,3 +876,52 @@ regenerating afterwards correctly overwrites it.
 **Fix:** the right order is push, then generate, then typecheck. Hand-write the
 block only to get moving, and mark it — the jobs board's block was added by
 hand at 05:00 and replaced by the generator ten minutes later.
+
+
+---
+
+## Tailwind preflight kills every list marker
+
+**Symptom:** a Markdown-rendered `- item` list shows no bullets at all, and the
+`li::marker` colour rule in `globals.css` appears to do nothing.
+
+**Cause:** Tailwind's preflight sets `list-style: none` on every `ul` and `ol`.
+A `::marker` rule cannot colour a marker that is not being generated.
+
+**Fix:** `list-style: disc` / `decimal` explicitly on the prose container's
+lists. `.job-md` does; **`.prose-fa` (the blog) still does not** — its
+`::marker` rules have never rendered.
+
+---
+
+## A toolbar that edits a controlled textarea loses the caret
+
+**Symptom:** clicking a formatting button inserts the right text, then the next
+keystroke lands at the very top of the field.
+
+**Cause:** `onChange` re-renders the textarea, and React restores its own idea
+of the selection afterwards — after any `setSelectionRange` in the click
+handler, and after `requestAnimationFrame` too.
+
+**Fix:** stash the wanted caret in a **ref** and apply it in `useLayoutEffect`
+keyed on the value, so it runs after the commit and before paint. Not state:
+`setState` inside the effect that consumes it is a cascading render, and
+eslint's `react-hooks` rules reject it.
+
+---
+
+## Stripping Markdown is not sanitising
+
+**Symptom:** a job page rendered clean in the browser while its `JobPosting`
+JSON-LD and meta description carried `<script>`, `<img onerror=…>`, a
+`javascript:` link and a spam URL.
+
+**Cause:** `stripMarkdown()` understands Markdown syntax and nothing else. HTML
+tags, raw URLs and dangerous link targets are not Markdown, so it passed all of
+them straight through. The visible page was clean only because the *renderer*
+normalises first.
+
+**Fix:** one function, `jobDescriptionPlain()`, that normalises **then** strips,
+used by every plain-text output. **Lesson:** when the same content leaves by two
+routes, check both. The one you can see is not evidence about the one you
+cannot.
