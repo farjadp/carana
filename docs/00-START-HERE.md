@@ -1,6 +1,6 @@
 # čārana — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-17 · **Docs version:** 3.0
+**Written:** 2026-08-24 · **Updated:** 2026-08-17 · **Docs version:** 3.1
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://charana.ca
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -73,6 +73,8 @@ people (and models) read three of them and miss the rest.
 | `05-open-tasks.md` | Deciding what to do next |
 | `06-gotchas.md` | **Read this one.** The traps that cost hours. |
 | `07-session-log.md` | How we got here, session by session, including what was said wrongly |
+| `08-competitors.md` | The seven Iranian-Canadian directories, and where the gaps are |
+| `09-jobs-board.md` | **Design only, not built.** Jobs board spec with the four decisions Farjad took on 18 Aug |
 
 ## Working style (learned, do not relearn)
 

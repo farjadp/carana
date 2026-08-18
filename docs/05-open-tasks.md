@@ -97,6 +97,24 @@ Shipped. Two things a human should decide, neither of them code:
   (it costs nothing to allow, and refusing it is the kind of thing that gets
   screenshotted).
 
+## Jobs board — designed 18 Aug, not built
+
+Full spec in `09-jobs-board.md`. Four forks decided by Farjad: only existing
+listing owners may post; verified businesses publish directly while everyone
+else queues for moderation; **free and unlimited for now** (so nothing on the
+pricing or features page may present it as a paid perk); jobs only, no rent or
+buy/sell.
+
+Waiting on:
+- **Farjad, before any launch:** verify Ontario's 2026 pay-transparency rules
+  for publicly advertised postings against a primary source. If a salary range
+  is mandatory, `salary_min` stops being an optional field and the form has to
+  enforce it. I am not in a position to state what the rule says.
+- **Green light to build.** First slice would be: migration + `latinSlug`
+  moved into `@charana/core` + the owner form + `/jobs` and `/jobs/[slug]`
+  with `JobPosting` JSON-LD. The admin queue, the profile section, the
+  expiry nudge and mobile follow.
+
 ## Blocked on something external
 
 - D-U-N-S for Ashavid Inc. → Apple Developer and Google Play organisations →
