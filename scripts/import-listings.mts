@@ -83,6 +83,14 @@ const STOP = new Set([
   "toronto","studio","centre","center","clinic","shop","store","home","homes",
   "شرکت","خدمات","گروه","مرکز","کلینیک","فروشگاه","دفتر","مشاور","مشاوره","و","در","با","برای","کانادا","تورنتو",
   "دکتر","دکترای","مهندس","خانم","آقای","دندانپزشک","دندانپزشکی","پزشک",
+  // Category words: two realtors both called «مشاور املاک …» are not the same person.
+  "املاک","مسکن","وام","کارگزار","کارشناس","نماینده","بیمه","رستوران","کیترینگ","حسابداری","حسابدار","مالیاتی","مهاجرت","مهاجرتی","وکیل","حقوقی",
+  "آموزشگاه","موسیقی","مدرسه","زیبایی","سالن","آرایشگاه","آرایشگر","لیزر","دندان","صرافی","سوپرمارکت","سوپر","مارکت","کافه","شیرینی","نانوایی","نان",
+  "ساختمانی","نقاشی","برق","لوله","کشی","تعمیرات","تعمیر","اتومبیل","خودرو","فروش","عکاسی","عکاس","استودیو","فیزیوتراپی","تغذیه","روانشناس","داروخانه",
+  "real","estate","realty","realtor","mortgage","broker","agent","insurance","restaurant","catering","accounting","accountant","tax","dental","dentistry","dentist",
+  "law","lawyer","legal","immigration","consultant","consulting","beauty","salon","spa","medical","academy","school","music","driving","exchange","currency",
+  "supermarket","market","bakery","cafe","pizza","grill","kabob","kebab","construction","renovation","plumbing","electric","auto","repair","photography","photo",
+  "design","travel","agency","pharmacy","physio","therapy","clinic","office","specialist","team","professional","corporation","persian","iranian","canadian",
 ]);
 
 function nameTokens(name: string): Set<string> {
@@ -103,12 +111,24 @@ const phoneKey = (p: string | null | undefined) => {
   const d = (p ?? "").replace(/[۰-۹]/g, (x) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(x))).replace(/\D/g, "");
   return d.length >= 10 ? d.slice(-10) : null;
 };
+// Hosts where many independent agents share one domain and only the path tells them apart. A host match
+// on these is not identity — the first import merged five RBC mortgage agents into one listing this way.
+const PLATFORM_HOSTS = ["mortgage.rbc.com","century21.ca","mortgagealliance.com","rightathomerealty.com","royallepage.ca","remax.ca","homelife.ca","kw.com","exprealty.com","exprealty.ca","dominionlending.ca","mortgagecentre.com","centum.ca","mortgagespecialist.bmo.com","mms.tdcanadatrust.com","scotiabank.com","cibc.com","td.com","zil.ink","linktr.ee","iranstar.com","facebook.com","instagram.com","t.me","wa.me","google.com","goo.gl","yelp.ca","yelp.com","sites.google.com","wixsite.com","business.site"];
 const hostKey = (u: string | null | undefined) => {
   if (!u) return null;
   try {
     const h = new URL(/^https?:\/\//i.test(u) ? u : `https://${u}`).hostname.toLowerCase().replace(/^www\./, "");
-    if (["instagram.com","facebook.com","t.me","wa.me","linktr.ee","google.com","goo.gl"].some((x) => h.endsWith(x))) return null;
+    if (PLATFORM_HOSTS.some((x) => h === x || h.endsWith(`.${x}`))) return null;
     return h;
+  } catch { return null; }
+};
+/** host + path, for the case where a host is shared by several listings on either side. */
+const urlKey = (u: string | null | undefined) => {
+  if (!u) return null;
+  try {
+    const x = new URL(/^https?:\/\//i.test(u) ? u : `https://${u}`);
+    const path = x.pathname.replace(/\/+$/, "").toLowerCase();
+    return `${x.hostname.toLowerCase().replace(/^www\./, "")}${path && path !== "/" ? path : ""}`;
   } catch { return null; }
 };
 const instaKey = (u: string | null | undefined) => {
@@ -125,6 +145,22 @@ function provinceFromAddress(s: string | null | undefined): string | null {
   const m = s.match(/\b(ON|BC|AB|QC|MB|SK|NS|NB|NL|PE)\b(?=[\s,]|$)/) ?? s.match(/\b(Ontario|British Columbia|Alberta|Quebec|Qu\u00e9bec|Manitoba|Saskatchewan|Nova Scotia|New Brunswick)\b/i);
   if (!m) return null;
   return PROVINCE_CODES[m[1].toUpperCase()] ?? Object.values(PROVINCE_CODES).find((v) => v.toLowerCase() === m[1].toLowerCase().replace("é", "e")) ?? null;
+}
+
+const CITY_PROVINCE: Record<string, string> = {
+  montreal: "Quebec", "montréal": "Quebec", laval: "Quebec", westmount: "Quebec", candiac: "Quebec", brossard: "Quebec", longueuil: "Quebec", "quebec city": "Quebec", gatineau: "Quebec",
+  vancouver: "British Columbia", "north vancouver": "British Columbia", "west vancouver": "British Columbia", burnaby: "British Columbia", coquitlam: "British Columbia", "port coquitlam": "British Columbia", "port moody": "British Columbia", surrey: "British Columbia", richmond: "British Columbia", "new westminster": "British Columbia", victoria: "British Columbia", kelowna: "British Columbia", langley: "British Columbia", "maple ridge": "British Columbia", abbotsford: "British Columbia",
+  calgary: "Alberta", edmonton: "Alberta", winnipeg: "Manitoba", halifax: "Nova Scotia", saskatoon: "Saskatchewan", regina: "Saskatchewan",
+  ottawa: "Ontario", mississauga: "Ontario", brampton: "Ontario", hamilton: "Ontario", london: "Ontario", kitchener: "Ontario", waterloo: "Ontario", whitby: "Ontario", oshawa: "Ontario", ajax: "Ontario", pickering: "Ontario", burlington: "Ontario", milton: "Ontario", "king city": "Ontario", stouffville: "Ontario", "bradford west gwillimbury": "Ontario", bradford: "Ontario", innisfil: "Ontario", york: "Ontario", windsor: "Ontario", kingston: "Ontario",
+};
+const provinceForKnownCity = (city: string | null) => (city ? CITY_PROVINCE[city.toLowerCase()] ?? null : null);
+
+const postalIn = (a: string | null | undefined) => (a ?? "").match(/\b([A-Za-z]\d[A-Za-z])\s?(\d[A-Za-z]\d)\b/)?.slice(1, 3).join(" ").toUpperCase() ?? null;
+
+/** "7330 Yonge St, Thornhill, ON L4J 7Y6, Canada" → "Thornhill" (the token before the province code). */
+function cityFromCanadianAddress(a: string | null | undefined): string | null {
+  const m = (a ?? "").match(/,\s*([A-Za-z][A-Za-z .'-]{2,40}?)\s*,\s*(?:ON|BC|AB|QC|MB|SK|NS|NB|NL|PE|Ontario|British Columbia|Alberta|Quebec|Qu\u00e9bec)\b/);
+  return m ? normalizeCity(m[1]) : null;
 }
 
 // Deterministic Latin fallback for slugs when the model gives nothing usable.
@@ -194,7 +230,7 @@ async function main() {
     const { data: page, error } = await supabase
       .from("businesses")
       .select("id,slug,name,name_en,category,sub_category,city,phone,website,instagram,telegram,whatsapp,postal_code,address,tagline,description,short_description,social_media,verification_notes,contact_email,logo_url")
-      .order("created_at", { ascending: true })
+      .order("id", { ascending: true }) // a unique key: ordering by created_at ties across pages and drops or repeats rows
       .range(from, from + 999);
     if (error) throw error;
     db.push(...(page as DbRow[]));
@@ -206,9 +242,15 @@ async function main() {
   const dbByHost = new Map<string, DbRow>();
   const dbByInsta = new Map<string, DbRow>();
   const dbBySourceUrl = new Map<string, DbRow>();
+  // A host used by more than one listing (on either side) identifies a platform, not a business.
+  const hostCount = new Map<string, number>();
+  for (const r of db) { const hk = hostKey(r.website); if (hk) hostCount.set(hk, (hostCount.get(hk) ?? 0) + 1); }
+  for (const l of collapsed) { const hk = hostKey(l.website); if (hk) hostCount.set(hk, (hostCount.get(hk) ?? 0) + 1); }
+  const dbByUrl = new Map<string, DbRow>();
   for (const r of db) {
     const pk = phoneKey(r.phone); if (pk) dbByPhone.set(pk, [...(dbByPhone.get(pk) ?? []), r]);
-    const hk = hostKey(r.website); if (hk && !dbByHost.has(hk)) dbByHost.set(hk, r);
+    const hk = hostKey(r.website); if (hk && (hostCount.get(hk) ?? 0) <= 2 && !dbByHost.has(hk)) dbByHost.set(hk, r);
+    const uk = urlKey(r.website); if (uk && !dbByUrl.has(uk)) dbByUrl.set(uk, r);
     const ik = instaKey(r.instagram); if (ik && !dbByInsta.has(ik)) dbByInsta.set(ik, r);
     for (const m of (r.verification_notes ?? "").matchAll(/(?:imported from|also listed at) (\S+)/g)) dbBySourceUrl.set(m[1], r);
   }
@@ -233,7 +275,7 @@ async function main() {
     set("instagram", l.instagram);
     set("telegram", l.telegram);
     set("whatsapp", l.whatsapp);
-    set("postal_code", l.postal_code);
+    set("postal_code", l.postal_code ?? postalIn(l.street));
     set("address", l.street && /\d/.test(l.street) ? normalizeText(l.street, 250) : null);
     set("tagline", normalizeText(l.tagline, 160));
     set("description", normalizeText([l.tagline, l.description].filter(Boolean).join(" — "), 2000));
@@ -251,9 +293,20 @@ async function main() {
     const prev = dbBySourceUrl.get(l.source_url);
     if (prev) { decisions.push({ kind: "enrich", row: prev, via: "source_url", patch: enrichPatch(prev, l) }); continue; }
 
-    const hk = hostKey(l.website), ik = instaKey(l.instagram);
-    const strong = (hk && dbByHost.get(hk)) || (ik && dbByInsta.get(ik)) || null;
-    if (strong) { decisions.push({ kind: "enrich", row: strong, via: hk && dbByHost.get(hk) === strong ? "website" : "instagram", patch: enrichPatch(strong, l) }); continue; }
+    const hk = hostKey(l.website), ik = instaKey(l.instagram), uk = urlKey(l.website);
+    // Unique host → identity. Shared host → only the exact URL (host + path) counts, and only with a name
+    // in common or a shared phone, since a brokerage site lists many agents.
+    const byHost = hk && (hostCount.get(hk) ?? 0) <= 2 ? dbByHost.get(hk) : null;
+    const byUrl = !byHost && uk ? dbByUrl.get(uk) : null;
+    const urlOk = byUrl && (namesOverlap(byUrl.name, l.name) || (byUrl.name_en && namesOverlap(byUrl.name_en, l.name)) || (phoneKey(byUrl.phone) && l.phones.map(phoneKey).includes(phoneKey(byUrl.phone))));
+    const sameName = (r: DbRow) => namesOverlap(r.name, l.name) || (!!r.name_en && namesOverlap(r.name_en, l.name)) || (!!phoneKey(r.phone) && l.phones.map(phoneKey).includes(phoneKey(r.phone)));
+    const strong = byHost || (urlOk ? byUrl : null) || (ik && dbByInsta.get(ik)) || null;
+    if (strong) {
+      // A shared website with nothing else in common can be a clinic and one of its dentists, a dealership
+      // and a salesperson — the model decides, same as a phone-only match, rather than assuming.
+      if (!sameName(strong)) { undecided.push({ l, row: strong }); continue; }
+      decisions.push({ kind: "enrich", row: strong, via: strong === byHost ? "website" : strong === byUrl ? "website+path" : "instagram", patch: enrichPatch(strong, l) }); continue;
+    }
 
     const phoneRows = l.phones.map(phoneKey).filter(Boolean).flatMap((p) => dbByPhone.get(p!) ?? []);
     if (phoneRows.length === 0) { toInsert.push(l); continue; }
@@ -265,7 +318,7 @@ async function main() {
   }
 
   // ---- 3b. phone matches with no name overlap: ask the model, merge only on a confident yes
-  console.log(`\nphone-only matches needing adjudication: ${undecided.length}`);
+  console.log(`\nphone-only / website-only matches needing adjudication: ${undecided.length}`);
   for (let i = 0; i < undecided.length; i += 20) {
     const chunk = undecided.slice(i, i + 20);
     try {
@@ -275,9 +328,9 @@ async function main() {
       const { object } = await generateObject({
         model: openai("gpt-4o"),
         schema: z.object({ results: z.array(z.object({ idx: z.number(), same: z.enum(["yes", "no", "unsure"]), why: z.string() })) }),
-        prompt: `Two Iranian-Canadian directory records share a phone number. For each pair decide:
+        prompt: `Two Iranian-Canadian directory records share a phone number or a website. For each pair decide:
 - "yes": the SAME business. Persian and English spellings/transliterations/translations of one name count as the same (گرین کیبلز = Green Cables, خانه فرش = Rugs Place, فرامدیا = FARA MEDIA); so does a person's name vs. their business name when the trade matches.
-- "no": clearly DIFFERENT businesses that merely share a phone — a person offering two unrelated trades under two names, or clearly different companies.
+- "no": clearly DIFFERENT listings that merely share a phone or website — a person offering two unrelated trades under two names, clearly different companies, or an organisation (clinic, dealership, brokerage, agency) versus one named individual who works there — a directory lists the person and the organisation separately.
 - "unsure": anything else. Prefer "unsure" over guessing; a wrong "no" creates a duplicate listing.
 ${JSON.stringify(chunk.map(({ l, row }, k) => ({ idx: i + k,
   a: { name: row.name, name_en: row.name_en, category: row.category, sub_category: row.sub_category, description: row.short_description, website: row.website, instagram: row.instagram, address: row.address },
@@ -310,6 +363,7 @@ ${JSON.stringify(chunk.map(({ l, row }, k) => ({ idx: i + k,
         prompt: `For each business: (1) pick exactly one category slug from this list — never invent one:
 ${slugs.join("\n")}
 Guidance: construction/renovation/HVAC/electrical/plumbing/moving/cleaning -> skilled-trades; insurance, accounting, tax, exchange (صرافی), mortgage -> accounting-tax unless it is clearly a realtor -> real-estate-mortgage; auto -> automotive; web/software/IT/marketing/photography/design -> digital-it; salon, spa, gym, wellness -> beauty-wellness; doctor, dentist, therapist, pharmacy -> medical-clinic; lawyer, immigration -> legal-immigration; restaurant, catering, cafe, sweets, bakery -> restaurant-cafe; grocery, supermarket, food products, flowers -> iranian-grocery; school, tutoring, music lessons, driving school -> education; events, weddings, entertainment -> events.
+Nothing may be left without a category — when nothing fits, take the closest: travel agencies -> events; financial planning, investment, wealth, mortgage agents -> accounting-tax; charities, community and religious centres, media -> events; shipping, cargo, moving, cleaning -> skilled-trades; pet services -> beauty-wellness; art galleries -> education.
 (2) give name_en: the business name in Latin letters — the English name if it has one, else a faithful transliteration of the Persian name (e.g. "صرافی میلیون" -> "Sarrafi Million"). Keep it under 60 characters.
 Businesses:
 ${JSON.stringify(chunk.map((l, k) => ({ rowId: i + k, name: l.name, source_category: l.category, tagline: l.tagline, description: l.description?.slice(0, 200) })), null, 1)}`,
@@ -321,6 +375,19 @@ ${JSON.stringify(chunk.map((l, k) => ({ rowId: i + k, name: l.name, source_categ
     process.stdout.write(`\r  categorised ${Math.min(i + 25, toInsert.length)}/${toInsert.length}`);
   }
   if (toInsert.length) process.stdout.write("\n");
+  // One retry for rows a failed batch left behind, in smaller chunks.
+  const missing = toInsert.map((_, i) => i).filter((i) => !assigned.has(i));
+  for (let j = 0; j < missing.length; j += 10) {
+    const idx = missing.slice(j, j + 10);
+    try {
+      const { object } = await generateObject({
+        model: openai("gpt-4o-mini"),
+        schema: z.object({ results: z.array(z.object({ rowId: z.number(), category: z.string(), name_en: z.string() })) }),
+        prompt: `Pick exactly one category slug per business from: ${slugs.join(", ")}. Nothing may be left out — choose the closest (exchange/صرافی/insurance/mortgage/financial -> accounting-tax; events/venues/candles/decor -> events; travel -> events). Also give name_en (English name or Latin transliteration, <60 chars).\n${JSON.stringify(idx.map((i) => ({ rowId: i, name: toInsert[i].name, source_category: toInsert[i].category, tagline: toInsert[i].tagline })))}`,
+      });
+      for (const r of object.results) if (slugs.includes(r.category)) assigned.set(r.rowId, { category: r.category, name_en: r.name_en.trim() });
+    } catch (e) { console.error(`  retry batch failed: ${(e as Error).message}`); }
+  }
 
   // ---- 5. build insert payloads with unique English slugs
   const taken = new Set(db.map((r) => r.slug));
@@ -341,10 +408,23 @@ ${JSON.stringify(chunk.map((l, k) => ({ rowId: i + k, name: l.name, source_categ
     // Street name beats postal code beats the source's own city label. No city
     // at all → DRAFT, same policy as import-businesses.mts, so the public
     // directory never shows a listing nobody can place.
-    const cityHint = l.city_hint && /municipality|region\b|metro |province|county/i.test(l.city_hint) ? (/metro vancouver/i.test(l.city_hint) ? "Vancouver" : null) : l.city_hint;
-    const city = cityFromAddress(l.street) ?? cityFromPostalCode(l.postal_code) ?? normalizeCity(cityHint);
-    const province = provinceForCity(city) ?? provinceFromAddress(l.street) ?? provinceFromAddress(l.city_hint) ?? (city ? "Ontario" : null);
-    const description = normalizeText([l.tagline, l.description].filter(Boolean).join(" — "), 2000);
+    // A city hint that is really a street fragment, a country, or a region label is not a city.
+    let cityHint = l.city_hint;
+    if (cityHint && (/\d|unit|suite|brokerage|^canada$|^ca$|municipality|region\b|province|county|^metro /i.test(cityHint))) cityHint = /metro vancouver/i.test(cityHint) ? "Vancouver" : null;
+    if (cityHint && /^willowdale$/i.test(cityHint)) cityHint = "North York";
+    // Province names, slashes and mixed-script labels are not cities either.
+    if (cityHint && (/^(ontario|british columbia|alberta|quebec|québec|manitoba|saskatchewan|nova scotia|new brunswick|montérégie|canada)$/i.test(cityHint.trim()) || /[\/|]/.test(cityHint))) cityHint = null;
+    if (cityHint) cityHint = cityHint.replace(/[،,]\s*qc$/i, "").trim();
+    const city = cityFromAddress(l.street) ?? cityFromPostalCode(l.postal_code ?? postalIn(l.street)) ?? cityFromCanadianAddress(l.street) ?? normalizeCity(cityHint);
+    // Never default a province: a Montréal listing filed as Ontario is exactly the kind of quiet lie the house rule forbids.
+    const province = provinceForCity(city) ?? provinceFromAddress(l.street) ?? provinceFromAddress(l.city_hint) ?? provinceForKnownCity(city);
+    // Some sources open the description by repeating the name (or hold only the name); drop that echo.
+    // Lorem-ipsum filler (Taablo has one Kafka excerpt) is not a description either.
+    let rawDesc = l.description && l.description.trim().startsWith(l.name.trim()) ? l.description.trim().slice(l.name.trim().length).replace(/^[\s\-–—:،,.]+/, "") : l.description;
+    if (rawDesc) rawDesc = rawDesc.replace(/^\|\S*\s*/, ""); // «|تورنتو» residue of a stripped title suffix
+    if (rawDesc && /lorem ipsum|گرگور سامسا|Gregor Samsa/i.test(rawDesc)) rawDesc = null;
+    if (rawDesc && !rawDesc.trim()) rawDesc = null;
+    const description = normalizeText([l.tagline, rawDesc].filter(Boolean).join(" — "), 2000);
 
     decisions.push({
       kind: "insert",
@@ -360,7 +440,7 @@ ${JSON.stringify(chunk.map((l, k) => ({ rowId: i + k, name: l.name, source_categ
         country: "Canada",
         // A "street" with no digit is a locality label, not an address (same rule as import-normalize).
         address: l.street && /\d/.test(l.street) ? normalizeText(l.street, 250) : null,
-        postal_code: l.postal_code,
+        postal_code: l.postal_code ?? postalIn(l.street),
         phone: l.phones[0] ?? null,
         website: normalizeWebsite(l.website),
         contact_email: normalizeText(l.email, 120),
@@ -370,7 +450,7 @@ ${JSON.stringify(chunk.map((l, k) => ({ rowId: i + k, name: l.name, source_categ
         social_media: l.facebook ? { facebook: l.facebook } : null,
         tagline: normalizeText(l.tagline, 160),
         description,
-        short_description: normalizeText(l.tagline ?? l.description, 120),
+        short_description: normalizeText(l.tagline ?? rawDesc, 120),
         logo_url: normalizeImageUrl(l.logo_url) ?? PLACEHOLDER_LOGO,
         status: city ? "PUBLISHED" : "DRAFT",
         created_by: adminProfile.id,

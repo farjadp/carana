@@ -115,7 +115,10 @@ async function jabeh(): Promise<SourceListing[]> {
     const html = await get(url); done += 1; process.stdout.write(`\r  read ${done}/${urls.size}`);
     if (!html) return null;
     const $ = cheerio.load(html);
-    const name = clean($("h1").first().text());
+    // Jabeh titles are SEO phrases — «مشاور املاک ایرانی مرضیه احمدلو در انتاریو». Keep the name, drop
+    // the trailing «در <place>» and the filler adjective «ایرانی»; the category and city are captured separately.
+    const rawName = clean($("h1").first().text());
+    const name = rawName ? clean(rawName.replace(/\s+در\s+[^\s،,]+(?:\s+[^\s،,]+){0,2}$/u, "").replace(/(^|\s)ایرانی(?=\s|$)/gu, "$1")) ?? rawName : null;
     if (!name) return null;
     const header = $("h1").first().closest(".card-header");
     const category = clean(header.find(".bi-briefcase").parent().text()) ?? label;
@@ -141,7 +144,8 @@ async function taablo(): Promise<SourceListing[]> {
     if (!html) return null;
     const $ = cheerio.load(html);
     const main = $(".hp-listing--view-page").first();
-    const name = clean(main.find("h1.hp-listing__title").first().text());
+    // Titles carry a «|تورنتو» / «| کانادا» suffix; the location field already says where it is.
+    const name = clean((clean(main.find("h1.hp-listing__title").first().text()) ?? "").replace(/\s*\|\s*[^|]{1,30}$/u, ""));
     if (!name) return null;
     const location = clean(main.find(".hp-listing__location").first().text());
     if (!location || !/canada/i.test(location)) { dropped += 1; return null; }
@@ -201,7 +205,10 @@ async function farsilink(): Promise<SourceListing[]> {
   for (const [cat, label] of cats) {
     let empty = 0;
     for (let page = 1; page < 100 && empty < 2; page += 1) {
-      const html = await get(page === 1 ? cat : `${cat.replace(/\/$/, "")}/page/${page}/`);
+      const pageUrl = page === 1 ? cat : `${cat.replace(/\/$/, "")}/page/${page}/`;
+      let html = await get(pageUrl);
+      // A failed fetch is not an empty page; try again before concluding the category is exhausted.
+      for (let retry = 0; html === null && retry < 3; retry += 1) { await sleep(3000); html = await get(pageUrl); }
       const $ = cheerio.load(html ?? "");
       let onPage = 0;
       $("[data-posturl]").each((_, e) => {
@@ -216,6 +223,24 @@ async function farsilink(): Promise<SourceListing[]> {
     }
     process.stdout.write(`\r  discovered ${cards.size} listings…   `);
   }
+  // The REST API carries every listing's category and location taxonomy — the category pages only
+  // show a subset (some listings sit in no category), so use it to fill category and city for the rest.
+  try {
+    const tax = async (name: string) => { const m = new Map<number, string>(); for (let pg = 1; pg < 20; pg += 1) { const j = JSON.parse((await get(`https://farsilink.com/wp-json/wp/v2/${name}?per_page=100&page=${pg}`)) ?? "[]") as { id: number; name: string }[]; if (!Array.isArray(j) || !j.length) break; for (const t of j) m.set(t.id, clean(cheerio.load(`<p>${t.name}</p>`)("p").text()) ?? ""); if (j.length < 100) break; } return m; };
+    const catNames = await tax("listing-category"), locNames = await tax("location");
+    for (let pg = 1; pg < 50; pg += 1) {
+      const j = JSON.parse((await get(`https://farsilink.com/wp-json/wp/v2/listing?per_page=100&page=${pg}&_fields=link,listing-category,location,title`)) ?? "[]") as { link: string; "listing-category": number[]; location: number[]; title: { rendered: string } }[];
+      if (!Array.isArray(j) || !j.length) break;
+      for (const it of j) {
+        const url = it.link; const c = cards.get(url) ?? { url, category: "", address: null, city: null, logo: null, name: null };
+        c.category ||= (it["listing-category"] ?? []).map((id) => catNames.get(id)).filter(Boolean).join(" / ");
+        c.city ||= (it.location ?? []).map((id) => locNames.get(id)).filter((v) => v && !/^ca$/i.test(v))[0] ?? null;
+        c.name ||= clean(cheerio.load(`<p>${it.title?.rendered ?? ""}</p>`)("p").text());
+        cards.set(url, c);
+      }
+      if (j.length < 100) break;
+    }
+  } catch (e) { console.error(`  farsilink REST unavailable: ${(e as Error).message}`); }
   // Anything in the sitemap but not on a category page still gets read (category unknown).
   for (const u of await Promise.all([1, 2, 3, 4].map((i) => sitemapLocs(`https://farsilink.com/listing-sitemap${i}.xml`))).then((a) => a.flat()))
     if (u.includes("/listing/") && !cards.has(u)) cards.set(u, { url: u, category: "", address: null, city: null, logo: null, name: null });
@@ -227,9 +252,12 @@ async function farsilink(): Promise<SourceListing[]> {
     const $ = cheerio.load(html);
     const name = clean($(".lp-listing-name h1").first().text()) ?? c.name;
     if (!name) return null;
-    const tagline = clean($(".lp-listing-name-tagline").first().text());
+    // The description block usually opens with an <h3> holding the Persian name; keep that as the tagline
+    // and the paragraphs as the description, so the Persian name is not lost inside prose.
     const desc = $(".lp-listing-desription").first();
-    const description = clean(desc.text());
+    const h3 = clean(desc.find("h3").first().text());
+    const tagline = clean($(".lp-listing-name-tagline").first().text()) ?? h3;
+    const description = clean(desc.clone().find("h3").remove().end().text()) ?? (h3 && h3 !== tagline ? h3 : null);
     const side = $(".listing-page-sidebar").first();
     const links = classifyLinks(hrefsFrom($, side.length ? side : $("body")), "farsilink.com");
     let logo = $(".lp-listing-logo img").first().attr("src") ?? c.logo ?? null;

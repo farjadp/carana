@@ -37,6 +37,25 @@ const CITY_ALIASES: Record<string, string> = {
   "north vancouver": "North Vancouver",
   "prince george": "Prince George",
   laval: "Laval",
+  montreal: "Montreal",
+  "montréal": "Montreal",
+  ottawa: "Ottawa",
+  calgary: "Calgary",
+  edmonton: "Edmonton",
+  winnipeg: "Winnipeg",
+  "west vancouver": "West Vancouver",
+  burnaby: "Burnaby",
+  coquitlam: "Coquitlam",
+  surrey: "Surrey",
+  otawa: "Ottawa",
+  "مونترال": "Montreal",
+  "مونتريال": "Montreal",
+  "تورنتو": "Toronto",
+  "ونکوور": "Vancouver",
+  "ریچموندهیل": "Richmond Hill",
+  "ریچموند هیل": "Richmond Hill",
+  "نورث یورک": "North York",
+  "تورنهیل": "Thornhill",
 };
 
 /** Values that are form placeholders rather than real locations. */
@@ -63,7 +82,10 @@ export function normalizeCity(raw: string | null | undefined): string | null {
   if (CITY_ALIASES[head]) return CITY_ALIASES[head];
 
   // Unknown but plausible — keep it, title-cased, for an admin to review.
-  return cleaned.replace(/\b\w/g, (c) => c.toUpperCase());
+  // (Unicode-aware: \b\w would turn "Montréal" into "MontréAl".)
+  return cleaned
+    .toLowerCase()
+    .replace(/(^|[\s\-])(\p{L})/gu, (_, sep: string, ch: string) => sep + ch.toUpperCase());
 }
 
 export function provinceForCity(city: string | null): string | null {
@@ -71,7 +93,11 @@ export function provinceForCity(city: string | null): string | null {
   if (ONTARIO_CITIES.has(city)) return "Ontario";
   if (city === "Vancouver" || city === "North Vancouver" || city === "Prince George")
     return "British Columbia";
-  if (city === "Laval") return "Quebec";
+  if (city === "Laval" || city === "Montreal") return "Quebec";
+  if (["West Vancouver", "Burnaby", "Coquitlam", "Surrey"].includes(city)) return "British Columbia";
+  if (city === "Ottawa") return "Ontario";
+  if (city === "Calgary" || city === "Edmonton") return "Alberta";
+  if (city === "Winnipeg") return "Manitoba";
   return null;
 }
 
