@@ -54,8 +54,16 @@ The live board is Notion → 🧿 Charana → Mission Control; this is the narra
   Google-Places boilerplate («X is a Persian/Iranian Gym serving…»). Those
   ~500 rows have name, address, phone, website, hours-less. Taablo rows are
   similarly thin (name, phone, address, category).
-- Hamvatan and Taablo rows have the placeholder logo (those sources have
-  none). Consider a logo pass from each listing's own website OG image later.
+- **Logos:** ≈1,990 re-hosted into Supabase storage 17 Aug (jabeh, bazaarche,
+  farsilink, iranbusiness). 147 FarsiLink image URLs were dead on their side
+  (404 on every size variant) and were set to the placeholder rather than
+  left as broken hotlinks. Hamvatan and Taablo rows never had logos. Consider
+  a logo pass from each listing's own website OG image later.
+- **Ownership fixed 17 Aug:** imported rows were `created_by` the first admin
+  profile, so admin@charana.ca's dashboard listed all 5,649. New system
+  account `imports@charana.ca` owns them now (`scripts/reassign-imports.mts`,
+  `9d1feb3`); Farjad's three showcase listings are `owner_user_id` =
+  farjad@ashavid.ca.
 
 **Needs a real device:**
 - Test the voice suggestion box on an iPhone (the simulator has no microphone)
