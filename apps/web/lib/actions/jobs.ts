@@ -2,7 +2,7 @@
 
 // ============================================================================
 // Source: lib/actions/jobs.ts
-// Version: 1.0.0 — 2026-08-18
+// Version: 1.1.0 — 2026-08-18 (Markdown descriptions)
 // Why: Every write to job_posts. No RLS policy grants a regular user insert,
 //      update or delete on that table (see the migration) — three of the
 //      decisions that govern a post cannot be expressed in a policy:
@@ -33,7 +33,9 @@ import {
   getVerificationStatus,
   isTrusted,
   isValidApplyValue,
+  jobDescriptionLength,
   latinSlug,
+  normalizeJobMarkdown,
   type ApplyMethod,
   type EmploymentType,
   type SalaryPeriod,
@@ -122,8 +124,16 @@ export async function createJob(businessId: string, input: JobInput) {
     if (!title) return { success: false, error: "عنوان شغل را بنویس." };
     if (title.length > JOB_TITLE_MAX) return { success: false, error: `عنوان نباید بیشتر از ${JOB_TITLE_MAX} کاراکتر باشد.` };
 
-    const description = input.description.trim();
-    if (description.length < JOB_DESCRIPTION_MIN) {
+    // Normalised here, not only in the editor. The editor is a convenience;
+    // this is the boundary. Whatever HTML, image, link or bare URL a crafted
+    // request carries is gone before it reaches the column, so the public
+    // renderer is never the only thing standing between an owner and a
+    // browser. See normalizeJobMarkdown() for what goes and why.
+    const description = normalizeJobMarkdown(input.description);
+    // Measured on the words, not on the Markdown that formats them — otherwise
+    // «**وظایف**» buys four characters of the minimum for free.
+    const descriptionLength = jobDescriptionLength(description);
+    if (descriptionLength < JOB_DESCRIPTION_MIN) {
       return { success: false, error: `شرح شغل خیلی کوتاه است — دست‌کم ${JOB_DESCRIPTION_MIN} کاراکتر بنویس.` };
     }
     if (description.length > JOB_DESCRIPTION_MAX) {

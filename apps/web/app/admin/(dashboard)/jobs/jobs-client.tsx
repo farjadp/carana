@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/admin/(dashboard)/jobs/jobs-client.tsx
-// Version: 1.0.0 — 2026-08-18
+// Version: 1.1.0 — 2026-08-18 (renders the Markdown body)
 // Why: The two decisions a moderator can make on a queued ad, and enough of
 //      the ad on screen to make them. A rejection requires a reason — the
 //      poster has to know what to fix, and moderateJob() refuses without one.
@@ -26,6 +26,7 @@ import {
 } from "@charana/core";
 
 import { Button } from "@/components/ui/button";
+import { JobMarkdown } from "@/components/ui/markdown-editor";
 import { Textarea } from "@/components/ui/textarea";
 import { moderateJob } from "@/lib/actions/jobs";
 
@@ -143,9 +144,11 @@ export default function AdminJobsClient({
                   <span>انقضا {date(j.expires_at)}</span>
                 </div>
 
-                <p className="mt-3 max-h-40 overflow-y-auto whitespace-pre-wrap rounded-xl bg-gray-50 p-3 text-sm leading-relaxed text-gray-700">
-                  {j.description}
-                </p>
+                {/* Rendered, not raw: a moderator has to judge what the
+                    public will actually see, not the source of it. */}
+                <div className="mt-3 max-h-56 overflow-y-auto rounded-xl bg-gray-50 p-3 text-sm text-gray-700">
+                  <JobMarkdown>{j.description}</JobMarkdown>
+                </div>
 
                 {j.moderation_reason ? (
                   <p className="mt-2 rounded-lg bg-red-50 p-2 text-xs text-red-800">دلیل: {j.moderation_reason}</p>

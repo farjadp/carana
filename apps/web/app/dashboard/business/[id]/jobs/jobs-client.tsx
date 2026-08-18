@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/dashboard/business/[id]/jobs/jobs-client.tsx
-// Version: 1.0.0 — 2026-08-18
+// Version: 1.1.0 — 2026-08-18 (Markdown editor + AI drafting)
 // Why: The posting form and the owner's list. Every rule shown here is
 //      enforced again in lib/actions/jobs.ts — this side only exists so
 //      hitting one is not a surprise.
@@ -10,12 +10,13 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Briefcase, ExternalLink, RotateCw, XCircle } from "lucide-react";
+import { Briefcase, ExternalLink, RotateCw, Sparkles, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   EMPLOYMENT_TYPES,
   EMPLOYMENT_TYPE_LABELS_FA,
+  JOB_AI_NOTES_MAX,
   JOB_DEFAULT_DAYS,
   JOB_DESCRIPTION_MAX,
   JOB_DESCRIPTION_MIN,
@@ -27,6 +28,7 @@ import {
   WORKPLACE_TYPE_LABELS_FA,
   formatSalaryFa,
   isJobLive,
+  jobDescriptionLength,
   jobDaysRemaining,
   type EmploymentType,
   type JobStatus,
@@ -35,6 +37,7 @@ import {
 } from "@charana/core";
 
 import { Button } from "@/components/ui/button";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { closeJob, createJob, extendJob } from "@/lib/actions/jobs";
 
 export type JobRow = {
@@ -101,6 +104,64 @@ export function JobsClient({
   const [applyMethod, setApplyMethod] = useState<"email" | "phone" | "url">(defaultEmail ? "email" : "phone");
   const [applyValue, setApplyValue] = useState(defaultEmail ?? defaultPhone ?? "");
   const [days, setDays] = useState<string>(String(JOB_DEFAULT_DAYS));
+  const [aiNotes, setAiNotes] = useState("");
+  const [showAiNotes, setShowAiNotes] = useState(false);
+  const [drafting, setDrafting] = useState(false);
+
+  // Length is judged on the words, not on the Markdown that formats them:
+  // «**وظایف**» is six characters of content, not ten. The server counts the
+  // same way, so the button and the action agree.
+  const descriptionLength = jobDescriptionLength(description);
+
+  /**
+   * Ask the endpoint for a draft and stream it into the editor.
+   *
+   * First press opens the notes box instead of calling — a draft written from
+   * a title alone is generic enough to be worse than nothing, and the call
+   * costs money either way.
+   */
+  const draft = async () => {
+    if (!showAiNotes) { setShowAiNotes(true); return; }
+    setDrafting(true);
+    try {
+      const response = await fetch("/api/ai/job-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          businessId, title, notes: aiNotes,
+          employmentType, workplaceType,
+          salaryIsPublic, salaryMin, salaryMax, salaryPeriod,
+          requiresPersian, requiresEnglish,
+        }),
+      });
+
+      if (!response.ok || !response.body) {
+        const problem = await response.json().catch(() => null);
+        toast.error(problem?.error || "تولید متن ناموفق بود.");
+        return;
+      }
+
+      // Replaces the field, so a draft never silently overwrites work in
+      // progress without warning.
+      if (description.trim() && !window.confirm("متن فعلی با پیش‌نویس تازه جایگزین شود؟")) return;
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let text = "";
+      setDescription("");
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        text += decoder.decode(value, { stream: true });
+        setDescription(text);
+      }
+      toast.success("پیش‌نویس آماده است — بخوان و اصلاحش کن.");
+    } catch {
+      toast.error("تولید متن ناموفق بود.");
+    } finally {
+      setDrafting(false);
+    }
+  };
 
   const submit = () => {
     startTransition(async () => {
@@ -154,13 +215,54 @@ export function JobsClient({
 
             <div>
               <label className="mb-1 block text-xs font-bold text-[color:var(--text)]">شرح شغل</label>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6}
+              <MarkdownEditor
+                value={description}
+                onChange={setDescription}
+                rows={10}
                 maxLength={JOB_DESCRIPTION_MAX}
                 placeholder="وظایف، شرایط، ساعات کاری و هر چیزی که متقاضی باید پیش از تماس بداند."
-                className="w-full resize-y rounded-xl border border-[color:var(--line)] p-3 text-sm outline-none focus:border-[color:var(--lajvard)]" />
-              <p className="mt-1 text-[11px] text-[color:var(--muted-text)]">
-                دست‌کم {fa(JOB_DESCRIPTION_MIN)} کاراکتر — تا اینجا {fa(description.trim().length)}.
-              </p>
+                toolbarExtra={
+                  <button
+                    type="button"
+                    onClick={draft}
+                    disabled={drafting || !title.trim()}
+                    title={title.trim() ? "نوشتن پیش‌نویس با هوش مصنوعی" : "اول عنوان شغل را بنویس"}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--lajvard)]/30 bg-[color:var(--lajvard)]/8 px-2.5 py-1.5 text-[11px] font-bold text-[color:var(--lajvard)] transition hover:bg-[color:var(--lajvard)]/15 disabled:opacity-40"
+                  >
+                    <Sparkles size={13} />
+                    {drafting ? "در حال نوشتن…" : "کمک هوش مصنوعی"}
+                  </button>
+                }
+                hint={
+                  <>
+                    دست‌کم {fa(JOB_DESCRIPTION_MIN)} کاراکتر — تا اینجا {fa(descriptionLength)}. لینک، ایمیل و
+                    شماره تماس در متن حذف می‌شوند؛ روش درخواست را پایین‌تر وارد کن.
+                  </>
+                }
+              />
+
+              {/* The AI writes from the fields above plus this note, and from
+                  nothing else. Said out loud so nobody expects it to know
+                  about a salary or a benefit they have not entered. */}
+              {showAiNotes ? (
+                <div className="mt-2 rounded-xl border border-[color:var(--lajvard)]/25 bg-[color:var(--lajvard)]/5 p-3">
+                  <label className="mb-1 block text-[11px] font-bold text-[color:var(--lajvard)]">
+                    چند خط دربارهٔ این شغل بنویس — هوش مصنوعی از همین و از فیلدهای بالا متن را می‌سازد
+                  </label>
+                  <textarea
+                    value={aiNotes}
+                    onChange={(e) => setAiNotes(e.target.value)}
+                    rows={3}
+                    maxLength={JOB_AI_NOTES_MAX}
+                    placeholder="مثلاً: آشپز با تجربه‌ی غذای ایرانی، شیفت عصر، تجربه‌ی کار در رستوران لازم است، محل کار نزدیک مترو."
+                    className="w-full resize-none rounded-lg border border-[color:var(--line)] p-2 text-xs outline-none focus:border-[color:var(--lajvard)]"
+                  />
+                  <p className="mt-1 text-[11px] text-[color:var(--muted-text)]">
+                    فقط از چیزی که اینجا و در فیلدهای بالا نوشته‌ای استفاده می‌شود — حقوق، مزایا یا سابقه‌ای
+                    که ننوشته‌ای ساخته نمی‌شود. متن نهایی را خودت بخوان و اصلاح کن؛ چیزی بدون تأیید تو ثبت نمی‌شود.
+                  </p>
+                </div>
+              ) : null}
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -246,7 +348,7 @@ export function JobsClient({
               <span className="text-[11px] text-[color:var(--muted-text)]">بعد از این تاریخ آگهی خودبه‌خود از سایت برداشته می‌شود.</span>
             </div>
 
-            <Button type="button" onClick={submit} disabled={pending || !title.trim() || description.trim().length < JOB_DESCRIPTION_MIN} className="rounded-xl">
+            <Button type="button" onClick={submit} disabled={pending || drafting || !title.trim() || descriptionLength < JOB_DESCRIPTION_MIN} className="rounded-xl">
               {pending ? "در حال ثبت…" : "ثبت آگهی"}
             </Button>
           </div>

@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/jobs/[slug]/page.tsx
-// Version: 1.0.0 — 2026-08-18
+// Version: 1.1.0 — 2026-08-18 (Markdown body)
 // Why: One hiring ad, and the `JobPosting` JSON-LD block that puts it inside
 //      Google's jobs widget. That block is the largest free-traffic lever the
 //      project has — none of the seven competing directories emits one — and
@@ -21,6 +21,7 @@ import {
   formatSalaryFa,
   isJobLive,
   jobDaysRemaining,
+  jobDescriptionPlain,
   languageRequirementFa,
   type EmploymentType,
   type WorkplaceType,
@@ -31,6 +32,7 @@ import { PageShell } from "@/components/page-shell";
 import { env } from "@/lib/env";
 import { breadcrumbLd } from "@/lib/seo/local";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { JobMarkdown } from "@/components/ui/markdown-editor";
 import { ApplyButton } from "./apply-button";
 
 export const revalidate = 900;
@@ -64,9 +66,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const business = job.business as unknown as JobBusiness | null;
   return {
     title: `${job.title}${business?.name ? ` — ${business.name}` : ""}`,
-    description: job.description.slice(0, 160),
+    // Meta text is plain: the raw asterisks of «**وظایف**» would otherwise
+    // be published as characters in the search snippet.
+    description: jobDescriptionPlain(job.description).slice(0, 160),
     alternates: { canonical: `/jobs/${job.slug}` },
-    openGraph: { title: job.title, description: job.description.slice(0, 200), type: "article" },
+    openGraph: { title: job.title, description: jobDescriptionPlain(job.description).slice(0, 200), type: "article" },
   };
 }
 
@@ -86,7 +90,9 @@ export default async function JobPage({ params }: { params: Promise<{ slug: stri
     "@context": "https://schema.org",
     "@type": "JobPosting",
     title: job.title,
-    description: job.description,
+    // Plain text for the same reason as the meta description — Google reads
+            // this string, and Markdown syntax is not formatting to it.
+    description: jobDescriptionPlain(job.description),
     datePosted: job.published_at ?? job.created_at,
     validThrough: job.expires_at,
     employmentType: EMPLOYMENT_TYPE_SCHEMA[job.employment_type as EmploymentType],
@@ -186,8 +192,8 @@ export default async function JobPage({ params }: { params: Promise<{ slug: stri
             ) : null}
           </div>
 
-          <div className="mt-6 whitespace-pre-wrap text-sm leading-loose text-[color:var(--text)]">
-            {job.description}
+          <div className="mt-6 text-sm text-[color:var(--text)]">
+            <JobMarkdown>{job.description}</JobMarkdown>
           </div>
 
           <div className="mt-8 border-t border-[color:var(--line)] pt-6">

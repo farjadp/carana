@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_usage: {
+        Row: {
+          business_id: string | null
+          created_at: string
+          feature: string
+          id: number
+          tokens: number | null
+          user_id: string
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string
+          feature: string
+          id?: number
+          tokens?: number | null
+          user_id: string
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string
+          feature?: string
+          id?: number
+          tokens?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_categories: {
         Row: {
           description: string | null
@@ -1434,6 +1469,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ai_usage_recent_count: {
+        Args: { p_feature: string; p_hours?: number; p_user_id: string }
+        Returns: number
+      }
       business_current_status: {
         Args: { target_business_id: string }
         Returns: Database["public"]["Enums"]["business_status"]

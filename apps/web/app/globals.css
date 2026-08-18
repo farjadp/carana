@@ -2712,3 +2712,24 @@ section {
 .prose-fa th { background: var(--bg); font-weight: 800; }
 .prose-fa tr:last-child td { border-bottom: 0; }
 .prose-fa code { background: #fff; padding: 0.1em 0.4em; border-radius: 6px; font-size: 0.9em; direction: ltr; unicode-bidi: embed; }
+
+/* Job description prose — 2026-08-18.
+   Deliberately smaller and tighter than .prose-fa: a hiring ad is scanned in
+   a card, not read like a blog post. No `a` or `img` rules on purpose —
+   normalizeJobMarkdown() strips both, so a style for them would only ever
+   describe something that cannot appear. */
+.job-md { color: var(--text); line-height: 2; }
+.job-md > * + * { margin-top: 0.9em; }
+.job-md h3 { font-size: 1.05rem; font-weight: 800; line-height: 1.6; margin-top: 1.4em; }
+.job-md h3 + * { margin-top: 0.4em; }
+.job-md p { margin: 0; }
+.job-md strong { font-weight: 800; }
+/* Tailwind's preflight sets `list-style: none` on every ul/ol, so the
+   ::marker colours below do nothing without these two lines — the bullets
+   simply never render. */
+.job-md ul { list-style: disc; padding-right: 1.3em; }
+.job-md ol { list-style: decimal; padding-right: 1.3em; }
+.job-md li { margin: 0.25em 0; }
+.job-md ul li::marker { color: var(--annabi); }
+.job-md ol li::marker { color: var(--annabi); font-weight: 800; }
+.job-md blockquote { border-right: 3px solid var(--gold); padding: 0.3em 0.9em; color: var(--muted-text); }
