@@ -28,7 +28,7 @@
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
+import { Briefcase,
   ArrowLeft, BadgeCheck, Bell, Bookmark, Building2, CalendarClock, Clock,
   Flame, Image as ImageIcon, Link2, Megaphone, MessageSquare, Mic, NotebookPen,
   Search, Sparkles, Star, TrendingUp,
@@ -78,6 +78,11 @@ const VISITOR_FREE: Item[] = [
     icon: <Megaphone size={18} />,
     title: "اعلان‌های تازه",
     body: "تخفیف، رویداد و خبر کسب‌وکارها؛ هم روی صفحه‌ی اول، هم روی پروفایل خودشان.",
+  },
+  {
+    icon: <Briefcase size={18} />,
+    title: "تابلوی فرصت‌های شغلی",
+    body: "آگهی استخدام کسب‌وکارهای ایرانی، با فیلتر شهر، نوع همکاری و اینکه کدام زبان لازم است. هر آگهی تاریخ انقضا دارد و بعد از آن خودبه‌خود برداشته می‌شود، پس چیزی که می‌بینی هنوز باز است. درخواست مستقیم به خود کسب‌وکار می‌رود؛ چارانا رزومه‌ای دریافت نمی‌کند.",
   },
   {
     icon: <Mic size={18} />,
@@ -146,6 +151,16 @@ const OWNER_FREE: Item[] = [
   },
 ];
 
+
+/** Jobs are free and unlimited by decision (18 Aug). Nothing about them may
+ *  appear in the Starter or Premium lists, or in the pricing table — the
+ *  moment it does, the page is claiming a perk that does not exist. */
+const OWNER_JOBS: Item = {
+  icon: <Briefcase size={18} />,
+  title: "آگهی استخدام — رایگان و بدون سقف",
+  body: "در هر پلنی، از جمله رایگان. تنها محدودیت این است که هر کسب‌وکار در ۲۴ ساعت تا ۵ آگهی ثبت کند، و این یک محدودیت فنی برای جلوگیری از سوءاستفاده است، نه چیزی که با ارتقای پلن برداشته شود. اگر کسب‌وکارت تاییدشده باشد، آگهی بدون بررسی منتشر می‌شود؛ وگرنه اول بررسی می‌شود. یک ویرایشگر ساده هم هست که با کمک هوش مصنوعی پیش‌نویس متن را می‌نویسد — از روی همان چیزی که خودت وارد کرده‌ای، نه از چیزی که نگفته‌ای.",
+};
+
 const OWNER_STARTER: Item[] = [
   {
     icon: <TrendingUp size={18} />,
@@ -202,7 +217,7 @@ const OWNER_PREMIUM: Item[] = [
   },
 ];
 
-/** Audited absent on 16 Aug 2026. Listed because omitting them is what
+/** Audited absent on 18 Aug 2026. Listed because omitting them is what
  *  would make everything above it untrustworthy. */
 const COMING = [
   "رزرو نوبت واقعی داخل چارانا (الان فقط لینک به تقویم بیرونی است)",
@@ -212,6 +227,9 @@ const COMING = [
   "مقاله‌ی وبلاگ اختصاصی برای کسب‌وکارهای پریمیوم",
   "نمایش چندشعبه‌ای روی نقشه",
   "لینک QR با ردیابی مبدأ در آمار",
+  "ثبت آگهی استخدام از داخل اپ موبایل (فعلاً فقط خواندنی است و ثبت از وب‌سایت انجام می‌شود)",
+  "ایمیل اطلاع‌رسانی نتیجه‌ی بررسی آگهی استخدام و یادآور نزدیک‌شدن به انقضا",
+  "دریافت رزومه داخل چارانا (درخواست‌ها مستقیم به ایمیل، تلفن یا فرم خود کسب‌وکار می‌رود)",
 ];
 
 export default function FeaturesPage() {
@@ -267,7 +285,7 @@ export default function FeaturesPage() {
         </section>
 
         <Band eyebrow={PLANS.free.name} title="رایگان، برای همیشه" note={PLANS.free.tagline}>
-          <Grid items={OWNER_FREE} />
+          <Grid items={[...OWNER_FREE, OWNER_JOBS]} />
         </Band>
 
         <Band

@@ -11,7 +11,10 @@ const BASE = (process.env.EXPO_PUBLIC_API_URL ?? "https://charana.ca").replace(/
 
 export type BusinessEvent =
   | "view" | "call" | "whatsapp" | "directions" | "website"
-  | "booking" | "share" | "email" | "instagram" | "telegram" | "save";
+  | "booking" | "share" | "email" | "instagram" | "telegram" | "save"
+  // Reveal-on-click on a job ad. Applications happen off-site, so this is the
+  // only signal an owner gets that their posting worked.
+  | "job_apply";
 
 export function trackEvent(businessId: string, type: BusinessEvent) {
   void fetch(`${BASE}/api/events`, {

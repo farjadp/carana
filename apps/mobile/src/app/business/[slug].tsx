@@ -35,9 +35,11 @@ import { fetchBusinessOwner } from "../../lib/business-owner";
 
 import { BrandLoading, BrandMark, MerlonGlyph, MerlonRow } from "../../components/brand-mark";
 import { AnnouncementCard } from "../../components/announcement-card";
+import { JobCard } from "../../components/job-card";
 import { InteractionBar } from "../../components/interaction-bar";
 import { getBusinessBySlug, listCategories, type BusinessDetail, type Category } from "../../lib/businesses";
 import { listBusinessAnnouncements, type Announcement } from "../../lib/announcements";
+import { listBusinessJobs, type JobPost } from "../../lib/jobs";
 import { listPublishedReviews, type PublicReview } from "../../lib/interactions";
 import { DAYS, openNow as computeOpenNow } from "../../lib/hours";
 import { trackEvent } from "../../lib/analytics";
@@ -68,6 +70,7 @@ export default function BusinessScreen() {
   const [category, setCategory] = useState<Category | null>(null);
   const [reviews, setReviews] = useState<PublicReview[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [jobs, setJobs] = useState<JobPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // Resolved by the web app's route, not read here: `profiles` is
@@ -82,13 +85,15 @@ export default function BusinessScreen() {
         if (found) {
           // One view per screen open, same event the website records.
           trackEvent(found.id, "view");
-          const [revs, cats, news] = await Promise.all([
+          const [revs, cats, news, hiring] = await Promise.all([
             listPublishedReviews(found.id),
             listCategories(),
             listBusinessAnnouncements(found.id),
+            listBusinessJobs(found.id),
           ]);
           setReviews(revs);
           setAnnouncements(news);
+          setJobs(hiring);
           setCategory(cats.find((c) => c.slug === found.category) ?? null);
           // Late and optional: the section appears when it resolves, and the
           // screen is complete without it if the request fails.
@@ -218,6 +223,19 @@ export default function BusinessScreen() {
           {announcements.map((a) => (
             <AnnouncementCard key={a.id} announcement={a} variant="banner" />
           ))}
+
+          {/* Hiring — live ads only (filtered in the query). The count in the
+              title comes from the rows themselves, and the section is absent
+              entirely when there are none. Same rule as the website. */}
+          {jobs.length ? (
+            <Section title={`${jobs.length.toLocaleString("fa-IR")} فرصت شغلی`}>
+              <View style={{ gap: space.sm }}>
+                {jobs.map((j) => (
+                  <JobCard key={j.id} job={j} showBusiness={false} />
+                ))}
+              </View>
+            </Section>
+          ) : null}
 
           {/* About */}
           <Section title="درباره">

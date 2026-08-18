@@ -51,6 +51,7 @@ A listing is verified when its owner confirmed a one-time code sent to the liste
 - [About](${SITE}/about) · [Team](${SITE}/team) · [Roadmap](${SITE}/roadmap)
 - [Register a business (free)](${SITE}/dashboard/business/new)
 - [Blog](${SITE}/blog) · [RSS](${SITE}/blog/feed.xml) — guides for Iranians in Canada, city life, business, and what the directory's data shows
+- [Jobs](${SITE}/jobs) — hiring ads posted by the businesses themselves, filterable by city, employment type and which language the role requires. Each ad carries an expiry and disappears from the board once it passes, so anything listed is still open. Applications go directly to the business; čārana does not receive them.
 - [Sitemap](${SITE}/sitemap.xml)
 
 ## Categories

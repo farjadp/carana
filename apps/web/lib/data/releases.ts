@@ -75,26 +75,37 @@ export const RELEASES: Release[] = [
   },
 ];
 
+/**
+ * The public roadmap. `done` is a claim about real state, so it is audited
+ * rather than edited by feel — on 18 Aug three items were still listed as
+ * pending months after they shipped (search, the owner dashboard and the
+ * report button), which is the same class of untruth as a badge nothing
+ * backs, pointing the other way.
+ */
 export const ROADMAP: { when: string; items: { title: string; body: string; done?: boolean }[] }[] = [
   {
     when: "همین حالا",
     items: [
-      { title: "جستجوی واقعی", body: "جستجوی فارسی‌آگاه در نام، خدمات و توضیحات — با نتایج قابل اشتراک.", done: false },
+      { title: "ایمیل و یادآور آگهی استخدام", body: "نتیجه‌ی بررسی به آگهی‌دهنده، و یادآوری سه روز مانده به انقضا.", done: false },
+      { title: "پاکسازی شهرها", body: "لیستینگ‌های بدون شهر روی نقشه‌ی شهر خودشان.", done: false },
       { title: "انتشار در استورها", body: "App Store و Google Play — پشت ثبت سازمانی Ashavid.", done: false },
-      { title: "آپلود تصویر از اپ", body: "لوگو و کاور مستقیم از گوشی.", done: false },
     ],
   },
   {
     when: "بعدی",
     items: [
-      { title: "داشبورد مالک", body: "بازدید، تماس، مسیر و واتساپ — ماه‌به‌ماه.", done: false },
-      { title: "پاکسازی شهرها", body: "۴۰۹ لیستینگ بدون شهر روی نقشه‌ی شهر خودشان.", done: false },
-      { title: "گزارش خطای اطلاعات", body: "یک کلیک، یک صف برای ادمین، یک پاسخ.", done: false },
+      { title: "مدیریت کسب‌وکار از داخل اپ", body: "ویرایش، آمار، اعلان و ثبت آگهی استخدام — که فعلاً فقط در سایت هستند.", done: false },
+      { title: "آپلود تصویر از اپ", body: "لوگو و کاور مستقیم از گوشی.", done: false },
+      { title: "اعلان با پیامک و پوش نوتیفیکیشن", body: "فعلاً فقط ایمیل و داخل پنل.", done: false },
     ],
   },
   {
     when: "انجام شده",
     items: [
+      { title: "تابلوی فرصت‌های شغلی", body: "آگهی استخدام کسب‌وکارها روی وب و اپ — رایگان، با تاریخ انقضای واقعی.", done: true },
+      { title: "جستجوی واقعی", body: "جستجوی فارسی‌آگاه در نام، خدمات و توضیحات — و بخشنده نسبت به کیبورد اشتباه.", done: true },
+      { title: "داشبورد مالک", body: "بازدید، تماس، مسیر و واتساپ — از هر دو سطح وب و اپ.", done: true },
+      { title: "گزارش خطای اطلاعات", body: "یک کلیک، یک صف برای ادمین، یک پاسخ.", done: true },
       { title: "احراز مالکیت با پیامک", body: "کد به شماره‌ی روی پروفایل؛ اعتبار شش‌ماهه با یادآور تمدید.", done: true },
       { title: "ثبت کسب‌وکار با هوش مصنوعی", body: "آدرس سایت بده، فرم پر می‌شود؛ تو مرور و تایید می‌کنی.", done: true },
       { title: "اپ موبایل", body: "iOS و Android با هویت برند؛ اولین APK.", done: true },
