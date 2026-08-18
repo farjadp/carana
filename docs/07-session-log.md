@@ -93,10 +93,35 @@ spam link and an email — none of the six appeared.
 - The toolbar put the caret back at 0 after every action.
 - A list prefix mid-line produced a marker stranded in a sentence.
 
+## Third pass — mobile and the feature lists (`6c1084f`)
+
+Mobile got the read side: board with filters, detail, a home rail, a section
+on the business profile, an account-tab row. Read-only, because mobile has no
+owner controls at all — and the features screen says that rather than leaving
+it to be discovered. `job_apply` fires with `source: mobile` and was verified
+landing in `business_events`, so an owner's insights count both surfaces.
+
+Then the lists. `/features` and the mobile features screen gained the board on
+the visitor side and "free and unlimited" on the **free** owner list — never
+Starter or Premium, and `/pricing` still says nothing about it, which is what
+the 18 Aug decision actually means. Both "what we don't have yet" lists gained
+the three things jobs genuinely lacks. `llms.txt` gained `/jobs`.
+
+**The roadmap was lying.** It still listed search, the owner dashboard and the
+report button as pending, months after all three shipped. Same class as a
+badge nothing backs, pointing the other way. Audited and corrected.
+
+### What cost time
+
+The home rail did not appear until the app was restarted — Fast Refresh had
+not picked up the new import, and I spent several screenshots looking for a
+data bug that was not there. The stale-Metro trap is already in `06-gotchas`;
+I did not think of it because the *other* new screens were live, which made
+the bundle look current.
+
 ## Still open
 
-Moderation emails, the expiry nudge, mobile (now including Markdown
-rendering), and Farjad's Ontario check — cheapest to answer now, while the
+Moderation emails, the expiry nudge, posting from the app, and Farjad's Ontario check — cheapest to answer now, while the
 table is empty. Also: the owner form and admin queue are **still** unexercised
 signed in.
 

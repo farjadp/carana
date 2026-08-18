@@ -1,6 +1,6 @@
 # Open tasks
 
-**Updated:** 2026-08-18, end of the jobs-board session.
+**Updated:** 2026-08-18, end of the jobs-board session (three commits: board, editor + AI, mobile + feature lists).
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
 ## Farjad — dashboard work, minutes each
@@ -128,10 +128,9 @@ Still open:
   moderator's reason. Reuse `reviewModeratedEmail` (`5c80228`).
 - **Expiry nudge** — "تمدید کن یا ببند" three days out, reusing the
   reminder-stage pattern in `verification-status.ts`.
-- **Mobile** — read side only: list + detail, like every other feature. The
-  description is Markdown now, so mobile needs the same normalise-then-render
-  path (`normalizeJobMarkdown` is in `@charana/core`; the app already has a
-  hand-written Markdown renderer for the blog).
+- ~~**Mobile**~~ — **done 18 Aug (`6c1084f`)**: board, detail, home rail,
+  profile section, account row. Read-only; posting stays on web with the rest
+  of the owner controls.
 - **`.prose-fa` list markers** — the blog has the same Tailwind-preflight bug
   that `.job-md` just fixed: `list-style: none` means its `li::marker` colour
   rules have never rendered. One line in `globals.css`.
