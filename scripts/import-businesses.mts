@@ -182,15 +182,16 @@ async function main() {
   const { data: existingRows } = await supabase.from("businesses").select("slug");
   const taken = new Set((existingRows ?? []).map((r) => r.slug as string));
 
+  // Imports are owned by the system account, never by a person's profile — otherwise that person's
+  // dashboard lists thousands of "my businesses". Create it once with scripts/reassign-imports.mts.
   const { data: adminProfile } = await supabase
     .from("profiles")
     .select("id")
-    .eq("role", "admin")
-    .limit(1)
+    .eq("email", "imports@charana.ca")
     .maybeSingle();
 
   if (!adminProfile) {
-    console.error("No admin profile found — cannot set created_by.");
+    console.error("No imports@charana.ca profile — run scripts/reassign-imports.mts --commit first.");
     process.exit(1);
   }
 

@@ -257,8 +257,10 @@ async function main() {
 
   const { data: cats } = await supabase.from("categories").select("slug,name").eq("is_active", true);
   const slugs = (cats ?? []).map((c) => c.slug as string);
-  const { data: adminProfile } = await supabase.from("profiles").select("id").eq("role", "admin").limit(1).maybeSingle();
-  if (!adminProfile) { console.error("No admin profile — cannot set created_by."); process.exit(1); }
+  // Imports are owned by the system account, never by a person's profile — otherwise that person's
+  // dashboard lists thousands of "my businesses". Create it once with scripts/reassign-imports.mts.
+  const { data: adminProfile } = await supabase.from("profiles").select("id").eq("email", "imports@charana.ca").maybeSingle();
+  if (!adminProfile) { console.error("No imports@charana.ca profile — run scripts/reassign-imports.mts --commit first."); process.exit(1); }
 
   // ---- 3. decide per listing
   const decisions: Decision[] = [];
