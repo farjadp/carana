@@ -14,7 +14,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/utils/rate-limit";
 
-const TYPES = new Set(["view", "call", "whatsapp", "directions", "website", "booking", "share", "email", "instagram", "telegram", "save"]);
+const TYPES = new Set(["view", "call", "whatsapp", "directions", "website", "booking", "share", "email", "instagram", "telegram", "save", "job_apply"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function visitorHash(req: NextRequest) {

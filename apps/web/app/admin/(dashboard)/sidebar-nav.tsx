@@ -18,7 +18,7 @@ import {
   MessageSquare,
   Activity,
   Layers,
-  FileSpreadsheet, Lightbulb, Newspaper, MapPinOff } from "lucide-react";
+  FileSpreadsheet, Lightbulb, Newspaper, MapPinOff, Briefcase } from "lucide-react";
 
 /**
  * Counts come from the layout, which reads them per request. They used to be
@@ -32,6 +32,7 @@ export type AdminCounts = {
   blog: number;
   reports: number;
   unknownCity: number;
+  jobs: number;
 };
 
 const fa = (n: number) => n.toLocaleString("fa-IR");
@@ -48,6 +49,7 @@ export function AdminSidebarNav({ counts }: { counts: AdminCounts }) {
     { href: "/admin/listings/import", label: "ایمپورت اکسل (AI)", icon: FileSpreadsheet },
     { href: "/admin/categories", label: "دسته‌بندی‌ها", icon: Layers },
     { href: "/admin/reviews", label: "بررسی نظرات", icon: MessageSquare, badge: badge(counts.reviews) },
+    { href: "/admin/jobs", label: "آگهی‌های استخدام", icon: Briefcase, badge: badge(counts.jobs) },
     { href: "/admin/suggestions", label: "پیشنهادها", icon: Lightbulb, badge: badge(counts.suggestions) },
     { href: "/admin/blog", label: "وبلاگ", icon: Newspaper, badge: badge(counts.blog) },
     { href: "/admin/cleanup/cities", label: "شهرهای نامشخص", icon: MapPinOff, badge: badge(counts.unknownCity) },

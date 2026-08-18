@@ -844,3 +844,35 @@ boilerplate; 1,281 Taablo descriptions were just the name repeated.
 **Fix:** the importer drops descriptions that echo the name, match lorem /
 Kafka, or (Bazaarche) are template prose. **Lesson:** read fifty random
 records of a source before importing one.
+
+---
+
+## A concatenated `.select()` string silently becomes `GenericStringError`
+
+**Symptom:** thirty type errors like `Property 'city' does not exist on type
+'GenericStringError'` on a query that reads perfectly well — and the same
+query written on one line typechecks fine.
+
+**Cause:** supabase-js parses the select list **at the type level**, from a
+string *literal*. `"a, b" + "c, d"` and template strings widen to `string`,
+which the parser cannot read, so every column resolves to an error type. The
+runtime query works; only the types collapse.
+
+**Fix:** keep every `.select()` argument a single string literal, however long,
+or a `const` bound to one. **Lesson:** when a Supabase query's row type turns
+into nonsense, look at how the select string was built before looking at the
+schema.
+
+---
+
+## Hand-written rows in `database.types.ts` are erased by `pnpm gen:types`
+
+**Symptom:** types for a table you just added disappear.
+
+**Cause:** `database.types.ts` is generated from the *live* schema. Adding a
+table by hand is the only way to typecheck before the migration is pushed, and
+regenerating afterwards correctly overwrites it.
+
+**Fix:** the right order is push, then generate, then typecheck. Hand-write the
+block only to get moving, and mark it — the jobs board's block was added by
+hand at 05:00 and replaced by the generator ten minutes later.

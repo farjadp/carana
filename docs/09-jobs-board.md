@@ -1,7 +1,28 @@
 # Jobs board — design
 
-**Written:** 2026-08-18 · **Status:** designed, not built · **Owner:** Claude
+**Written:** 2026-08-18 · **Status:** **BUILT on web, 18 Aug** · **Owner:** Claude
 **Decisions by Farjad:** 18 Aug (four forks, recorded below with what they rule out)
+**Salary:** optional, by Farjad's decision on 18 Aug — the Ontario check below
+is still open and still decides whether that stays true.
+
+## What shipped, and what did not
+
+Built: the `job_posts` migration, `latinSlug` moved into `@charana/core`, the
+owner form at `/dashboard/business/[id]/jobs`, the public `/jobs` and
+`/jobs/[slug]` with `JobPosting` JSON-LD, the admin queue at `/admin/jobs`
+with a live sidebar badge, the «فرصت‌های شغلی» section on the business
+profile, `job_apply` conversion events, and sitemap entries for live posts.
+
+Not built: the moderation emails (published / rejected to the poster), the
+three-days-before-expiry nudge, and the mobile read side. All three follow the
+patterns already in the repo (`5c80228` for the mail, `verification-status.ts`
+for the reminder stages).
+
+**One deviation from the design below:** `/jobs/[city]` was dropped. It
+collides with `/jobs/[slug]` in the same segment, and a slug that happens to
+read like a city would resolve to the wrong page. City filtering is
+`/jobs?city=…` instead, with the chips built from the cities that actually
+have posts.
 
 The Notion row "Jobs board: businesses post hiring ads" has been in Backlog
 since 15 Aug with one sentence of description. This is that sentence turned

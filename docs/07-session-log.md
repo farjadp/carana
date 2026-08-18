@@ -2,6 +2,69 @@
 
 14 commits, from a codebase that would not build to a live site.
 
+---
+
+# 2026-08-18 — the jobs board, built
+
+Design existed from the night before (`73ba85c`); this session turned it into
+running code, on the web app only.
+
+## What shipped
+
+- **`job_posts`** (`20260830240000_jobs.sql`), shaped like
+  `business_announcements`: no client insert/update/delete policy at all, three
+  read policies (public sees live posts on public listings, owner sees their
+  own in every state, admin sees everything). Every write goes through
+  `lib/actions/jobs.ts` with the service role.
+- **Expiry is not a status.** Live = `published` and not closed and
+  `expires_at > now()`, computed at read time in `@charana/core/jobs.ts` and
+  in every query. No cron job.
+- **The abuse ceiling is a rate limit, not a plan gate** — `job_posts_recent_count()`
+  counts in the database, because `lib/utils/rate-limit.ts` resets on deploy.
+  Kept out of `plans.ts` on purpose so it cannot quietly become a thing to sell.
+- **`latinSlug` and `foldPersian` moved into `@charana/core`** and out of
+  `scripts/import-listings.mts`, which now imports them. Two copies of a slug
+  function is two ways to build the same URL.
+- Owner manager, public board with filters, detail page with **`JobPosting`
+  JSON-LD**, admin queue with a live sidebar badge, «فرصت‌های شغلی» on the
+  business profile, `job_apply` conversion events, sitemap entries, and
+  «استخدام» in the header bar.
+- **Salary optional**, by Farjad's decision — taken with the Ontario
+  pay-transparency question still open, and recorded that way in the migration
+  header so the next person knows it was a decision, not an oversight.
+
+## Verified against real rows
+
+Two temporary rows were inserted with the service role and deleted afterwards
+(`job_posts` is back to 0). Confirmed: the published one renders on `/jobs` and
+the queued one does not; the detail page emits valid `JobPosting` JSON-LD with
+a real `baseSalary` and `validThrough`; the apply button reveals the contact
+and writes a `job_apply` event (which also proves the extended
+`business_events` check constraint); backdating `expires_at` removes the post
+from the board, the profile section and `live_job_count()` immediately.
+
+## What was said, honestly
+
+- **The owner form and the admin queue were not exercised signed in.** Both
+  typecheck and both correctly refuse an unauthenticated visitor, but nobody
+  has posted an ad through the UI. Said here rather than implied by "done".
+- `/jobs/[slug]` returns **200 on a missing post**, not 404 — the same
+  pre-existing streaming/`notFound()` issue as the city routes, and worse here,
+  because Google reads a soft-404 on a `JobPosting` URL as a quality problem.
+- `pnpm lint` was already failing on 6 pre-existing errors in other files; the
+  new code adds one `react-hooks/purity` warning of a class the announcements
+  page already carries.
+- No production build was run: the dev server on port 3000 owns `.next`.
+- The design doc's `/jobs/[city]` was dropped — it collides with
+  `/jobs/[slug]`. City filtering is a query parameter instead.
+
+## Still open
+
+Moderation emails, the expiry nudge, mobile, and Farjad's Ontario check —
+cheapest to answer now, while the table is empty.
+
+---
+
 
 ## 15–16 August 2026 — search follow-through, SEO layer, blog, money
 

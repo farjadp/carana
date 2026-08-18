@@ -854,6 +854,107 @@ export type Database = {
           },
         ]
       }
+      job_posts: {
+        Row: {
+          apply_method: string
+          apply_value: string
+          business_id: string
+          city: string | null
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          employment_type: string
+          expires_at: string
+          id: string
+          moderation_reason: string | null
+          province: string | null
+          published_at: string | null
+          requires_english: boolean
+          requires_persian: boolean
+          reviewed_at: string | null
+          reviewed_by: string | null
+          salary_is_public: boolean
+          salary_max: number | null
+          salary_min: number | null
+          salary_period: string | null
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+          view_count: number
+          workplace_type: string
+        }
+        Insert: {
+          apply_method: string
+          apply_value: string
+          business_id: string
+          city?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          employment_type?: string
+          expires_at: string
+          id?: string
+          moderation_reason?: string | null
+          province?: string | null
+          published_at?: string | null
+          requires_english?: boolean
+          requires_persian?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salary_is_public?: boolean
+          salary_max?: number | null
+          salary_min?: number | null
+          salary_period?: string | null
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string
+          view_count?: number
+          workplace_type?: string
+        }
+        Update: {
+          apply_method?: string
+          apply_value?: string
+          business_id?: string
+          city?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          employment_type?: string
+          expires_at?: string
+          id?: string
+          moderation_reason?: string | null
+          province?: string | null
+          published_at?: string | null
+          requires_english?: boolean
+          requires_persian?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salary_is_public?: boolean
+          salary_max?: number | null
+          salary_min?: number | null
+          salary_period?: string | null
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          view_count?: number
+          workplace_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_posts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1363,7 +1464,12 @@ export type Database = {
         Returns: undefined
       }
       is_admin: { Args: { user_id: string }; Returns: boolean }
+      job_posts_recent_count: {
+        Args: { p_business_id: string }
+        Returns: number
+      }
       keyboard_swap: { Args: { t: string }; Returns: string }
+      live_job_count: { Args: { p_business_id: string }; Returns: number }
       review_current_status: {
         Args: { target_review_id: string }
         Returns: Database["public"]["Enums"]["public_review_status"]

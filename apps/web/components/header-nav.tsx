@@ -32,6 +32,11 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "خانه" },
   { href: "/categories", label: "دسته‌بندی‌ها" },
   { href: "/businesses", label: "همه کسب‌وکارها" },
+  // The jobs board is the one thing here that is not a way of finding a
+  // business, and it sits in the bar anyway: it is the reason to come back
+  // weekly, and a directory nobody returns to is a phone book. Buried in a
+  // menu it would not be that.
+  { href: "/jobs", label: "استخدام" },
 ];
 
 /** Grouped menus. Everything the footer used to list lives in one of these. */

@@ -38,6 +38,7 @@ const STATIC_PATHS = [
   "/support",
   "/pricing",
   "/features",
+  "/jobs",
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -101,6 +102,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const c of blogCats ?? []) entries.push({ url: `${base}/blog/category/${c.slug}`, changeFrequency: "daily", priority: 0.5 });
   const { data: posts } = await supabase.from("blog_posts").select("slug, updated_at").eq("status", "published");
   for (const p of posts ?? []) entries.push({ url: `${base}/blog/${p.slug}`, lastModified: p.updated_at ? new Date(p.updated_at) : undefined, changeFrequency: "weekly", priority: 0.7 });
+
+  // Live hiring ads only. A sitemap entry for an expired posting is a
+  // guaranteed soft-404, and Google penalises exactly that on JobPosting.
+  const { data: jobs } = await supabase
+    .from("job_posts")
+    .select("slug, updated_at")
+    .eq("status", "published")
+    .is("closed_at", null)
+    .gt("expires_at", new Date().toISOString());
+
+  for (const job of jobs ?? []) {
+    entries.push({
+      url: `${base}/jobs/${job.slug}`,
+      lastModified: job.updated_at ? new Date(job.updated_at) : undefined,
+      changeFrequency: "daily",
+      priority: 0.7,
+    });
+  }
 
   const { data: businesses } = await supabase
     .from("businesses")

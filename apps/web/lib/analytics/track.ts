@@ -9,7 +9,10 @@
 // ============================================================================
 export type BusinessEvent =
   | "view" | "call" | "whatsapp" | "directions" | "website"
-  | "booking" | "share" | "email" | "instagram" | "telegram" | "save";
+  | "booking" | "share" | "email" | "instagram" | "telegram" | "save"
+  // Reveal-on-click on a job ad. Applications happen off-site, so this is the
+  // only signal an owner ever gets that their posting worked.
+  | "job_apply";
 
 export function trackEvent(businessId: string, type: BusinessEvent) {
   if (typeof window === "undefined") return;

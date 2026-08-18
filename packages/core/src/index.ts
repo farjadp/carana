@@ -34,6 +34,9 @@ export * from "./live-status";
 // One rule for "may we name the person behind this listing?".
 export * from "./owner-identity";
 
+// The hiring board: what a job post is, and the one rule for "is it live".
+export * from "./jobs";
+
 // Tehran clock + Jalali/Shahanshahi date, shared so web and mobile agree.
 export * from "./iran-calendar";
 

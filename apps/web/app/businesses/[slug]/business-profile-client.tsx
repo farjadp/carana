@@ -37,7 +37,9 @@ import { PLANS } from "@/lib/billing/plans";
 import { activeBusyStatus } from "@/lib/business/live-status";
 import { replyToReview } from "@/lib/actions/interactions";
 import {
-  OWNER_SECTION_NOTE, OWNER_SECTION_TITLE, PROVINCES, type PublicOwner,
+  EMPLOYMENT_TYPE_LABELS_FA, OWNER_SECTION_NOTE, OWNER_SECTION_TITLE, PROVINCES,
+  WORKPLACE_TYPE_LABELS_FA, formatSalaryFa,
+  type EmploymentType, type PublicOwner, type SalaryPeriod, type WorkplaceType,
 } from "@charana/core";
 
 interface Props {
@@ -47,6 +49,15 @@ interface Props {
   initialInteraction: any;
   approvedReviews: any[];
   announcements: { id: string; title: string; body: string | null; expires_at: string | null; created_at: string }[];
+  /** Live hiring ads only — the page never renders a count it cannot back. */
+  jobs: {
+    id: string; slug: string; title: string;
+    employment_type: EmploymentType; workplace_type: WorkplaceType;
+    city: string | null;
+    salary_min: number | null; salary_max: number | null;
+    salary_period: SalaryPeriod | null; salary_is_public: boolean;
+    requires_persian: boolean; requires_english: boolean;
+  }[];
   similarBusinesses: any[];
   isOwnerOrAdmin: boolean;
   /**
@@ -108,7 +119,7 @@ function useOpenNow(hours: Record<string, { open?: string; close?: string; close
 }
 
 export default function BusinessProfileClient({
-  business, category, user, initialInteraction, approvedReviews, announcements, similarBusinesses, isOwnerOrAdmin,
+  business, category, user, initialInteraction, approvedReviews, announcements, jobs, similarBusinesses, isOwnerOrAdmin,
   publicOwner,
 }: Props) {
   const [copied, setCopied] = useState(false);
@@ -315,6 +326,30 @@ export default function BusinessProfileClient({
                 </div>
               </div>
             ))}
+          </div>
+        ) : null}
+
+        {/* Hiring ads. Absent when there are none — the count in the heading
+            comes from the rows themselves, never from a stored number. */}
+        {jobs.length > 0 ? (
+          <div className="mt-6 rounded-3xl border border-[color:var(--line)] bg-white/70 p-4 backdrop-blur md:p-5">
+            <div className="mb-3 flex items-center gap-1.5 text-xs font-bold text-[color:var(--muted-text)]">
+              <Briefcase size={14} className="text-[color:var(--lajvard)]" />
+              {jobs.length.toLocaleString("fa-IR")} فرصت شغلی
+            </div>
+            <ul className="space-y-2">
+              {jobs.map((j) => (
+                <li key={j.id}>
+                  <Link href={`/jobs/${j.slug}`} className="block rounded-2xl border border-[color:var(--line)] p-3 transition hover:border-[color:var(--lajvard)]">
+                    <span className="text-sm font-bold text-[color:var(--text)]">{j.title}</span>
+                    <span className="mt-1 block text-xs text-[color:var(--muted-text)]">
+                      {EMPLOYMENT_TYPE_LABELS_FA[j.employment_type]} · {WORKPLACE_TYPE_LABELS_FA[j.workplace_type]}
+                      {j.city ? ` · ${j.city}` : ""} · {formatSalaryFa(j)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
 

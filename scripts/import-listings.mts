@@ -42,6 +42,9 @@ import {
   normalizeWebsite,
   provinceForCity,
 } from "../packages/core/src/import-normalize.ts";
+// latinSlug and foldPersian moved into core on 18 Aug so the jobs board builds
+// its English slugs with exactly this transliteration and not a second copy.
+import { foldPersian, latinSlug } from "../packages/core/src/slug.ts";
 import type { SourceListing } from "./lib/source-listing.ts";
 type HamvatanListing = SourceListing; // historical name inside this file
 
@@ -70,13 +73,6 @@ const PLACEHOLDER_LOGO = "/images/categories/business-placeholder.svg";
 
 // ---------------------------------------------------------------------------
 // Normalisers used only for matching (never written to the DB).
-const foldPersian = (s: string) =>
-  s
-    .replace(/[يى]/g, "ی")
-    .replace(/ك/g, "ک")
-    .replace(/[‌‏‎]/g, " ")
-    .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
-    .replace(/[ً-ٟ]/g, ""); // harakat
 
 const STOP = new Set([
   "the","and","of","inc","ltd","llc","co","corp","company","group","services","service","canada",
@@ -161,16 +157,6 @@ const postalIn = (a: string | null | undefined) => (a ?? "").match(/\b([A-Za-z]\
 function cityFromCanadianAddress(a: string | null | undefined): string | null {
   const m = (a ?? "").match(/,\s*([A-Za-z][A-Za-z .'-]{2,40}?)\s*,\s*(?:ON|BC|AB|QC|MB|SK|NS|NB|NL|PE|Ontario|British Columbia|Alberta|Quebec|Qu\u00e9bec)\b/);
   return m ? normalizeCity(m[1]) : null;
-}
-
-// Deterministic Latin fallback for slugs when the model gives nothing usable.
-const TRANSLIT: Record<string, string> = {
-  ا:"a",آ:"a",ب:"b",پ:"p",ت:"t",ث:"s",ج:"j",چ:"ch",ح:"h",خ:"kh",د:"d",ذ:"z",ر:"r",ز:"z",ژ:"zh",س:"s",ش:"sh",
-  ص:"s",ض:"z",ط:"t",ظ:"z",ع:"a",غ:"gh",ف:"f",ق:"gh",ک:"k",گ:"g",ل:"l",م:"m",ن:"n",و:"v",ه:"h",ی:"y",ء:"",ئ:"y",ؤ:"o",
-};
-function latinSlug(s: string): string {
-  const t = foldPersian(s.toLowerCase()).split("").map((c) => TRANSLIT[c] ?? c).join("");
-  return t.normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-{2,}/g, "-").slice(0, 60);
 }
 
 // ---------------------------------------------------------------------------

@@ -200,6 +200,20 @@ export default async function BusinessProfilePage({
     .order("created_at", { ascending: false })
     .limit(5);
 
+  // Live hiring ads. The same rule as everywhere else — published, not
+  // closed, not expired — evaluated here rather than trusted from a status.
+  // No row means the section is absent entirely; an empty «فرصت‌های شغلی»
+  // heading would be a promise the page cannot keep.
+  const { data: jobs } = await supabase
+    .from("job_posts")
+    .select("id, slug, title, employment_type, workplace_type, city, salary_min, salary_max, salary_period, salary_is_public, requires_persian, requires_english")
+    .eq("business_id", business.id)
+    .eq("status", "published")
+    .is("closed_at", null)
+    .gt("expires_at", nowIso)
+    .order("published_at", { ascending: false })
+    .limit(10);
+
   // Public reviews live in `public_reviews`, not on the interaction row, and
   // are only visible once moderation has set status = 'published'.
   const { data: reviewsData } = await supabase
@@ -294,6 +308,7 @@ export default async function BusinessProfilePage({
         initialInteraction={initialInteraction}
         approvedReviews={approvedReviews}
         announcements={announcements ?? []}
+        jobs={jobs ?? []}
         similarBusinesses={similarBusinesses || []}
         isOwnerOrAdmin={isOwnerOrAdmin}
         publicOwner={showOwner ? publicOwner : null}

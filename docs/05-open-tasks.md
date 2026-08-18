@@ -1,6 +1,6 @@
 # Open tasks
 
-**Updated:** 2026-08-17, end of the 15–17 Aug session.
+**Updated:** 2026-08-18, end of the jobs-board session.
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
 ## Farjad — dashboard work, minutes each
@@ -97,23 +97,37 @@ Shipped. Two things a human should decide, neither of them code:
   (it costs nothing to allow, and refusing it is the kind of thing that gets
   screenshotted).
 
-## Jobs board — designed 18 Aug, not built
+## Jobs board — BUILT on web 18 Aug
 
-Full spec in `09-jobs-board.md`. Four forks decided by Farjad: only existing
-listing owners may post; verified businesses publish directly while everyone
-else queues for moderation; **free and unlimited for now** (so nothing on the
-pricing or features page may present it as a paid perk); jobs only, no rent or
-buy/sell.
+Full spec and what shipped: `09-jobs-board.md`. Four forks decided by Farjad:
+only existing listing owners may post; verified businesses publish directly
+while everyone else queues; **free and unlimited** (so nothing on the pricing
+or features page may present it as a paid perk); jobs only.
 
-Waiting on:
-- **Farjad, before any launch:** verify Ontario's 2026 pay-transparency rules
-  for publicly advertised postings against a primary source. If a salary range
-  is mandatory, `salary_min` stops being an optional field and the form has to
-  enforce it. I am not in a position to state what the rule says.
-- **Green light to build.** First slice would be: migration + `latinSlug`
-  moved into `@charana/core` + the owner form + `/jobs` and `/jobs/[slug]`
-  with `JobPosting` JSON-LD. The admin queue, the profile section, the
-  expiry nudge and mobile follow.
+**Salary is optional** — Farjad's call on 18 Aug, taken with the Ontario
+question still open.
+
+Still open:
+
+- **Farjad, before the board is promoted anywhere:** verify Ontario's 2026
+  pay-transparency rules for publicly advertised postings against a primary
+  source. If a salary range is mandatory, `salary_min` becomes required in
+  the form and NOT NULL in the table — and that migration has to deal with
+  whatever was posted without one. Cheapest while the table is empty.
+- **One signed-in pass by a human.** The public board, the detail page, the
+  `JobPosting` JSON-LD, the expiry rule, the profile section and the
+  `job_apply` event were all exercised against real rows. The **owner form**
+  and the **admin queue** were only typechecked and reached unauthenticated
+  (both correctly refuse) — nobody has posted an ad through the UI yet.
+- **Moderation emails** — published / rejected to the poster, carrying the
+  moderator's reason. Reuse `reviewModeratedEmail` (`5c80228`).
+- **Expiry nudge** — "تمدید کن یا ببند" three days out, reusing the
+  reminder-stage pattern in `verification-status.ts`.
+- **Mobile** — read side only: list + detail, like every other feature.
+- `/jobs/[slug]` returns **200 on a missing or expired post**, not 404. Same
+  pre-existing streaming/`notFound()` issue as the city routes (below), but it
+  matters more here: Google treats a soft-404 on a `JobPosting` URL as a
+  quality problem. Worth fixing before the board has real traffic.
 
 ## Blocked on something external
 
