@@ -1,14 +1,14 @@
 // ============================================================================
 // Source: apps/mobile/src/components/job-card.tsx
-// Version: 1.0.0 — 2026-08-18
+// Version: 1.2.0 — 2026-08-18 (business logo; SVG logos fall back)
 // Why: One hiring ad as a row — on the board, and on a business profile.
 //      Every label and the salary line come from @charana/core, so the app
 //      and the website cannot describe the same ad differently.
 // Env / Identity: Presentational.
 // ============================================================================
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Briefcase, MapPin } from "lucide-react-native";
+import { Briefcase, Building2, MapPin } from "lucide-react-native";
 
 import {
   EMPLOYMENT_TYPE_LABELS_FA,
@@ -35,17 +35,39 @@ export function JobCard({
   const remaining = jobDaysRemaining(job);
   const language = languageRequirementFa(job);
 
+  // React Native's <Image> cannot decode SVG, and it fails by drawing nothing —
+  // an empty tile with no hint that anything went wrong. Some imported logos
+  // are .svg (ashavid.ca serves one), so they are treated as absent here and
+  // get the same icon as a listing with no logo at all. The web is unaffected;
+  // a browser renders them fine.
+  const logoUrl = job.business?.logo_url?.trim();
+  const usableLogo = logoUrl && !/\.svgx?($|\?)/i.test(logoUrl) ? logoUrl : null;
+
   return (
     <Pressable
       onPress={() => router.push(`/jobs/${encodeURIComponent(job.slug)}`)}
       style={({ pressed }) => [styles.card, pressed && { opacity: 0.85, transform: [{ scale: 0.995 }] }]}
     >
       <View style={styles.titleRow}>
-        <Briefcase size={14} color={colors.lajvard} />
-        <Text style={styles.title} numberOfLines={2}>{job.title}</Text>
+        {/* The logo was already being fetched and never drawn. A column of
+            identical text blocks is harder to scan than a column of marks;
+            falls back to an icon rather than an empty frame. */}
+        {showBusiness ? (
+          <View style={styles.logo}>
+            {usableLogo ? (
+              <Image source={{ uri: usableLogo }} style={styles.logoImg} resizeMode="cover" />
+            ) : (
+              <Building2 size={16} color={colors.mutedText} />
+            )}
+          </View>
+        ) : (
+          <Briefcase size={14} color={colors.lajvard} />
+        )}
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title} numberOfLines={2}>{job.title}</Text>
+          {showBusiness && job.business?.name ? <Text style={styles.business}>{job.business.name}</Text> : null}
+        </View>
       </View>
-
-      {showBusiness && job.business?.name ? <Text style={styles.business}>{job.business.name}</Text> : null}
 
       <View style={styles.metaRow}>
         <Text style={styles.badge}>{EMPLOYMENT_TYPE_LABELS_FA[job.employment_type]}</Text>
@@ -73,7 +95,9 @@ export function JobCard({
 const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space.md, gap: 6, ...shadow.card },
   titleRow: { flexDirection: "row-reverse", alignItems: "flex-start", gap: 7 },
-  title: { flex: 1, fontSize: 16, fontFamily: fonts.heavy, color: colors.text, lineHeight: 26, textAlign: "right" },
+  title: { fontSize: 16, fontFamily: fonts.heavy, color: colors.text, lineHeight: 26, textAlign: "right" },
+  logo: { width: 38, height: 38, borderRadius: radius.sm, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  logoImg: { width: "100%", height: "100%" },
   business: { ...type.muted, textAlign: "right" },
   metaRow: { flexDirection: "row-reverse", alignItems: "center", gap: 10, flexWrap: "wrap" },
   metaCity: { flexDirection: "row-reverse", alignItems: "center", gap: 3 },

@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/jobs/page.tsx
-// Version: 1.0.0 — 2026-08-18
+// Version: 1.1.0 — 2026-08-18 (brand imagery, logos on cards)
 // Why: The public hiring board. Design: docs/09-jobs-board.md.
 // Env / Identity: Reads through the request-scoped (anon) client, so the RLS
 //      policy — published, not closed, not expired, on a public listing — is
@@ -12,8 +12,9 @@
 // would silently resolve to the wrong page. The design doc listed both.
 // ============================================================================
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { Briefcase, MapPin } from "lucide-react";
+import { Briefcase, Building2, MapPin } from "lucide-react";
 
 import {
   EMPLOYMENT_TYPES,
@@ -91,13 +92,34 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
     <PageShell currentPath="/jobs" currentSection="home">
       <JsonLd data={breadcrumbLd([{ name: "خانه", url: "/" }, { name: "فرصت‌های شغلی", url: "/jobs" }])} />
       <main className="page-main">
-        <section className="mb-8">
-          <p className="eyebrow">استخدام</p>
-          <h1>فرصت‌های شغلی</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[color:var(--muted-text)]">
-            آگهی‌های استخدام کسب‌وکارهای ایرانی در کانادا. هر آگهی را صاحب همان کسب‌وکار ثبت کرده و
-            پس از تاریخ انقضا خودبه‌خود از این صفحه برداشته می‌شود.
-          </p>
+        {/* Hero. The photograph is from scripts/generate-jobs-images.py under
+            the same locked art direction as the category set — the right third
+            of the frame is deliberately empty because this text sits over it. */}
+        <section className="relative mb-8 overflow-hidden rounded-3xl border border-[color:var(--line)]">
+          <Image
+            src="/images/jobs/hero.webp"
+            alt=""
+            width={1536}
+            height={1024}
+            priority
+            className="absolute inset-0 h-full w-full object-cover object-left"
+          />
+          {/* Cream on the text side, transparent over the subject. Direction is
+              flipped from the usual because the page is RTL and the copy sits
+              on the right. */}
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[color:var(--bg)]/70 to-[color:var(--bg)]" />
+          <div className="relative px-6 py-10 md:px-10 md:py-14">
+            <div className="max-w-md">
+              <p className="eyebrow">استخدام</p>
+              <h1 className="text-3xl font-black leading-tight text-[color:var(--text)] md:text-4xl">
+                فرصت‌های شغلی
+              </h1>
+              <p className="mt-3 text-sm leading-8 text-[color:var(--text)]/80">
+                آگهی‌های استخدام کسب‌وکارهای ایرانی در کانادا. هر آگهی را صاحب همان کسب‌وکار ثبت کرده و
+                پس از تاریخ انقضا خودبه‌خود برداشته می‌شود — پس چیزی که این‌جا می‌بینی هنوز باز است.
+              </p>
+            </div>
+          </div>
         </section>
 
         {/* Filters. Rendered only when there is something to filter. */}
@@ -129,32 +151,45 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           </section>
         ) : null}
 
+        {/* An empty board is the normal state on day one, so it gets a real
+            picture rather than an apologetic dashed box.
+            items-stretch, not items-center: the image cell is a bare div whose
+            only height comes from the row, and centring collapsed it to zero. */}
         {rows.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-[color:var(--line)] bg-[color:var(--bg)] p-10 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white text-[color:var(--muted-text)] shadow-sm">
-              <Briefcase size={26} />
+          <div className="grid items-stretch gap-0 overflow-hidden rounded-3xl border border-[color:var(--line)] bg-white md:grid-cols-2">
+            <div className="relative min-h-[220px] md:min-h-[300px]">
+              <Image
+                src="/images/jobs/empty.webp"
+                alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+              />
             </div>
-            <h2 className="mb-2 text-lg font-bold">
-              {city || type || lang ? "با این فیلترها آگهی‌ای نیست." : "هنوز آگهی استخدامی ثبت نشده."}
-            </h2>
-            <p className="mx-auto mb-6 max-w-md text-sm text-[color:var(--muted-text)]">
-              {city || type || lang
-                ? "فیلترها را بردار تا همه آگهی‌ها را ببینی."
-                : "اگر کسب‌وکاری در چارانا داری، ثبت آگهی استخدام رایگان است."}
-            </p>
-            <Link
-              href={city || type || lang ? "/jobs" : "/dashboard/business"}
-              className="inline-block rounded-lg border border-[color:var(--line)] bg-white px-6 py-2 text-sm font-medium transition hover:bg-gray-50"
-            >
-              {city || type || lang ? "همه آگهی‌ها" : "ثبت آگهی استخدام"}
-            </Link>
+            <div className="px-6 py-8 md:px-8 md:py-10">
+              <h2 className="mb-2 text-xl font-black text-[color:var(--text)]">
+                {city || type || lang ? "با این فیلترها آگهی‌ای نیست." : "هنوز آگهی استخدامی ثبت نشده."}
+              </h2>
+              <p className="mb-6 text-sm leading-8 text-[color:var(--muted-text)]">
+                {city || type || lang
+                  ? "فیلترها را بردار تا همه آگهی‌ها را ببینی."
+                  : "اولین آگهی می‌تواند مال تو باشد. اگر کسب‌وکاری در چارانا داری، ثبت آگهی رایگان است و سقفی ندارد."}
+              </p>
+              <Link
+                href={city || type || lang ? "/jobs" : "/dashboard/business"}
+                className="inline-flex items-center gap-2 rounded-xl bg-[color:var(--lajvard)] px-6 py-3 text-sm font-bold text-white transition hover:opacity-90"
+              >
+                <Briefcase size={16} />
+                {city || type || lang ? "همه آگهی‌ها" : "ثبت آگهی استخدام"}
+              </Link>
+            </div>
           </div>
         ) : (
           <>
             <p className="mb-3 text-xs text-[color:var(--muted-text)]">{fa(rows.length)} آگهی فعال</p>
             <ul className="space-y-3">
               {rows.map((j) => {
-                const business = j.business as { name?: string; slug?: string } | null;
+                const business = j.business as { name?: string; slug?: string; logo_url?: string | null } | null;
                 const remaining = jobDaysRemaining(j);
                 const language = languageRequirementFa(j);
                 return (
@@ -164,11 +199,28 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                       className="block rounded-2xl border border-[color:var(--line)] bg-white p-5 transition hover:border-[color:var(--lajvard)] hover:shadow-sm"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h2 className="text-base font-bold text-[color:var(--text)]">{j.title}</h2>
-                          {business?.name ? (
-                            <p className="mt-0.5 text-sm text-[color:var(--muted-text)]">{business.name}</p>
-                          ) : null}
+                        <div className="flex min-w-0 items-start gap-3">
+                          {/* The logo was already being fetched and never
+                              rendered — a row of identical text blocks is
+                              harder to scan than a row of marks. Falls back to
+                              an initial rather than a broken frame. */}
+                          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[color:var(--line)] bg-[color:var(--bg)]">
+                            {business?.logo_url ? (
+                              // Plain <img>, like BusinessCard: logo hosts are
+                              // not all in next.config remotePatterns, and a
+                              // next/image there throws at request time.
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={business.logo_url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                            ) : (
+                              <Building2 size={18} className="text-[color:var(--muted-text)]" />
+                            )}
+                          </span>
+                          <div className="min-w-0">
+                            <h2 className="text-base font-bold text-[color:var(--text)]">{j.title}</h2>
+                            {business?.name ? (
+                              <p className="mt-0.5 text-sm text-[color:var(--muted-text)]">{business.name}</p>
+                            ) : null}
+                          </div>
                         </div>
                         <span className="rounded-full bg-[color:var(--bg)] px-3 py-1 text-[11px] font-bold text-[color:var(--text)]">
                           {EMPLOYMENT_TYPE_LABELS_FA[j.employment_type as EmploymentType]}

@@ -283,3 +283,119 @@ export function verificationRenewalEmail(input: {
     text: `${subject}\n\n${lapsed ? `نشان تایید «${input.name}» منقضی شده و از صفحه‌ی عمومی برداشته شده است.` : `تایید «${input.name}» تا ${fa(input.daysRemaining)} روز دیگر منقضی می‌شود.`}\n\nتمدید از داشبورد:\n${url}`,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Jobs board
+// ---------------------------------------------------------------------------
+
+const faDigits = (n: number) =>
+  String(Math.abs(n)).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
+
+/**
+ * A moderation decision on a hiring ad, to whoever posted it.
+ *
+ * Only unverified businesses ever queue, so this is also the moment they meet
+ * the verification argument at its most concrete: the same ad from a verified
+ * listing would already be live. The rejection carries the moderator's own
+ * reason — a rejection without one leaves the poster guessing, which is why
+ * moderateJob() refuses to send it.
+ */
+export function jobModeratedEmail(input: {
+  businessName: string;
+  jobTitle: string;
+  jobSlug: string;
+  businessId: string;
+  outcome: "published" | "rejected";
+  reason?: string | null;
+  /** Suppresses the verification nudge for a business that is already verified. */
+  isVerified?: boolean;
+}) {
+  const jobUrl = `https://charana.ca/jobs/${encodeURIComponent(input.jobSlug)}`;
+  const manageUrl = `https://charana.ca/dashboard/business/${input.businessId}/jobs`;
+
+  if (input.outcome === "published") {
+    return {
+      subject: `آگهی «${input.jobTitle}» منتشر شد`,
+      html: shell(`
+        <p style="margin:0 0 14px;">سلام،</p>
+        <p style="margin:0 0 18px;">آگهی <strong>${input.jobTitle}</strong> برای <strong>${input.businessName}</strong> بررسی شد و حالا روی تابلوی فرصت‌های شغلی چارانا منتشر است.</p>
+        <div style="text-align:center;margin:24px 0;">
+          <a href="${jobUrl}" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">دیدن آگهی</a>
+        </div>
+        ${
+          input.isVerified
+            ? ""
+            : `<div style="background:${CREAM};border-radius:10px;padding:14px 16px;margin:0 0 18px;font-size:13.5px;">
+                 اگر مالکیت این کسب‌وکار را تایید کنی، آگهی‌های بعدی‌ات بدون بررسی و بلافاصله منتشر می‌شوند.
+               </div>`
+        }
+        <p style="margin:0;color:${MUTED};font-size:13px;">هر وقت جای خالی پر شد، از <a href="${manageUrl}" style="color:${MUTED};">پنل آگهی‌ها</a> ببندش. آگهی در تاریخ انقضا هم خودبه‌خود برداشته می‌شود.</p>
+      `),
+      text: `آگهی «${input.jobTitle}» منتشر شد.\n${jobUrl}\n\nمدیریت آگهی‌ها: ${manageUrl}`,
+    };
+  }
+
+  return {
+    subject: `آگهی «${input.jobTitle}» منتشر نشد`,
+    html: shell(`
+      <p style="margin:0 0 14px;">سلام،</p>
+      <p style="margin:0 0 18px;">آگهی <strong>${input.jobTitle}</strong> برای <strong>${input.businessName}</strong> بررسی شد و منتشر نشد.</p>
+      ${
+        input.reason
+          ? `<div style="background:${CREAM};border-radius:10px;padding:14px 16px;margin:0 0 18px;"><strong>دلیل:</strong><br>${input.reason}</div>`
+          : ""
+      }
+      <p style="margin:0 0 18px;">می‌توانی با در نظر گرفتن همین نکته، آگهی تازه‌ای ثبت کنی.</p>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${manageUrl}" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">ثبت آگهی تازه</a>
+      </div>
+      <p style="margin:0;color:${MUTED};font-size:13px;">اگر فکر می‌کنی اشتباهی شده، به ${company.email.support} بنویس.</p>
+    `),
+    text: `آگهی «${input.jobTitle}» منتشر نشد.\n${input.reason ?? ""}\n\n${manageUrl}`,
+  };
+}
+
+/**
+ * Three days before a hiring ad lapses.
+ *
+ * Two doors, on purpose. "Extend" and "close" are equally valid answers, and a
+ * mail that only offers extend quietly pushes toward a board full of ads for
+ * jobs that were filled a month ago — which is the exact failure the expiry
+ * rule exists to prevent.
+ */
+export function jobExpiringEmail(input: {
+  businessName: string;
+  jobTitle: string;
+  jobSlug: string;
+  businessId: string;
+  daysRemaining: number;
+  /** Live apply-clicks, only passed when there are any. */
+  applyClicks?: number | null;
+}) {
+  const manageUrl = `https://charana.ca/dashboard/business/${input.businessId}/jobs`;
+  const jobUrl = `https://charana.ca/jobs/${encodeURIComponent(input.jobSlug)}`;
+
+  return {
+    subject: `${faDigits(input.daysRemaining)} روز تا پایان آگهی «${input.jobTitle}»`,
+    html: shell(`
+      <p style="margin:0 0 14px;">سلام،</p>
+      <p style="margin:0 0 18px;">آگهی <strong>${input.jobTitle}</strong> برای <strong>${input.businessName}</strong> تا ${faDigits(input.daysRemaining)} روز دیگر به پایان می‌رسد و بعد از آن خودبه‌خود از تابلو برداشته می‌شود.</p>
+      ${
+        // Only rendered when there is a real number behind it — a "0 people
+        // clicked" line in a nudge is both discouraging and, on a board this
+        // young, mostly noise.
+        input.applyClicks
+          ? `<div style="background:${CREAM};border-radius:10px;padding:14px 16px;margin:0 0 18px;font-size:14px;">
+               تا اینجا <strong>${faDigits(input.applyClicks)} نفر</strong> روی دکمه‌ی درخواست این آگهی زده‌اند.
+             </div>`
+          : ""
+      }
+      <p style="margin:0 0 18px;">اگر هنوز دنبال نیرو هستی تمدیدش کن؛ اگر جای خالی پر شده، ببندش. هر دو یک کلیک است.</p>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${manageUrl}" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">تمدید یا بستن آگهی</a>
+      </div>
+      <p style="margin:0;color:${MUTED};font-size:13px;"><a href="${jobUrl}" style="color:${MUTED};">دیدن آگهی روی سایت</a> · تمدید، مدت را از همین حالا حساب می‌کند، نه از تاریخ انقضای قبلی.</p>
+    `),
+    text: `${faDigits(input.daysRemaining)} روز تا پایان آگهی «${input.jobTitle}» (${input.businessName}).\n\nتمدید یا بستن: ${manageUrl}\nدیدن آگهی: ${jobUrl}`,
+  };
+}

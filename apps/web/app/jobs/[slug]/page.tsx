@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/jobs/[slug]/page.tsx
-// Version: 1.1.0 — 2026-08-18 (Markdown body)
+// Version: 1.2.0 — 2026-08-18 (logo, brand ground)
 // Why: One hiring ad, and the `JobPosting` JSON-LD block that puts it inside
 //      Google's jobs widget. That block is the largest free-traffic lever the
 //      project has — none of the seven competing directories emits one — and
@@ -158,15 +158,28 @@ export default async function JobPage({ params }: { params: Promise<{ slug: stri
           <ArrowRight size={14} /> همه فرصت‌های شغلی
         </Link>
 
-        <article className="rounded-3xl border border-[color:var(--line)] bg-white p-6 md:p-8">
+        <article className="relative overflow-hidden rounded-3xl border border-[color:var(--line)] bg-white p-6 md:p-8">
+          {/* One brand line, not a decorative header image: this page is read,
+              and a photograph above the title would push the actual job below
+              the fold on a phone for no information gained. */}
+          <span className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,var(--annabi),var(--lajvard))]" />
           <h1 className="text-2xl font-black text-[color:var(--text)] md:text-3xl">{job.title}</h1>
 
           {business ? (
             <Link
               href={business.slug ? `/businesses/${business.slug}` : "#"}
-              className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--lajvard)]"
+              className="mt-3 inline-flex items-center gap-2.5 rounded-2xl border border-[color:var(--line)] bg-[color:var(--bg)] py-2 pe-3 ps-2 transition hover:border-[color:var(--lajvard)]"
             >
-              <Building2 size={14} /> {business.name}
+              {/* Plain <img>: logo hosts are not all in remotePatterns. */}
+              <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-white">
+                {business.logo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={business.logo_url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                ) : (
+                  <Building2 size={16} className="text-[color:var(--muted-text)]" />
+                )}
+              </span>
+              <span className="text-sm font-bold text-[color:var(--lajvard)]">{business.name}</span>
             </Link>
           ) : null}
 

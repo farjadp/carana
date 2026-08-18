@@ -24,6 +24,8 @@ export type QuietFailure =
   | "sms_carrier_rejected"
   | "verification_write_failed"
   | "reminder_send_failed"
+  | "job_reminder_send_failed"
+  | "job_reminder_no_address"
   | "cron_run_failed"
   | "request_error"
   | "exchange_rates_http"

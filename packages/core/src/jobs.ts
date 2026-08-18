@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: packages/core/src/jobs.ts
-// Version: 1.1.0 — 2026-08-18 (markdown descriptions + AI-assist limits)
+// Version: 1.2.0 — 2026-08-18 (expiry reminder window)
 // Why: One definition of what a job post is and when it is live. The public
 //      board, the business profile, the owner's manager, the admin queue and
 //      (later) mobile must agree, and they only agree if they read this file.
@@ -65,6 +65,15 @@ export const JOB_POSTS_PER_DAY = 5;
 
 /** Default life of a post. A board full of dead ads is worse than no board. */
 export const JOB_DEFAULT_DAYS = 30;
+
+/**
+ * How many days before expiry the owner is nudged.
+ *
+ * One reminder, not a series. The stakes are low — an ad lapsing is not a
+ * badge lapsing — and the sender is also how verification codes are delivered,
+ * so training anyone to filter it is expensive.
+ */
+export const JOB_EXPIRY_REMINDER_DAYS = 3;
 export const JOB_MAX_DAYS = 60;
 
 export const JOB_TITLE_MAX = 120;

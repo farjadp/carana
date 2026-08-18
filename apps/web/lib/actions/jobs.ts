@@ -2,7 +2,7 @@
 
 // ============================================================================
 // Source: lib/actions/jobs.ts
-// Version: 1.1.0 — 2026-08-18 (Markdown descriptions)
+// Version: 1.2.0 — 2026-08-18 (moderation email)
 // Why: Every write to job_posts. No RLS policy grants a regular user insert,
 //      update or delete on that table (see the migration) — three of the
 //      decisions that govern a post cannot be expressed in a policy:
@@ -43,6 +43,8 @@ import {
 } from "@charana/core";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { sendEmail } from "@/lib/email/send";
+import { jobModeratedEmail } from "@/lib/email/templates";
 import { toLatinDigits } from "@/lib/utils/digits";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -253,7 +255,10 @@ export async function extendJob(jobId: string, businessId: string, days = JOB_DE
   return ownerMutate(
     jobId,
     businessId,
-    { expires_at: new Date(Date.now() + window * 86_400_000).toISOString(), closed_at: null },
+    // Clearing the reminder is what makes the nudge repeatable: an ad extended
+    // today has to be nudged again when the new expiry approaches, and this is
+    // the only place that can know the clock restarted.
+    { expires_at: new Date(Date.now() + window * 86_400_000).toISOString(), closed_at: null, expiry_reminder_sent_at: null },
     "مدت آگهی تمدید شد."
   );
 }
@@ -339,9 +344,66 @@ export async function moderateJob(jobId: string, decision: "published" | "reject
     const slug = (job as { businesses?: { slug?: string } | null }).businesses?.slug;
     if (slug) revalidatePath(`/businesses/${slug}`);
 
+    // Best-effort, never awaited past this point: a slow or failed mail run
+    // must not make a moderation decision that already landed look failed.
+    void notifyPoster(jobId, decision, reason);
+
     return { success: true, message: decision === "published" ? "آگهی منتشر شد." : "آگهی رد شد." };
   } catch (error: any) {
     console.error("Moderate Job Error:", error);
     return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Tells whoever posted the ad what happened to it.
+ *
+ * Runs after the decision is already written and swallows its own errors —
+ * sendEmail() reports quiet failures on its own. The address is the poster's
+ * account email, not the listing's public contact: the person who submitted
+ * the ad is the person who has to act on a rejection, and on a claimed
+ * listing those two are often not the same.
+ */
+async function notifyPoster(jobId: string, decision: "published" | "rejected", reason?: string) {
+  try {
+    const admin = createSupabaseAdminClient();
+    const { data: job } = await admin
+      .from("job_posts")
+      .select("id, slug, title, created_by, business_id")
+      .eq("id", jobId)
+      .maybeSingle();
+    if (!job) return;
+
+    const { data: business } = await admin
+      .from("businesses")
+      .select("id, name, created_by, owner_user_id, verification_method, verified_at, verified_until, verified_phone, verified_email, phone, contact_email")
+      .eq("id", job.business_id)
+      .maybeSingle();
+    if (!business) return;
+
+    const recipientId = job.created_by ?? business.owner_user_id ?? business.created_by;
+    let to: string | null = null;
+    if (recipientId) {
+      const { data: profile } = await admin.from("profiles").select("email").eq("id", recipientId).maybeSingle();
+      to = (profile?.email as string) ?? null;
+    }
+    to = to ?? (business.contact_email as string) ?? null;
+    if (!to) return;
+
+    const mail = jobModeratedEmail({
+      businessName: business.name as string,
+      jobTitle: job.title as string,
+      jobSlug: job.slug as string,
+      businessId: business.id as string,
+      outcome: decision,
+      reason,
+      // Suppresses the "verify and skip the queue" nudge for a business that
+      // already is verified — which can happen when a badge lapsed while the
+      // ad sat in the queue and was renewed before a moderator got to it.
+      isVerified: isTrusted(getVerificationStatus(business)),
+    });
+    await sendEmail({ to, ...mail });
+  } catch (error) {
+    console.error("Notify Job Poster Error:", error);
   }
 }

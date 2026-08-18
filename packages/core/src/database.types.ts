@@ -901,6 +901,7 @@ export type Database = {
           description: string
           employment_type: string
           expires_at: string
+          expiry_reminder_sent_at: string | null
           id: string
           moderation_reason: string | null
           province: string | null
@@ -931,6 +932,7 @@ export type Database = {
           description: string
           employment_type?: string
           expires_at: string
+          expiry_reminder_sent_at?: string | null
           id?: string
           moderation_reason?: string | null
           province?: string | null
@@ -961,6 +963,7 @@ export type Database = {
           description?: string
           employment_type?: string
           expires_at?: string
+          expiry_reminder_sent_at?: string | null
           id?: string
           moderation_reason?: string | null
           province?: string | null
