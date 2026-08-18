@@ -30,29 +30,32 @@ The live board is Notion → 🧿 Charana → Mission Control; this is the narra
 - `/admin/cleanup/cities` → "apply all" sets 365 Toronto-area listings that
   currently have no city. Then work the ~44 rows that need a human.
 
-**Data hygiene, after the Hamvatan import (17 Aug, `2384aa5`):**
-- **7 listings held for review** — each shares a phone with an existing row
-  and gpt-4o would not say same/different. They are in the import report
-  (`hamvatan-import-report.json`, regenerate with a dry run) and were
-  **not inserted**: Smart Home Developer ↔ `handyman-service`, Arya
-  renovations ↔ `aria-renovation`, Milad Elmi ↔ M.P Renovation, Sunlight
-  Dental Clinic ↔ دکتر داریوش رادمان, Golden Cover ↔ `mjinsurace`, مجید ↔
-  ریما استودیو, Top Appliance Repair ↔ نصب و تعمیر اپلاینس. Decide merge vs
-  add in `/admin`.
-- **7 inserted despite a shared phone** because the model said "different
-  business" with a reason: Golden Beaver Construction + GBC ↔ کاوه, Lad's
-  Drywall ↔ M.P Renovation, Maral Landscape ↔ خدمات باغبانی شایسته,
-  HelloTutors ↔ هدا زمانی, Moe Car Detailing ↔ M&A صافکاری, BSW World Cargo
-  ↔ راه آسمان آبی. Eyeball them; merging is one admin action each.
-- ~~Pre-existing IranJavan duplicates + the `شسیشسیش` test row~~ — **deleted
-  17 Aug** (5 rows, none had reviews/events/claims): `شسیشسیش`,
-  `مهرانه-طباطبایی` (placeholder, no provenance — the immigration one stays),
-  `علیرضا-درستکار-1`, `صرافی-این-آپدیت` (a test edit), `چمن-کاری-و-چمن-زنی-مستر`
-  (`master-work` stays). **Not deleted:** `آموزشگاه-رانندگی-داریوش` /
-  `-هانی` — same phone but different names and different source pages; that
-  is the shared-phone ambiguity, not a proven duplicate. Total now 2,060.
-- Hamvatan rows have the placeholder logo (the source has none). Consider a
-  logo pass from each listing's own website favicon/OG image later.
+**Data hygiene, after the seven-directory merge (17 Aug, `2384aa5` → `34185f5`):**
+- **Held for review, not inserted** (shares a phone or website with an
+  existing row and gpt-4o would not commit): Hamvatan 7, Bazaarche 3,
+  Jabeh 9, Taablo 31, FarsiLink 5, re-import 2 ≈ **57**. Each report
+  (`hamvatan-import-report.json` and per-source `*.json` reports, regenerate
+  with a dry run) lists them with the existing row's slug and the model's
+  reason. Merge or add is one admin action each.
+- **Inserted despite a shared phone** with the model's stated reason: ≈40
+  across sources (in the same reports under `inserted_despite_shared_phone`).
+- **Wrong merges already reverted** (51): brokerage/agency platform hosts
+  (mortgage.rbc.com, century21.ca, mortgagealliance.com, rightathomerealty,
+  royallepage, zil.ink…) and generic names («مشاور املاک» ↔ «مشاور املاک X»).
+  Rules fixed in `34185f5`; the reverted rows were re-imported cleanly.
+- **~520 new DRAFT rows** with no city from any source (mostly Jabeh
+  realtors, whose pages carry no location). They are invisible until a city
+  is set. The `/admin/cleanup/cities` area-code pass could place many.
+- **Taxonomy gap:** 12 categories, no slot for travel agencies, cargo/moving,
+  media, charities/community centres, pet services. They were filed in the
+  closest category with the source's own label kept in `sub_category`.
+  Decide whether to add categories before the next SEO pass.
+- **Bazaarche descriptions were deliberately not imported** — their prose is
+  Google-Places boilerplate («X is a Persian/Iranian Gym serving…»). Those
+  ~500 rows have name, address, phone, website, hours-less. Taablo rows are
+  similarly thin (name, phone, address, category).
+- Hamvatan and Taablo rows have the placeholder logo (those sources have
+  none). Consider a logo pass from each listing's own website OG image later.
 
 **Needs a real device:**
 - Test the voice suggestion box on an iPhone (the simulator has no microphone)

@@ -783,24 +783,33 @@ npx tsx scripts/rehost-logos.mts --commit
 Idempotent — skips the placeholder and anything already re-hosted, so a re-run
 only retries what genuinely still lives elsewhere.
 
-### Hamvatan (17 Aug, `2384aa5`)
+### Scraped directories (17 Aug, `2384aa5` → `34185f5`)
 
 ```bash
-npx tsx scripts/scrape-hamvatan.mts --out hamvatan-toronto.json          # ~50 GETs, no creds
-npx tsx scripts/import-hamvatan.mts hamvatan-toronto.json                # dry run + report
-npx tsx scripts/import-hamvatan.mts hamvatan-toronto.json --commit
+npx tsx scripts/scrape-hamvatan.mts --out hamvatan-toronto.json              # hamvatan.org
+npx tsx scripts/scrape-directories.mts --source all --out-dir .              # jabeh, taablo, bazaarche, farsilink, iranbusiness
+npx tsx scripts/import-listings.mts <source>.json --report <source>-report.json          # dry run
+npx tsx scripts/import-listings.mts <source>.json --report <source>-report.json --commit
+npx tsx scripts/rehost-logos.mts --commit                                    # repeat until 0 remain (1000-row cap)
 ```
 
-The scraper writes only what the source renders (name, tagline, paragraph,
-phones, street, postal, website, instagram/telegram/whatsapp/facebook, likes,
-category, a stable `biz-item-<id>`). The importer is idempotent — a row that
-already carries the hamvatan id in `verification_notes` is matched on that
-first — and dedupes on website host / instagram handle / phone+name, with a
-gpt-4o adjudication step for phone-only matches that merges only on a
-confident yes. City: street → postal FSA (`cityFromPostalCode`) → "Toronto".
-Both outputs are gitignored.
+Every scraper emits `SourceListing[]` (`scripts/lib/source-listing.ts`) and
+writes only what the source renders — no emails, logos or hours are inferred.
+`import-listings.mts` is idempotent (a row already carrying the source URL in
+`verification_notes` is matched first) and merges by, in order: unique
+website host or instagram handle; phone + a non-generic name token; phone-only
+or shared-host matches go to gpt-4o with both full records and merge only on
+a confident yes ("unsure" = held, not inserted). Enrichment fills empty
+columns only. City: street → postal FSA (`cityFromPostalCode`) → the address's
+"…, City, ON" segment → the source's city label; no city → DRAFT. Province is
+never defaulted. Reports list every merge, insert, hold and skipped
+outside-Canada row.
 
-### Provenance and takedown
+Traps met and encoded (see `06-gotchas`): platform hosts shared by many agents,
+category words counted as name overlap, PostgREST's 1000-row cap, paging by
+`created_at`, hamvatan's ignored `?page=`, taablo's Kafka lorem ipsum.
+
+### Provenance and takedown### Provenance and takedown
 
 Imported rows carry `verification_notes` of the form
 `imported from <source url>`. The privacy policy discloses that some listings

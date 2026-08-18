@@ -782,3 +782,65 @@ empty list. A page-counter loop never terminates on its own.
 
 **Fix:** follow `<link rel="next">` and stop on the first repeated card id.
 **Lesson:** never trust a paginator's counter; trust the ids.
+
+---
+
+## Paging Supabase by `created_at` repeats and drops rows
+
+**Symptom:** an audit found "duplicate" hamvatan rows with identical slugs —
+which a unique `taken` set makes impossible. They were phantoms.
+
+**Cause:** `.order("created_at").range(0,999)` then `.range(1000,1999)`:
+batch inserts share a timestamp, so the sort is unstable across page
+boundaries — the same row appears on two pages while another is never
+returned. In the importer this meant a listing could fail to see its
+existing match and be inserted twice.
+
+**Fix:** page by a unique key (`.order("id")`). **Lesson:** every keyset /
+offset page needs a total order.
+
+---
+
+## A shared website host is a platform, not a business
+
+**Symptom:** five different RBC mortgage agents were merged into one
+existing listing, «سپیده ثابت». Century 21, Mortgage Alliance, Right at
+Home Realty, Royal LePage, zil.ink did the same.
+
+**Cause:** rule 1 of the importer said "same website host → same business".
+For a personal site that is right; for `mortgage.rbc.com/<agent>` it is the
+opposite — the host is shared by everyone at the brokerage.
+
+**Fix:** a platform denylist plus host frequency across DB and source; a
+shared host counts only with the exact path *and* a name or phone in
+common; a host-only match with nothing else in common is adjudicated by the
+model like a phone-only match. 39 merges reverted and re-imported.
+**Lesson:** identity keys must be checked for cardinality on the real data
+before they are trusted — the same lesson as shared phones, one level up.
+
+---
+
+## Category words are not names
+
+**Symptom:** «مشاور املاک مریم صفری» merged into a row named just «مشاور
+املاک» because both contain «املاک».
+
+**Cause:** the name-token overlap treated category words (املاک، وام،
+رستوران، dental, realty…) like any other token; two realtors always
+"overlap".
+
+**Fix:** category words in both scripts are stop words; a name with nothing
+left after stop words overlaps with nothing. 14 merges reverted.
+
+---
+
+## Sources ship filler: Kafka as a business description
+
+**Symptom:** a Taablo restaurant's description began «یک روز صبح، وقتی
+گرگور سامسا از رویاهای پریشان بیدار شد…» — *The Metamorphosis*, in Persian
+and English, as lorem ipsum. Bazaarche's descriptions are Google-Places
+boilerplate; 1,281 Taablo descriptions were just the name repeated.
+
+**Fix:** the importer drops descriptions that echo the name, match lorem /
+Kafka, or (Bazaarche) are template prose. **Lesson:** read fifty random
+records of a source before importing one.
