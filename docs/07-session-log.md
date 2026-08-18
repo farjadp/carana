@@ -119,9 +119,46 @@ data bug that was not there. The stale-Metro trap is already in `06-gotchas`;
 I did not think of it because the *other* new screens were live, which made
 the bundle look current.
 
+## Fourth pass — the mail, and the visual criticism (`0e02e9c`)
+
+Farjad: «ایمیل نتیجه بررسی و یادآور انقضا رو هم بساز» — and then: «کلا اعتقادی
+به عکس رو رنگ و جذابیت بصری نداری؟»
+
+He was right. The board shipped as three passes of pure typography: no
+photograph anywhere, and the business logo was being **fetched and thrown away**
+on both web and mobile.
+
+**Mail.** `jobModeratedEmail` from `moderateJob`, and `jobExpiringEmail` from a
+new cron three days out, shaped exactly like `verification-reminders` —
+bearer-auth, refuses to run without `CRON_SECRET`, `MAX_PER_RUN`, and it does
+not record a reminder as sent when the send failed. Idempotency is one nullable
+column that `extendJob()` clears, so an extended ad becomes eligible again on
+its own. Verified: the query finds the ad, finds nothing after it is marked
+sent, finds it again after an extend.
+
+**Imagery**, through `scripts/generate-jobs-images.py` with the category set's
+art direction copied verbatim — a paraphrase is how a campaign drifts. A hero
+whose right third is deliberately empty for the Persian headline, and a real
+photograph for the empty board, which is the normal state on day one.
+
+### What cost time, and what I did badly
+
+- **Deleted the generated PNGs twice before converting them.** The Bash
+  working directory persists between calls; I `cd`'d into the image folder in
+  one call and a later `rm -f *.png` ran there. Then did it again by chaining
+  `rm` after a conversion that had silently failed. Four minutes of image
+  generation thrown away twice. Verify the output exists *before* deleting the
+  input, and never chain `rm` to a command whose success you have not checked.
+- Put a JSX comment inside a ternary branch **twice**, breaking the build both
+  times.
+- `items-center` collapsed the empty-state image cell to zero height.
+- RN drew an empty tile for an SVG logo — silent, and web-only-correct.
+
+All four are now in `06-gotchas`.
+
 ## Still open
 
-Moderation emails, the expiry nudge, posting from the app, and Farjad's Ontario check — cheapest to answer now, while the
+Posting from the app, and Farjad's Ontario check — cheapest to answer now, while the
 table is empty. Also: the owner form and admin queue are **still** unexercised
 signed in.
 

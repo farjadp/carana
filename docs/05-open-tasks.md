@@ -124,10 +124,13 @@ Still open:
   `job_apply` event were all exercised against real rows. The **owner form**
   and the **admin queue** were only typechecked and reached unauthenticated
   (both correctly refuse) — nobody has posted an ad through the UI yet.
-- **Moderation emails** — published / rejected to the poster, carrying the
-  moderator's reason. Reuse `reviewModeratedEmail` (`5c80228`).
-- **Expiry nudge** — "تمدید کن یا ببند" three days out, reusing the
-  reminder-stage pattern in `verification-status.ts`.
+- ~~**Moderation emails**~~ and ~~**expiry nudge**~~ — **done 18 Aug
+  (`0e02e9c`)**. `jobModeratedEmail` fires from `moderateJob`; the nudge runs
+  from a new cron at `/api/cron/job-expiry-reminders`, 13:30 UTC daily.
+  **No real email has been sent yet** — both templates were rendered and
+  checked, and the cron's selection, idempotency and extend-reset were
+  verified against real rows, but nothing was actually delivered. Fire one:
+  `curl -H "Authorization: Bearer $CRON_SECRET" https://charana.ca/api/cron/job-expiry-reminders`
 - ~~**Mobile**~~ — **done 18 Aug (`6c1084f`)**: board, detail, home rail,
   profile section, account row. Read-only; posting stays on web with the rest
   of the owner controls.

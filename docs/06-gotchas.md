@@ -925,3 +925,50 @@ normalises first.
 used by every plain-text output. **Lesson:** when the same content leaves by two
 routes, check both. The one you can see is not evidence about the one you
 cannot.
+
+
+---
+
+## React Native `<Image>` cannot decode SVG, and fails silently
+
+**Symptom:** a logo tile in the app renders as an empty box. No error, no
+broken-image icon, no console warning.
+
+**Cause:** RN's `<Image>` has no SVG decoder. It does not fall back — it draws
+nothing. Some imported logos are `.svg` (ashavid.ca serves one), and on the web
+they render perfectly, so the bug only exists on one platform.
+
+**Fix:** treat an `.svg` URL as absent on mobile and use the same placeholder
+as a listing with no logo. **Lesson:** an image that "does not appear" in RN is
+as likely to be an undecodable format as a missing URL — check the extension
+before checking the data.
+
+---
+
+## A JSX comment cannot sit in a ternary branch
+
+**Symptom:** `Expected '</', got 'ident'` from Turbopack, pointing at a line
+that looks fine.
+
+**Cause:** `{cond ? ( {/* note */} <div/> ) : null}` — inside the parens the
+parser is reading an *expression*, and `{/* … */}` is only valid where JSX
+children are. Written twice in one session, both times while adding a comment
+to explain a layout decision.
+
+**Fix:** put the comment above the `{cond ? (` line, or inside the element as
+its first child.
+
+---
+
+## `items-center` collapses a grid cell whose only content is a fill image
+
+**Symptom:** a two-column card renders with one side blank. The `<Image fill>`
+is in the DOM and the URL is correct.
+
+**Cause:** `fill` needs a positioned parent with a real height. The parent's
+height came from the grid row, and `items-center` sizes each item to its own
+content — which for a div containing only an absolutely-positioned image is
+zero.
+
+**Fix:** `items-stretch`, plus an explicit `min-h` so the cell has a height
+before the image loads.
