@@ -1,25 +1,60 @@
 // ============================================================================
 // Source: app/businesses/page.tsx
-// Version: 1.0.0 — 2026-08-23
+// Version: 2.0.0 — 2026-08-19
 // Why: The main navigation linked to /businesses, which did not exist and
 //      returned 404. A directory needs a browsable index of every listing.
+//
+//      v2: default order is now genuinely random and reshuffles on every
+//      request (no `revalidate`, `dynamic = "force-dynamic"`) — Farjad's
+//      call: no default sort at all, rather than "newest first" pretending
+//      to be neutral. Featured businesses (Premium/Platinum) get
+//      FEATURED_RANDOM_BOOST inside that shuffle; see the comment on
+//      weightedRandomOrder for exactly what that means and why it is still
+//      honest. Four explicit sorts added (?sort=views|saved|new|verified) —
+//      "highest rated" was deliberately left out: with a handful of
+//      published reviews today, a rating sort would mostly show ties, which
+//      is worse than not offering it. Cards switched from a bespoke minimal
+//      link to the shared BusinessCard, which is what actually renders the
+//      "ویژه" chip — required for the random boost to be honest, not
+//      decoration.
 // Env / Identity: Public read. Columns are listed explicitly — Postgres does
 //      not apply RLS per column, so select("*") would expose verification data.
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Flame, Sparkles, ShieldCheck, Clock3, Shuffle } from "lucide-react";
 
 import { PUBLIC_STATUSES, PROVINCES, resolveProvince } from "@goplaza/core";
 import { redirect } from "next/navigation";
 import { InnerPage } from "@/components/inner-page";
+import { BusinessCard, type BusinessCardData } from "@/components/business/business-card";
+import { weightedRandomOrder } from "@/lib/billing/entitlements";
+import { fetchAllRows } from "@/lib/supabase/fetch-all";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export const revalidate = 3600;
+// Random by default, reshuffled every load — this route must never be
+// statically cached or ISR-revalidated, or "every refresh" would just be
+// serving the same cached shuffle.
+export const dynamic = "force-dynamic";
 
-const CARD_COLUMNS =
-  "id, slug, name, name_en, category, short_description, city, province, logo_url";
+const CARD_COLUMNS = [
+  "id", "slug", "name", "name_en", "category", "short_description", "city", "province", "logo_url",
+  "view_count", "saved_count", "created_at",
+  "plan", "plan_until", "busy_status", "busy_status_until",
+  "verification_method", "verified_at", "verified_until", "verified_phone", "verified_email",
+  "phone", "contact_email",
+].join(", ");
 
 const PAGE_SIZE = 48;
+
+type SortKey = "views" | "saved" | "new" | "verified";
+
+const SORTS: { key: SortKey; label: string; icon: typeof Flame }[] = [
+  { key: "views", label: "پربازدیدترین", icon: Flame },
+  { key: "saved", label: "پرمخاطب‌ترین", icon: Sparkles },
+  { key: "new", label: "جدیدترین", icon: Clock3 },
+  { key: "verified", label: "تازه تأییدشده", icon: ShieldCheck },
+];
 
 export const metadata: Metadata = {
   alternates: { canonical: "/businesses" },
@@ -31,7 +66,7 @@ export const metadata: Metadata = {
 export default async function BusinessesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; province?: string; category?: string; q?: string; city?: string }>;
+  searchParams: Promise<{ page?: string; province?: string; category?: string; q?: string; city?: string; sort?: string }>;
 }) {
   const params = await searchParams;
   // Free-text lives on /search now (ranked, Persian-aware). Keep old links working.
@@ -43,31 +78,44 @@ export default async function BusinessesPage({
   }
   const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
   const from = (page - 1) * PAGE_SIZE;
+  const sort = (SORTS.some((s) => s.key === params.sort) ? params.sort : undefined) as SortKey | undefined;
 
   const supabase = await createSupabaseServerClient();
-
-  let query = supabase
-    .from("businesses")
-    .select(CARD_COLUMNS, { count: "exact" })
-    .in("status", PUBLIC_STATUSES)
-    .order("created_at", { ascending: false })
-    .range(from, from + PAGE_SIZE - 1);
-
   const province = params.province ? resolveProvince(params.province) : null;
-  if (province) query = query.eq("province", province.nameEn);
-  if (params.category) query = query.eq("category", params.category);
-  if (params.city) query = query.ilike("city", params.city.trim());
-  // Free-text search over name / English name / short description. ilike
-  // escapes its argument; the pattern below only adds the wildcards.
-  // or() builds a filter string, so the term must not carry PostgREST syntax:
-  // strip commas, parentheses, dots and wildcards before interpolating.
-  const q = params.q?.trim().replace(/[,().%_\\*]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
-  if (q) {
-    const pat = `%${q}%`;
-    query = query.or(`name.ilike.${pat},name_en.ilike.${pat},short_description.ilike.${pat}`);
-  }
 
-  const { data: businesses, count } = await query;
+  let businesses: BusinessCardData[];
+  let total: number;
+
+  if (sort) {
+    // A stable, explicit order — the database does the sorting and the
+    // paging, same as any normal listing page.
+    const orderColumn = { views: "view_count", saved: "saved_count", new: "created_at", verified: "verified_at" }[sort];
+    let query = supabase.from("businesses").select(CARD_COLUMNS, { count: "exact" }).in("status", PUBLIC_STATUSES);
+    if (province) query = query.eq("province", province.nameEn);
+    if (params.category) query = query.eq("category", params.category);
+    if (params.city) query = query.ilike("city", params.city.trim());
+    const { data, count } = await query
+      .order(orderColumn, { ascending: false, nullsFirst: false })
+      .range(from, from + PAGE_SIZE - 1);
+    businesses = (data ?? []) as unknown as BusinessCardData[];
+    total = count ?? 0;
+  } else {
+    // No sort at all: pull every business the current filters match — the
+    // 1,000-row PostgREST default would silently truncate a large province —
+    // weighted-shuffle it fresh on every request, then slice the requested
+    // page. Pagination is therefore not stable across reloads in this mode;
+    // that instability is the feature Farjad asked for, not a bug in it.
+    const all = await fetchAllRows<BusinessCardData>(() => {
+      let query = supabase.from("businesses").select(CARD_COLUMNS).in("status", PUBLIC_STATUSES);
+      if (province) query = query.eq("province", province.nameEn);
+      if (params.category) query = query.eq("category", params.category);
+      if (params.city) query = query.ilike("city", params.city.trim());
+      return query.order("id") as never;
+    });
+    const shuffled = weightedRandomOrder(all);
+    total = shuffled.length;
+    businesses = shuffled.slice(from, from + PAGE_SIZE);
+  }
 
   const { data: categories } = await supabase
     .from("categories")
@@ -76,7 +124,6 @@ export default async function BusinessesPage({
     .order("display_order");
 
   const labels = new Map((categories ?? []).map((c) => [c.slug as string, c.name as string]));
-  const total = count ?? 0;
   const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const withParams = (next: Record<string, string | undefined>) => {
@@ -92,10 +139,30 @@ export default async function BusinessesPage({
       currentPath="/businesses"
       currentSection="business"
       eyebrow="فهرست کامل"
-      title={q ? `نتایج جستجو برای «${q}»` : "همه کسب‌وکارها"}
-      description={q ? `${total.toLocaleString("fa-IR")} کسب‌وکار پیدا شد.` : `${total.toLocaleString("fa-IR")} کسب‌وکار ثبت‌شده. با استان و دسته‌بندی محدودش کنید.`}
+      title="همه کسب‌وکارها"
+      description={`${total.toLocaleString("fa-IR")} کسب‌وکار ثبت‌شده. با استان و دسته‌بندی محدودش کن، یا ترتیب نمایش را عوض کن.`}
     >
       <section className="filter-bar">
+        <div className="filter-group">
+          <span className="filter-label">ترتیب</span>
+          <Link
+            href={withParams({ sort: undefined, page: undefined })}
+            className={`filter-chip${!sort ? " is-active" : ""}`}
+            title="بدون ترتیب ثابت — هر بار که این صفحه را باز کنی چیدمان فرق می‌کند"
+          >
+            <Shuffle size={13} className="ml-1 inline" /> تصادفی
+          </Link>
+          {SORTS.map(({ key, label, icon: Icon }) => (
+            <Link
+              key={key}
+              href={withParams({ sort: key, page: undefined })}
+              className={`filter-chip${sort === key ? " is-active" : ""}`}
+            >
+              <Icon size={13} className="ml-1 inline" /> {label}
+            </Link>
+          ))}
+        </div>
+
         <div className="filter-group">
           <span className="filter-label">استان</span>
           <Link
@@ -136,21 +203,13 @@ export default async function BusinessesPage({
       </section>
 
       <section className="province-listings">
-        <div className="listing-grid">
-          {(businesses ?? []).map((b) => (
-            <Link key={b.id as string} href={`/businesses/${b.slug}`} className="listing-card">
-              <strong>{b.name as string}</strong>
-              {b.short_description ? <p>{b.short_description as string}</p> : null}
-              <span className="listing-meta">
-                {[b.city, labels.get(b.category as string) ?? b.category]
-                  .filter((v) => v && v !== "نامشخص")
-                  .join(" · ")}
-              </span>
-            </Link>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {businesses.map((b) => (
+            <BusinessCard key={b.id} business={b} showViews categoryLabel={labels.get(b.category as string)} />
           ))}
         </div>
 
-        {(businesses ?? []).length === 0 ? (
+        {businesses.length === 0 ? (
           <p className="empty-note">با این فیلترها کسب‌وکاری پیدا نشد.</p>
         ) : null}
 
@@ -165,6 +224,7 @@ export default async function BusinessesPage({
             )}
             <span className="pager-status">
               صفحه {page.toLocaleString("fa-IR")} از {lastPage.toLocaleString("fa-IR")}
+              {!sort ? " · تصادفی — با هر بازگشایی عوض می‌شود" : ""}
             </span>
             {page < lastPage ? (
               <Link href={withParams({ page: String(page + 1) })} className="pager-btn">

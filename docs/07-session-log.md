@@ -4,6 +4,89 @@
 
 ---
 
+# 2026-08-19 — no default sort, a random-boost for paid placement, and Platinum
+
+Farjad's ask: `/businesses` should have **no default sort at all** — genuinely
+random, reshuffled on every page load — plus explicit filters, and a new
+paid mechanic: `featured_placement` businesses get 89% more selection weight
+in that random order. Alongside it, a fourth pricing tier and new prices.
+
+## Listing — `/businesses`
+
+- **Default:** no order. `weightedRandomOrder` (new, in `lib/billing/
+  entitlements.ts`) uses Efraimidis–Spirakis weighted sampling — each row
+  gets `Math.random() ** (1/weight)`, sorted descending — so the result is
+  still genuinely random on every call, not a fixed "featured always wins"
+  order. `FEATURED_RANDOM_BOOST = 0.89` lives in `plans.ts` next to the two
+  product rules, because raising it without keeping rule #2 true (paid
+  placement is always labelled) would be exactly the violation that rule
+  exists to prevent. The boost only applies to businesses BusinessCard
+  already renders the "ویژه" chip on — that's what makes it honest rather
+  than a hidden paid ranking.
+- **Four explicit sorts:** پربازدیدترین (`view_count`), پرمخاطب‌ترین (new
+  `businesses.saved_count`, trigger-maintained from `user_business_
+  interactions.personal_status = 'saved'` — same denormalise-for-cost
+  pattern as `view_count`), جدیدترین, تازه تأییدشده. Deliberately **not**
+  built: "highest rated" — too few published reviews today for a rating
+  sort to mean anything besides ties.
+- Default mode fetches the full filtered set with `fetchAllRows` (the SEO
+  session's 1,000-row-cap fix) and shuffles server-side, so pagination is
+  not stable across reloads in that mode — that instability is the feature,
+  not a bug in it. Explicit sorts stay a normal DB `order()` + `range()`.
+- Cards moved from a bespoke minimal link to the shared `BusinessCard` —
+  required so the "ویژه" chip actually renders here, not decoration.
+- `/pricing`'s "does payment affect order?" FAQ answer used to say no,
+  unconditionally. That stopped being true the moment the boost shipped;
+  rewrote it rather than let a paid feature contradict a promise on the
+  same site.
+
+## Pricing — four tiers, repriced
+
+Starter 19→**21**/mo (144/yr, 377/2yr), Premium 49→**34**/mo (377/yr,
+610/2yr — note Premium's monthly went *down*), new **Platinum**:
+144/quarter, quarterly billing only, capped at `PLATINUM_SEAT_CAP` (21)
+businesses nationwide.
+
+- `BillingInterval` gained `"2year"` and `"quarter"`. Stripe has no such
+  intervals — it's `{interval, interval_count}` — so `2year` = year×2,
+  `quarter` = month×3. Missed this once already inside the same session:
+  `subscriptions.interval`'s check constraint had to widen too
+  (`20260830280000_platinum_plan.sql`), found by reading the schema before
+  writing the webhook change, not after.
+- Platinum's exact feature list isn't decided yet (Farjad's call, later).
+  `features`/`GALLERY_LIMITS`/`ANNOUNCEMENT_LIMITS` give it Premium's floor
+  — a payer above Premium's price must not end up with less — but
+  `bullets` says only what's confirmed: the seat cap, quarterly-only,
+  "everything Premium has today," and that the exclusive list is coming.
+  No invented perks on a pricing page — house rule, not a new one.
+- Seat cap enforced at checkout (`api/stripe/checkout/route.ts`): counts
+  active Platinum businesses, refuses a new checkout at 21. Documented as a
+  read-then-check race, not a DB lock — acceptable for a 21-seat tier.
+- `scripts/seed-stripe-plans.mts` no longer hand-types a second copy of the
+  catalogue (it had drifted to the old $19/$49 prices); reads `PLANS`/
+  `PAID_PLANS`/`intervalsFor` directly and maps our intervals to Stripe's
+  interval+interval_count.
+- Two new migrations, both **unapplied** — `pnpm db:push` still pending
+  from the rebrand session too, now three deep. **`saved_count` is read
+  unconditionally by every `/businesses` request (default and all four
+  sorts) — the page 500s until this migration runs.** Committed, not
+  pushed to `main`, for exactly that reason: this repo auto-deploys on
+  push, and this migration gap would take a currently-working public page
+  down, unlike the SEO session's migration gap (additive, nothing broke).
+
+## Verified
+
+Typecheck (3 pkgs), production build (189 pages), lint error count
+unchanged (6 pre-existing), `check:brand` clean. `/businesses` and
+`/pricing` screenshotted against the live database — 5,120 total counted
+correctly (a grep bug in my own verification, not the code, first made it
+look like 120 — Persian's thousands separator ٬ isn't a Persian digit).
+`saved_count`-dependent paths verified with the column temporarily stripped
+from a local copy of the page, then reverted — real verification against
+the pending migration itself has to wait for `pnpm db:push`.
+
+---
+
 # 2026-08-18, night — the rebrand: čārana → GOPLAZA
 
 Farjad: the name has to change, for reasons outside the repo. Brand board

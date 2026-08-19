@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/api/stripe/webhook/route.ts
-// Version: 1.0.0 — 2026-08-16
+// Version: 2.0.0 — 2026-08-19
 // Why: The only writer of paid state. Everything a customer is entitled to
 //      flows from a Stripe event verified here.
 //
@@ -14,6 +14,13 @@
 //        4. **Always answer 200 once handled.** A non-2xx makes Stripe retry
 //           for days. Real failures are logged and surfaced through the admin,
 //           not through a retry storm.
+//
+//      v2: a fourth plan (Platinum) and two more billing intervals ("2year",
+//      "quarter") arrived without a fourth/fifth Stripe `recurring.interval`
+//      value to match — Stripe only has day/week/month/year, distinguished
+//      further by `interval_count` (year×2, month×3). `billingIntervalFromStripe`
+//      is the one place that maps Stripe's two fields back to our label; every
+//      other file reads that label, never Stripe's raw interval.
 // Env / Identity: Server only. Service role — this route is the one place
 //      allowed to change `businesses.plan`.
 // ============================================================================
@@ -22,7 +29,15 @@ import type Stripe from "stripe";
 
 import { stripe } from "@/lib/stripe/client";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import type { PlanId } from "@/lib/billing/plans";
+import { PAID_PLANS, type BillingInterval, type PlanId } from "@/lib/billing/plans";
+
+/** Stripe's (interval, interval_count) pair → our BillingInterval label. */
+function billingIntervalFromStripe(recurring: Stripe.Price.Recurring | null | undefined): BillingInterval {
+  if (!recurring) return "month";
+  if (recurring.interval === "year") return recurring.interval_count >= 2 ? "2year" : "year";
+  if (recurring.interval === "month") return recurring.interval_count >= 3 ? "quarter" : "month";
+  return "month";
+}
 
 export const dynamic = "force-dynamic";
 // The signature is computed over the exact bytes Stripe sent.
@@ -119,7 +134,11 @@ async function applySubscription(admin: Admin, sub: Stripe.Subscription) {
     return;
   }
 
-  const plan = ((sub.metadata?.plan as PlanId | undefined) ?? "pro") as PlanId;
+  // Trust the metadata plan only if it's one we actually sell — our own
+  // checkout route always sets it to a PAID_PLANS member, but a subscription
+  // created by hand in the Stripe dashboard (support, testing) might not.
+  const metaPlan = sub.metadata?.plan as PlanId | undefined;
+  const plan: PlanId = metaPlan && PAID_PLANS.includes(metaPlan) ? metaPlan : "pro";
   const item = sub.items.data[0];
   const periodEndUnix = item?.current_period_end ?? null;
   const periodEnd = periodEndUnix ? new Date(periodEndUnix * 1000).toISOString() : null;
@@ -129,12 +148,12 @@ async function applySubscription(admin: Admin, sub: Stripe.Subscription) {
     {
       business_id: businessId,
       owner_user_id: (sub.metadata?.user_id as string | undefined) ?? null,
-      plan: plan === "featured" ? "featured" : "pro",
+      plan,
       status: sub.status,
       stripe_customer_id: customerId,
       stripe_subscription_id: sub.id,
       stripe_price_id: item?.price?.id ?? null,
-      interval: item?.price?.recurring?.interval === "year" ? "year" : "month",
+      interval: billingIntervalFromStripe(item?.price?.recurring),
       current_period_end: periodEnd,
       cancel_at_period_end: sub.cancel_at_period_end ?? false,
       canceled_at: sub.canceled_at ? new Date(sub.canceled_at * 1000).toISOString() : null,

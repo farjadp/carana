@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/api/stripe/checkout/route.ts
-// Version: 1.0.0 — 2026-08-16
+// Version: 2.0.0 — 2026-08-19
 // Why: Start a subscription. Creates (or reuses) the Stripe customer for a
 //      business and returns a Checkout URL.
 //
@@ -8,11 +8,21 @@
 //      session must own the listing, checked here before anything is created.
 //      The plan and interval decide the price on the server, so a tampered
 //      request cannot buy Featured at the Pro price.
+//
+//      v2: Platinum is capped at PLATINUM_SEAT_CAP nationwide and sells only
+//      the "quarter" interval — both are enforced here, not just suggested by
+//      the pricing page UI. The seat count is read-then-check, not a
+//      database-level lock, so two people finishing checkout in the same
+//      instant could theoretically both succeed and overshoot by one seat;
+//      that is an accepted, documented race for a 21-seat tier, not something
+//      worth a Postgres advisory lock over. The webhook is still what actually
+//      grants the plan — this check only stops *starting* a checkout once the
+//      count already reads full.
 // Env / Identity: Server only. Requires a signed-in owner.
 // ============================================================================
 import { NextResponse, type NextRequest } from "next/server";
 
-import { PAID_PLANS, priceIdFor, type BillingInterval, type PlanId } from "@/lib/billing/plans";
+import { PAID_PLANS, PLATINUM_SEAT_CAP, intervalsFor, priceIdFor, type BillingInterval, type PlanId } from "@/lib/billing/plans";
 import { requireUser } from "@/lib/auth/session";
 import { stripe } from "@/lib/stripe/client";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
@@ -35,8 +45,16 @@ export async function POST(req: NextRequest) {
   }
 
   const plan = String(body.plan ?? "") as PlanId;
-  const interval = (body.interval === "year" ? "year" : "month") as BillingInterval;
   if (!PAID_PLANS.includes(plan)) return NextResponse.json({ error: "پلن نامعتبر است." }, { status: 400 });
+
+  // Each plan only sells some intervals (Platinum: quarter only) — a request
+  // for one it doesn't sell is rejected here, not silently coerced to
+  // whichever interval happens to have a price id.
+  const allowedIntervals = intervalsFor(plan);
+  const interval = body.interval as BillingInterval;
+  if (!allowedIntervals.includes(interval)) {
+    return NextResponse.json({ error: "این دوره‌ی پرداخت برای این پلن وجود ندارد." }, { status: 400 });
+  }
 
   const priceId = priceIdFor(plan, interval);
   if (!priceId) {
@@ -57,6 +75,21 @@ export async function POST(req: NextRequest) {
   if (!business) return NextResponse.json({ error: "کسب‌وکار پیدا نشد." }, { status: 404 });
   if (business.owner_user_id !== user.id && business.created_by !== user.id) {
     return NextResponse.json({ error: "این کسب‌وکار برای شما نیست." }, { status: 403 });
+  }
+
+  // Platinum's seat cap. A business already holding Platinum (renewing, or
+  // switching interval — though there's only one interval) does not count
+  // against its own seat.
+  if (plan === "platinum" && business.plan !== "platinum") {
+    const nowIso = new Date().toISOString();
+    const { count } = await supabase
+      .from("businesses")
+      .select("id", { count: "exact", head: true })
+      .eq("plan", "platinum")
+      .or(`plan_until.is.null,plan_until.gte.${nowIso}`);
+    if ((count ?? 0) >= PLATINUM_SEAT_CAP) {
+      return NextResponse.json({ error: `ظرفیت پلن پلاتینیوم تکمیل شده است (${PLATINUM_SEAT_CAP} از ${PLATINUM_SEAT_CAP}).` }, { status: 409 });
+    }
   }
 
   const s = stripe();

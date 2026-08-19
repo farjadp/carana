@@ -1026,3 +1026,22 @@ page served from the old domain self-canonicalised there.
 **Fix.** `metadataBase: new URL(env.baseUrl)` in the root layout.
 **Lesson.** It looks harmless while one domain exists. It only bites when a
 second one appears — which is precisely when canonicals matter most.
+
+## Stripe has no "2-year" or "quarterly" interval — it's interval × interval_count
+
+**Symptom.** Would be: `Stripe.prices.create({ recurring: { interval:
+"quarter" } })` throws, because `"quarter"` is not a valid `interval` value.
+**Cause.** Stripe's `recurring.interval` is only `day|week|month|year`; a
+different cadence is `interval_count` on one of those — 2-year billing is
+`{interval:"year", interval_count:2}`, quarterly is
+`{interval:"month", interval_count:3}`.
+**Fix.** `packages/core/src/plans.ts`'s `BillingInterval` type (`month`,
+`year`, `"2year"`, `"quarter"`) is our label, never Stripe's. Two mapping
+points, both one-directional and must be kept in sync manually if a fifth
+interval is ever added: `scripts/seed-stripe-plans.mts`'s `STRIPE_RECURRING`
+(ours → Stripe, at price-creation time) and `app/api/stripe/webhook/route.ts`'s
+`billingIntervalFromStripe` (Stripe → ours, reading a subscription back).
+**Lesson.** Whenever a billing cadence beyond month/year is added, check
+both directions before assuming `recurring.interval` alone tells you
+anything — `interval_count` is not optional context, it can change what
+the interval *means*.

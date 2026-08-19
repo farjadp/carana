@@ -1,6 +1,6 @@
 # GOPLAZA — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-18 (night, rebrand) · **Docs version:** 3.6
+**Written:** 2026-08-24 · **Updated:** 2026-08-19 (listing random-order + Platinum) · **Docs version:** 3.7
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://goplaza.ca (**rebranded from čārana on 2026-08-18** — branch `rebrand/goplaza`; the domain, Supabase URLs, Resend and Stripe still need the dashboard steps in `REBRAND_EXTERNAL_ACTIONS.md` before this is true in production. Until then charana.ca is what resolves.)
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -40,6 +40,8 @@ D-U-N-S.
 | Billing | **Stripe subscriptions built and tested in sandbox**: checkout, portal, webhook, invoices, `/pricing`, server-side entitlements. Live mode needs the dashboard work in `05-open-tasks` |
 | Featured placement | **Fully renders.** City × category lists, `/cities/[slug]`, `/search`, and the home page's «ویژه» section all sort featured-first (expiry-aware) and show the chip on `BusinessCard`; nobody has bought it yet, so nothing shows today — that's correct, not broken |
 | Plans v2 | Pro → **استارتر (Starter)**, Featured → **پریمیوم (Premium)** (display names only — `PlanId` stays `pro`/`featured`). Five tiered features shipped: **gallery**, **review replies**, **busy now/quiet now**, **announcements**, **vanity English URL**. Plus **announcement discovery** (not plan-gated). `plans.ts` now lives in `@goplaza/core`, so web, mobile and the server clamps read one table. SMS/push, price-list extraction and mobile owner screens are backlog |
+| Plans v3 (19 Aug) | Fourth tier **پلاتینیوم (Platinum)** — 21-seat cap nationwide, quarterly billing only, feature list TBD (floors at Premium's). Repriced Starter $19→$21/mo, Premium $49→$34/mo. New intervals `2year`/`quarter` (Stripe: interval×interval_count, see `06-gotchas`). **Blocked on `pnpm db:push`** — code committed, not pushed, see `05-open-tasks` |
+| `/businesses` listing (19 Aug) | Default order is **genuinely random, reshuffled every load** — no default sort at all, by design. Featured/Platinum get `FEATURED_RANDOM_BOOST` (89%) more weight in that shuffle, still labelled with the «ویژه» chip. Four explicit sorts: پربازدیدترین، پرمخاطب‌ترین (new `saved_count`), جدیدترین، تازه‌تأییدشده. **The پرمخاطب‌ترین sort and the random default both 500 until `saved_count`'s migration runs** |
 | Header CSS bug | **Fixed 16 Aug.** Two `.site-header` definitions were fighting since the Aug 23 rebuild — old padding/border-radius/box-shadow leaked through at every width, and `position: sticky` was lost entirely below 720px. See `06-gotchas.md` |
 | Home page | **Redesigned 16 Aug (`484866f`)** around search-first. Killed three duplications (newest/popular showed the same businesses, owner CTA appeared 3×, trust argued twice + legal links repeated from the footer) and two bugs (`/categories/all` 404 link, hard-coded `+۶۷۷` chip vs the live 680) |
 | Footer status bar | **Live, web + app.** Tehran clock, Jalali + Shahanshahi date (shared logic in `@goplaza/core`), real free-market USD/EUR/CAD via Navasan. Key is now set in Vercel, so rates render in production; a 3-day staleness guard drops dead symbols |

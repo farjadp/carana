@@ -16,7 +16,7 @@
 // ============================================================================
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { ANNOUNCEMENT_LIMITS, GALLERY_LIMITS, PLANS, planOf, type Feature, type PlanId } from "./plans";
+import { ANNOUNCEMENT_LIMITS, FEATURED_RANDOM_BOOST, GALLERY_LIMITS, PLANS, planOf, type Feature, type PlanId } from "./plans";
 
 export type Entitlements = {
   plan: PlanId;
@@ -69,3 +69,31 @@ export function sortFeaturedFirst<T extends BillingRow & { id: string }>(rows: T
 }
 
 export const planLabel = (id: string | null | undefined) => planOf(id).name;
+
+/**
+ * The default "no sort" listing order: genuinely random on every call, with
+ * `featured_placement` businesses (Premium, Platinum) getting
+ * `FEATURED_RANDOM_BOOST` (89%) more selection weight than everyone else.
+ *
+ * Algorithm: Efraimidis–Spirakis weighted random sampling — each row gets a
+ * key of `Math.random() ** (1 / weight)`, sorted descending. A higher weight
+ * raises a row's *expected* rank; it does not fix it, so two calls with the
+ * same input still produce different orders. This is why the boost is
+ * honest rather than a paid-and-hidden ranking (house rule #2 in plans.ts):
+ * the outcome is still random, and every business it can lift already wears
+ * the "ویژه" chip that BusinessCard renders unconditionally — callers must
+ * render that card (or something that shows the same chip) or the boost has
+ * no visible justification.
+ *
+ * Callers decide how much of the filtered set to pass in; this does not
+ * paginate or query.
+ */
+export function weightedRandomOrder<T extends BillingRow>(rows: T[], now = new Date()): T[] {
+  return rows
+    .map((row) => {
+      const weight = entitlementsFor(row, now).has("featured_placement") ? 1 + FEATURED_RANDOM_BOOST : 1;
+      return { row, key: Math.random() ** (1 / weight) };
+    })
+    .sort((a, b) => b.key - a.key)
+    .map((x) => x.row);
+}

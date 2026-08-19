@@ -1,7 +1,27 @@
 # Open tasks
 
-**Updated:** 2026-08-18, end of the jobs-board session (three commits: board, editor + AI, mobile + feature lists).
+**Updated:** 2026-08-19 — `pnpm db:push` is now the single blocker on three
+unapplied migrations, one of which breaks a live page. See below before
+anything else.
+
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
+
+## `pnpm db:push` — run this before the next deploy touches `main`
+
+Three migrations are committed and unapplied, oldest first:
+
+1. `20260830270000_rebrand_goplaza.sql` — data-only, čārana→GOPLAZA in two `blog_categories` rows. Cosmetic gap, not urgent.
+2. `20260830280000_platinum_plan.sql` — widens the `plan`/`interval` check constraints for the fourth plan tier. Nothing depends on it existing yet (no Platinum checkout has run).
+3. `20260830290000_saved_count.sql` — adds `businesses.saved_count`, backfills it, keeps it correct with a trigger.
+
+**#3 is the one that matters today.** `/businesses` (the "پرمخاطب‌ترین" sort
+and, more importantly, the *default* random view) selects `saved_count`
+unconditionally on every request. Without the column, every request to
+`/businesses` — the page linked from the main nav — 500s. That code is
+**committed locally but not pushed to `main`** for exactly this reason: this
+repo auto-deploys on push to `main`, and pushing now would take a
+currently-working public page down until you run this. Run `pnpm db:push`,
+confirm `/businesses` loads, then say so — the commit gets pushed right after.
 
 ## Rebrand → GOPLAZA (18 Aug night, branch `rebrand/goplaza`) — Farjad's dashboards
 

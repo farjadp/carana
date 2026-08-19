@@ -18,7 +18,7 @@ import { ArrowRight } from "lucide-react";
 import { PageShell } from "@/components/page-shell";
 import { requireUser } from "@/lib/auth/session";
 import { entitlementsFor } from "@/lib/billing/entitlements";
-import { PLANS } from "@/lib/billing/plans";
+import { PLANS, PLATINUM_SEAT_CAP } from "@/lib/billing/plans";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BillingClient, type InvoiceRow, type SubscriptionRow } from "./billing-client";
 
@@ -41,12 +41,15 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
     if (profile?.role !== "admin" && profile?.role !== "moderator") redirect("/dashboard/business");
   }
 
-  const [{ data: subs }, { data: invoices }] = await Promise.all([
+  const nowIso = new Date().toISOString();
+  const [{ data: subs }, { data: invoices }, { count: platinumTaken }] = await Promise.all([
     supabase.from("subscriptions").select("*").eq("business_id", id).order("created_at", { ascending: false }).limit(5),
     supabase.from("invoices").select("*").eq("business_id", id).order("created_at", { ascending: false }).limit(24),
+    supabase.from("businesses").select("id", { count: "exact", head: true }).eq("plan", "platinum").or(`plan_until.is.null,plan_until.gte.${nowIso}`),
   ]);
 
   const ent = entitlementsFor(business);
+  const platinumSeatsLeft = Math.max(0, PLATINUM_SEAT_CAP - (platinumTaken ?? 0));
 
   return (
     <PageShell currentPath={`/dashboard/business/${id}/billing`} currentSection="business">
@@ -63,7 +66,8 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
           expired={ent.expired}
           until={ent.until}
           hasCustomer={!!business.stripe_customer_id}
-          plans={[PLANS.pro, PLANS.featured]}
+          plans={[PLANS.pro, PLANS.featured, PLANS.platinum]}
+          platinumSeatsLeft={platinumSeatsLeft}
           subscription={(subs?.[0] ?? null) as SubscriptionRow | null}
           invoices={(invoices ?? []) as InvoiceRow[]}
         />
