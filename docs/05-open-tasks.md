@@ -6,22 +6,20 @@ anything else.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
-## `pnpm db:push` — run this before the next deploy touches `main`
+## ~~`pnpm db:push`~~ — done, 19 Aug
 
-Three migrations are committed and unapplied, oldest first:
+All three pending migrations applied — not via `pnpm db:push` (the CLI kept
+hitting its interactive DB-password prompt), but by running each file's SQL
+directly in the Supabase Dashboard → SQL Editor. `businesses.saved_count`
+confirmed present and backfilled over REST; commit `29f222f` (random-order
+`/businesses` + Platinum pricing) pushed to `main` right after.
 
-1. `20260830270000_rebrand_goplaza.sql` — data-only, čārana→GOPLAZA in two `blog_categories` rows. Cosmetic gap, not urgent.
-2. `20260830280000_platinum_plan.sql` — widens the `plan`/`interval` check constraints for the fourth plan tier. Nothing depends on it existing yet (no Platinum checkout has run).
-3. `20260830290000_saved_count.sql` — adds `businesses.saved_count`, backfills it, keeps it correct with a trigger.
-
-**#3 is the one that matters today.** `/businesses` (the "پرمخاطب‌ترین" sort
-and, more importantly, the *default* random view) selects `saved_count`
-unconditionally on every request. Without the column, every request to
-`/businesses` — the page linked from the main nav — 500s. That code is
-**committed locally but not pushed to `main`** for exactly this reason: this
-repo auto-deploys on push to `main`, and pushing now would take a
-currently-working public page down until you run this. Run `pnpm db:push`,
-confirm `/businesses` loads, then say so — the commit gets pushed right after.
+**Housekeeping, not urgent:** the CLI's own migration-history table may not
+know these three ran, since they went in outside `db push`. Next real
+`pnpm db:push` might try to re-apply one and hit an "already exists" error —
+if so, `npx supabase migration repair --status applied <version>` for that
+timestamp, then push again. Not worth doing pre-emptively; deal with it if
+it happens.
 
 ## Rebrand → GOPLAZA (18 Aug night, branch `rebrand/goplaza`) — Farjad's dashboards
 
