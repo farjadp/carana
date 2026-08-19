@@ -61,6 +61,27 @@ Verified: typecheck (3 packages), web build (189 pages), lint error count
 unchanged (6 pre-existing, none new), `expo config` valid, `check:brand`
 clean, screenshots of home / login / story / 404 / mobile width.
 
+## Same night, after Farjad asked: the login claim and the app version
+
+- **«۲۰,۰۰۰+ کسب‌وکارهای ثبت‌شده» on the auth panel is gone.** It was a
+  hard-coded string in `auth-form.tsx`, alongside «پوشش سراسری کانادا» over
+  «تورنتو، ونکوور، مونترال» — a coverage claim nothing backed either. The
+  panel now takes a `stats` prop and shows real counts, or nothing when they
+  are absent. New `lib/data/directory-stats.ts` is the one counter; the home
+  hero was refactored onto it so the two can never disagree.
+- **A second bug fell out of it:** the distinct-city count included the
+  sentinel `"نامشخص"` that the 409 city-less imports carry, so the home hero
+  had been saying 46 cities when 45 are real, and the new panel would have
+  advertised «نامشخص» as a top city. `UNKNOWN_CITY` is now exported from
+  `geography.ts` and excluded. Fake data does not become true by being
+  counted.
+- **App version:** `app.json` 1.2.0 → **1.3.0**, because the rebrand changes
+  the name, icon and URL scheme and must not ship as "1.2.0". Deliberately
+  *not* changed: `APP_VERSION` and the `STORES.*` fields in `releases.ts`, and
+  no new `RELEASES` entry — no 1.3.0 binary exists, and `/download` is a
+  download promise, not a changelog of intent. The rule is written into the
+  file so the mismatch is not "tidied up" later.
+
 ---
 
 # 2026-08-18 — the jobs board, built

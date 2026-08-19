@@ -42,6 +42,7 @@ import { Search, MapPin, ArrowLeft, Star, ShieldCheck, Bookmark, MessageSquare, 
 
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
+import { getDirectoryStats } from "@/lib/data/directory-stats";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BusinessCard } from "@/components/business/business-card";
 import { HomeHero } from "@/components/home-hero";
@@ -136,19 +137,11 @@ export default async function HomePage() {
     .limit(18);
 
   // Live numbers for the hero — every one is a real count, never a claim.
-  const [{ count: totalCount }, { count: verifiedCount }, { data: cityRows }, { count: categoryCount }] =
-    await Promise.all([
-      supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", ["APPROVED", "PUBLISHED"]),
-      supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", ["APPROVED", "PUBLISHED"]).gt("verified_until", nowIso),
-      supabase.from("businesses").select("city").in("status", ["APPROVED", "PUBLISHED"]).not("city", "is", null),
-      supabase.from("categories").select("id", { count: "exact", head: true }).eq("is_active", true),
-    ]);
-  const cityCount = new Set((cityRows ?? []).map((r) => (r.city as string).trim().toLowerCase()).filter(Boolean)).size;
+  // Shared with the auth panel through one helper so the two never disagree.
+  const directory = await getDirectoryStats();
   const catLabel = new Map((categories ?? []).map((c) => [c.slug as string, c.name as string]));
-  const stats = { total: totalCount ?? 0, verified: verifiedCount ?? 0, cities: cityCount, categories: categoryCount ?? 0 };
-  const cityFreq = new Map<string, number>();
-  for (const r of cityRows ?? []) { const c = (r.city as string).trim(); if (c) cityFreq.set(c, (cityFreq.get(c) ?? 0) + 1); }
-  const topCities = [...cityFreq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([c]) => c);
+  const stats = { total: directory.total, verified: directory.verified, cities: directory.cities, categories: directory.categories };
+  const topCities = directory.topCities.slice(0, 12);
 
   // The fix for the repetition Farjad saw: a business already shown as "newest"
   // never appears again as "most visited". Two sections that restate each

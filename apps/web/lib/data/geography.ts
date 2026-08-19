@@ -10,7 +10,7 @@ import { PUBLIC_STATUSES, resolveProvince, type Province } from "@goplaza/core";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /** Cities whose value is a placeholder rather than a real location. */
-const UNKNOWN_CITY = "نامشخص";
+export const UNKNOWN_CITY = "نامشخص";
 
 export type ProvinceSummary = {
   province: Province;

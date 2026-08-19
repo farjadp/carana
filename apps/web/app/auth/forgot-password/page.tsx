@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 
 import { AuthForm } from "@/components/auth-form";
 import { PageShell } from "@/components/page-shell";
+import { getDirectoryStats } from "@/lib/data/directory-stats";
 import { redirectIfAuthenticated } from "@/lib/auth/session";
 import { sanitizeAuthSearchParams } from "@/lib/auth/sanitize";
 
@@ -23,10 +24,12 @@ export default async function ForgotPasswordPage({
   await sanitizeAuthSearchParams("/auth/forgot-password", searchParams);
   await redirectIfAuthenticated("/profile");
 
+  const stats = await getDirectoryStats();
+
   return (
     <PageShell currentPath="/auth/forgot-password" currentSection="business">
       <main className="page-main">
-        <AuthForm mode="forgot" />
+        <AuthForm mode="forgot" stats={stats} />
       </main>
     </PageShell>
   );

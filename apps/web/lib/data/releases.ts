@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: lib/data/releases.ts
-// Version: 1.0.0 — 2026-08-15
+// Version: 1.1.0 — 2026-08-18
 // Why: One source of truth for "where do I get the app" and "what changed".
 //      The download page, the releases page and the home app section all read
 //      this. Store URLs are empty until the listings exist — the UI must say
@@ -9,6 +9,17 @@
 // Env / Identity: Public information only.
 // ============================================================================
 
+/**
+ * The version a visitor can actually download today — NOT the version in
+ * apps/mobile/app.json, which is what the *next* native build will be.
+ *
+ * After the 2026-08-18 rebrand app.json moved to 1.3.0 (new name, icon, second
+ * URL scheme) but no 1.3.0 binary has been built, so everything on this page
+ * still describes 1.2.0. When the 1.3.0 APK exists, change APP_VERSION,
+ * STORES.apkDirect / apkVersion / apkSizeMb / apkBuiltAt and add a RELEASES
+ * entry in the same commit. Never bump one without the others — this page is
+ * a download promise, not a changelog of intent.
+ */
 export const APP_VERSION = "1.2.0";
 
 export const STORES = {

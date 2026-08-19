@@ -1,7 +1,11 @@
 // ============================================================================
 // Source: components/auth-form.tsx
-// Version: 2.0.0 — 2026-08-11
+// Version: 2.1.0 — 2026-08-18
 // Why: Premium, user-friendly split-panel auth layout with lazy env and password show/hide.
+//      v2.1: the brand panel's stats box read "۲۰,۰۰۰+ کسب‌وکارهای ثبت‌شده"
+//      and "پوشش سراسری کانادا" — neither was backed by anything. It now shows
+//      the counts the caller passes from getDirectoryStats(), and shows
+//      nothing when they are absent. Same rule as the home hero.
 // Env / Identity: Uses client-side browser client and standard signup API.
 // ============================================================================
 "use client";
@@ -36,6 +40,12 @@ import { Label } from "@/components/ui/label";
 
 type AuthMode = "login" | "signup" | "forgot" | "update-password";
 
+/** Live directory counts for the brand panel. Omit and the box is not shown. */
+export type AuthPanelStats = { total: number; cities: number; topCities: string[] };
+
+const FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
+const fa = (n: number) => String(n).replace(/\d/g, (d) => FA_DIGITS[Number(d)]);
+
 const modeCopy: Record<
   AuthMode,
   {
@@ -68,7 +78,7 @@ const modeCopy: Record<
   },
 };
 
-export function AuthForm({ mode }: { mode: AuthMode }) {
+export function AuthForm({ mode, stats }: { mode: AuthMode; stats?: AuthPanelStats }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -250,19 +260,25 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           </div>
         </div>
 
-        <div className="brand-side-footer">
-          <div className="stats-box">
-            <div>
-              <strong>۲۰,۰۰۰+</strong>
-              <span>کسب‌وکارهای ثبت‌شده</span>
-            </div>
-            <div className="stats-divider" />
-            <div>
-              <span>تورنتو، ونکوور، مونترال</span>
-              <strong>پوشش سراسری کانادا</strong>
+        {/* Real counts or nothing. Never a rounded-up claim — the previous
+            "۲۰,۰۰۰+" was fiction against a directory of a few thousand. */}
+        {stats && stats.total > 0 ? (
+          <div className="brand-side-footer">
+            <div className="stats-box">
+              <div>
+                <strong>{fa(stats.total)}</strong>
+                <span>کسب‌وکار ثبت‌شده</span>
+              </div>
+              <div className="stats-divider" />
+              <div>
+                {stats.topCities.length ? (
+                  <span>{stats.topCities.slice(0, 3).join("، ")}</span>
+                ) : null}
+                <strong>در {fa(stats.cities)} شهر کانادا</strong>
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
       </div>
 
       {/* Right Column: Glassmorphic Auth Form */}

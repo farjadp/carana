@@ -55,7 +55,11 @@ Authentication → URL Configuration:
 - [ ] Bundle id / package `ca.charana.app` stays. A new id = a new app.
 - [ ] Next APK/store build: `expo prebuild --clean` so the regenerated native
       projects pick up the display name, icons, adaptive-icon background and
-      the second URL scheme.
+      the second URL scheme. `app.json` is already at **1.3.0**.
+- [ ] When that 1.3.0 build exists, update `apps/web/lib/data/releases.ts` in
+      one commit: `APP_VERSION`, `STORES.apkDirect` / `apkVersion` /
+      `apkSizeMb` / `apkBuiltAt`, and a new `RELEASES` entry. Until then the
+      download page correctly still offers 1.2.0 — the last binary that exists.
 - [ ] Store listings (when they exist): name GOPLAZA, new icon, new screenshots.
 - [ ] Android App Links: `assetlinks.json` is served from goplaza.ca automatically
       once the domain points at Vercel; the app declares both hosts.
