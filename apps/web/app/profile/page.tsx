@@ -35,7 +35,7 @@ export default async function ProfilePage() {
         <section className="mb-8">
           <h1 className="text-3xl font-black text-[color:var(--text)] mb-2">داشبورد کاربری</h1>
           <p className="text-[color:var(--muted-text)]">
-            به پنل کاربری چارانا خوش آمدید. از اینجا می‌توانید فعالیت‌ها و اطلاعات خود را مدیریت کنید.
+            به پنل کاربری گوپلازا خوش آمدید. از اینجا می‌توانید فعالیت‌ها و اطلاعات خود را مدیریت کنید.
           </p>
         </section>
 

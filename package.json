@@ -1,5 +1,5 @@
 {
-  "name": "charana",
+  "name": "goplaza",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,8 +7,9 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "dev:web": "turbo dev --filter=@charana/web",
-    "dev:mobile": "turbo dev --filter=@charana/mobile",
+    "check:brand": "node scripts/check-brand.mjs",
+    "dev:web": "turbo dev --filter=@goplaza/web",
+    "dev:mobile": "turbo dev --filter=@goplaza/mobile",
     "gen:types": "npx supabase gen types typescript --linked --schema public > packages/core/src/database.types.ts",
     "db:push": "npx supabase db push",
     "db:diff": "npx supabase db diff"

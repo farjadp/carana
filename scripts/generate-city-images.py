@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate the city card backgrounds for the čārana home page.
+Generate the city card backgrounds for the GOPLAZA home page.
 
 These are backgrounds, not photographs to admire. Persian city names sit on top
 of them, so the shared system below is written around legibility first: dark,

@@ -1,7 +1,7 @@
 // ============================================================================
 // Source: apps/mobile/src/app/blog/index.tsx
 // Version: 1.0.0 — 2026-08-16
-// Why: The blog list in the app — same posts as charana.ca/blog, read straight
+// Why: The blog list in the app — same posts as goplaza.ca/blog, read straight
 //      from Supabase (RLS returns published only).
 // Env / Identity: Public reads.
 // ============================================================================
@@ -65,7 +65,7 @@ export default function BlogListScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(active); }} tintColor={colors.annabi} />}
         ListHeaderComponent={
           <View style={{ gap: space.sm, marginBottom: space.sm }}>
-            <Text style={styles.lede}>راهنماها، شهرها و آنچه داده‌های چارانا درباره‌ی ایرانیان کانادا می‌گویند.</Text>
+            <Text style={styles.lede}>راهنماها، شهرها و آنچه داده‌های گوپلازا درباره‌ی ایرانیان کانادا می‌گویند.</Text>
             <FlatList
               horizontal
               inverted

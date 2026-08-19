@@ -169,7 +169,7 @@ export function WebsiteImport({
           <Button
             type="button"
             onClick={() => onApply(data)}
-            className="bg-[color:var(--annabi)] hover:bg-[#5c0000] text-white h-12 rounded-xl flex-1 gap-2 font-bold"
+            className="bg-[color:var(--annabi)] hover:bg-[#5A1124] text-white h-12 rounded-xl flex-1 gap-2 font-bold"
           >
             <Wand2 size={18} /> با این اطلاعات فرم را پر کن
           </Button>
@@ -250,7 +250,7 @@ export function WebsiteImport({
           <Button
             type="submit"
             disabled={pending || !url.trim()}
-            className="bg-[color:var(--annabi)] hover:bg-[#5c0000] text-white h-12 rounded-xl flex-1 gap-2 font-bold"
+            className="bg-[color:var(--annabi)] hover:bg-[#5A1124] text-white h-12 rounded-xl flex-1 gap-2 font-bold"
           >
             {pending ? <Loader2 size={18} className="animate-spin" /> : <Wand2 size={18} />}
             بخوان و فرم را پر کن

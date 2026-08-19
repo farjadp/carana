@@ -6,6 +6,7 @@
 //      not have to know which surface a report came from to read it.
 // Env / Identity: No sign-in required; the token rides along when there is one.
 // ============================================================================
+import { brand } from "@goplaza/core";
 import { useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { CheckCircle2, Flag, X } from "lucide-react-native";
@@ -13,7 +14,7 @@ import { CheckCircle2, Flag, X } from "lucide-react-native";
 import { supabase } from "../lib/supabase";
 import { colors, fonts, radius, space, type } from "../theme";
 
-const BASE = (process.env.EXPO_PUBLIC_API_URL ?? "https://charana.ca").replace(/\/$/, "");
+const BASE = (process.env.EXPO_PUBLIC_API_URL ?? brand.url).replace(/\/$/, "");
 
 const REASONS: { value: string; label: string; hint?: string }[] = [
   { value: "closed", label: "این کسب‌وکار تعطیل شده است" },
@@ -77,7 +78,7 @@ export function ReportSheet({ businessId, businessName }: { businessId: string; 
               <View style={styles.doneWrap}>
                 <CheckCircle2 size={38} color={colors.success} />
                 <Text style={styles.doneTitle}>گزارش ثبت شد</Text>
-                <Text style={styles.doneBody}>در صف بررسی تیم چاراناست. اگر تغییری لازم باشد اعمال می‌کنیم.</Text>
+                <Text style={styles.doneBody}>در صف بررسی تیم گوپلازاست. اگر تغییری لازم باشد اعمال می‌کنیم.</Text>
                 <Pressable onPress={close} style={styles.doneBtn}><Text style={styles.doneBtnText}>بستن</Text></Pressable>
               </View>
             ) : (
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 16, fontFamily: fonts.heavy, color: colors.text, textAlign: "right" },
   sub: { ...type.muted, textAlign: "right" },
   option: { flexDirection: "row-reverse", alignItems: "center", gap: space.sm, padding: space.sm + 2, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, marginBottom: 6 },
-  optionOn: { borderColor: "rgba(128,0,0,0.4)", backgroundColor: colors.softAnnabi },
+  optionOn: { borderColor: "rgba(122,24,49,0.4)", backgroundColor: colors.softAnnabi },
   radio: { width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: colors.line },
   radioOn: { borderColor: colors.annabi, backgroundColor: colors.annabi },
   optionLabel: { fontSize: 13.5, fontFamily: fonts.bold, color: colors.text, textAlign: "right" },

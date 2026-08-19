@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2600 700" role="img" aria-labelledby="t">
+  <title id="t">GOPLAZA — Discover. Connect. Grow.</title>
+  <g transform="translate(60 50) scale(0.6)"><path fill="#7A1831" d="M 813 176 A 450 450 0 1 0 711 897 L 627 738 A 270 270 0 1 1 643 271 Z"/><path fill="#7A1831" d="M 470 410 H 920 V 900 H 836 L 730 774 V 590 H 470 Z"/></g>
+  <text x="760" y="440" font-family="Montserrat, 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="330" letter-spacing="30">
+    <tspan fill="#7A1831">GO</tspan><tspan fill="#14213D">PLAZA</tspan>
+  </text>
+  <line x1="780" y1="560" x2="1120" y2="560" stroke="#C9A24B" stroke-width="6"/>
+  <text x="1170" y="580" font-family="Montserrat, 'Helvetica Neue', Arial, sans-serif" font-weight="500" font-size="72" fill="#14213D" letter-spacing="2">Discover. Connect. Grow.</text>
+  <line x1="2160" y1="560" x2="2500" y2="560" stroke="#C9A24B" stroke-width="6"/>
+</svg>

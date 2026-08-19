@@ -59,10 +59,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const h1 = localHeadline(city.nameFa, cat.name);
   const path = `/cities/${city.slug}/${category}`;
   return {
-    title: `${h1} | ${s.total ? `${fa(s.total)} مورد` : "چارانا"}`,
+    title: `${h1} | ${s.total ? `${fa(s.total)} مورد` : "گوپلازا"}`,
     description: s.total
-      ? `${fa(s.total)} ${h1.replace(` در ${city.nameFa}`, "")} در ${city.nameFa} و اطراف (${city.neighborhoods.slice(0, 4).join("، ")}) — ${fa(s.verified)} تأییدشده. شماره، ساعت کاری، مسیر و رزرو در چارانا.`
-      : `${h1} — به‌زودی. ثبت رایگان کسب‌وکار در چارانا.`,
+      ? `${fa(s.total)} ${h1.replace(` در ${city.nameFa}`, "")} در ${city.nameFa} و اطراف (${city.neighborhoods.slice(0, 4).join("، ")}) — ${fa(s.verified)} تأییدشده. شماره، ساعت کاری، مسیر و رزرو در گوپلازا.`
+      : `${h1} — به‌زودی. ثبت رایگان کسب‌وکار در گوپلازا.`,
     alternates: { canonical: path },
     robots: s.total >= MIN_INDEXABLE ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: { title: h1, description: cat.description, url: path, images: cat.imageUrl ? [{ url: cat.imageUrl }] : undefined },

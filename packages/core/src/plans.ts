@@ -25,7 +25,7 @@
 //      internal id would touch all of those for a label change alone. Only
 //      `name`/`nameEn` and the feature set changed.
 //      v3 (16 Aug): moved from apps/web/lib/billing/plans.ts into
-//      @charana/core so the mobile features screen reads the same
+//      @goplaza/core so the mobile features screen reads the same
 //      quantities the web page and the server clamp against — the same
 //      move verification-status and live-status already made. A second
 //      hand-typed copy of GALLERY_LIMITS on mobile is exactly how a
@@ -52,7 +52,7 @@ export type Feature =
   | "booking_link"
   | "review_replies"
   | "busy_status"         // manual, self-expiring "busy now / quiet now"
-  | "vanity_url"          // charana.ca/b/[custom-english-slug]
+  | "vanity_url"          // GoPlaza.ca/b/[custom-english-slug]
   | "featured_placement"  // top of its city × category list, labelled
   | "homepage_slot"
   | "owner_privacy"       // hide the "owner" section on the public profile
@@ -144,7 +144,7 @@ export const PLANS: Record<PlanId, Plan> = {
     bullets: [
       "همه‌ی امکانات استارتر",
       "گالری و اعلان نامحدود",
-      "آدرس اختصاصی انگلیسی (charana.ca/b/...)",
+      "آدرس اختصاصی انگلیسی (GoPlaza.ca/b/...)",
       "جایگاه بالای فهرست شهر و دسته‌ی خودت، با برچسب «ویژه»",
       "حضور در بخش ویژه‌ی صفحه‌ی اول",
       "اختیار نمایش یا پنهان کردن نام صاحب کسب‌وکار",

@@ -9,7 +9,7 @@
 // ============================================================================
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { PUBLIC_STATUSES } from "@charana/core";
+import { PUBLIC_STATUSES } from "@goplaza/core";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

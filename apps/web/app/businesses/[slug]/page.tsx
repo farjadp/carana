@@ -16,7 +16,7 @@ import BusinessProfileClient from "./business-profile-client";
 import { JsonLd } from "@/components/json-ld";
 import { breadcrumbLd, localBusinessLd } from "@/lib/seo/local";
 import { getVerificationStatus, isTrusted } from "@/lib/verification/status";
-import { ownerProfileId, ownerSectionVisible, type PublicOwner } from "@charana/core";
+import { ownerProfileId, ownerSectionVisible, type PublicOwner } from "@goplaza/core";
 
 export const revalidate = 60; // ISR cache 1 minute
 
@@ -250,7 +250,7 @@ export default async function BusinessProfilePage({
     user_name:
       r.display_identity === "anonymous"
         ? "کاربر ناشناس"
-        : reviewerNames.get(r.user_id) ?? "کاربر چارانا",
+        : reviewerNames.get(r.user_id) ?? "کاربر گوپلازا",
     owner_reply: r.owner_reply,
     owner_reply_at: r.owner_reply_at,
   }));

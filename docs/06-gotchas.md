@@ -972,3 +972,18 @@ zero.
 
 **Fix:** `items-stretch`, plus an explicit `min-h` so the cell has a height
 before the image loads.
+
+## Multi-byte characters inside a regex character class (byte-mode perl/sed)
+
+**Symptom.** After a bulk `perl -pi -e 's/[čČ]ārana/GOPLAZA/g'`, 41 files
+carried an invalid byte (`\xC4`) right before every `GOPLAZA`; `iconv -f
+UTF-8` failed, TypeScript did not complain, the browser showed `�`.
+**Cause.** Without `-CSD -Mutf8`, perl matches bytes. `č` is two bytes
+(`C4 8D`); inside `[…]` the class becomes a set of *single bytes*
+`{C4, 8D, 8C}`, so it matched the second byte of `č` and left the first.
+**Fix.** Never put non-ASCII letters in a character class in byte mode —
+write alternation (`(?:č|Č)ārana`) or run with `-CSD -Mutf8`. After any
+bulk text edit, run `for f in $(git diff --name-only); do iconv -f UTF-8 -t
+UTF-8 "$f" >/dev/null || echo BAD $f; done`.
+**Lesson.** A tool that "worked" on ASCII data is not proven on Persian
+data. Same family as the digit trap.

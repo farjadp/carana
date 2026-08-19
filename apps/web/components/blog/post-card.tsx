@@ -21,7 +21,7 @@ export function PostCard({ post, categoryName, featured = false }: { post: PostC
           // eslint-disable-next-line @next/next/no-img-element
           <img src={post.cover_url} alt={post.cover_alt ?? ""} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" loading={featured ? "eager" : "lazy"} />
         ) : (
-          <div className="h-full w-full bg-[linear-gradient(135deg,rgba(128,0,0,0.12),rgba(0,71,171,0.12))]" />
+          <div className="h-full w-full bg-[linear-gradient(135deg,rgba(122,24,49,0.12),rgba(0,71,171,0.12))]" />
         )}
       </div>
       <div className={`flex flex-1 flex-col p-5 ${featured ? "md:p-8" : ""}`}>

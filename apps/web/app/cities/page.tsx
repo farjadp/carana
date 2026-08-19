@@ -14,7 +14,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, MapPin } from "lucide-react";
 
-import { PROVINCES } from "@charana/core";
+import { PROVINCES } from "@goplaza/core";
 import { PageShell } from "@/components/page-shell";
 import { JsonLd } from "@/components/json-ld";
 import { cityConfigs, citySlug, findCityConfig } from "@/lib/data/cities";

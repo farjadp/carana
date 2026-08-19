@@ -4,6 +4,65 @@
 
 ---
 
+# 2026-08-18, night — the rebrand: čārana → GOPLAZA
+
+Farjad: the name has to change, for reasons outside the repo. Brand board
+supplied as one raster image (G-mark, GOPLAZA wordmark, "Discover. Connect.
+Grow.", palette #7A1831 / #14213D / #C9A24B / #F6F1EB / #2B2D31). No vector.
+Branch `rebrand/goplaza`, one commit, records in `REBRAND_AUDIT.md`,
+`REBRAND_PLAN.md`, `REBRAND_EXTERNAL_ACTIONS.md`, `REBRAND_COMPLETE.md`.
+
+## What was done
+
+- **Audit first**, 178 files / ~550 lines, classified into 18 buckets before
+  a single edit. The useful discovery: no `CHARANA_*` env vars, no branded
+  storage keys, auth links already flow through `env.baseUrl` — so nothing
+  had to migrate on the user's device.
+- **`packages/core/src/brand.ts`** is the one source of truth (`name`,
+  `nameFa`, `domain`, `url`, `tagline`, `colors`, `scheme`,
+  `legacyScheme`). `company.ts`, emails, SMS, mobile origin fallbacks and
+  metadata read from it. Workspace packages renamed `@goplaza/*`.
+- **Two forms, by decision (D1):** `GOPLAZA` for logotype, titles, Latin
+  contexts; `گوپلازا` inside Persian sentences. Persian prose full of a
+  Latin all-caps token was not going to be read.
+- **Colour:** only the burgundy moved (`#800000` → `#7A1831`, deep
+  `#5c0000` → `#5A1124`, soft rgba recomputed). Navy, cream, Persian blue,
+  gold already matched. Token *names* (`annabi`, `lajvard`) unchanged.
+- **Mark:** rebuilt as clean geometry from the board — an arc with a
+  slanted terminal, a bar, a squared stem with a chamfer — labelled
+  provisional in three places. `scripts/generate-brand-assets.mjs` writes
+  the SVG pack and every raster (favicons, touch icons, Expo icon, splash,
+  adaptive) so the master vector, when it arrives, is a two-path swap.
+- **What did not change (D6):** `ca.charana.app`, EAS slug/projectId,
+  `charana://` (kept as second scheme; `goplaza://` primary),
+  `imports@charana.ca`, Stripe `charana_plan` metadata, the four
+  mailboxes (goplaza.ca is not a verified sending domain yet), history.
+- **New migration** `20260830270000_rebrand_goplaza.sql`: data-only, blog
+  category rows and the author default. Old migrations untouched.
+- **`pnpm check:brand`** (`scripts/check-brand.mjs`) fails on any old
+  token outside a justified allow-list.
+- `/story` and the name paragraph on `/about` rewritten — they told the
+  story of a name that no longer exists. Brand-kit ZIP button removed with
+  the ZIP: no button for a file that is not there.
+
+## What went wrong, honestly
+
+- `perl -pi -e 's/[čČ]ārana/GOPLAZA/'` in byte mode: a character class of
+  multi-byte letters matches *one byte*, so every hit left a stray `\xC4`
+  before `GOPLAZA` in 41 files. Caught by an `iconv` pass, fixed by a
+  byte-level replace. Lesson in `06-gotchas`.
+- The Browser-pane launcher hung on the volta `pnpm` shim after the
+  package rename; the dev server was started from Bash instead.
+- Found in passing, left alone (out of scope, flagged): the auth side panel
+  claims «+۲۰٬۰۰۰ کسب‌وکار ثبت‌شده» while the database holds ≈5,650. That
+  is a house-rule violation from before today and should be fixed next.
+
+Verified: typecheck (3 packages), web build (189 pages), lint error count
+unchanged (6 pre-existing, none new), `expo config` valid, `check:brand`
+clean, screenshots of home / login / story / 404 / mobile width.
+
+---
+
 # 2026-08-18 — the jobs board, built
 
 Design existed from the night before (`73ba85c`); this session turned it into

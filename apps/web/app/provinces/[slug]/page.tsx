@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { PUBLIC_STATUSES, getProvinceBySlug, PROVINCES } from "@charana/core";
+import { PUBLIC_STATUSES, getProvinceBySlug, PROVINCES } from "@goplaza/core";
 import { InnerPage } from "@/components/inner-page";
 import { getProvinceSummary } from "@/lib/data/geography";
 import { createSupabaseServerClient } from "@/lib/supabase/server";

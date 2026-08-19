@@ -24,9 +24,9 @@ export async function SiteHeader({ currentPath }: SiteHeaderProps) {
   return (
     <header className="site-header">
       <div className="site-header-inner">
-        <Link className="brand" href="/" aria-label="čārana، صفحه اصلی">
+        <Link className="brand" href="/" aria-label="GOPLAZA، صفحه اصلی">
           <BrandMark size={34} color="var(--annabi)" />
-          <strong className="brand-name">čārana</strong>
+          <strong className="brand-name"><b>GO</b>PLAZA</strong>
         </Link>
 
         <HeaderNav currentPath={currentPath} isSignedIn={!!user} />
@@ -34,7 +34,7 @@ export async function SiteHeader({ currentPath }: SiteHeaderProps) {
         <div className="header-actions">
           <form action="/search" method="get" className="header-search" role="search">
             <Search size={15} aria-hidden />
-            <input name="q" placeholder="جستجو…" aria-label="جستجو در چارانا" />
+            <input name="q" placeholder="جستجو…" aria-label="جستجو در گوپلازا" />
           </form>
           {user ? (
             <Link href="/profile" className="header-link">

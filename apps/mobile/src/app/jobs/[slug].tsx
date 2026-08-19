@@ -31,7 +31,7 @@ import {
   jobDaysRemaining,
   languageRequirementFa,
   normalizeJobMarkdown,
-} from "@charana/core";
+} from "@goplaza/core";
 
 import { BrandLoading } from "../../components/brand-mark";
 import { Markdown } from "../../components/markdown";
@@ -157,7 +157,7 @@ export default function JobScreen() {
               </Text>
             </Pressable>
             <Text style={styles.applyNote}>
-              درخواست مستقیم به همین کسب‌وکار می‌رود؛ چارانا در استخدام واسطه نیست و رزومه‌ای دریافت نمی‌کند.
+              درخواست مستقیم به همین کسب‌وکار می‌رود؛ گوپلازا در استخدام واسطه نیست و رزومه‌ای دریافت نمی‌کند.
             </Text>
           </View>
 

@@ -6,8 +6,10 @@
 // ============================================================================
 "use client";
 
-import { authErrorMessage } from "@charana/core";
+import { authErrorMessage } from "@goplaza/core";
 import Link from "next/link";
+
+import { BrandMark } from "@/components/brand-mark";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
@@ -200,9 +202,9 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       <div className="auth-brand-side">
         <div className="brand-side-header">
           <Link href="/" className="brand-side-logo">
-            <span className="brand-side-mark">č</span>
+            <span className="brand-side-mark"><BrandMark size={30} color="#fff" /></span>
             <div className="brand-side-copy">
-              <strong>čārana</strong>
+              <strong>GOPLAZA</strong>
               <span>دایرکتوری ایرانیان کانادا</span>
             </div>
           </Link>
@@ -212,7 +214,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           <span className="brand-side-badge">پلتفرم رشد و کشف بیزینس</span>
           <h2>مرجع ارتباط فارسی‌زبانان و کسب‌وکارهای ایرانی در کانادا</h2>
           <p className="brand-side-description">
-            با حضور در čārana، کسب‌وکارتان را پیش روی جامعه بزرگ ایرانی مقیم کانادا قرار دهید، لیدهای باکیفیت دریافت کنید و برند شخصی خود را ارتقا بخشید.
+            با حضور در گوپلازا، کسب‌وکارتان را پیش روی جامعه بزرگ ایرانی مقیم کانادا قرار دهید، لیدهای باکیفیت دریافت کنید و برند شخصی خود را ارتقا بخشید.
           </p>
 
           <div className="feature-bullets">

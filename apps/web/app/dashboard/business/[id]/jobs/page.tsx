@@ -12,7 +12,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 
-import { JOB_POSTS_PER_DAY, getVerificationStatus, isTrusted } from "@charana/core";
+import { JOB_POSTS_PER_DAY, getVerificationStatus, isTrusted } from "@goplaza/core";
 
 import { PageShell } from "@/components/page-shell";
 import { requireUser } from "@/lib/auth/session";

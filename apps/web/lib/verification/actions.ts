@@ -164,7 +164,7 @@ export async function startBusinessClaim(businessId: string): Promise<
   // itself the proof.
   const sms = await sendSms(
     phone,
-    `کد احراز مالکیت «${business.name}» در چارانا: ${code}\n\nاگر شما درخواست نداده‌اید این پیام را نادیده بگیرید.`
+    `کد احراز مالکیت «${business.name}» در گوپلازا: ${code}\n\nاگر شما درخواست نداده‌اید این پیام را نادیده بگیرید.`
   );
 
   if (!sms.sent) {

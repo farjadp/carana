@@ -24,7 +24,7 @@ import {
   jobDaysRemaining,
   languageRequirementFa,
   type EmploymentType,
-} from "@charana/core";
+} from "@goplaza/core";
 
 import { JsonLd } from "@/components/json-ld";
 import { PageShell } from "@/components/page-shell";
@@ -173,7 +173,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
               <p className="mb-6 text-sm leading-8 text-[color:var(--muted-text)]">
                 {city || type || lang
                   ? "فیلترها را بردار تا همه آگهی‌ها را ببینی."
-                  : "اولین آگهی می‌تواند مال تو باشد. اگر کسب‌وکاری در چارانا داری، ثبت آگهی رایگان است و سقفی ندارد."}
+                  : "اولین آگهی می‌تواند مال تو باشد. اگر کسب‌وکاری در گوپلازا داری، ثبت آگهی رایگان است و سقفی ندارد."}
               </p>
               <Link
                 href={city || type || lang ? "/jobs" : "/dashboard/business"}

@@ -27,6 +27,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, BadgeCheck, Building2, MapPin, Search, Store } from "lucide-react";
 
+import { brand } from "@goplaza/core";
+
 import { BrandMark } from "@/components/brand-mark";
 
 const FA = "۰۱۲۳۴۵۶۷۸۹";
@@ -82,9 +84,9 @@ export function HomeHero({
   };
 
   return (
-    <section className="relative overflow-hidden bg-[#5c0000]" dir="rtl">
+    <section className="relative overflow-hidden bg-[#5A1124]" dir="rtl">
       {/* Wash: annabi → deep navy, warm and calm */}
-      <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_85%_10%,#800000_0%,#5c0000_35%,#14213d_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_85%_10%,#7A1831_0%,#5A1124_35%,#14213d_100%)]" />
       {/* Watermark mark, bleeding off the corner */}
       <div className="pointer-events-none absolute -left-24 -top-24 select-none opacity-[0.06]" aria-hidden>
         <BrandMark size={520} color="#f6f1e8" simple />
@@ -100,7 +102,7 @@ export function HomeHero({
         </div>
 
         <h1 className="text-[2.1rem] font-black leading-[1.25] tracking-tight text-[#f6f1e8] sm:text-5xl md:text-[3.4rem]">
-          با اطمینان پیدا کن.
+          {brand.tagline.fa}
           <span className="mt-3 block text-xl font-bold leading-snug text-[#f6f1e8]/70 sm:text-2xl md:text-3xl">
             وکیل، پزشک، رستوران، مشاور — همه ایرانی، همه در کانادا، همه یک‌جا.
           </span>
@@ -134,7 +136,7 @@ export function HomeHero({
           </label>
           <button
             type="submit"
-            className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[color:var(--annabi)] font-bold text-[#f6f1e8] transition hover:bg-[#5c0000] md:px-8"
+            className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[color:var(--annabi)] font-bold text-[#f6f1e8] transition hover:bg-[#5A1124] md:px-8"
           >
             جستجو <ArrowLeft size={16} />
           </button>

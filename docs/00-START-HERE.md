@@ -1,8 +1,8 @@
-# čārana — Engineering Handover
+# GOPLAZA — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-18 · **Docs version:** 3.5
+**Written:** 2026-08-24 · **Updated:** 2026-08-18 (night, rebrand) · **Docs version:** 3.6
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
-**Live:** https://charana.ca
+**Live:** https://goplaza.ca (**rebranded from čārana on 2026-08-18** — branch `rebrand/goplaza`; the domain, Supabase URLs, Resend and Stripe still need the dashboard steps in `REBRAND_EXTERNAL_ACTIONS.md` before this is true in production. Until then charana.ca is what resolves.)
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
 **Task board:** Notion → 🧿 Charana → Mission Control (the live source of
 truth for what is open, who owns it, and per-task instructions). Standing
@@ -17,7 +17,7 @@ doc changes, update its Notion page and add one Revisions row.
 
 ## Where things stand, in sixty seconds
 
-The web app is **live** at charana.ca with **≈5,650 listings (≈5,130
+The web app is **live** at goplaza.ca with **≈5,650 listings (≈5,130
 published, ≈520 draft for lack of a city)** — every Iranian-Canadian
 directory we know of merged on 17 Aug: IranJavan (Aug), Hamvatan
 (`2384aa5`), then Jabeh, Taablo, Bazaarche, FarsiLink and IranBusiness
@@ -39,10 +39,10 @@ D-U-N-S.
 | Conversion events | `business_events` from both surfaces; owner insights at `/dashboard/business/[id]/insights` |
 | Billing | **Stripe subscriptions built and tested in sandbox**: checkout, portal, webhook, invoices, `/pricing`, server-side entitlements. Live mode needs the dashboard work in `05-open-tasks` |
 | Featured placement | **Fully renders.** City × category lists, `/cities/[slug]`, `/search`, and the home page's «ویژه» section all sort featured-first (expiry-aware) and show the chip on `BusinessCard`; nobody has bought it yet, so nothing shows today — that's correct, not broken |
-| Plans v2 | Pro → **استارتر (Starter)**, Featured → **پریمیوم (Premium)** (display names only — `PlanId` stays `pro`/`featured`). Five tiered features shipped: **gallery**, **review replies**, **busy now/quiet now**, **announcements**, **vanity English URL**. Plus **announcement discovery** (not plan-gated). `plans.ts` now lives in `@charana/core`, so web, mobile and the server clamps read one table. SMS/push, price-list extraction and mobile owner screens are backlog |
+| Plans v2 | Pro → **استارتر (Starter)**, Featured → **پریمیوم (Premium)** (display names only — `PlanId` stays `pro`/`featured`). Five tiered features shipped: **gallery**, **review replies**, **busy now/quiet now**, **announcements**, **vanity English URL**. Plus **announcement discovery** (not plan-gated). `plans.ts` now lives in `@goplaza/core`, so web, mobile and the server clamps read one table. SMS/push, price-list extraction and mobile owner screens are backlog |
 | Header CSS bug | **Fixed 16 Aug.** Two `.site-header` definitions were fighting since the Aug 23 rebuild — old padding/border-radius/box-shadow leaked through at every width, and `position: sticky` was lost entirely below 720px. See `06-gotchas.md` |
 | Home page | **Redesigned 16 Aug (`484866f`)** around search-first. Killed three duplications (newest/popular showed the same businesses, owner CTA appeared 3×, trust argued twice + legal links repeated from the footer) and two bugs (`/categories/all` 404 link, hard-coded `+۶۷۷` chip vs the live 680) |
-| Footer status bar | **Live, web + app.** Tehran clock, Jalali + Shahanshahi date (shared logic in `@charana/core`), real free-market USD/EUR/CAD via Navasan. Key is now set in Vercel, so rates render in production; a 3-day staleness guard drops dead symbols |
+| Footer status bar | **Live, web + app.** Tehran clock, Jalali + Shahanshahi date (shared logic in `@goplaza/core`), real free-market USD/EUR/CAD via Navasan. Key is now set in Vercel, so rates render in production; a 3-day staleness guard drops dead symbols |
 | Suggestions | Text or voice, web + app, admin inbox |
 | Admin | Listings, categories, reviews, users, logs, suggestions, blog desk, **reports queue**, **city cleanup queue**; sidebar badges are live counts |
 | Data | **All seven directories merged 17 Aug** (`2384aa5` Hamvatan; `3cb8868` + `34185f5` the rest). Per source, inserted / enriched: Hamvatan 1,385 / 59 · Jabeh 1,393 / 375 · Taablo 1,277 / 540 · Bazaarche 500 / 80 · FarsiLink 330 / 194 · IranBusiness 62 / 6 — plus 30 re-inserted after 51 wrong merges were reverted. One record shape (`scripts/lib/source-listing.ts`), one importer (`scripts/import-listings.mts`), one scraper per site (`scripts/scrape-directories.mts`). Coverage now spans Ontario (≈4,350), BC (≈540), Quebec (≈240), Alberta (≈20). Logos re-hosted into Supabase storage. |
@@ -51,7 +51,7 @@ D-U-N-S.
 | Owner identity | **New 17 Aug (`5f5c03b`)** — a verified profile names the person behind it (web sidebar + mobile). Four server-side gates: trusted verification, a real person attached (`owner_user_id`, or `created_by` only when `self_onboarded`), a non-empty name, and not hidden. Free and Starter always show it; Premium can hide it (`hide_owner`, new `owner_privacy` feature). The hide is honoured after a plan lapses — a name is not a placement. Rule lives in `packages/core/src/owner-identity.ts` |
 | Jobs board | **New 18 Aug.** `/jobs` (filter by type, language, city), `/jobs/[slug]` with **`JobPosting` JSON-LD** — the Google Jobs lever none of the seven competitors has. Only listing owners may post; **verified publishes directly, everyone else queues** at `/admin/jobs`; free and unlimited, with a DB-counted 5-per-business-per-24h rate limit that is deliberately *not* a plan gate. Expiry is a comparison against `now()`, not a status, so no cron keeps it honest. Owner manager at `/dashboard/business/[id]/jobs`, with a **Markdown editor** (toolbar + preview; links, URLs, images and HTML stripped on write *and* on read) and **AI drafting** that is given the row's own facts as its only ground truth and treats the owner's notes as data, not instructions. AI spend counted in `ai_usage`, 10/user/day. **Mobile has the read side** — board, detail, home rail, profile section, account row; posting stays on web. **Mail:** moderation outcome to the poster, and a 3-days-out expiry nudge from a daily cron. Brand photography on the hero and the empty state (`scripts/generate-jobs-images.py`). **Salary optional for now — the Ontario pay-transparency check is still open.** No mail and no mobile yet |
 | Reviews | Submit → `pending_moderation` → admin publishes/rejects. **17 Aug (`5c80228`)**: outcome emails to the reviewer (with the moderator's reason), new-review email to the owner (which won't offer a reply the plan refuses), and server-side caps — 5 per user per 24h, 10–2000 chars, no reviewing your own business. **Three product questions still open** — see `05-open-tasks` |
-| Features page | `/features` on web + a native mobile screen. Plan quantities read from `@charana/core`; both carry an explicit "what we don't have yet" list |
+| Features page | `/features` on web + a native mobile screen. Plan quantities read from `@goplaza/core`; both carry an explicit "what we don't have yet" list |
 | App Store / Play | Blocked on D-U-N-S for Ashavid Inc. |
 
 ## What to do first when you wake up

@@ -11,7 +11,7 @@ import { InnerPage } from "@/components/inner-page";
 import { ROADMAP } from "@/lib/data/releases";
 import { company } from "@/lib/data/company";
 
-export const metadata: Metadata = { title: "رودمپ", description: "چارانا به کجا می‌رود." };
+export const metadata: Metadata = { title: "رودمپ", description: "گوپلازا به کجا می‌رود." };
 
 export default function RoadmapPage() {
   return (

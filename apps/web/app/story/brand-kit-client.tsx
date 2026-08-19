@@ -56,8 +56,8 @@ export function SwatchGrid({ swatches }: { swatches: Swatch[] }) {
 /** The mark on each surface it is allowed on. */
 export function MarkSurfaces() {
   const surfaces = [
-    { label: "روی کرم — اصلی", bg: "#f6f1e8", color: "#800000" },
-    { label: "روی عنابی — معکوس", bg: "#800000", color: "#f6f1e8" },
+    { label: "روی کرم — اصلی", bg: "#f6f1e8", color: "#7A1831" },
+    { label: "روی زرشکی — معکوس", bg: "#7A1831", color: "#f6f1e8" },
     { label: "روی سرمه‌ای", bg: "#14213d", color: "#f6f1e8" },
     { label: "تک‌رنگ سیاه", bg: "#ffffff", color: "#14213d" },
   ];
@@ -75,21 +75,14 @@ export function MarkSurfaces() {
   );
 }
 
-/** Size ladder — where the simple variant takes over. */
+/** Size ladder — one geometry from 96px down to the 16px favicon. */
 export function MarkSizes() {
   return (
     <div className="flex flex-wrap items-end gap-6 rounded-2xl border border-[color:var(--line)] bg-white p-5" dir="ltr">
-      {[96, 64, 48, 32].map((n) => (
+      {[96, 64, 48, 32, 24, 16].map((n) => (
         <div key={n} className="text-center">
-          <BrandMark size={n} color="#800000" />
+          <BrandMark size={n} color="#7A1831" />
           <div className="mt-2 text-[11px] font-semibold text-[color:var(--muted-text)]">{n}px</div>
-        </div>
-      ))}
-      <div className="mx-2 h-16 w-px bg-[color:var(--line)]" />
-      {[24, 16].map((n) => (
-        <div key={n} className="text-center">
-          <BrandMark size={n} color="#800000" simple />
-          <div className="mt-2 text-[11px] font-semibold text-[color:var(--muted-text)]">{n}px · simple</div>
         </div>
       ))}
     </div>

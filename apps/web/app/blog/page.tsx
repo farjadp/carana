@@ -19,8 +19,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export const revalidate = 600;
 
 export const metadata: Metadata = {
-  title: "وبلاگ چارانا — راهنماها، شهرها، کسب‌وکار ایرانی در کانادا",
-  description: "راهنماهای عملی برای ایرانیان کانادا، زندگی در شهرها، مناسبت‌ها، کسب‌وکار و آنچه داده‌های چارانا می‌گویند.",
+  title: "وبلاگ گوپلازا — راهنماها، شهرها، کسب‌وکار ایرانی در کانادا",
+  description: "راهنماهای عملی برای ایرانیان کانادا، زندگی در شهرها، مناسبت‌ها، کسب‌وکار و آنچه داده‌های گوپلازا می‌گویند.",
   alternates: { canonical: "/blog", types: { "application/rss+xml": "/blog/feed.xml" } },
 };
 
@@ -43,7 +43,7 @@ export default async function BlogIndex({ searchParams }: { searchParams: Promis
               <p className="mb-2 text-xs font-bold tracking-wide text-[color:var(--annabi)]">وبلاگ</p>
               <h1 className="text-3xl font-black leading-tight text-[color:var(--text)] md:text-5xl">چیزهایی که خودمان می‌خواستیم بدانیم.</h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-[color:var(--muted-text)] md:text-base">
-                راهنماهای عملی، شهرها، مناسبت‌ها، کسب‌وکار — و آنچه عددهای چارانا درباره‌ی ایرانیان کانادا می‌گویند. {total ? `${fa(total)} نوشته.` : ""}
+                راهنماهای عملی، شهرها، مناسبت‌ها، کسب‌وکار — و آنچه عددهای گوپلازا درباره‌ی ایرانیان کانادا می‌گویند. {total ? `${fa(total)} نوشته.` : ""}
               </p>
             </div>
             <Link href="/blog/feed.xml" className="inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--muted-text)] hover:text-[color:var(--annabi)]"><Rss size={14} /> RSS</Link>

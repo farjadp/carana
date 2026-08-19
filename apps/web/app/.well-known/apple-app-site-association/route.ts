@@ -1,7 +1,7 @@
 // ============================================================================
 // Source: apps/web/app/.well-known/apple-app-site-association/route.ts
 // Version: 1.0.0 — 2026-08-21
-// Why: Proves domain ownership to iOS so charana.ca links open in the app.
+// Why: Proves domain ownership to iOS so goplaza.ca links open in the app.
 // Env / Identity: Public, unauthenticated. Contains no secrets.
 //
 // Apple fetches this over https with NO redirects and requires
@@ -14,6 +14,8 @@
 import { NextResponse } from "next/server";
 
 const APPLE_TEAM_ID = process.env.APPLE_TEAM_ID ?? "TEAMID";
+// Deliberately unchanged by the 2026-08 rebrand: the bundle id is the installed
+// app's identity. Changing it here without changing the app breaks link opening.
 const BUNDLE_ID = "ca.charana.app";
 
 export function GET() {

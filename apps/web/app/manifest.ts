@@ -6,16 +6,17 @@
 // Env / Identity: Public.
 // ============================================================================
 import type { MetadataRoute } from "next";
+import { brand } from "@goplaza/core";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "čārana — دایرکتوری کسب‌وکارهای ایرانیان کانادا",
-    short_name: "čārana",
-    description: "با اطمینان پیدا کن. دایرکتوری کسب‌وکارهای ایرانی در کانادا.",
+    name: "GOPLAZA — دایرکتوری کسب‌وکارهای ایرانیان کانادا",
+    short_name: "GOPLAZA",
+    description: `${brand.tagline.fa} دایرکتوری کسب‌وکارهای ایرانی در کانادا.`,
     start_url: "/",
     display: "standalone",
     background_color: "#F6F1E8",
-    theme_color: "#800000",
+    theme_color: "#7A1831",
     lang: "fa",
     dir: "rtl",
     icons: [

@@ -71,9 +71,9 @@ function reportSupabaseEnv() {
 reportSupabaseEnv();
 
 const nextConfig: NextConfig = {
-  // @charana/core ships raw TypeScript rather than a build step, so Next has
+  // @goplaza/core ships raw TypeScript rather than a build step, so Next has
   // to compile it like first-party source.
-  transpilePackages: ["@charana/core"],
+  transpilePackages: ["@goplaza/core"],
 
   env: {
     ...(publicSupabaseUrl ? { NEXT_PUBLIC_SUPABASE_URL: publicSupabaseUrl } : {}),

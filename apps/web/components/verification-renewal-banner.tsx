@@ -116,7 +116,7 @@ export function VerificationRenewalBanner({
           <button
             onClick={renew}
             disabled={pending}
-            className="rounded-lg bg-[#800000] px-4 py-2 text-sm font-bold text-[#f6f1e8] disabled:opacity-60"
+            className="rounded-lg bg-[#7A1831] px-4 py-2 text-sm font-bold text-[#f6f1e8] disabled:opacity-60"
           >
             {pending ? "در حال ارسال…" : "تمدید تایید"}
           </button>
@@ -140,7 +140,7 @@ export function VerificationRenewalBanner({
           <button
             onClick={confirm}
             disabled={pending || code.length !== 6}
-            className="rounded-lg bg-[#800000] px-4 py-2 text-sm font-bold text-[#f6f1e8] disabled:opacity-40"
+            className="rounded-lg bg-[#7A1831] px-4 py-2 text-sm font-bold text-[#f6f1e8] disabled:opacity-40"
           >
             تایید
           </button>

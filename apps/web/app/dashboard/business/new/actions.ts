@@ -7,9 +7,9 @@
 "use server";
 
 import { createSupabaseActionClient } from "@/lib/supabase/server";
-import { finalBusinessSchema } from "@charana/core";
+import { finalBusinessSchema } from "@goplaza/core";
 import { logUserActivity } from "@/lib/actions/logs";
-import { slugify } from "@charana/core";
+import { slugify } from "@goplaza/core";
 
 // ----------------------------------------------------------------------------
 // Utilities

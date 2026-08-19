@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useLoadScript, Autocomplete } from "@react-google-maps/api";
 
-import { finalBusinessSchema, BusinessFormData } from "@charana/core";
+import { finalBusinessSchema, BusinessFormData } from "@goplaza/core";
 import { saveBusinessEditDraft, resubmitBusinessForReview } from "./actions";
 import { scrapeWebsiteForBusiness } from "../../ai-actions";
 import { Input } from "@/components/ui/input";
@@ -92,8 +92,8 @@ const selectClass = "flex h-11 w-full rounded-xl border border-[color:var(--line
 // برچسب فارسی وضعیت‌ها
 const STATUS_LABELS: Record<string, { label: string; color: string; hint: string }> = {
   DRAFT:         { label: "پیش‌نویس",          color: "bg-gray-100 text-gray-700",           hint: "هنوز برای بررسی ارسال نشده." },
-  SUBMITTED:     { label: "در انتظار تایید",    color: "bg-blue-100 text-blue-700",           hint: "در صف بررسی توسط تیم چارانا." },
-  NEEDS_CHANGES: { label: "نیازمند اصلاح",      color: "bg-amber-100 text-amber-700",         hint: "تیم چارانا اصلاحاتی خواسته است. لطفاً ویرایش کنید." },
+  SUBMITTED:     { label: "در انتظار تایید",    color: "bg-blue-100 text-blue-700",           hint: "در صف بررسی توسط تیم گوپلازا." },
+  NEEDS_CHANGES: { label: "نیازمند اصلاح",      color: "bg-amber-100 text-amber-700",         hint: "تیم گوپلازا اصلاحاتی خواسته است. لطفاً ویرایش کنید." },
   APPROVED:      { label: "تایید شده",          color: "bg-teal-100 text-teal-700",           hint: "تایید شده، به زودی منتشر می‌شود." },
   PUBLISHED:     { label: "منتشر شده",          color: "bg-green-100 text-green-700",         hint: "پروفایل در دایرکتوری عمومی قابل مشاهده است." },
   REJECTED:      { label: "رد شده",             color: "bg-red-100 text-red-700",             hint: "متاسفانه پروفایل تایید نشد. می‌توانید ویرایش و ارسال مجدد کنید." },
@@ -325,7 +325,7 @@ export default function BusinessEditForm({ businessId, initialData, ownerIdentit
           </div>
           <h2 className="text-2xl font-black mb-3">ویرایش‌ها ارسال شدند!</h2>
           <p className="text-[color:var(--muted-text)] leading-loose text-sm mb-8">
-            اطلاعات بروز شده کسب‌وکار شما مجدداً به تیم کارشناسان čārana ارسال شد.
+            اطلاعات بروز شده کسب‌وکار شما مجدداً به تیم کارشناسان گوپلازا ارسال شد.
             پس از بررسی و تایید، تغییرات در دایرکتوری عمومی اعمال خواهد شد.
           </p>
           <Button onClick={() => router.push("/dashboard/business")}>
@@ -386,7 +386,7 @@ export default function BusinessEditForm({ businessId, initialData, ownerIdentit
           </div>
           <div className="flex-1">
             <h3 className="text-base font-bold text-blue-900 mb-1">تکمیل خودکار با هوش مصنوعی</h3>
-            <p className="text-sm text-blue-700/80 mb-4">آدرس وب‌سایت خود را وارد کنید تا هوش مصنوعی چارانا اطلاعات اولیه را خوانده و فرم را برای شما پر کند.</p>
+            <p className="text-sm text-blue-700/80 mb-4">آدرس وب‌سایت خود را وارد کنید تا هوش مصنوعی گوپلازا اطلاعات اولیه را خوانده و فرم را برای شما پر کند.</p>
             <div className="flex gap-2">
               <Input 
                 value={aiUrl} 
@@ -571,7 +571,7 @@ export default function BusinessEditForm({ businessId, initialData, ownerIdentit
 
               {/* ── مرحله ۴: اعتبار ── */}
               {currentStep === 4 && (
-                <StepWrapper title="۴. جزئیات اعتماد و اعتبار" description="اطلاعات محرمانه که فقط برای تیم čārana قابل مشاهده است.">
+                <StepWrapper title="۴. جزئیات اعتماد و اعتبار" description="اطلاعات محرمانه که فقط برای تیم گوپلازا قابل مشاهده است.">
                   <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl mb-2">
                     <ShieldCheck size={18} className="text-amber-600 mt-0.5" />
                     <p className="text-sm text-amber-900">این اطلاعات هرگز در پروفایل عمومی نمایش داده نمی‌شود.</p>
@@ -715,7 +715,7 @@ export default function BusinessEditForm({ businessId, initialData, ownerIdentit
 
               {/* ── مرحله ۷: ارسال مجدد ── */}
               {currentStep === 7 && (
-                <StepWrapper title="۷. ارسال مجدد برای بررسی" description="اطلاعات ویرایش‌شده را برای بررسی مجدد توسط تیم čārana ارسال کنید.">
+                <StepWrapper title="۷. ارسال مجدد برای بررسی" description="اطلاعات ویرایش‌شده را برای بررسی مجدد توسط تیم گوپلازا ارسال کنید.">
                   {/* خلاصه تغییرات */}
                   <div className="space-y-3">
                     <ReviewSection title="اطلاعات پایه">

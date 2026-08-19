@@ -16,7 +16,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatTehranDate, formatTehranTime, nowInTehran } from "@charana/core";
+import { formatTehranDate, formatTehranTime, nowInTehran } from "@goplaza/core";
 
 import type { Rate } from "@/lib/exchange-rates";
 

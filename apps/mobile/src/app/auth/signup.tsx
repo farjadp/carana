@@ -21,7 +21,7 @@ import { ChevronRight, Eye, EyeOff, MailCheck } from "lucide-react-native";
 
 import { BrandMark } from "../../components/brand-mark";
 import { Alert, Field, PrimaryButton } from "../../components/ui";
-import { authErrorMessage } from "@charana/core";
+import { authErrorMessage, brand } from "@goplaza/core";
 import { supabase } from "../../lib/supabase";
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
@@ -49,8 +49,10 @@ export default function SignupScreen() {
         // person and starts them on their profile. Without this Supabase
         // falls back to the project's Site URL — which is how confirmation
         // links ended up opening localhost in a phone browser. The scheme
-        // must be in the dashboard's Redirect URLs allowlist: charana://**
-        emailRedirectTo: "charana://auth/confirmed",
+        // must be in the dashboard's Redirect URLs allowlist: goplaza://**
+        // (charana://** stays allow-listed for builds installed before the
+        // rebrand; both schemes are registered in app.json).
+        emailRedirectTo: `${brand.scheme}://auth/confirmed`,
       },
     });
 
@@ -107,7 +109,7 @@ export default function SignupScreen() {
           <View style={styles.brandRow}>
             <BrandMark size={40} />
           </View>
-          <Text style={styles.brand}>čārana</Text>
+          <Text style={styles.brand}>GOPLAZA</Text>
           <Text style={styles.title}>ساخت حساب</Text>
           <Text style={styles.subtitle}>
             رایگان است و کمتر از یک دقیقه طول می‌کشد.
@@ -161,7 +163,7 @@ export default function SignupScreen() {
             <PrimaryButton label="ساخت حساب" onPress={submit} loading={busy} disabled={!valid} />
 
             <Text style={styles.legal}>
-              با ساخت حساب، شرایط استفاده و سیاست حریم خصوصی چارانا را می‌پذیرید.
+              با ساخت حساب، شرایط استفاده و سیاست حریم خصوصی گوپلازا را می‌پذیرید.
             </Text>
           </View>
 

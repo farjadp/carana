@@ -73,7 +73,7 @@ export default function LoginScreen() {
           <View style={styles.brandRow}>
             <BrandMark size={40} />
           </View>
-          <Text style={styles.brand}>čārana</Text>
+          <Text style={styles.brand}>GOPLAZA</Text>
           <Text style={styles.title}>ورود به حساب</Text>
           <Text style={styles.subtitle}>
             برای ذخیره کسب‌وکارها، یادداشت خصوصی و ثبت نظر وارد شوید.

@@ -43,7 +43,7 @@ naming fixed. What remains is signing, which needs a human at the keyboard:
 4. On the phone: Settings → General → VPN & Device Management → your Apple ID →
    **Trust**
 
-Gives the real app: čārana icon, splash, deep links, real SecureStore.
+Gives the real app: GOPLAZA icon, splash, deep links, real SecureStore.
 A free Apple ID signature **expires after 7 days** and must be reinstalled.
 That limit disappears once the paid Developer account exists, at which point
 TestFlight replaces this entirely.
@@ -72,8 +72,8 @@ when the entitlement is present. `app.config.ts` strips
 `ios.associatedDomains` unless `APPLE_TEAM_ID` is set.
 
 **Project naming.** Expo derives the Xcode project name from `expo.name` with
-non-ASCII stripped, so "čārana" became **"rana"**. `expo.name` is now `Charana`
-with `CFBundleDisplayName` set to `čārana`, so the home screen is unchanged.
+non-ASCII stripped, so "GOPLAZA" became **"rana"**. `expo.name` is now `Charana`
+with `CFBundleDisplayName` set to `GOPLAZA`, so the home screen is unchanged.
 
 **CocoaPods locale.** `pod install` aborts with
 `Encoding::CompatibilityError` unless the locale is UTF-8. The `ios`,
@@ -108,9 +108,9 @@ It now uses a no-op storage when `typeof window === "undefined"`.
 
 | | |
 |---|---|
-| Display name | čārana |
+| Display name | GOPLAZA |
 | Bundle ID | `ca.charana.app` (iOS and Android) — **effectively permanent after release** |
-| Scheme | `charana://` |
+| Scheme | `goplaza://` primary, `charana://` kept for builds installed before the 2026-08-18 rebrand |
 | Icon / splash | Generated, in `assets/images/` — see `01-product.md` |
 | `owner` in app.json | **not set** — needs the expo.dev organisation slug |
 
@@ -118,9 +118,9 @@ It now uses a no-op storage when `typeof window === "undefined"`.
 
 | Requirement | State |
 |---|---|
-| Privacy policy URL | done — charana.ca/privacy |
-| Support URL | done — charana.ca/support |
-| Account deletion (Guideline 5.1.1(v)) | done — charana.ca/account/delete |
+| Privacy policy URL | done — goplaza.ca/privacy |
+| Support URL | done — goplaza.ca/support |
+| Account deletion (Guideline 5.1.1(v)) | done — goplaza.ca/account/delete |
 | Apple Developer account | blocked on D-U-N-S |
 | Google Play account | blocked on D-U-N-S |
 | Store screenshots | not done |

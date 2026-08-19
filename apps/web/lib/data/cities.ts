@@ -153,7 +153,7 @@ export function dynamicCityConfig(nameEn: string, opts: { nameFa?: string | null
     province: opts.province ?? "",
     provinceFa: opts.provinceFa ?? "",
     headline: `کسب‌وکارهای ایرانی در ${fa}`,
-    description: `فهرست زنده‌ی کسب‌وکارهای ایرانی ${fa}${opts.provinceFa ? ` در ${opts.provinceFa}` : ""} — شماره، ساعت کاری، مسیر و نشان تأیید، از پایگاه داده‌ی چارانا.`,
+    description: `فهرست زنده‌ی کسب‌وکارهای ایرانی ${fa}${opts.provinceFa ? ` در ${opts.provinceFa}` : ""} — شماره، ساعت کاری، مسیر و نشان تأیید، از پایگاه داده‌ی گوپلازا.`,
     neighborhoods: [],
     priorityCategories: [],
   };

@@ -40,7 +40,7 @@ import {
   EMPLOYMENT_TYPE_LABELS_FA, OWNER_SECTION_NOTE, OWNER_SECTION_TITLE, PROVINCES,
   WORKPLACE_TYPE_LABELS_FA, formatSalaryFa,
   type EmploymentType, type PublicOwner, type SalaryPeriod, type WorkplaceType,
-} from "@charana/core";
+} from "@goplaza/core";
 
 interface Props {
   business: any;
@@ -89,7 +89,7 @@ const faTime = (t: string) => t.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Num
 /**
  * "مرداد ۱۴۰۵" — fa-IR resolves to the Jalali calendar, same as the badge.
  * Built from parts because `format()` with {year, month} emits "۱۴۰۵ مرداد"
- * on this ICU, which reads backwards after "عضو چارانا از".
+ * on this ICU, which reads backwards after "عضو گوپلازا از".
  */
 const faMonthYear = (iso: string) => {
   const parts = new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long" }).formatToParts(new Date(iso));
@@ -175,7 +175,7 @@ export default function BusinessProfileClient({
           <img src={cover} alt="" className="absolute inset-0 w-full h-full object-cover" />
         ) : null}
         {/* Warm brand wash so any photo sits inside the palette */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#14213d]/85 via-[#14213d]/25 to-[#800000]/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#14213d]/85 via-[#14213d]/25 to-[#7A1831]/20" />
         {/* Merlon parapet along the bottom edge */}
         <div className="absolute inset-x-0 bottom-0 h-3 opacity-90" aria-hidden>
           <svg viewBox="0 0 48 12" preserveAspectRatio="none" className="w-full h-full">
@@ -196,7 +196,7 @@ export default function BusinessProfileClient({
 
         {/* Breadcrumb */}
         <div className="absolute top-5 right-4 md:right-8 z-10 flex items-center gap-2 text-xs text-white/85">
-          <Link href="/" className="hover:text-white flex items-center gap-1.5"><BrandMark size={16} color="#f6f1e8" simple /> چارانا</Link>
+          <Link href="/" className="hover:text-white flex items-center gap-1.5"><BrandMark size={16} color="#f6f1e8" simple /> گوپلازا</Link>
           <ChevronLeft size={12} />
           {category ? <Link href={`/categories/${category.slug}`} className="hover:text-white">{category.name}</Link> : null}
           {business.city ? (<><ChevronLeft size={12} /><Link href={`/cities/${encodeURIComponent(business.city)}`} className="hover:text-white">{business.city}</Link></>) : null}
@@ -450,7 +450,7 @@ export default function BusinessProfileClient({
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-full bg-[color:var(--annabi)]/10 text-[color:var(--annabi)] text-xs font-black flex items-center justify-center">{rev.user_name?.[0] || "ک"}</div>
-                          <span className="font-bold text-xs text-[color:var(--text)]">{rev.user_name || "کاربر چارانا"}</span>
+                          <span className="font-bold text-xs text-[color:var(--text)]">{rev.user_name || "کاربر گوپلازا"}</span>
                         </div>
                         <div className="flex items-center gap-0.5">
                           {[1, 2, 3, 4, 5].map((n) => <Star key={n} size={13} className={n <= (rev.rating || 0) ? "fill-[color:var(--gold)] text-[color:var(--gold)]" : "text-[color:var(--line)]"} />)}
@@ -574,7 +574,7 @@ export default function BusinessProfileClient({
                     </div>
                     {publicOwner.member_since ? (
                       <div className="text-[11px] text-[color:var(--muted-text)]">
-                        عضو چارانا از {faMonthYear(publicOwner.member_since)}
+                        عضو گوپلازا از {faMonthYear(publicOwner.member_since)}
                       </div>
                     ) : null}
                   </div>
@@ -598,11 +598,11 @@ export default function BusinessProfileClient({
                   </Link>
                 ) : null}
                 {business.is_iranian_owned ? (
-                  <div className="flex items-center gap-2 text-[color:var(--text)]"><BrandMark size={14} color="#800000" simple /> کسب‌وکار ایرانی‌-کانادایی</div>
+                  <div className="flex items-center gap-2 text-[color:var(--text)]"><BrandMark size={14} color="#7A1831" simple /> کسب‌وکار ایرانی‌-کانادایی</div>
                 ) : null}
                 {business.ref_no ? (
                   <div className="pt-3 mt-1 border-t border-[color:var(--line)] flex items-center justify-between gap-2">
-                    <span className="text-[color:var(--muted-text)]">شماره‌ی مرجع چارانا</span>
+                    <span className="text-[color:var(--muted-text)]">شماره‌ی مرجع گوپلازا</span>
                     <button type="button" onClick={copyRef} className="font-black text-[color:var(--text)] tabular-nums [font-family:var(--font-latin)] tracking-wider inline-flex items-center gap-1.5 hover:text-[color:var(--annabi)] transition" dir="ltr" title="کپی">
                       #{String(business.ref_no)} {refCopied ? <Check size={13} /> : <Copy size={13} className="opacity-50" />}
                     </button>

@@ -1,28 +1,31 @@
 // ============================================================================
 // Source: apps/web/components/brand-mark.tsx
-// Version: 1.0.0 — 2026-08-24
-// Why: The approved "Hidden Č" mark, inlined so it inherits colour and needs no
-//      network request. Geometry matches charana-mark-primary.svg exactly —
-//      regenerate from public/brand/ if the master pack changes.
+// Version: 2.0.0 — 2026-08-18 (rebrand: GOPLAZA G-mark)
+// Why: The GOPLAZA symbol, inlined so it inherits colour and needs no network
+//      request. Geometry is shared with scripts/generate-brand-assets.mjs and
+//      apps/mobile/src/components/brand-mark.tsx — change all three together.
 // Env / Identity: Presentational.
 // ============================================================================
+// PROVISIONAL GEOMETRY: rebuilt as clean paths from the raster brand board of
+// 2026-08-18. Replace with the master SVG paths when the vector kit arrives.
 
 /**
- * The mark reads as a Č whose counter holds a path and a bird: finding,
- * guidance, identity. Below roughly 32px the inner path muddies, which is why
- * the brand book specifies a simplified 16px variant — use `simple` there.
+ * The mark reads as a G whose crossbar becomes a path and whose stem squares
+ * off into a place: go, path, plaza. It stays legible down to 16px, so the
+ * `simple` flag (kept for call-site compatibility) draws the same geometry.
  */
 export function BrandMark({
   size = 32,
   color = "currentColor",
   simple = false,
-  title = "čārana",
+  title = "GOPLAZA",
 }: {
   size?: number;
   color?: string;
   simple?: boolean;
   title?: string;
 }) {
+  void simple;
   return (
     <svg
       viewBox="0 0 1000 1000"
@@ -32,21 +35,8 @@ export function BrandMark({
       aria-label={title}
       fill={color}
     >
-      <path
-        d="M760 190 C690 120 600 80 500 80 C268 80 80 268 80 500 C80 732 268 920 500 920
-           C610 920 708 878 780 806 L666 692 C624 734 566 760 500 760 C356 760 240 644 240 500
-           C240 356 356 240 500 240 C562 240 620 262 664 304 Z"
-      />
-      {simple ? null : (
-        <>
-          <path
-            d="M364 548 C418 478 496 448 586 462 C652 472 704 508 748 560 L650 650
-               C624 620 592 602 552 596 C496 588 448 608 416 650 Z"
-          />
-          <path d="M648 650 L790 650 L790 792 Z" />
-        </>
-      )}
-      <path d="M438 318 L500 372 L562 318 L598 354 L500 442 L402 354 Z" />
+      <path d="M 813 176 A 450 450 0 1 0 711 897 L 627 738 A 270 270 0 1 1 643 271 Z" />
+      <path d="M 470 410 H 920 V 900 H 836 L 730 774 V 590 H 470 Z" />
     </svg>
   );
 }

@@ -5,7 +5,7 @@
 // Env / Identity: Anon client. RLS decides what comes back — this file adds no
 //      authorization of its own and must not be trusted to.
 // ============================================================================
-import { PUBLIC_STATUSES, resolveProvince, type Province } from "@charana/core";
+import { PUBLIC_STATUSES, resolveProvince, type Province } from "@goplaza/core";
 
 import { supabase } from "./supabase";
 

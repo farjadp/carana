@@ -27,7 +27,7 @@ export function VanityUrlEditor({ business }: { business: Business }) {
   if (!entitlementsFor(business).has("vanity_url")) {
     return (
       <p className="text-xs text-[color:var(--muted-text)]">
-        آدرس اختصاصی (charana.ca/b/…) از پلن {PLANS.featured.name} فعال می‌شود.
+        آدرس اختصاصی (GoPlaza.ca/b/…) از پلن {PLANS.featured.name} فعال می‌شود.
       </p>
     );
   }
@@ -47,7 +47,7 @@ export function VanityUrlEditor({ business }: { business: Business }) {
   return (
     <div>
       <div className="flex items-center gap-2">
-        <span className="shrink-0 text-xs text-[color:var(--muted-text)]" dir="ltr">charana.ca/b/</span>
+        <span className="shrink-0 text-xs text-[color:var(--muted-text)]" dir="ltr">GoPlaza.ca/b/</span>
         <input
           value={slug}
           onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
@@ -62,7 +62,7 @@ export function VanityUrlEditor({ business }: { business: Business }) {
       </div>
       {saved ? (
         <p className="mt-1.5 flex items-center gap-1 text-xs text-[color:var(--success,#0f7b4f)]">
-          <Check size={12} /> فعال: <a href={`/b/${saved}`} target="_blank" rel="noreferrer" className="underline underline-offset-4" dir="ltr">charana.ca/b/{saved}</a>
+          <Check size={12} /> فعال: <a href={`/b/${saved}`} target="_blank" rel="noreferrer" className="underline underline-offset-4" dir="ltr">GoPlaza.ca/b/{saved}</a>
         </p>
       ) : (
         <p className="mt-1.5 flex items-center gap-1 text-xs text-[color:var(--muted-text)]">

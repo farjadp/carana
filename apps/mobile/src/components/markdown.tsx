@@ -13,13 +13,14 @@
 // Env / Identity: Presentational. Links open in the system browser; internal
 //      /businesses/... and /cities/... links route inside the app.
 // ============================================================================
+import { brand } from "@goplaza/core";
 import { Fragment } from "react";
 import { Image, Linking, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 
 import { colors, fonts, radius, space } from "../theme";
 
-const WEB = "https://charana.ca";
+const WEB = brand.url;
 
 type Block =
   | { kind: "h2" | "h3" | "p" | "quote"; text: string }

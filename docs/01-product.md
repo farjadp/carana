@@ -1,6 +1,6 @@
 # Product, features and design
 
-What čārana is, everything it can do today per audience, and the visual
+What GOPLAZA is, everything it can do today per audience, and the visual
 system that holds it together.
 
 ---
@@ -52,7 +52,7 @@ API routes and mobile screens — not from memory. Legend: ✅ built and live ·
 | Search tab — same RPC as web, category chips, `?q=` deep link | ✅ |
 | Category / city / province listings | ✅ |
 | Business profile — parity with web (cover, badge, open-now, actions, services, hours, branches, reviews) | ✅ |
-| Auth: sign in / up / forgot / confirmed deep link (`charana://`) | ✅ |
+| Auth: sign in / up / forgot / confirmed deep link (`goplaza://`, `charana://` kept for old installs) | ✅ |
 | Account edit (name, phone) | ✅ |
 | Business registration: verify email + phone → optional website import (AI) → 7-step form → review → submit | ✅ |
 | Save/notes/reviews in app | ⚪ not yet (Notion: "My Notes list", "finish mobile review submission") |
@@ -185,7 +185,7 @@ an image model.
 
 #### Brief
 
-**Brand:** čārana (چارانا) — Persian-language directory of Iranian businesses
+**Brand:** GOPLAZA (گوپلازا) — Persian-language directory of Iranian businesses
 in Canada
 **Company:** Ashavid Inc., Toronto
 **Audience:** Iranians in Canada looking for a Persian-speaking lawyer, doctor,
@@ -201,7 +201,7 @@ without nostalgia or cliché; finding, not selling.
 
 **Technical:** legible at 16px; works in one colour; app icon in a square with
 no rounded corners of its own; generous negative space; sits beside both
-"چارانا" and "čārana".
+"گوپلازا" and "GOPLAZA".
 
 #### Prompts for an image model
 
@@ -259,12 +259,15 @@ concern. Sections added recently are commented with their date and purpose.
 Approved direction: **Concept 1 — The Hidden Č**
 
 ### Files
-- `charana-mark-primary.svg` — primary editable vector mark, #800000
-- `charana-mark-black.svg` — one-colour black
-- `charana-mark-white.svg` — reversed white
-- `charana-app-icon.svg` — vector app-icon composition on cream
-- `charana-horizontal-lockup.svg` — editable horizontal lockup
-- `charana-logo-reference.pdf` — vector reference sheet
+- `goplaza-symbol.svg` — primary vector mark, #7A1831 (provisional geometry
+  traced from the 2026-08-18 brand board; replace with the master when supplied)
+- `goplaza-symbol-black.svg` — one-colour black
+- `goplaza-symbol-white.svg` — reversed white
+- `goplaza-app-icon.svg` — cream mark on burgundy tile
+- `goplaza-favicon.svg` — tighter padding for 16–32px
+- `goplaza-logo-horizontal.svg` — mark + GOPLAZA wordmark + tagline
+- All rasters (favicons, touch icons, Expo icon/splash/adaptive) are generated
+  by `scripts/generate-brand-assets.mjs` — never hand-edit a PNG
 
 ### Brand colours
 - Annabi / Primary: `#800000`

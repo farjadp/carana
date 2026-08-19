@@ -94,7 +94,7 @@ export function VerificationBadge({
   const tone =
     status.state === "expiring"
       ? "bg-[#c9a24b] text-[#14213d]"
-      : "bg-[#800000] text-[#f6f1e8]";
+      : "bg-[#7A1831] text-[#f6f1e8]";
 
   return (
     <span
@@ -130,7 +130,7 @@ export function VerificationDetail({
       <div className="rounded-xl bg-gray-50 p-3 text-xs text-gray-700">
         <p className="font-bold mb-1">هنوز تایید نشده</p>
         <p className="text-gray-500 leading-relaxed">
-          این آگهی را چارانا ثبت کرده است و صاحب آن هنوز مالکیتش را احراز نکرده.
+          این آگهی را گوپلازا ثبت کرده است و صاحب آن هنوز مالکیتش را احراز نکرده.
           اطلاعات تماس ممکن است به‌روز نباشد.
         </p>
       </div>
@@ -142,12 +142,12 @@ export function VerificationDetail({
   return (
     <div
       className={`rounded-xl p-3 text-xs ${
-        trusted ? "bg-[#800000]/5 text-[#14213d]" : "bg-gray-100 text-gray-700"
+        trusted ? "bg-[#7A1831]/5 text-[#14213d]" : "bg-gray-100 text-gray-700"
       }`}
     >
       <div className="flex items-center justify-between mb-1.5">
         <span className="font-bold flex items-center gap-1.5">
-          <BadgeCheck size={15} className={trusted ? "text-[#800000]" : "text-gray-500"} />
+          <BadgeCheck size={15} className={trusted ? "text-[#7A1831]" : "text-gray-500"} />
           {status.method ? METHOD_LABEL[status.method] : "تاییدشده"}
         </span>
         {status.verifiedAt && (
@@ -172,7 +172,7 @@ export function VerificationDetail({
         )}
 
       <p className="mt-2 text-[10px] text-[#5f6472] leading-relaxed">
-        چارانا هر شش ماه یک‌بار شماره تماس و ایمیل هر کسب‌وکار را دوباره تایید می‌کند
+        گوپلازا هر شش ماه یک‌بار شماره تماس و ایمیل هر کسب‌وکار را دوباره تایید می‌کند
         تا مطمئن شود اطلاعات همچنان درست است.
       </p>
     </div>

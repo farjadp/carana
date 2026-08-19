@@ -5,7 +5,7 @@
 //      app. Before this, the link dumped people on localhost in a browser —
 //      the confirmation worked, but the person was left nowhere, signed out,
 //      with no idea it had worked.
-// Env / Identity: Deep-link target (charana://auth/confirmed). Supabase's
+// Env / Identity: Deep-link target (goplaza://auth/confirmed). Supabase's
 //      verify endpoint appends the session as a URL fragment; we parse it and
 //      hand it to the client ourselves, because on native nothing else will.
 //

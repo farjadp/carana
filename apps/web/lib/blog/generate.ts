@@ -9,7 +9,7 @@
 //      - Topics come from the directory, not from a keyword list: category
 //        rotation, cities with real counts, zero-result searches, suggestions,
 //        and the calendar. That is what keeps this from being "scaled content
-//        abuse" — every post is anchored to something only čārana knows.
+//        abuse" — every post is anchored to something only GOPLAZA knows.
 //      - Two model passes. The first writes with structure (JSON); the second
 //        rewrites the prose in a specific human voice with concrete rules
 //        (short/long rhythm, no listicle tics, first-person plural, one
@@ -26,10 +26,10 @@ import { generateObject, generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 
-import { PUBLIC_STATUSES } from "@charana/core";
+import { PUBLIC_STATUSES } from "@goplaza/core";
 import { CATEGORY_DETAILS } from "@/lib/data/category-details";
 import { cityConfigs } from "@/lib/data/cities";
-import { slugify } from "@charana/core";
+import { slugify } from "@goplaza/core";
 import { MIN_INDEXABLE, countCategoryCities } from "@/lib/seo/local";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { generatePostImage } from "./images";
@@ -45,12 +45,12 @@ type LinkTarget = { path: string; label: string; kind: "category" | "city" | "lo
 async function buildInventory() {
   const admin = createSupabaseAdminClient();
   const targets: LinkTarget[] = [
-    { path: "/search", label: "جستجوی چارانا", kind: "page" },
+    { path: "/search", label: "جستجوی گوپلازا", kind: "page" },
     { path: "/how-it-works", label: "چطور کار می‌کند", kind: "page" },
     { path: "/trust", label: "نشان تأیید چیست", kind: "page" },
     { path: "/dashboard/business/new", label: "ثبت رایگان کسب‌وکار", kind: "page" },
-    { path: "/download", label: "دانلود اپ چارانا", kind: "page" },
-    { path: "/blog", label: "وبلاگ چارانا", kind: "page" },
+    { path: "/download", label: "دانلود اپ گوپلازا", kind: "page" },
+    { path: "/blog", label: "وبلاگ گوپلازا", kind: "page" },
   ];
   for (const c of Object.values(CATEGORY_DETAILS)) targets.push({ path: `/categories/${c.slug}`, label: c.name, kind: "category" });
   for (const c of cityConfigs) targets.push({ path: `/cities/${c.slug}`, label: `کسب‌وکارهای ایرانی ${c.nameFa}`, kind: "city" });
@@ -146,7 +146,7 @@ async function planTopics(n: number, inv: Awaited<ReturnType<typeof buildInvento
     schema: z.object({ briefs: z.array(briefSchema).min(1) }),
     temperature: 0.8,
     providerOptions: { openai: { strictJsonSchema: false } },
-    prompt: `You are the content editor of čārana (چارانا), the Persian-language directory of Iranian-owned businesses in Canada (charana.ca). Plan ${n} article briefs for today.
+    prompt: `You are the content editor of GOPLAZA (گوپلازا), the Persian-language directory of Iranian-owned businesses in Canada (goplaza.ca). Plan ${n} article briefs for today.
 
 Editorial line: useful, specific, grounded in the directory's own data. Never generic listicles ("10 tips…"). Each brief answers a real question an Iranian in Canada has, and links to real pages on the site.
 Prefer these categories today (least recently covered): ${wanted.join(", ")}.
@@ -191,7 +191,7 @@ async function draft(brief: z.infer<typeof briefSchema>, inv: Awaited<ReturnType
     schema: draftSchema,
     temperature: 0.7,
     providerOptions: { openai: { strictJsonSchema: false } },
-    prompt: `Write the article for this brief, in Persian, for charana.ca.
+    prompt: `Write the article for this brief, in Persian, for goplaza.ca.
 
 BRIEF: ${JSON.stringify(brief, null, 2)}
 
@@ -201,7 +201,7 @@ ${inv.localFacts.map((f) => `${f.label}: ${f.count} (${f.path})`).join("; ")}
 Linkable paths (use ONLY these for internal links; every path in brief.must_link must appear at least once as a markdown link with a natural Persian anchor, and paths must be relative like /categories/medical-clinic):
 ${inv.targets.map((t) => `${t.path} — ${t.label}`).join("\n")}
 
-Style: expert but plain; second-person singular خودمانی ("پیدا کن", "بپرس"); never first-person singular ("من", "خودم") and never invented personal anecdotes — the only first person allowed is "ما در چارانا" about the directory's data; written register, not spoken (می‌رسد not می‌رسه, است not ـه، را not رو); čārana launched in 2026 — never "سال‌ها" or "همیشه" about our own experience; the word "تأییدشده/verified" only for the verified count itself, never as a synonym for "listed"; nim-fasele (نیم‌فاصله) always; Persian digits inside Persian text; keep English proper nouns (city names, RRSP, TFSA, T1) in Latin; no "در این مقاله"; no filler intro; open with the reader's situation in two sentences; end with a short "بعدش چه کار کنم" section that points to the site. Put exactly one [INLINE_IMAGE] marker on its own line after the second or third section. Do not invent statistics, prices, laws or names. Where a rule depends on province, say "در انتاریو…" explicitly and keep it general.`,
+Style: expert but plain; second-person singular خودمانی ("پیدا کن", "بپرس"); never first-person singular ("من", "خودم") and never invented personal anecdotes — the only first person allowed is "ما در گوپلازا" about the directory's data; written register, not spoken (می‌رسد not می‌رسه, است not ـه، را not رو); GOPLAZA launched in 2026 — never "سال‌ها" or "همیشه" about our own experience; the word "تأییدشده/verified" only for the verified count itself, never as a synonym for "listed"; nim-fasele (نیم‌فاصله) always; Persian digits inside Persian text; keep English proper nouns (city names, RRSP, TFSA, T1) in Latin; no "در این مقاله"; no filler intro; open with the reader's situation in two sentences; end with a short "بعدش چه کار کنم" section that points to the site. Put exactly one [INLINE_IMAGE] marker on its own line after the second or third section. Do not invent statistics, prices, laws or names. Where a rule depends on province, say "در انتاریو…" explicitly and keep it general.`,
   });
   return object;
 }
@@ -229,7 +229,7 @@ async function humanise(body: string): Promise<string> {
 
 - Vary sentence length: some very short. Some longer, with a clause that adds a concrete detail.
 - Remove listicle tics and AI-isms: no "در دنیای امروز", "قابل توجه است که", "به طور کلی", "در نهایت", "بیایید", "مهم است بدانید"; no sentence that starts with "این" three times in a row; no bullet list longer than five items.
-- One place, allow an aside in first-person plural ("ما در چارانا دیده‌ایم که…") tied to the directory's data. Never first-person singular, never an invented personal memory.
+- One place, allow an aside in first-person plural ("ما در گوپلازا دیده‌ایم که…") tied to the directory's data. Never first-person singular, never an invented personal memory.
 - One place, take a position ("به نظر ما…") and give the reason.
 - Prefer verbs to nominalisations; cut adverbs.
 - Keep the written register: no spoken/broken forms (می‌رسه، می‌شه، رو، تو به‌جای در) — خودمانی means plain and direct, not colloquial spelling.

@@ -14,13 +14,13 @@ export const colors = {
   mutedText: "#5f6472",
   line: "rgba(20, 33, 61, 0.10)",
   lajvard: "#0047ab",
-  annabi: "#800000",
+  annabi: "#7A1831",
   // A deeper annabi for gradients-by-adjacency and pressed states.
-  annabiDeep: "#5c0000",
+  annabiDeep: "#5A1124",
   // Accent only, never a surface. Brand book, section 12.
   gold: "#c9a24b",
   success: "#0f7b4f",
-  softAnnabi: "rgba(128, 0, 0, 0.08)",
+  softAnnabi: "rgba(122, 24, 49, 0.08)",
   softLajvard: "rgba(0, 71, 171, 0.08)",
   softGold: "rgba(201, 162, 75, 0.16)",
   // Text on annabi surfaces — warm cream, not pure white.

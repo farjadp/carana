@@ -149,7 +149,7 @@ export function BillingClient({
                   type="button"
                   disabled={pending || current}
                   onClick={() => go("/api/stripe/checkout", { businessId, plan: plan.id, interval })}
-                  className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-full bg-[color:var(--annabi)] text-sm font-black text-[#f6f1e8] transition hover:bg-[#5c0000] disabled:opacity-40"
+                  className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-full bg-[color:var(--annabi)] text-sm font-black text-[#f6f1e8] transition hover:bg-[#5A1124] disabled:opacity-40"
                 >
                   {current ? "پلن فعلی شما" : pending ? "…" : `ارتقا به ${plan.name}`}
                 </button>
@@ -158,7 +158,7 @@ export function BillingClient({
           })}
         </div>
         <p className="mt-4 text-[11px] leading-6 text-[color:var(--muted-text)]">
-          قیمت‌ها بدون مالیات‌اند؛ GST/HST بر اساس استان شما هنگام پرداخت اضافه می‌شود. پرداخت روی صفحه‌ی امن Stripe انجام می‌شود و چارانا شماره‌ی کارت شما را نمی‌بیند و ذخیره نمی‌کند.
+          قیمت‌ها بدون مالیات‌اند؛ GST/HST بر اساس استان شما هنگام پرداخت اضافه می‌شود. پرداخت روی صفحه‌ی امن Stripe انجام می‌شود و گوپلازا شماره‌ی کارت شما را نمی‌بیند و ذخیره نمی‌کند.
         </p>
       </section>
 

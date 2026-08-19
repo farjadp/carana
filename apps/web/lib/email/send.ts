@@ -13,7 +13,7 @@ import { reportQuietFailure } from "@/lib/observability/report";
 
 import { company } from "@/lib/data/company";
 
-const FROM = process.env.EMAIL_FROM ?? `${company.brand} <noreply@charana.ca>`;
+const FROM = process.env.EMAIL_FROM ?? `${company.brand} <${company.email.noreply}>`;
 
 /**
  * Created lazily. Reading the key at module scope would make every route that

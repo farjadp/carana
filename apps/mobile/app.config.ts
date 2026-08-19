@@ -25,7 +25,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
   return {
     ...config,
-    name: config.name ?? "čārana",
+    // slug stays "charana": it is the EAS project handle (REBRAND_PLAN.md D6).
+    name: config.name ?? "GOPLAZA",
     slug: config.slug ?? "charana",
     ios,
   };

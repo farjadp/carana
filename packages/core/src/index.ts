@@ -7,6 +7,9 @@
 //      or it stops being consumable from the Expo bundle.
 // ============================================================================
 
+// Brand constants — name, domain, palette. One place, by decision.
+export * from "./brand";
+
 // Generated from the live Supabase schema — regenerate with `pnpm gen:types`.
 export type { Database, Tables, TablesInsert, TablesUpdate, Enums } from "./database.types";
 

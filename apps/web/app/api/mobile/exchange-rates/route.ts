@@ -5,7 +5,7 @@
 //      the Expo bundle, so the app calls this instead of Navasan directly.
 //      Public, no auth: a currency rate is not personal data. The Tehran
 //      clock/date itself is not served here — mobile computes it locally
-//      with the same @charana/core functions the web footer uses, since
+//      with the same @goplaza/core functions the web footer uses, since
 //      Expo's Hermes has full Intl/ICU support and needs no network call
 //      for that part.
 // Env / Identity: Public GET. Server only (reads NAVASAN_API_KEY).

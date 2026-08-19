@@ -9,7 +9,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { PUBLIC_STATUSES, PROVINCES, resolveProvince } from "@charana/core";
+import { PUBLIC_STATUSES, PROVINCES, resolveProvince } from "@goplaza/core";
 import { redirect } from "next/navigation";
 import { InnerPage } from "@/components/inner-page";
 import { createSupabaseServerClient } from "@/lib/supabase/server";

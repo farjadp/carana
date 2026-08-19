@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: packages/core/src/verification-status.ts
-// Version: 1.1.0 — 2026-08-15 (moved to @charana/core so web and mobile share it)
+// Version: 1.1.0 — 2026-08-15 (moved to @goplaza/core so web and mobile share it)
 // Why: One definition of what "verified" means. The public profile, the owner
 //      dashboard, the admin queue and any future search filter must agree, and
 //      they only agree if they all read this file.
@@ -222,9 +222,9 @@ export const METHOD_LABEL: Record<VerificationMethod, string> = {
 
 export const METHOD_EXPLANATION: Record<VerificationMethod, string> = {
   self_onboarded:
-    "صاحب این کسب‌وکار خودش آن را در چارانا ثبت کرده و ایمیل و شماره موبایلش تایید شده است.",
+    "صاحب این کسب‌وکار خودش آن را در گوپلازا ثبت کرده و ایمیل و شماره موبایلش تایید شده است.",
   claimed:
-    "این آگهی را چارانا ثبت کرده بود. صاحب کسب‌وکار با دریافت کد پیامکی روی همان شماره‌ای که در آگهی منتشر شده بود، مالکیتش را اثبات کرده است.",
+    "این آگهی را گوپلازا ثبت کرده بود. صاحب کسب‌وکار با دریافت کد پیامکی روی همان شماره‌ای که در آگهی منتشر شده بود، مالکیتش را اثبات کرده است.",
 };
 
 export const STATE_LABEL: Record<VerificationState, string> = {

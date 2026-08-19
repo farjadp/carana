@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "گزارش فعالیت‌ها | پنل ادمین čārana",
+  title: "گزارش فعالیت‌ها | پنل ادمین",
 };
 
 export default async function AdminLogsPage() {

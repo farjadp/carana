@@ -93,7 +93,7 @@ export function ReportDialog({ businessId, businessName }: { businessId: string;
                 <CheckCircle2 size={40} className="mx-auto mb-3 text-[color:var(--success,#0f7b4f)]" />
                 <h2 className="text-lg font-black text-[color:var(--text)]">گزارش ثبت شد</h2>
                 <p className="mx-auto mt-2 max-w-sm text-sm leading-7 text-[color:var(--muted-text)]">
-                  در صف بررسی تیم چاراناست. اگر تغییری لازم باشد اعمال می‌کنیم؛ ممکن است چند روز طول بکشد.
+                  در صف بررسی تیم گوپلازاست. اگر تغییری لازم باشد اعمال می‌کنیم؛ ممکن است چند روز طول بکشد.
                 </p>
                 <button type="button" onClick={close} className="mt-5 h-10 rounded-full bg-[color:var(--text)] px-6 text-sm font-bold text-[#f6f1e8]">بستن</button>
               </div>
@@ -153,7 +153,7 @@ export function ReportDialog({ businessId, businessName }: { businessId: string;
                     type="button"
                     onClick={submit}
                     disabled={!reason || sending}
-                    className="h-11 rounded-full bg-[color:var(--annabi)] px-6 text-sm font-black text-[#f6f1e8] transition hover:bg-[#5c0000] disabled:opacity-40"
+                    className="h-11 rounded-full bg-[color:var(--annabi)] px-6 text-sm font-black text-[#f6f1e8] transition hover:bg-[#5A1124] disabled:opacity-40"
                   >
                     {sending ? "در حال ارسال…" : "ارسال گزارش"}
                   </button>
