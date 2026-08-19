@@ -16,6 +16,7 @@ import { ArrowLeft, Clock } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
 import { JsonLd } from "@/components/json-ld";
+import { OG_FALLBACK } from "@/lib/seo/entity";
 import { PostCard } from "@/components/blog/post-card";
 import { SuggestionBox } from "@/components/suggestion-box";
 import { fmtDate, getPost, listCategories, relatedPosts } from "@/lib/blog/queries";
@@ -40,7 +41,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       title: post.title,
       description: post.excerpt ?? undefined,
       url: `/blog/${post.slug}`,
-      images: post.cover_url ? [{ url: post.cover_url }] : undefined,
+      images: [{ url: post.cover_url || OG_FALLBACK }],
       publishedTime: post.published_at ?? undefined,
       modifiedTime: post.updated_at,
       locale: "fa_IR",

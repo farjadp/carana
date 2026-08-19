@@ -74,6 +74,7 @@ const FA = "۰۱۲۳۴۵۶۷۸۹";
 const fa = (n: number) => String(n).replace(/\d/g, (d) => FA[Number(d)]);
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/" },
   title: "GOPLAZA | دایرکتوری کسب‌وکارهای ایرانیان کانادا",
 };
 

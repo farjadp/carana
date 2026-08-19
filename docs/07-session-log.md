@@ -61,6 +61,54 @@ Verified: typecheck (3 packages), web build (189 pages), lint error count
 unchanged (6 pre-existing, none new), `expo config` valid, `check:brand`
 clean, screenshots of home / login / story / 404 / mobile width.
 
+## Same night: SEO / AIO / GEO pass over the whole site
+
+Routes enumerated from `sitemap.xml`, per the house rule. Record in
+`SEO_AUDIT.md`.
+
+**The finding that mattered.** PostgREST caps an unbounded `select` at 1,000
+rows and returns **no error**. Every "all public listings" path was seeing
+1,000 of 5,120:
+
+| surface | was | now |
+|---|---|---|
+| business URLs in the sitemap | 1,000 | 5,120 |
+| total sitemap URLs | 1,106 | 5,226 |
+| city×category pages judged indexable | 8 | 45 |
+| `llms-full.txt` ("full listing export") | 1,000 | 5,120 |
+| `/provinces` total shown to visitors | 998 | 5,106 |
+
+Four fifths of the directory had never been submitted to Google, the AI
+export was 80 % empty while calling itself full, and the long-tail
+city×category pages — the whole SEO thesis — were being dropped from the
+sitemap because `countCategoryCities` measured them against a fifth of the
+data. `lib/supabase/fetch-all.ts` drains queries page by page; seven call
+sites converted.
+
+**The rebrand-critical one.** `metadataBase` was never set, so Next emitted
+`<link rel="canonical" href="/jobs">` — a *relative* canonical resolves
+against whatever host served the page, so every page served from charana.ca
+declared itself canonical instead of pointing at goplaza.ca. That is the
+exact opposite of what a domain move needs. Set `metadataBase`, added
+per-page canonicals to 20 routes.
+
+**Also shipped:** the site had no OpenGraph image at all — added a generated
+one (`app/opengraph-image.tsx`, brand tokens, no hand-drawn asset) plus
+site-wide OG/Twitter defaults; `Organization` (with `alternateName: čārana`)
++ `WebSite` + `SearchAction` on every page, which is the machine-readable
+statement that the rename is the same entity; `CollectionPage` + `ItemList`
+on category, city, blog and jobs lists; a "name change — read this if you
+have older data" block in `llms.txt` for answer engines holding the old
+brand.
+
+**Two traps, both caught in verification, both worth remembering:**
+- Putting `alternates.canonical: "/"` on the root layout makes *every* page
+  inherit it and declare the homepage canonical — a de-indexing instruction
+  across the whole site. Metadata inherits; canonicals must be per-page.
+- Next replaces `openGraph` rather than merging it, so a page that sets
+  `openGraph` at all loses the inherited image. `business.cover_url ? [...] : []`
+  was why every shared listing had no image.
+
 ## Same night, after Farjad asked: the login claim and the app version
 
 - **«۲۰,۰۰۰+ کسب‌وکارهای ثبت‌شده» on the auth panel is gone.** It was a

@@ -14,6 +14,7 @@ import { JsonLd } from "@/components/json-ld";
 import { PostCard } from "@/components/blog/post-card";
 import { listCategories, listPosts } from "@/lib/blog/queries";
 import { breadcrumbLd } from "@/lib/seo/local";
+import { collectionLd } from "@/lib/seo/entity";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const revalidate = 600;
@@ -36,6 +37,16 @@ export default async function BlogIndex({ searchParams }: { searchParams: Promis
   return (
     <PageShell currentPath="/blog" currentSection="brand">
       <JsonLd data={breadcrumbLd([{ name: "خانه", url: "/" }, { name: "وبلاگ", url: "/blog" }])} />
+      {posts.length ? (
+        <JsonLd
+          data={collectionLd({
+            name: "وبلاگ گوپلازا",
+            path: "/blog",
+            total,
+            items: posts.map((p) => ({ name: p.title as string, path: `/blog/${p.slug}` })),
+          })}
+        />
+      ) : null}
       <main className="min-h-screen bg-[color:var(--bg)]">
         <section className="mx-auto max-w-7xl px-4 pt-10 md:pt-14">
           <div className="flex flex-wrap items-end justify-between gap-4">

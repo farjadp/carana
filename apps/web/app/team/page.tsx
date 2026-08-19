@@ -12,7 +12,8 @@ import { InnerPage } from "@/components/inner-page";
 import { BrandMark } from "@/components/brand-mark";
 import { company } from "@/lib/data/company";
 
-export const metadata: Metadata = { title: "معرفی تیم", description: "چه کسانی گوپلازا را می‌سازند." };
+export const metadata: Metadata = {
+  alternates: { canonical: "/team" }, title: "معرفی تیم", description: "چه کسانی گوپلازا را می‌سازند." };
 
 export default function TeamPage() {
   return (

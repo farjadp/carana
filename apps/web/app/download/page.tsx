@@ -15,6 +15,7 @@ import { BrandMark } from "@/components/brand-mark";
 import { APP_VERSION, STORES } from "@/lib/data/releases";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/download" },
   title: "دانلود اپلیکیشن",
   description: "اپ گوپلازا برای iOS و Android — دایرکتوری کسب‌وکارهای ایرانی کانادا در جیب شما.",
 };

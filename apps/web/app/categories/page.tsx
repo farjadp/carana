@@ -10,6 +10,7 @@ import { InnerPage } from "@/components/inner-page";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/categories" },
   title: "دسته‌بندی کسب‌وکارها",
 };
 

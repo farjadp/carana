@@ -36,6 +36,9 @@ export async function generateMetadata({
   return {
     title: `کسب‌وکارهای ایرانی ${province.name}`,
     description: `دایرکتوری کسب‌وکارهای ایرانی در استان ${province.name} (${province.nameEn}) کانادا، بر اساس شهر و دسته‌بندی.`,
+    // Paginated with ?page=; every page canonicalises to the unpaginated URL
+    // so the pages do not compete with each other in the index.
+    alternates: { canonical: `/provinces/${slug}` },
   };
 }
 

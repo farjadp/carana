@@ -987,3 +987,42 @@ bulk text edit, run `for f in $(git diff --name-only); do iconv -f UTF-8 -t
 UTF-8 "$f" >/dev/null || echo BAD $f; done`.
 **Lesson.** A tool that "worked" on ASCII data is not proven on Persian
 data. Same family as the digit trap.
+
+## PostgREST silently caps an unbounded select at 1,000 rows
+
+**Symptom.** The sitemap listed 1,000 of 5,120 businesses. `llms-full.txt`
+exported 1,000 while its header said "full". `/provinces` displayed 998.
+Most city×category pages fell below `MIN_INDEXABLE` and vanished from the
+sitemap. No error anywhere, in any log.
+**Cause.** PostgREST's `max-rows` is 1,000 on this project. A `select` with
+no `.range()` returns the first 1,000 rows and reports success. Adding
+`.limit(5000)` does **not** help — the server limit wins.
+**Fix.** `lib/supabase/fetch-all.ts` — `fetchAllRows(() => query)` pages with
+`.range()` until a short page arrives. Takes a factory, because a
+PostgrestFilterBuilder is a thenable and cannot be awaited twice.
+**Lesson.** Any query whose result you `.length` or iterate as "all of them"
+is suspect. Two independent checks disagreeing (an exact `count` head-query
+saying 5,120 next to a `.length` saying 1,000) is the tell.
+
+## A canonical on the root layout de-indexes the whole site
+
+**Symptom.** After adding `alternates: { canonical: "/" }` to
+`app/layout.tsx`, `/about` emitted `<link rel="canonical" href="https://…/">`.
+**Cause.** Next merges metadata down the tree; a canonical on a layout is
+inherited by every page that does not set its own. Every page then tells
+Google "the homepage is the real version of me".
+**Fix.** Canonicals belong on pages, never on a layout. Same for
+`openGraph.url`.
+**Related.** Next replaces `openGraph` shallowly rather than merging it, so a
+page that declares `openGraph` without `images` loses the inherited default —
+name the fallback explicitly (`OG_FALLBACK`).
+
+## Relative canonicals defeat a domain migration
+
+**Symptom.** `<link rel="canonical" href="/jobs">` — no origin.
+**Cause.** `metadataBase` was never set, so Next emitted the path verbatim.
+A relative canonical resolves against the host that served the page, so every
+page served from the old domain self-canonicalised there.
+**Fix.** `metadataBase: new URL(env.baseUrl)` in the root layout.
+**Lesson.** It looks harmless while one domain exists. It only bites when a
+second one appears — which is precisely when canonicals matter most.

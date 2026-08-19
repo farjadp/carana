@@ -19,6 +19,7 @@ import { company } from "@/lib/data/company";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/about" },
   title: "درباره ما",
   description: `گوپلازا دایرکتوری فارسی‌زبان کسب‌وکارهای ایرانی در کاناداست — ساخته‌ی ${company.legalName} در تورنتو. ${brand.tagline.fa}`,
 };

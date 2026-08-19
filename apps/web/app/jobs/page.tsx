@@ -29,6 +29,7 @@ import {
 import { JsonLd } from "@/components/json-ld";
 import { PageShell } from "@/components/page-shell";
 import { breadcrumbLd } from "@/lib/seo/local";
+import { collectionLd } from "@/lib/seo/entity";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -91,6 +92,18 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   return (
     <PageShell currentPath="/jobs" currentSection="home">
       <JsonLd data={breadcrumbLd([{ name: "خانه", url: "/" }, { name: "فرصت‌های شغلی", url: "/jobs" }])} />
+      {/* Only the ads that are live right now — the same rule the sitemap
+          uses. An ItemList entry for an expired posting is a soft 404. */}
+      {rows.length ? (
+        <JsonLd
+          data={collectionLd({
+            name: "فرصت‌های شغلی در کسب‌وکارهای ایرانی کانادا",
+            path: "/jobs",
+            total: rows.length,
+            items: rows.map((j) => ({ name: j.title as string, path: `/jobs/${j.slug}` })),
+          })}
+        />
+      ) : null}
       <main className="page-main">
         {/* Hero. The photograph is from scripts/generate-jobs-images.py under
             the same locked art direction as the category set — the right third

@@ -10,7 +10,8 @@ import { ArrowLeft, Download, Globe, Smartphone } from "lucide-react";
 import { InnerPage } from "@/components/inner-page";
 import { RELEASES } from "@/lib/data/releases";
 
-export const metadata: Metadata = { title: "نسخه‌ها", description: "تغییرات هر نسخه‌ی گوپلازا." };
+export const metadata: Metadata = {
+  alternates: { canonical: "/releases" }, title: "نسخه‌ها", description: "تغییرات هر نسخه‌ی گوپلازا." };
 const fa = (s: string | number) => String(s).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
 const P: Record<string, { label: string; icon: React.ReactNode }> = {
   web: { label: "وب", icon: <Globe size={12} /> },

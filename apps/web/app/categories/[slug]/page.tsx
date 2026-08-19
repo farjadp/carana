@@ -9,7 +9,9 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCategoryDetail } from "@/lib/data/category-details";
-import { countCategoryCities, getCategoryAliases } from "@/lib/seo/local";
+import { breadcrumbLd, countCategoryCities, getCategoryAliases } from "@/lib/seo/local";
+import { collectionLd } from "@/lib/seo/entity";
+import { JsonLd } from "@/components/json-ld";
 import CategoryClientPage from "./category-client";
 
 export const revalidate = 60; // ISR cache 1 minute
@@ -25,6 +27,7 @@ export async function generateMetadata({
   return {
     title: `${config.name} ایرانیان کانادا`,
     description: config.description,
+    alternates: { canonical: `/categories/${slug}` },
     openGraph: {
       title: `${config.name} ایرانی در کانادا | دایرکتوری گوپلازا`,
       description: config.description,
@@ -57,10 +60,24 @@ export default async function CategoryDetailPage({
     .map((c) => ({ slug: c.city.slug, nameFa: c.city.nameFa, count: c.count }));
 
   return (
-    <CategoryClientPage
-      categoryConfig={config}
-      initialBusinesses={initialBusinesses}
-      cityLinks={cityLinks}
-    />
+    <>
+      <JsonLd data={breadcrumbLd([{ name: "خانه", url: "/" }, { name: "دسته‌بندی‌ها", url: "/categories" }, { name: config.name, url: `/categories/${slug}` }])} />
+      <JsonLd
+        data={collectionLd({
+          name: `${config.name} ایرانی در کانادا`,
+          description: config.description,
+          path: `/categories/${slug}`,
+          total: initialBusinesses.length,
+          items: initialBusinesses
+            .slice(0, 50)
+            .map((b) => ({ name: (b as { name: string }).name, path: `/businesses/${(b as { slug: string | null; id: string }).slug ?? (b as { id: string }).id}` })),
+        })}
+      />
+      <CategoryClientPage
+        categoryConfig={config}
+        initialBusinesses={initialBusinesses}
+        cityLinks={cityLinks}
+      />
+    </>
   );
 }

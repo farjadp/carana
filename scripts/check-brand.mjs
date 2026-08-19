@@ -37,6 +37,14 @@ const ALLOW = [
   { re: /^apps\/mobile\/src\/app\/auth\/signup\.tsx$/, why: "comment about the legacy scheme allow-list" },
   { re: /^apps\/web\/app\/api\/events\/route\.ts$/, why: "hash salt fallback kept for stability" },
   { re: /^packages\/core\/src\/brand\.ts$/, why: "legacyScheme + the rebrand comment" },
+  // The rename has to stay machine-readable for years: schema.org
+  // alternateName and the llms.txt continuity block are what let a search or
+  // answer engine holding "čārana" map it to GOPLAZA. Deleting these would
+  // break the migration, not tidy it.
+  { re: /^apps\/web\/lib\/seo\/entity\.ts$/, why: "Organization.alternateName carries the old brand" },
+  { re: /^apps\/web\/app\/llms\.txt\/route\.ts$/, why: "the name-change block answer engines need" },
+  { re: /^apps\/web\/app\/layout\.tsx$/, why: "comment explaining the canonical/rebrand trap" },
+  { re: /^SEO_AUDIT\.md$/, why: "the audit record" },
   { re: /^packages\/core\/src\/owner-identity\.ts$/, why: "imports@charana.ca system profile" },
   { re: /^scripts\/(reassign-imports|import-listings|import-businesses)\.mts$/, why: "imports@charana.ca system profile" },
   { re: /^scripts\/seed-stripe-plans\.mts$/, why: "Stripe metadata lookup keys" },

@@ -17,6 +17,7 @@ import { resolveProvince } from "@goplaza/core";
 import { sortFeaturedFirst } from "@/lib/billing/entitlements";
 import { getCategoryDetail } from "@/lib/data/category-details";
 import { env } from "@/lib/env";
+import { fetchAllRows } from "@/lib/supabase/fetch-all";
 import { getVerificationStatus, isTrusted, type VerificationMethod } from "@/lib/verification/status";
 
 export const MIN_INDEXABLE = 3;
@@ -185,13 +186,14 @@ export async function countCityCategories(
   city: CityConfig,
   categories: { slug: string; name: string }[]
 ): Promise<{ slug: string; name: string; count: number }[]> {
-  const { data } = await supabase
-    .from("businesses")
-    .select("category")
-    .in("status", PUBLIC_STATUSES)
-    .or(cityFilterOr(city));
+  // Paginated for the same reason as countCategoryCities: a large metro
+  // exceeds the 1,000-row cap, and the counts feed both the city page and the
+  // decision about which city×category pages are indexable.
+  const data = await fetchAllRows<{ category: string | null }>(() =>
+    supabase.from("businesses").select("category").in("status", PUBLIC_STATUSES).or(cityFilterOr(city)).order("id")
+  );
   const freq = new Map<string, number>();
-  for (const r of (data ?? []) as { category: string | null }[]) if (r.category) freq.set(r.category, (freq.get(r.category) ?? 0) + 1);
+  for (const r of data) if (r.category) freq.set(r.category, (freq.get(r.category) ?? 0) + 1);
   return categories
     .map((c) => ({ ...c, count: getCategoryAliases(c.slug, c.name).reduce((n, a) => n + (freq.get(a) ?? 0), 0) }))
     .sort((a, b) => b.count - a.count);
@@ -203,12 +205,18 @@ export async function countCategoryCities(
   categorySlug: string,
   categoryName?: string
 ): Promise<{ city: CityConfig; count: number }[]> {
-  const { data } = await supabase
-    .from("businesses")
-    .select("city")
-    .in("status", PUBLIC_STATUSES)
-    .in("category", getCategoryAliases(categorySlug, categoryName));
-  const cities = ((data ?? []) as { city: string | null }[]).map((r) => (r.city ?? "").toLowerCase());
+  // Paginated. Unbounded, a popular category stopped at 1,000 rows, so most
+  // city×category pages measured below MIN_INDEXABLE and were dropped from the
+  // sitemap — the long-tail pages are the whole point of this function.
+  const data = await fetchAllRows<{ city: string | null }>(() =>
+    supabase
+      .from("businesses")
+      .select("city")
+      .in("status", PUBLIC_STATUSES)
+      .in("category", getCategoryAliases(categorySlug, categoryName))
+      .order("id")
+  );
+  const cities = data.map((r) => (r.city ?? "").toLowerCase());
   return cityConfigs
     .map((city) => {
       const terms = [city.nameEn, city.nameFa, ...city.neighborhoods].map((t) => t.toLowerCase());

@@ -13,6 +13,7 @@ import { LegalList, LegalMeta, LegalSection } from "@/components/legal-doc";
 import { company } from "@/lib/data/company";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/terms" },
   title: "شرایط استفاده",
   description:
     "شرایط استفاده از دایرکتوری گوپلازا برای کاربران و صاحبان کسب‌وکار.",

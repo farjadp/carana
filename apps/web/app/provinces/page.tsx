@@ -13,6 +13,7 @@ import { listProvinces } from "@/lib/data/geography";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/provinces" },
   title: "استان‌ها | کسب‌وکارهای ایرانی کانادا",
   description:
     "کسب‌وکارهای ایرانی کانادا را بر اساس استان مرور کنید: انتاریو، بریتیش کلمبیا، کبک و بقیه.",

@@ -14,6 +14,7 @@ import { LegalList, LegalMeta, LegalSection, LegalTable } from "@/components/leg
 import { company } from "@/lib/data/company";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/privacy" },
   title: "حریم خصوصی",
   description:
     "سیاست حریم خصوصی گوپلازا: چه اطلاعاتی جمع‌آوری می‌شود، چرا، چه مدت نگهداری می‌شود و چگونه می‌توانید حذفش کنید.",

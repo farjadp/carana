@@ -22,6 +22,7 @@ const CARD_COLUMNS =
 const PAGE_SIZE = 48;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/businesses" },
   title: "همه کسب‌وکارها",
   description:
     "فهرست کامل کسب‌وکارهای ایرانی ثبت‌شده در کانادا، قابل مرور بر اساس استان و دسته‌بندی.",

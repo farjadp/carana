@@ -32,6 +32,8 @@ import { CATEGORY_DETAILS } from "@/lib/data/category-details";
 import { LOCAL_CARD_COLUMNS, cityFilterOr, countCityCategories, resolveCity } from "@/lib/seo/local";
 import { JsonLd } from "@/components/json-ld";
 import { breadcrumbLd } from "@/lib/seo/local";
+import { collectionLd } from "@/lib/seo/entity";
+import { fetchAllRows } from "@/lib/supabase/fetch-all";
 
 export const revalidate = 60;
 
@@ -93,7 +95,7 @@ export default async function CityDetailPage({ params }: CityPageParams) {
   // "24". Count over the full set; show 24.
   const cityConditions = cityFilterOr(city);
   const allCategories = Object.values(CATEGORY_DETAILS).map((c) => ({ slug: c.slug, name: c.name }));
-  const [{ data: businesses }, { data: allRows }, categoryCounts] = await Promise.all([
+  const [{ data: businesses }, allRows, categoryCounts] = await Promise.all([
     supabase
       .from("businesses")
       .select(LOCAL_CARD_COLUMNS)
@@ -101,25 +103,40 @@ export default async function CityDetailPage({ params }: CityPageParams) {
       .or(cityConditions)
       .order("created_at", { ascending: false })
       .limit(24),
-    supabase
-      .from("businesses")
-      .select("id, category, verified_until, verified_phone, verified_email, verification_method, verified_at, phone, contact_email")
-      .in("status", ["APPROVED", "PUBLISHED"])
-      .or(cityConditions),
+    // Paginated — Toronto alone exceeds the 1,000-row cap, which made this
+    // page understate its own total and its verified count.
+    fetchAllRows<Record<string, unknown>>(() =>
+      supabase
+        .from("businesses")
+        .select("id, category, verified_until, verified_phone, verified_email, verification_method, verified_at, phone, contact_email")
+        .in("status", ["APPROVED", "PUBLISHED"])
+        .or(cityConditions)
+        .order("id")
+    ),
     countCityCategories(supabase, city, allCategories),
   ]);
 
   // Featured sorts first *and* is labelled below — an unlabelled paid
   // position is an advertisement pretending to be a search result.
   const cityBusinesses = sortFeaturedFirst((businesses ?? []) as unknown as BusinessCard[]).map((x) => x.row);
-  const totalCount = (allRows ?? []).length;
-  const verifiedCount = ((allRows ?? []) as never[]).filter((b) => isTrusted(getVerificationStatus(b))).length;
+  const totalCount = allRows.length;
+  const verifiedCount = (allRows as never[]).filter((b) => isTrusted(getVerificationStatus(b))).length;
   const categoryCount = categoryCounts.filter((c) => c.count > 0).length;
   const topCategories = categoryCounts.filter((c) => c.count > 0).slice(0, 8);
 
   return (
     <PageShell currentPath={`/cities/${city.slug}`} currentSection="business">
       <JsonLd data={breadcrumbLd([{ name: "خانه", url: "/" }, { name: "شهرها", url: "/cities" }, { name: city.nameFa, url: `/cities/${city.slug}` }])} />
+      <JsonLd
+        data={collectionLd({
+          name: `کسب‌وکارهای ایرانی ${city.nameFa}`,
+          path: `/cities/${city.slug}`,
+          total: totalCount,
+          items: cityBusinesses
+            .slice(0, 50)
+            .map((b) => ({ name: b.name as string, path: `/businesses/${(b.slug as string | null) ?? (b.id as string)}` })),
+        })}
+      />
       <main className="min-h-screen bg-gray-50/60">
         <section className="relative overflow-hidden bg-gray-950 text-white px-4 py-12 md:py-16">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,71,171,0.35),transparent_32%),linear-gradient(135deg,rgba(122,24,49,0.42),transparent_42%)]" />

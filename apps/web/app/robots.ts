@@ -2,6 +2,8 @@
 // Source: apps/web/app/robots.ts
 // Version: 1.0.0 — 2026-08-21
 // Why: Keep private areas out of the index and point crawlers at the sitemap.
+//      Also advertises llms.txt, which has no standard discovery mechanism —
+//      a Sitemap: line is the only thing most crawlers already read.
 // Env / Identity: Public. Uses the canonical origin from env.
 // ============================================================================
 import type { MetadataRoute } from "next";

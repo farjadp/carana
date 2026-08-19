@@ -17,6 +17,7 @@ import { InnerPage } from "@/components/inner-page";
 import { company } from "@/lib/data/company";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/support" },
   title: "پشتیبانی",
   description: `پرسش‌های پرتکرار و راه‌های تماس با پشتیبانی ${company.brandFa}.`,
 };

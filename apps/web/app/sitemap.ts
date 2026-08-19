@@ -12,6 +12,7 @@ import { PROVINCES, PUBLIC_STATUSES } from "@goplaza/core";
 import { cityConfigs } from "@/lib/data/cities";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { fetchAllRows } from "@/lib/supabase/fetch-all";
 import { CATEGORY_DETAILS } from "@/lib/data/category-details";
 import { MIN_INDEXABLE, countCategoryCities } from "@/lib/seo/local";
 
@@ -121,13 +122,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  const { data: businesses } = await supabase
-    .from("businesses")
-    .select("slug, updated_at")
-    .in("status", PUBLIC_STATUSES)
-    .not("slug", "is", null);
+  // Paginated: an unbounded select stops at 1,000 rows without erroring, which
+  // had been submitting 1,000 of 5,120 listings to Google.
+  const businesses = await fetchAllRows<{ slug: string | null; updated_at: string | null }>(() =>
+    supabase
+      .from("businesses")
+      .select("slug, updated_at")
+      .in("status", PUBLIC_STATUSES)
+      .not("slug", "is", null)
+      .order("id")
+  );
 
-  for (const business of businesses ?? []) {
+  for (const business of businesses) {
     entries.push({
       url: `${base}/businesses/${business.slug}`,
       lastModified: business.updated_at ? new Date(business.updated_at) : undefined,

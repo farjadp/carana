@@ -8,6 +8,7 @@
 import { PUBLIC_STATUSES, resolveProvince, type Province } from "@goplaza/core";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { fetchAllRows } from "@/lib/supabase/fetch-all";
 
 /** Cities whose value is a placeholder rather than a real location. */
 export const UNKNOWN_CITY = "نامشخص";
@@ -22,13 +23,11 @@ export type CitySummary = { city: string; count: number; province: Province | nu
 
 async function fetchLocations() {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("businesses")
-    .select("province, city")
-    .in("status", PUBLIC_STATUSES);
-
-  if (error) throw error;
-  return (data ?? []) as { province: string | null; city: string | null }[];
+  // Paginated: unbounded this returned 1,000 rows, so /provinces publicly
+  // displayed 998 businesses against a directory of 5,120.
+  return fetchAllRows<{ province: string | null; city: string | null }>(() =>
+    supabase.from("businesses").select("province, city").in("status", PUBLIC_STATUSES).order("id")
+  );
 }
 
 export async function listProvinces(): Promise<ProvinceSummary[]> {

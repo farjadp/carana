@@ -10,6 +10,8 @@
 
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+
+import { OG_FALLBACK } from "@/lib/seo/entity";
 import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { PageShell } from "@/components/page-shell";
 import BusinessProfileClient from "./business-profile-client";
@@ -93,10 +95,14 @@ export async function generateMetadata({
   return {
     title: `${business.name} (${business.city || "کانادا"})`,
     description: business.short_description || `اطلاعات تماس و مشخصات ${business.name} در دایرکتوری ایرانیان کانادا`,
+    // The vanity URL /b/[slug] 301s here, so this is the only citable URL.
+    alternates: { canonical: `/businesses/${encodeURIComponent(business.slug ?? rawSlug)}` },
     openGraph: {
       title: `${business.name} | دایرکتوری مشاغل ایرانیان کانادا`,
       description: business.short_description || business.name,
-      images: business.cover_url ? [business.cover_url] : [],
+      // An empty array here used to leave every shared listing with no image.
+      // Next replaces (not merges) openGraph, so the fallback must be named.
+      images: [business.cover_url || OG_FALLBACK],
     },
   };
 }

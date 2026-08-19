@@ -22,6 +22,7 @@ import { getVerificationStatus } from "@/lib/verification/status";
 import ClaimClient from "./claim-client";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/claim" },
   title: "احراز مالکیت کسب‌وکار | گوپلازا",
   description: "کسب‌وکارتان در گوپلازا هست؟ با یک کد پیامکی مالکیتش را ثابت کنید و نشان تایید بگیرید.",
 };

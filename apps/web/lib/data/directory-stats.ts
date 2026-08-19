@@ -12,6 +12,7 @@ import { PUBLIC_STATUSES } from "@goplaza/core";
 
 import { UNKNOWN_CITY } from "@/lib/data/geography";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { fetchAllRows } from "@/lib/supabase/fetch-all";
 
 export type DirectoryStats = {
   /** Publicly listed businesses. */
@@ -35,11 +36,16 @@ export async function getDirectoryStats(): Promise<DirectoryStats> {
   const nowIso = new Date().toISOString();
   const statuses = [...PUBLIC_STATUSES];
 
-  const [{ count: totalCount }, { count: verifiedCount }, { data: cityRows }, { count: categoryCount }] =
+  // The two head-counts are exact server-side counts. The city list has to be
+  // paginated — unbounded it returned 1,000 rows, so the distinct-city number
+  // and the "top cities" list were computed from a fifth of the directory.
+  const [{ count: totalCount }, { count: verifiedCount }, cityRows, { count: categoryCount }] =
     await Promise.all([
       supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", statuses),
       supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", statuses).gt("verified_until", nowIso),
-      supabase.from("businesses").select("city").in("status", statuses).not("city", "is", null),
+      fetchAllRows<{ city: string | null }>(() =>
+        supabase.from("businesses").select("city").in("status", statuses).not("city", "is", null).order("id")
+      ),
       supabase.from("categories").select("id", { count: "exact", head: true }).eq("is_active", true),
     ]);
 
@@ -47,7 +53,7 @@ export async function getDirectoryStats(): Promise<DirectoryStats> {
   // had been inflating the home hero's city count and would have shown up as
   // a top city in the auth panel.
   const freq = new Map<string, number>();
-  for (const row of cityRows ?? []) {
+  for (const row of cityRows) {
     const city = (row.city as string | null)?.trim();
     if (city && city !== UNKNOWN_CITY) freq.set(city, (freq.get(city) ?? 0) + 1);
   }

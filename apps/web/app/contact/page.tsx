@@ -18,6 +18,7 @@ import { company } from "@/lib/data/company";
 import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/contact" },
   title: "تماس با ما",
   description: `راه‌های تماس با ${company.brandFa}، محصولی از ${company.legalName} در تورنتو، کانادا.`,
 };
