@@ -19,8 +19,16 @@ this order — full detail in `REBRAND_EXTERNAL_ACTIONS.md`:
 5. Search Console change-of-address; Maps key referrer; X handle.
 6. Supply the master vector of the G-mark; run `scripts/generate-brand-assets.mjs`.
 7. Decide whether old blog post bodies get «چارانا» → «گوپلازا» (data, not code).
-8. Fix the pre-existing false claim on the auth side panel («+۲۰٬۰۰۰
-   کسب‌وکار ثبت‌شده» vs ≈5,650 real) — found during rebrand QA, out of scope.
+8. ~~Fix the false claim on the auth side panel («+۲۰٬۰۰۰ کسب‌وکار ثبت‌شده»)~~
+   — **done, `d561f1c`.** Real counts now come from `lib/data/directory-stats.ts`,
+   shared with the home hero; the «نامشخص» sentinel no longer inflates the
+   city count (46 → 45 real).
+9. `expo prebuild --clean` → build APK **1.3.0** (`app.json` already bumped
+   for the rebrand). In the same commit as that build, update
+   `apps/web/lib/data/releases.ts`: `APP_VERSION`, `STORES.apkDirect` /
+   `apkVersion` / `apkSizeMb` / `apkBuiltAt`, and one new `RELEASES` entry.
+   `/download` still advertises 1.2.0 on purpose — it is the only binary that
+   exists, and that page is a download promise, not a changelog of intent.
 
 ## Farjad — dashboard work, minutes each
 
