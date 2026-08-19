@@ -122,7 +122,7 @@ export default async function CityDetailPage({ params }: CityPageParams) {
       <JsonLd data={breadcrumbLd([{ name: "خانه", url: "/" }, { name: "شهرها", url: "/cities" }, { name: city.nameFa, url: `/cities/${city.slug}` }])} />
       <main className="min-h-screen bg-gray-50/60">
         <section className="relative overflow-hidden bg-gray-950 text-white px-4 py-12 md:py-16">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,71,171,0.35),transparent_32%),linear-gradient(135deg,rgba(128,0,0,0.42),transparent_42%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,71,171,0.35),transparent_32%),linear-gradient(135deg,rgba(122,24,49,0.42),transparent_42%)]" />
           <div className="max-w-7xl mx-auto relative">
             <nav className="flex items-center gap-2 text-xs text-white/60 mb-7">
               <Link href="/" className="hover:text-white">خانه</Link>
@@ -280,7 +280,7 @@ export default async function CityDetailPage({ params }: CityPageParams) {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <div className="h-full w-full bg-[linear-gradient(135deg,var(--lajvard),#800000)]" />
+                          <div className="h-full w-full bg-[linear-gradient(135deg,var(--lajvard),#7A1831)]" />
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                         <div className="absolute right-3 bottom-3 flex items-center gap-2 text-white text-xs font-bold">

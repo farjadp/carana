@@ -1,21 +1,19 @@
 // ============================================================================
 // Source: apps/mobile/src/components/brand-mark.tsx
-// Version: 2.0.0 — 2026-08-14
-// Why: The approved "Hidden Č" mark, plus the small brand kit built on it:
-//      the Achaemenid stepped-merlon motif (the only ornament the brand book
-//      allows), the shared tab-screen header, and the branded loading state.
-//      Mark geometry matches the master pack exactly; regenerate from
-//      charana-mark-primary.svg if that changes.
+// Version: 3.0.0 — 2026-08-18 (rebrand: GOPLAZA G-mark)
+// Why: The GOPLAZA symbol, plus the small brand kit built on it: the stepped-
+//      merlon accent motif, the shared tab-screen header, and the branded
+//      loading state. Mark geometry is shared with apps/web/components/
+//      brand-mark.tsx and scripts/generate-brand-assets.mjs — change all
+//      three together. PROVISIONAL geometry traced from the 2026-08-18 brand
+//      board; swap in the master SVG paths when the vector kit arrives.
 // ============================================================================
 import { ActivityIndicator, StyleSheet, Text, View, type ColorValue } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { colors, space, type } from "../theme";
 
-/**
- * Below roughly 32pt the inner path muddies, so the brand book specifies a
- * simplified variant for small sizes — pass `simple`.
- */
+/** `simple` is kept for call-site compatibility; the G-mark is one geometry. */
 export function BrandMark({
   size = 32,
   color = colors.annabi,
@@ -25,25 +23,11 @@ export function BrandMark({
   color?: ColorValue;
   simple?: boolean;
 }) {
+  void simple;
   return (
     <Svg viewBox="0 0 1000 1000" width={size} height={size}>
-      <Path
-        fill={color}
-        d="M760 190 C690 120 600 80 500 80 C268 80 80 268 80 500 C80 732 268 920 500 920
-           C610 920 708 878 780 806 L666 692 C624 734 566 760 500 760 C356 760 240 644 240 500
-           C240 356 356 240 500 240 C562 240 620 262 664 304 Z"
-      />
-      {simple ? null : (
-        <>
-          <Path
-            fill={color}
-            d="M364 548 C418 478 496 448 586 462 C652 472 704 508 748 560 L650 650
-               C624 620 592 602 552 596 C496 588 448 608 416 650 Z"
-          />
-          <Path fill={color} d="M648 650 L790 650 L790 792 Z" />
-        </>
-      )}
-      <Path fill={color} d="M438 318 L500 372 L562 318 L598 354 L500 442 L402 354 Z" />
+      <Path fill={color} d="M 813 176 A 450 450 0 1 0 711 897 L 627 738 A 270 270 0 1 1 643 271 Z" />
+      <Path fill={color} d="M 470 410 H 920 V 900 H 836 L 730 774 V 590 H 470 Z" />
     </Svg>
   );
 }

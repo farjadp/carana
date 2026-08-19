@@ -7,7 +7,8 @@
 //      personal data.
 // Env / Identity: Client. Same EXPO_PUBLIC_API_URL base as lib/api.ts.
 // ============================================================================
-const BASE = (process.env.EXPO_PUBLIC_API_URL ?? "https://charana.ca").replace(/\/$/, "");
+import { brand } from "@goplaza/core";
+const BASE = (process.env.EXPO_PUBLIC_API_URL ?? brand.url).replace(/\/$/, "");
 
 /** Mirrors apps/web/lib/exchange-rates.ts — `change` is the move since the
  *  previous close, in Toman. */

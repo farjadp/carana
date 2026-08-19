@@ -7,7 +7,8 @@
 // Env / Identity: Sends only a business id and an event name. Fire and
 //      forget: a failed metric must never delay opening the dialler.
 // ============================================================================
-const BASE = (process.env.EXPO_PUBLIC_API_URL ?? "https://charana.ca").replace(/\/$/, "");
+import { brand } from "@goplaza/core";
+const BASE = (process.env.EXPO_PUBLIC_API_URL ?? brand.url).replace(/\/$/, "");
 
 export type BusinessEvent =
   | "view" | "call" | "whatsapp" | "directions" | "website"

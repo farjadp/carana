@@ -8,7 +8,7 @@
 // ============================================================================
 import type { MetadataRoute } from "next";
 
-import { PROVINCES, PUBLIC_STATUSES } from "@charana/core";
+import { PROVINCES, PUBLIC_STATUSES } from "@goplaza/core";
 import { cityConfigs } from "@/lib/data/cities";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";

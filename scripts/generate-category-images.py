@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate the čārana category photography set.
+Generate the GOPLAZA category photography set.
 
 One API call per category, never a collage — these are product assets that get
 cropped into cards independently, so a grid image is useless.

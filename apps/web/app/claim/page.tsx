@@ -22,8 +22,8 @@ import { getVerificationStatus } from "@/lib/verification/status";
 import ClaimClient from "./claim-client";
 
 export const metadata: Metadata = {
-  title: "احراز مالکیت کسب‌وکار | چارانا",
-  description: "کسب‌وکارتان در چارانا هست؟ با یک کد پیامکی مالکیتش را ثابت کنید و نشان تایید بگیرید.",
+  title: "احراز مالکیت کسب‌وکار | گوپلازا",
+  description: "کسب‌وکارتان در گوپلازا هست؟ با یک کد پیامکی مالکیتش را ثابت کنید و نشان تایید بگیرید.",
 };
 
 const CARD_COLUMNS = "id, slug, name, name_en, city, category, phone, verified_until, owner_user_id";
@@ -65,7 +65,7 @@ export default async function ClaimPage({
               <Search size={18} className="text-[color:var(--annabi)] shrink-0" />
               <input name="q" defaultValue={term} placeholder="نام کسب‌وکار یا شماره تلفنش" className="h-12 w-full bg-transparent outline-none text-[15px] text-[color:var(--text)]" autoFocus />
             </label>
-            <button type="submit" className="h-12 px-6 rounded-xl bg-[color:var(--annabi)] hover:bg-[#5c0000] text-[#f6f1e8] font-bold transition">جستجو</button>
+            <button type="submit" className="h-12 px-6 rounded-xl bg-[color:var(--annabi)] hover:bg-[#5A1124] text-[#f6f1e8] font-bold transition">جستجو</button>
           </form>
 
           {term ? (
@@ -100,8 +100,8 @@ export default async function ClaimPage({
             ) : (
               <div className="mt-6 rounded-2xl bg-white border border-[color:var(--line)] p-6 text-center">
                 <div className="font-bold text-[color:var(--text)]">چیزی با «{term}» پیدا نشد</div>
-                <p className="text-sm text-[color:var(--muted-text)] mt-1">شاید کسب‌وکارتان هنوز در چارانا ثبت نشده باشد — رایگان ثبتش کنید و از همان اول احرازشده باشد.</p>
-                <Link href="/dashboard/business/new" className="inline-flex items-center gap-2 mt-4 rounded-xl bg-[color:var(--annabi)] text-[#f6f1e8] font-bold px-4 py-2.5 hover:bg-[#5c0000] transition"><Sparkles size={16} /> ثبت کسب‌وکار جدید</Link>
+                <p className="text-sm text-[color:var(--muted-text)] mt-1">شاید کسب‌وکارتان هنوز در گوپلازا ثبت نشده باشد — رایگان ثبتش کنید و از همان اول احرازشده باشد.</p>
+                <Link href="/dashboard/business/new" className="inline-flex items-center gap-2 mt-4 rounded-xl bg-[color:var(--annabi)] text-[#f6f1e8] font-bold px-4 py-2.5 hover:bg-[#5A1124] transition"><Sparkles size={16} /> ثبت کسب‌وکار جدید</Link>
               </div>
             )
           ) : (
@@ -175,12 +175,12 @@ export default async function ClaimPage({
 
             {!user ? (
               <div className="mt-6 rounded-3xl bg-white border border-[color:var(--line)] p-6">
-                <div className="font-black text-[color:var(--text)] text-lg">اول وارد حساب چارانا شوید</div>
+                <div className="font-black text-[color:var(--text)] text-lg">اول وارد حساب گوپلازا شوید</div>
                 <p className="text-sm text-[color:var(--muted-text)] mt-1 leading-relaxed">
                   نشان تایید به حساب شما وصل می‌شود تا بعداً بتوانید پروفایل را ویرایش کنید و یادآور تمدید بگیرید. حساب ندارید؟ ساختنش یک دقیقه است — و بعدش دقیقاً همین‌جا برمی‌گردید.
                 </p>
                 <div className="mt-4 flex flex-col sm:flex-row gap-2">
-                  <Link href={`/auth/login?next=${encodeURIComponent(nextUrl)}`} className="flex-1 h-12 rounded-xl bg-[color:var(--annabi)] hover:bg-[#5c0000] text-[#f6f1e8] font-bold flex items-center justify-center transition">ورود</Link>
+                  <Link href={`/auth/login?next=${encodeURIComponent(nextUrl)}`} className="flex-1 h-12 rounded-xl bg-[color:var(--annabi)] hover:bg-[#5A1124] text-[#f6f1e8] font-bold flex items-center justify-center transition">ورود</Link>
                   <Link href={`/auth/signup?next=${encodeURIComponent(nextUrl)}`} className="flex-1 h-12 rounded-xl bg-white border border-[color:var(--line)] text-[color:var(--text)] font-bold flex items-center justify-center hover:bg-[color:var(--bg)] transition">ساخت حساب</Link>
                 </div>
               </div>
@@ -215,7 +215,7 @@ function Hero() {
       <div className="absolute -left-16 -top-16 opacity-[0.07]" aria-hidden><BrandMark size={300} color="#f6f1e8" simple /></div>
       <div className="relative">
         <div className="inline-flex items-center gap-1.5 text-xs bg-white/12 px-3 py-1.5 rounded-full mb-4"><BadgeCheck size={14} /> احراز مالکیت</div>
-        <h1 className="text-2xl md:text-4xl font-black leading-tight">کسب‌وکارتان در چارانا هست؟<br />ثابت کنید مال شماست.</h1>
+        <h1 className="text-2xl md:text-4xl font-black leading-tight">کسب‌وکارتان در گوپلازا هست؟<br />ثابت کنید مال شماست.</h1>
         <p className="mt-3 text-[#f6f1e8]/80 leading-relaxed max-w-xl text-sm md:text-base">
           یک کد پیامکی به شماره‌ای که روی پروفایل است — همین. بعدش نشان «مالکیت احرازشده» می‌گیرید، پروفایل را خودتان ویرایش می‌کنید، و در جستجوها بالاتر دیده می‌شوید. رایگان است.
         </p>
@@ -227,7 +227,7 @@ function Hero() {
 function HowItWorks() {
   const steps = [
     { icon: Search, t: "پیدایش کن", b: "نام یا شماره‌ی کسب‌وکارت را بالا جستجو کن." },
-    { icon: UserRound, t: "وارد شو", b: "با حساب چارانا — تا نشان به حساب تو وصل شود." },
+    { icon: UserRound, t: "وارد شو", b: "با حساب گوپلازا — تا نشان به حساب تو وصل شود." },
     { icon: MessageSquare, t: "کد را بگیر", b: "پیامک به شماره‌ی روی پروفایل می‌رود. کد را وارد کن." },
     { icon: BadgeCheck, t: "تمام", b: "نشان تایید ۶ ماه اعتبار دارد؛ برای تمدید یادآوری می‌فرستیم." },
   ];

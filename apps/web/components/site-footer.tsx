@@ -12,7 +12,7 @@
 // Env / Identity: Uses shared legal link metadata only.
 // ============================================================================
 import Link from "next/link";
-import { formatTehranDate, formatTehranTime, nowInTehran } from "@charana/core";
+import { formatTehranDate, formatTehranTime, nowInTehran } from "@goplaza/core";
 
 import { BrandMark } from "@/components/brand-mark";
 import { IranStatusBar } from "@/components/iran-status-bar";
@@ -26,10 +26,10 @@ export async function SiteFooter({ currentPath }: { currentPath: string }) {
   return (
     <footer className="border-t border-gray-100 bg-gray-50 py-10 mt-20">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 px-4 text-center">
-        <Link href="/" className="flex items-center gap-2" aria-label="čārana، صفحه اصلی">
+        <Link href="/" className="flex items-center gap-2" aria-label="GOPLAZA، صفحه اصلی">
           <BrandMark size={26} color="var(--annabi)" />
-          <span dir="ltr" className="text-lg font-bold text-[color:var(--annabi)]">
-            čārana
+          <span dir="ltr" className="font-latin text-lg font-extrabold tracking-[0.08em] text-[color:var(--text)]">
+            <b className="text-[color:var(--annabi)]">GO</b>PLAZA
           </span>
         </Link>
 
@@ -47,7 +47,7 @@ export async function SiteFooter({ currentPath }: { currentPath: string }) {
         </nav>
 
         <p className="max-w-2xl text-xs leading-relaxed text-gray-400">
-          © 2026 <span dir="ltr" className="font-bold">čārana</span> — ساخته‌شده برای پیوند دادن جامعه ایرانیان کانادا با کسب‌وکارهایی که می‌شناسند، می‌سازند و به آنها اعتماد می‌کنند.
+          © 2026 <span dir="ltr" className="font-bold">GOPLAZA</span> — ساخته‌شده برای پیوند دادن جامعه ایرانیان کانادا با کسب‌وکارهایی که می‌شناسند، می‌سازند و به آنها اعتماد می‌کنند.
         </p>
 
         <IranStatusBar

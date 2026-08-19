@@ -19,7 +19,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 
-import { JOB_EXPIRY_REMINDER_DAYS } from "@charana/core";
+import { JOB_EXPIRY_REMINDER_DAYS } from "@goplaza/core";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/send";

@@ -34,13 +34,13 @@ const stripe = new Stripe(KEY, { apiVersion: "2026-07-29.dahlia" });
 const PLANS = [
   {
     id: "pro",
-    name: "čārana Pro",
+    name: "GOPLAZA Pro",
     description: "آمار کامل، اعلان‌ها، گالری تصاویر، لینک رزرو و پاسخ به نظرات.",
     monthly: 1900,
   },
   {
     id: "featured",
-    name: "čārana Featured",
+    name: "GOPLAZA Featured",
     description: "همه‌ی امکانات حرفه‌ای، به‌علاوه جایگاه برچسب‌دار «ویژه» در فهرست شهر و دسته.",
     monthly: 4900,
   },

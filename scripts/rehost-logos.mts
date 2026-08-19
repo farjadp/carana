@@ -89,7 +89,7 @@ async function main() {
       const res = await fetch(source, {
         redirect: "follow",
         signal: AbortSignal.timeout(15_000),
-        headers: { "User-Agent": "charana-importer/1.0 (+https://charana.ca)" },
+        headers: { "User-Agent": "goplaza-importer/1.0 (+https://goplaza.ca)" },
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

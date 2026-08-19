@@ -28,9 +28,9 @@ import {
   Mail, MapPin, MessageCircle, Moon, Navigation, Phone, Send, Share2, ShieldCheck, Star,
 } from "lucide-react-native";
 import {
-  activeBusyStatus, getVerificationStatus, OWNER_SECTION_NOTE, OWNER_SECTION_TITLE,
+  activeBusyStatus, brand, getVerificationStatus, OWNER_SECTION_NOTE, OWNER_SECTION_TITLE,
   PROVINCES, type PublicOwner,
-} from "@charana/core";
+} from "@goplaza/core";
 import { fetchBusinessOwner } from "../../lib/business-owner";
 
 import { BrandLoading, BrandMark, MerlonGlyph, MerlonRow } from "../../components/brand-mark";
@@ -59,7 +59,7 @@ const faMonthYear = (iso: string) => {
   const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
   return `${get("month")} ${get("year")}`.trim();
 };
-const WEB = "https://charana.ca";
+const WEB = brand.url;
 
 export default function BusinessScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -358,7 +358,7 @@ export default function BusinessScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.subhead}>{owner.full_name}</Text>
                   {owner.member_since ? (
-                    <Text style={styles.hint}>عضو چارانا از {faMonthYear(owner.member_since)}</Text>
+                    <Text style={styles.hint}>عضو گوپلازا از {faMonthYear(owner.member_since)}</Text>
                   ) : null}
                 </View>
               </View>
@@ -393,7 +393,7 @@ export default function BusinessScreen() {
               <Pressable onPress={copyRef} style={styles.refRow}>
                 <Text style={styles.refValue}>#{business.ref_no}</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.subhead}>شماره‌ی مرجع چارانا</Text>
+                  <Text style={styles.subhead}>شماره‌ی مرجع گوپلازا</Text>
                   <Text style={styles.hint}>در تماس با پشتیبانی یا احراز مالکیت این شماره را بگویید. برای کپی لمس کنید.</Text>
                 </View>
               </Pressable>

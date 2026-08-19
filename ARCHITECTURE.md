@@ -2,7 +2,7 @@
 
 ## Product Direction
 
-`čārana` is a Persian-first directory for Iranian businesses in Canada, not a
+`GOPLAZA` is a Persian-first directory for Iranian businesses in Canada, not a
 general classifieds marketplace.
 
 ## Platforms

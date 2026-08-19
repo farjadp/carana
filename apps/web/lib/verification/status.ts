@@ -1,7 +1,7 @@
 // ============================================================================
 // Source: lib/verification/status.ts
 // Version: 2.1.0 — 2026-08-15
-// Why: Re-export. The single definition of "verified" lives in @charana/core
+// Why: Re-export. The single definition of "verified" lives in @goplaza/core
 //      so the mobile app reads the same rules. Imported from the package root
 //      (not a subpath) — Turbopack does not resolve subpath exports of a
 //      workspace package.
@@ -24,4 +24,4 @@ export {
   type VerificationState,
   type VerifiableBusiness,
   type VerificationStatus,
-} from "@charana/core";
+} from "@goplaza/core";

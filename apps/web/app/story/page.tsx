@@ -1,17 +1,17 @@
 // ============================================================================
 // Source: app/story/page.tsx
-// Version: 2.0.0 — 2026-08-16
-// Why: The brand page. v1 explained the name in three cards. v2 is the whole
-//      story and the whole kit on one page: name and pronunciation, the Hidden
-//      Č mark and what is inside it, the palette (click to copy), type, the
-//      motif rules (pre-Islamic Persian, and what is off-limits), clear-space
-//      and size rules, voice, and the downloadable files. Everything here
-//      mirrors docs/07-design.md and docs/brand-logo-pack.md — change both.
+// Version: 3.0.0 — 2026-08-18 (rebrand: GOPLAZA)
+// Why: The brand page: name, the G-mark and what is inside it, the palette
+//      (click to copy), type, the imagery motif rules (pre-Islamic Persian,
+//      and what is off-limits — unchanged by the rebrand, the photography
+//      still follows them), voice, and the vector files. The ZIP kit was
+//      removed with the rebrand: no button for a file that does not exist.
 // Env / Identity: Static, public.
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Check, Download, X } from "lucide-react";
+import { brand } from "@goplaza/core";
 
 import { BrandMark } from "@/components/brand-mark";
 import { JsonLd } from "@/components/json-ld";
@@ -20,16 +20,16 @@ import { breadcrumbLd } from "@/lib/seo/local";
 import { MarkSizes, MarkSurfaces, SwatchGrid, type Swatch } from "./brand-kit-client";
 
 export const metadata: Metadata = {
-  title: "داستان برند و برندکیت čārana",
-  description: "چارانا یعنی چه، از کجا آمده، نشان «چِ پنهان» چه می‌گوید، و برندکیت کامل: رنگ‌ها، فونت، نقش‌مایه‌ها، قواعد استفاده و فایل‌های لوگو.",
+  title: "داستان برند و برندکیت",
+  description: "گوپلازا یعنی چه، نشان G چه می‌گوید، و برندکیت کامل: رنگ‌ها، فونت، نقش‌مایه‌ها، قواعد استفاده و فایل‌های لوگو.",
   alternates: { canonical: "/story" },
 };
 
 const SWATCHES: Swatch[] = [
-  { name: "Annabi", fa: "عنابی", hex: "#800000", role: "رنگ اصلی — CTA، حالت فعال، نشان", onDark: true },
-  { name: "Lajvard", fa: "لاجورد", hex: "#0047AB", role: "رنگ دوم — لینک‌ها، اکشن‌های ثانویه", onDark: true },
+  { name: "Burgundy", fa: "زرشکی", hex: "#7A1831", role: "رنگ اصلی — CTA، حالت فعال، نشان", onDark: true },
+  { name: "Persian Blue", fa: "لاجورد", hex: "#0047AB", role: "رنگ دوم — لینک‌ها، اکشن‌های ثانویه", onDark: true },
   { name: "Deep Navy", fa: "سرمه‌ای", hex: "#14213D", role: "متن بدنه، سطوح تیره", onDark: true },
-  { name: "Cream", fa: "کرم", hex: "#F6F1E8", role: "پس‌زمینه‌ی صفحه؛ متن روی عنابی" },
+  { name: "Warm Cream", fa: "کرم", hex: "#F6F1E8", role: "پس‌زمینه‌ی صفحه؛ متن روی زرشکی" },
   { name: "Gold", fa: "طلایی", hex: "#C9A24B", role: "فقط اکسنت — کنگره، ستاره؛ هرگز سطح" },
 ];
 
@@ -37,11 +37,11 @@ const DO = ["کنگره‌ی پلکانی هخامنشی (پارَه‌سنگ‌
 const DONT = ["طاق تیزه‌دار", "ستاره‌ی هشت‌پر (شمسه)", "گنبد و مناره", "خوشنویسی عربی", "فانوس و هر نقش «شرقیِ» کلی"];
 
 const FILES = [
-  { file: "charana-mark-primary.svg", label: "نشان اصلی — عنابی", note: "SVG وکتور، منبع حقیقت" },
-  { file: "charana-mark-black.svg", label: "نشان تک‌رنگ سیاه", note: "چاپ تک‌رنگ، مهر" },
-  { file: "charana-mark-white.svg", label: "نشان معکوس سفید", note: "روی عنابی و سرمه‌ای" },
-  { file: "charana-horizontal-lockup.svg", label: "لاک‌آپ افقی", note: "نشان + واژه‌نشان، متن قابل ویرایش" },
-  { file: "charana-app-icon.svg", label: "آیکن اپ", note: "ترکیب روی کرم؛ گوشه‌ها را سیستم گرد می‌کند" },
+  { file: "goplaza-symbol.svg", label: "نشان اصلی — زرشکی", note: "SVG وکتور، منبع حقیقت" },
+  { file: "goplaza-symbol-black.svg", label: "نشان تک‌رنگ سیاه", note: "چاپ تک‌رنگ، مهر" },
+  { file: "goplaza-symbol-white.svg", label: "نشان معکوس سفید", note: "روی زرشکی و سرمه‌ای" },
+  { file: "goplaza-logo-horizontal.svg", label: "لاک‌آپ افقی", note: "نشان + واژه‌نشان + شعار، متن قابل ویرایش" },
+  { file: "goplaza-app-icon.svg", label: "آیکن اپ", note: "نشان کرم روی زرشکی؛ گوشه‌ها را سیستم گرد می‌کند" },
 ];
 
 export default function StoryPage() {
@@ -58,20 +58,20 @@ export default function StoryPage() {
             <div>
               <p className="mb-3 text-xs font-bold tracking-wide text-[color:var(--annabi)]">داستان برند · برندکیت</p>
               <h1 className="text-4xl font-black leading-[1.15] text-[color:var(--text)] md:text-6xl">
-                <span dir="ltr" className="font-latin">čārana</span>
-                <span className="block text-2xl font-bold text-[color:var(--muted-text)] md:text-3xl">چارانا</span>
+                <span dir="ltr" className="font-latin">GOPLAZA</span>
+                <span className="block text-2xl font-bold text-[color:var(--muted-text)] md:text-3xl">گوپلازا</span>
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-8 text-[color:var(--text)]/85 md:text-lg">
-                از ریشه‌های ایرانی باستان: <em>جایی برای گشتن، یافتن و دادوستد</em>. ما همان معنا را برای امروز بازخوانی کردیم —
-                یک مرجع زنده که ایرانیان کانادا از آن کسب‌وکارِ همدیگر را پیدا می‌کنند و به آن اعتماد می‌کنند.
+                <em>Go</em> + <em>Plaza</em>: برو به میدان. پلازا همان جایی است که آدم‌ها برای پیدا کردن، دیدن و معامله کردن به آن
+                سر می‌زنند — ما همان را برای ایرانیان کانادا ساخته‌ایم: یک مرجع زنده که از آن کسب‌وکارِ همدیگر را پیدا می‌کنند و به آن اعتماد می‌کنند.
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
-                <span className="rounded-full bg-white px-4 py-2 font-bold text-[color:var(--text)] shadow-sm">تلفظ: چا‑را‑نا</span>
-                <span className="rounded-full bg-white px-4 py-2 font-semibold text-[color:var(--muted-text)] shadow-sm" dir="ltr">/t͡ʃaː.ra.na/</span>
-                <span className="rounded-full bg-white px-4 py-2 font-semibold text-[color:var(--muted-text)] shadow-sm" dir="ltr">č = چ</span>
+                <span className="rounded-full bg-white px-4 py-2 font-bold text-[color:var(--text)] shadow-sm">تلفظ: گو‑پلازا</span>
+                <span className="rounded-full bg-white px-4 py-2 font-semibold text-[color:var(--muted-text)] shadow-sm" dir="ltr">/ˌɡoʊˈplɑːzə/</span>
+                <span className="rounded-full bg-white px-4 py-2 font-semibold text-[color:var(--muted-text)] shadow-sm" dir="ltr">Discover. Connect. Grow.</span>
               </div>
             </div>
-            <div className="mx-auto flex h-64 w-64 items-center justify-center rounded-[40px] bg-[color:var(--annabi)] shadow-[0_30px_80px_rgba(128,0,0,0.30)] md:h-80 md:w-80">
+            <div className="mx-auto flex h-64 w-64 items-center justify-center rounded-[40px] bg-[color:var(--annabi)] shadow-[0_30px_80px_rgba(122,24,49,0.30)] md:h-80 md:w-80">
               <BrandMark size={190} color="#f6f1e8" />
             </div>
           </div>
@@ -81,9 +81,9 @@ export default function StoryPage() {
         <section className="mx-auto max-w-6xl px-4 py-10">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {[
-              ["ریشه‌دار", "نه ساختگی، نه انگلیسیِ لاتین‌شده. اسمی که در گوش فارسی‌زبان آشناست و در بازار کانادا متمایز."],
-              ["یک حرف، یک نشان", "حرف č به‌تنهایی مونوگرام است: آیکن اپ، فاوآیکن، مهر تأیید. برند بدون واژه‌نشان هم شناخته می‌شود."],
-              ["دوزبانه از تولد", "لاتین با آوانگاری (čārana) و فارسی (چارانا) هم‌وزن‌اند؛ هیچ‌کدام ترجمه‌ی دیگری نیست."],
+              ["گویا", "اسم همان کاری را می‌گوید که محصول می‌کند: برو، پیدا کن، وصل شو. برای فارسی‌زبان آشناست و در بازار کانادا بدون توضیح خوانده می‌شود."],
+              ["یک حرف، یک نشان", "حرف G به‌تنهایی مونوگرام است: آیکن اپ، فاوآیکن، مهر تأیید. برند بدون واژه‌نشان هم شناخته می‌شود."],
+              ["همیشه یک شکل", "واژه‌نشان همیشه GOPLAZA است — تمام‌بزرگ، یک کلمه. در متن فارسی «گوپلازا» می‌نویسیم؛ هیچ‌کدام ترجمه‌ی دیگری نیست."],
             ].map(([t, d]) => (
               <div key={t} className="rounded-3xl border border-[color:var(--line)] bg-white p-6">
                 <h2 className="mb-2 text-lg font-black text-[color:var(--text)]">{t}</h2>
@@ -101,13 +101,14 @@ export default function StoryPage() {
             </div>
             <div>
               <p className="mb-2 text-xs font-bold tracking-wide text-[color:var(--annabi)]">نشان</p>
-              <h2 id="mark-h" className="text-3xl font-black text-[color:var(--text)]">چِ پنهان</h2>
+              <h2 id="mark-h" className="text-3xl font-black text-[color:var(--text)]">نشان G</h2>
               <p className="mt-4 text-base leading-8 text-[color:var(--text)]/85">
-                نشان یک <b>Č</b> است که در دهانه‌اش دو چیز نشسته: یک <b>مسیر</b> که رو به بالا و راست می‌رود، و یک <b>پرنده</b> بر بالای آن.
-                جست‌وجو، راهنمایی، هویت — سه کاری که چارانا می‌کند. زیر ۳۲ پیکسل مسیر داخلی محو می‌شود؛ برای آن اندازه‌ها نسخه‌ی ساده (فقط چ و پرنده) وجود دارد.
+                نشان یک <b>G</b> است که سه چیز در آن جمع شده: <b>Go</b> — حرکت؛ <b>مسیر</b> — میله‌ی G که به راست باز می‌شود و سرِ کمان
+                که مثل پیکان بریده شده؛ و <b>مکان</b> — پایه‌ای که گوشه‌ی راست‌گوشه می‌سازد، مثل کنج یک میدان. کشف کن، وصل شو، رشد کن.
+                هندسه یکی است و تا ۱۶ پیکسل خوانا می‌ماند؛ نسخه‌ی ساده‌شده لازم ندارد.
               </p>
               <ul className="mt-5 grid grid-cols-1 gap-2 text-sm text-[color:var(--text)] sm:grid-cols-2">
-                {["فاصله‌ی امن: به اندازه‌ی ارتفاع پرنده از هر طرف", "حداقل اندازه: ۲۴px دیجیتال، ۸mm چاپ", "همیشه تک‌رنگ؛ هرگز گرادیان یا سایه", "هرگز کج، کشیده یا با کادر اضافی"].map((r) => (
+                {["فاصله‌ی امن: به اندازه‌ی ضخامت کمان از هر طرف", "حداقل اندازه: ۱۶px دیجیتال، ۶mm چاپ", "همیشه تک‌رنگ؛ هرگز گرادیان یا سایه", "هرگز کج، کشیده یا با کادر اضافی"].map((r) => (
                   <li key={r} className="flex items-start gap-2 rounded-xl bg-white px-3 py-2"><Check size={16} className="mt-0.5 flex-none text-[color:var(--lajvard)]" />{r}</li>
                 ))}
               </ul>
@@ -122,12 +123,12 @@ export default function StoryPage() {
           <p className="mb-2 text-xs font-bold tracking-wide text-[color:var(--annabi)]">رنگ</p>
           <h2 id="color-h" className="text-3xl font-black text-[color:var(--text)]">پنج رنگ، یک قاعده</h2>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-[color:var(--muted-text)]">
-            عنابیِ انار و لاجوردِ کاشی روی کرمِ کاغذ. سرمه‌ای برای متن. طلایی فقط اکسنت است — کنگره، ستاره، خطِ زیر — و هرگز پس‌زمینه یا دکمه نمی‌شود. روی هر رنگ بزن تا هگزش کپی شود.
+            زرشکی و لاجوردِ کاشی روی کرمِ کاغذ. سرمه‌ای برای متن. طلایی فقط اکسنت است — کنگره، خطِ زیر شعار — و هرگز پس‌زمینه یا دکمه نمی‌شود. روی هر رنگ بزن تا هگزش کپی شود.
           </p>
           <div className="mt-6"><SwatchGrid swatches={SWATCHES} /></div>
           <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-            <div className="rounded-2xl bg-[color:var(--annabi)] p-5 text-[#f6f1e8]"><strong>متن روی عنابی کرم است، نه سفید.</strong><p className="mt-1 text-sm text-[#f6f1e8]/80">سفید خالص روی عنابی زننده می‌شود؛ کرم گرم می‌ماند.</p></div>
-            <div className="rounded-2xl bg-white p-5 text-[color:var(--text)] border border-[color:var(--line)]"><strong>یک دکمه‌ی پُر در هر نما.</strong><p className="mt-1 text-sm text-[color:var(--muted-text)]">عنابی برای اکشن اصلی؛ لاجورد خطی برای دومی؛ بقیه رنگ‌مایه‌ای (tint).</p></div>
+            <div className="rounded-2xl bg-[color:var(--annabi)] p-5 text-[#f6f1e8]"><strong>متن روی زرشکی کرم است، نه سفید.</strong><p className="mt-1 text-sm text-[#f6f1e8]/80">سفید خالص روی زرشکی زننده می‌شود؛ کرم گرم می‌ماند.</p></div>
+            <div className="rounded-2xl bg-white p-5 text-[color:var(--text)] border border-[color:var(--line)]"><strong>یک دکمه‌ی پُر در هر نما.</strong><p className="mt-1 text-sm text-[color:var(--muted-text)]">زرشکی برای اکشن اصلی؛ لاجورد خطی برای دومی؛ بقیه رنگ‌مایه‌ای (tint).</p></div>
           </div>
         </section>
 
@@ -138,15 +139,15 @@ export default function StoryPage() {
           <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="rounded-3xl border border-[color:var(--line)] bg-white p-6">
               <p className="text-xs font-bold text-[color:var(--muted-text)]">Vazirmatn · ۴۰۰ تا ۸۰۰</p>
-              <p className="mt-3 text-4xl font-black leading-tight text-[color:var(--text)]">با اطمینان پیدا کن.</p>
+              <p className="mt-3 text-4xl font-black leading-tight text-[color:var(--text)]">{brand.tagline.fa}</p>
               <p className="mt-2 text-base leading-8 text-[color:var(--text)]/85">کسب‌وکارهای ایرانی کانادا، یک‌جا و با اطمینان. ۰۱۲۳۴۵۶۷۸۹</p>
               <p className="mt-3 text-xs leading-6 text-[color:var(--muted-text)]">هر وزن یک خانواده‌ی جداست (وزن‌های استاتیک) — در موبایل با fontFamily انتخاب می‌شود نه fontWeight.</p>
             </div>
             <div className="rounded-3xl border border-[color:var(--line)] bg-white p-6" dir="ltr">
               <p className="text-xs font-bold text-[color:var(--muted-text)]">Manrope · Latin UI</p>
-              <p className="mt-3 font-latin text-4xl font-extrabold leading-tight text-[color:var(--text)]">čārana</p>
-              <p className="mt-2 font-latin text-base leading-8 text-[color:var(--text)]/85">Find with confidence. Toronto · Vancouver · Montréal — 0123456789</p>
-              <p className="mt-3 font-latin text-xs leading-6 text-[color:var(--muted-text)]">The wordmark is set in Manrope; the č keeps its caron at every size. Numbers in Persian copy stay Persian.</p>
+              <p className="mt-3 font-latin text-4xl font-extrabold leading-tight text-[color:var(--text)]">GOPLAZA</p>
+              <p className="mt-2 font-latin text-base leading-8 text-[color:var(--text)]/85">{brand.tagline.en} Toronto · Vancouver · Montréal — 0123456789</p>
+              <p className="mt-3 font-latin text-xs leading-6 text-[color:var(--muted-text)]">The wordmark is GOPLAZA in heavy geometric caps, GO in burgundy and PLAZA in navy. Numbers in Persian copy stay Persian.</p>
             </div>
           </div>
         </section>
@@ -209,9 +210,6 @@ export default function StoryPage() {
                 <h2 id="files-h" className="text-3xl font-black text-[color:var(--text)]">برندکیت</h2>
                 <p className="mt-2 max-w-xl text-sm leading-7 text-[color:var(--muted-text)]">SVG منبعِ حقیقت است؛ در Figma، Illustrator، Sketch و Affinity تمیز باز می‌شود. قبل از چاپ، واژه‌نشان را به outline تبدیل کنید.</p>
               </div>
-              <a href="/brand/charana-brand-kit.zip" download className="inline-flex h-12 items-center gap-2 rounded-full bg-[color:var(--annabi)] px-6 font-bold text-[#f6f1e8] shadow-[0_10px_24px_rgba(128,0,0,0.25)] transition hover:bg-[#5c0000]">
-                <Download size={18} /> دانلود همه (ZIP)
-              </a>
             </div>
             <ul className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               {FILES.map((f) => (
@@ -232,7 +230,7 @@ export default function StoryPage() {
               ))}
             </ul>
             <p className="mt-6 text-xs text-[color:var(--muted-text)]">
-              مالکیت: Ashavid Inc. استفاده برای معرفی چارانا (رسانه، شریک، لینک) آزاد است؛ تغییر شکل، رنگ یا ترکیب با نشان دیگر نه. سؤال؟ <Link href="/contact" className="font-bold text-[color:var(--lajvard)]">تماس</Link>
+              مالکیت: Ashavid Inc. استفاده برای معرفی گوپلازا (رسانه، شریک، لینک) آزاد است؛ تغییر شکل، رنگ یا ترکیب با نشان دیگر نه. سؤال؟ <Link href="/contact" className="font-bold text-[color:var(--lajvard)]">تماس</Link>
               {" "}· <Link href="/team" className="inline-flex items-center gap-1 font-bold text-[color:var(--lajvard)]">تیم <ArrowLeft size={12} /></Link>
             </p>
           </div>

@@ -42,14 +42,14 @@ import {
   languageRequirementFa,
   type EmploymentType,
   type WorkplaceType,
-} from "@charana/core";
+} from "@goplaza/core";
 
 import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 
 const FEATURE = "job_description";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const SYSTEM = `تو یک کپی‌رایتر فارسی‌زبان هستی که برای «چارانا»، دایرکتوری کسب‌وکارهای ایرانی در کانادا، متن آگهی استخدام می‌نویسی.
+const SYSTEM = `تو یک کپی‌رایتر فارسی‌زبان هستی که برای «گوپلازا»، دایرکتوری کسب‌وکارهای ایرانی در کانادا، متن آگهی استخدام می‌نویسی.
 
 قواعدی که هرگز نقض نمی‌شوند:
 ۱. فقط از «واقعیت‌های تاییدشده» که در ادامه می‌آید استفاده کن. هیچ چیز دیگری را از خودت نساز — نه حقوق، نه مزایا، نه بیمه، نه ساعات کاری، نه سابقه‌ی شرکت، نه تعداد کارمند، نه جوایز، نه «تیم پویا و جوان» اگر کسی نگفته.

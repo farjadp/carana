@@ -2,7 +2,7 @@
 // Source: app/trust/page.tsx
 // Version: 1.2.0 — 2026-08-11
 // Why: Explain trust, moderation, and verification principles for the directory.
-// Env / Identity: Static trust-and-safety page for čārana.
+// Env / Identity: Static trust-and-safety page for GOPLAZA.
 // ============================================================================
 import type { Metadata } from "next";
 

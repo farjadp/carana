@@ -5,6 +5,7 @@
 // Env / Identity: Server-side check using admin client to read profile role.
 // ============================================================================
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { redirect } from "next/navigation";
 import {
   LogOut,
@@ -58,9 +59,9 @@ export default async function AdminDashboardLayout({
       {/* Sidebar Navigation */}
       <aside className="admin-sidebar">
         <div className="admin-sidebar-header">
-          <span className="brand-mark">č</span>
+          <span className="brand-mark"><BrandMark size={28} color="#fff" /></span>
           <div className="brand-copy">
-            <strong>čārana</strong>
+            <strong>GOPLAZA</strong>
             <span>پنل مدیریت و امنیت</span>
           </div>
         </div>

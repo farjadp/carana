@@ -2,7 +2,7 @@
 // Source: app/disclaimer/page.tsx
 // Version: 1.2.0 — 2026-08-11
 // Why: Hold the directory disclaimer placeholder content.
-// Env / Identity: Static legal page for čārana.
+// Env / Identity: Static legal page for GOPLAZA.
 // ============================================================================
 import type { Metadata } from "next";
 

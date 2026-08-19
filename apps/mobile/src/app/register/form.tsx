@@ -24,7 +24,7 @@ import { CheckCircle2, ChevronLeft, ChevronRight, PlusCircle, Trash2 } from "luc
 import {
   step1Schema, step2Schema, step3Schema, step4Schema, step5Schema, step6Schema,
   PROVINCES, type BusinessFormData,
-} from "@charana/core";
+} from "@goplaza/core";
 
 import { BrandMark } from "../../components/brand-mark";
 import { Alert, PrimaryButton } from "../../components/ui";
@@ -142,7 +142,7 @@ export default function RegisterFormScreen() {
           <View style={styles.doneIcon}><CheckCircle2 size={44} color={colors.success} /></View>
           <Text style={[type.h1, { fontSize: 22, textAlign: "center" }]}>اطلاعات کسب‌وکار دریافت شد</Text>
           <Text style={[type.body, { color: colors.mutedText, textAlign: "center" }]}>
-            پروفایل شما به‌عنوان «ارسال‌شده برای بررسی» ثبت شد. تیم چارانا آن را بررسی می‌کند و پس از تایید،
+            پروفایل شما به‌عنوان «ارسال‌شده برای بررسی» ثبت شد. تیم گوپلازا آن را بررسی می‌کند و پس از تایید،
             در دایرکتوری منتشر می‌شود — معمولاً ۲ تا ۵ روز کاری.
           </Text>
           <View style={{ alignSelf: "stretch", marginTop: space.sm }}>
@@ -251,7 +251,7 @@ export default function RegisterFormScreen() {
           {/* ---------------------------------------------------- 4 */}
           {step === 4 ? (
             <Card>
-              <StepHeader n={4} title="اعتبار" description="این بخش محرمانه است و فقط برای بررسی تیم چارانا استفاده می‌شود؛ هرگز عمومی نمی‌شود." />
+              <StepHeader n={4} title="اعتبار" description="این بخش محرمانه است و فقط برای بررسی تیم گوپلازا استفاده می‌شود؛ هرگز عمومی نمی‌شود." />
               <MultiChoice label="زبان‌های ارائه‌ی خدمات" options={LANGUAGES} value={data.languages} onChange={(v) => set("languages", v)} error={errors.languages} />
               <Toggle label="کسب‌وکار ایرانی-کانادایی است" value={data.is_iranian_owned} onChange={(v) => set("is_iranian_owned", v)} />
               <TextField label="شماره ثبت شرکت (اختیاری)" latin value={data.business_number ?? ""} onChangeText={(t) => set("business_number", t)} placeholder="BN / Corporation #" />
@@ -266,7 +266,7 @@ export default function RegisterFormScreen() {
               <StepHeader n={5} title="رسانه" description="هویت بصری پروفایل. آپلود تصویر از اپ به‌زودی؛ فعلاً می‌توانید لینک بدهید یا خالی بگذارید." />
               <TextField label="لینک لوگو" latin value={data.logo_url ?? ""} onChangeText={(t) => set("logo_url", t)} placeholder="https://…/logo.png" keyboardType="url" />
               <TextField label="شعار (اختیاری)" value={data.tagline ?? ""} onChangeText={(t) => set("tagline", t)} placeholder="یک جمله‌ی کوتاه" maxLength={100} />
-              <TextField label="رنگ برند (اختیاری)" latin value={data.brand_color ?? ""} onChangeText={(t) => set("brand_color", t)} placeholder="#800000" maxLength={7} error={errors.brand_color} />
+              <TextField label="رنگ برند (اختیاری)" latin value={data.brand_color ?? ""} onChangeText={(t) => set("brand_color", t)} placeholder="#7A1831" maxLength={7} error={errors.brand_color} />
             </Card>
           ) : null}
 
@@ -320,7 +320,7 @@ export default function RegisterFormScreen() {
                   {agree ? <CheckCircle2 size={16} color={colors.onAnnabi} /> : null}
                 </View>
                 <Text style={styles.agreeText}>
-                  تایید می‌کنم اطلاعات واردشده صحیح و واقعی است و می‌پذیرم انتشار نهایی پس از بررسی تیم چارانا انجام می‌شود.
+                  تایید می‌کنم اطلاعات واردشده صحیح و واقعی است و می‌پذیرم انتشار نهایی پس از بررسی تیم گوپلازا انجام می‌شود.
                 </Text>
               </Pressable>
               {submitError ? <Alert tone="error">{submitError}</Alert> : null}

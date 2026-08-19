@@ -2,7 +2,7 @@
 // Source: app/how-it-works/page.tsx
 // Version: 1.2.0 — 2026-08-11
 // Why: Explain the discovery and conversion flow for directory users.
-// Env / Identity: Static product-explainer page for čārana.
+// Env / Identity: Static product-explainer page for GOPLAZA.
 // ============================================================================
 import type { Metadata } from "next";
 
@@ -20,7 +20,7 @@ export default function HowItWorksPage() {
       currentSection="business"
       eyebrow="جریان محصول"
       title="تجربه باید ساده باشد: جست‌وجو کن، کسب‌وکار را پیدا کن، ارزیابی کن، تماس بگیر"
-      description="در čārana کاربر نباید در پیچیدگی گم شود. منطق کلی محصول باید به اندازه کافی روشن باشد که هم کسی که دنبال سرویس است و هم صاحب کسب‌وکاری که می‌خواهد دیده شود، سریع از آن استفاده کند."
+      description="در گوپلازا کاربر نباید در پیچیدگی گم شود. منطق کلی محصول باید به اندازه کافی روشن باشد که هم کسی که دنبال سرویس است و هم صاحب کسب‌وکاری که می‌خواهد دیده شود، سریع از آن استفاده کند."
     >
       <section className="process-steps">
         {[

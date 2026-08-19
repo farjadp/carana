@@ -6,6 +6,7 @@
 //      and related posts.
 // Env / Identity: Public reads; RLS serves published rows only.
 // ============================================================================
+import { brand } from "@goplaza/core";
 import { useCallback, useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from "react-native";
@@ -18,7 +19,7 @@ import { SuggestionBox } from "../../components/suggestion-box";
 import { faDate, getPost, listBlogCategories, relatedPosts, type BlogCategory, type Post, type PostCard } from "../../lib/blog";
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
-const WEB = "https://charana.ca";
+const WEB = brand.url;
 const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export default function BlogPostScreen() {

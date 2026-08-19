@@ -1,7 +1,7 @@
 // ============================================================================
 // Source: apps/mobile/src/app/jobs/index.tsx
 // Version: 1.0.0 — 2026-08-18
-// Why: The hiring board in the app — the same live ads as charana.ca/jobs,
+// Why: The hiring board in the app — the same live ads as goplaza.ca/jobs,
 //      with the same filters.
 //
 //      City chips are built from the cities that actually have ads, not from
@@ -16,7 +16,7 @@ import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "rea
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Briefcase, ChevronRight } from "lucide-react-native";
 
-import { EMPLOYMENT_TYPES, EMPLOYMENT_TYPE_LABELS_FA, type EmploymentType } from "@charana/core";
+import { EMPLOYMENT_TYPES, EMPLOYMENT_TYPE_LABELS_FA, type EmploymentType } from "@goplaza/core";
 
 import { BrandLoading, MerlonGlyph } from "../../components/brand-mark";
 import { JobCard } from "../../components/job-card";

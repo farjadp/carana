@@ -150,7 +150,7 @@ was never built. RLS uses `created_by` only.
 | expo.dev | organisation created | slug not yet wired into `app.json` |
 | Apple Developer | — | blocked on D-U-N-S |
 | Google Play | — | blocked on D-U-N-S |
-| Domains | charana.ca, carana.ca | charana live; carana DNS not pointed |
+| Domains | goplaza.ca (primary), charana.ca (308 → goplaza.ca), carana.ca | goplaza DNS + charana redirect: external action pending; carana DNS not pointed |
 
 ### Stripe (added 16 Aug 2026)
 
@@ -163,7 +163,7 @@ was never built. RLS uses `created_by` only.
 | Profile email | `farjad@visaroads.com` |
 
 **Open question before a single charge is taken:** the Stripe account sits
-under **Visa Roads**, while every legal surface of čārana — `lib/data/company.ts`,
+under **Visa Roads**, while every legal surface of GOPLAZA — `lib/data/company.ts`,
 the Terms, the Privacy page, the App Store plan and the Twilio account — names
 **Ashavid Inc.** of Toronto. Whoever owns the Stripe account is the merchant of
 record: their name appears on receipts and disputes, and their address is the
@@ -172,14 +172,14 @@ the legal entity on the site to match. Do not take money until these agree.
 
 ### Legal entity
 
-**Ashavid Inc.**, Toronto, Ontario, Canada. čārana is one of its products.
+**Ashavid Inc.**, Toronto, Ontario, Canada. GOPLAZA is one of its products.
 
-The App Store seller name will be **Ashavid Inc.**, not čārana — normal, and
+The App Store seller name will be **Ashavid Inc.**, not GOPLAZA — normal, and
 the app's own name is unaffected. Use the exact registered legal name and
 address when applying for D-U-N-S; any mismatch means rejection and weeks lost.
 
 Public contact addresses: `hello@`, `support@`, `privacy@`, `partners@`
-`charana.ca`. Single source of truth in `apps/web/lib/data/company.ts` — legal
+`goplaza.ca`. Single source of truth in `apps/web/lib/data/company.ts` — legal
 pages, footer and the future store listing all read from it.
 
 ### Security notes

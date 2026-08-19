@@ -11,9 +11,9 @@
 // ============================================================================
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { PUBLIC_STATUSES } from "@charana/core";
+import { PUBLIC_STATUSES } from "@goplaza/core";
 import { citySlug, cityConfigs, dynamicCityConfig, findCityConfig, type CityConfig } from "@/lib/data/cities";
-import { resolveProvince } from "@charana/core";
+import { resolveProvince } from "@goplaza/core";
 import { sortFeaturedFirst } from "@/lib/billing/entitlements";
 import { getCategoryDetail } from "@/lib/data/category-details";
 import { env } from "@/lib/env";
@@ -287,7 +287,7 @@ export function localBusinessLd(b: LocalBusiness & { address?: string | null; is
     additionalType: categoryName ?? undefined,
     // Data provenance for AI readers: what "verified" means here.
     ...(isTrusted(getVerificationStatus(b))
-      ? { identifier: { "@type": "PropertyValue", name: "charana:verified", value: "phone-or-email-proven" } }
+      ? { identifier: { "@type": "PropertyValue", name: "goplaza:verified", value: "phone-or-email-proven" } }
       : {}),
   };
 }
@@ -315,12 +315,12 @@ export function localHeadline(cityFa: string, categoryName: string) {
 export function localIntro(city: CityConfig, categoryName: string, s: LocalStats, updated: Date) {
   const cat = localHeadline(city.nameFa, categoryName).replace(` در ${city.nameFa}`, "");
   if (s.total === 0) {
-    return `هنوز ${cat} در ${city.nameFa} در چارانا ثبت نشده است. اگر خودتان این کسب‌وکار را دارید یا کسی را می‌شناسید، ثبت رایگان است و همین صفحه با اولین ثبت زنده می‌شود.`;
+    return `هنوز ${cat} در ${city.nameFa} در گوپلازا ثبت نشده است. اگر خودتان این کسب‌وکار را دارید یا کسی را می‌شناسید، ثبت رایگان است و همین صفحه با اولین ثبت زنده می‌شود.`;
   }
-  const parts = [`${fa(s.total)} ${cat} در ${city.nameFa} و اطراف آن در چارانا ثبت شده‌اند`];
+  const parts = [`${fa(s.total)} ${cat} در ${city.nameFa} و اطراف آن در گوپلازا ثبت شده‌اند`];
   if (s.verified) parts.push(`${fa(s.verified)} مورد شماره یا ایمیل‌شان را اثبات کرده‌اند و نشان تأیید دارند`);
   if (s.withHours) parts.push(`${fa(s.withHours)} مورد ساعت کاری‌شان را اعلام کرده‌اند`);
-  return `${parts.join("؛ ")}. این عددها از پایگاه داده‌ی چارانا می‌آیند و آخرین بار ${updated.toLocaleDateString("fa-IR", { dateStyle: "long" })} به‌روز شده‌اند.`;
+  return `${parts.join("؛ ")}. این عددها از پایگاه داده‌ی گوپلازا می‌آیند و آخرین بار ${updated.toLocaleDateString("fa-IR", { dateStyle: "long" })} به‌روز شده‌اند.`;
 }
 
 export function localFaqs(city: CityConfig, categoryName: string, s: LocalStats) {
@@ -329,16 +329,16 @@ export function localFaqs(city: CityConfig, categoryName: string, s: LocalStats)
     {
       q: `چند ${cat} در ${city.nameFa} هست؟`,
       a: s.total
-        ? `در حال حاضر ${fa(s.total)} ${cat} در ${city.nameFa} و محله‌های اطراف (${city.neighborhoods.slice(0, 5).join("، ")}) در چارانا فهرست شده‌اند. عدد زنده است و با هر ثبت جدید تغییر می‌کند.`
-        : `هنوز موردی ثبت نشده است. چارانا دایرکتوری زنده است؛ اولین ثبت همین‌جا ظاهر می‌شود.`,
+        ? `در حال حاضر ${fa(s.total)} ${cat} در ${city.nameFa} و محله‌های اطراف (${city.neighborhoods.slice(0, 5).join("، ")}) در گوپلازا فهرست شده‌اند. عدد زنده است و با هر ثبت جدید تغییر می‌کند.`
+        : `هنوز موردی ثبت نشده است. گوپلازا دایرکتوری زنده است؛ اولین ثبت همین‌جا ظاهر می‌شود.`,
     },
     {
-      q: `«تأییدشده» در چارانا یعنی چه؟`,
+      q: `«تأییدشده» در گوپلازا یعنی چه؟`,
       a: `یعنی صاحب کسب‌وکار با کد پیامکی یا ایمیل ثابت کرده که شماره یا ایمیل منتشرشده مال خودش است. نشان شش ماه اعتبار دارد و اگر شماره عوض شود خودبه‌خود برداشته می‌شود. ${s.verified ? `در این صفحه ${fa(s.verified)} مورد تأییدشده‌اند.` : "در این صفحه هنوز موردی تأیید نشده است."}`,
     },
     {
       q: `چطور ${cat} ایرانی نزدیک خودم پیدا کنم؟`,
-      a: `از جستجوی چارانا استفاده کن — فارسی یا انگلیسی، حتی با کیبورد اشتباه — یا از فهرست همین صفحه، که تأییدشده‌ها اول آمده‌اند. هر پروفایل شماره، مسیر، ساعت کاری و در صورت وجود لینک رزرو دارد.`,
+      a: `از جستجوی گوپلازا استفاده کن — فارسی یا انگلیسی، حتی با کیبورد اشتباه — یا از فهرست همین صفحه، که تأییدشده‌ها اول آمده‌اند. هر پروفایل شماره، مسیر، ساعت کاری و در صورت وجود لینک رزرو دارد.`,
     },
     {
       q: `خودم ${cat} در ${city.nameFa} دارم؛ چطور ثبت کنم؟`,

@@ -4,7 +4,7 @@
 // Why: The mobile half of /features on the web — what a visitor gets, what
 //      a business owner gets per plan, and what does not exist yet.
 //
-//      Plan quantities come from @charana/core (GALLERY_LIMITS,
+//      Plan quantities come from @goplaza/core (GALLERY_LIMITS,
 //      ANNOUNCEMENT_LIMITS), the same table the web page renders and the
 //      server clamps against. Hand-typing "۵ عکس" here is precisely how a
 //      mobile screen ends up promising more than the server allows.
@@ -19,12 +19,12 @@ import { useRouter } from "expo-router";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronRight } from "lucide-react-native";
-import { ANNOUNCEMENT_LIMITS, GALLERY_LIMITS, PLANS } from "@charana/core";
+import { ANNOUNCEMENT_LIMITS, GALLERY_LIMITS, PLANS, brand } from "@goplaza/core";
 
 import { MerlonRow } from "../components/brand-mark";
 import { colors, fonts, radius, space } from "../theme";
 
-const WEB = "https://charana.ca";
+const WEB = brand.url;
 const fa = (n: number) => n.toLocaleString("fa-IR");
 /** `null` in the limits table means unlimited. */
 const qty = (n: number | null) => (n === null ? "نامحدود" : fa(n));
@@ -73,20 +73,20 @@ const OWNER_STARTER: Row[] = [
 
 const OWNER_PREMIUM: Row[] = [
   { title: `گالری و اعلان ${qty(A.featured)}`, body: `${qty(G.featured.photos)} عکس، بدون سقف ماهانه.` },
-  { title: "آدرس اختصاصی انگلیسی", body: "مثل charana.ca/b/dr-ahmadi" },
+  { title: "آدرس اختصاصی انگلیسی", body: "مثل goplaza.ca/b/dr-ahmadi" },
   { title: "جایگاه ویژه، با برچسب", body: "بالای فهرست شهر و دسته — همیشه با نشان «ویژه»، نه پنهانی." },
-  { title: "بخش ویژه‌ی صفحه‌ی اول", body: "در بالای صفحه‌ی نخست چارانا." },
+  { title: "بخش ویژه‌ی صفحه‌ی اول", body: "در بالای صفحه‌ی نخست گوپلازا." },
 ];
 
 const COMING = [
-  "رزرو نوبت واقعی داخل چارانا (الان فقط لینک بیرونی است)",
+  "رزرو نوبت واقعی داخل گوپلازا (الان فقط لینک بیرونی است)",
   "نقشه‌ی جاسازی‌شده روی پروفایل",
   "این اپ روی App Store و Google Play (فعلاً فقط دانلود مستقیم اندروید)",
   "اعلان با پیامک و پوش نوتیفیکیشن (فعلاً ایمیل و داخل اپ)",
   "مدیریت کسب‌وکار از داخل اپ (ویرایش، آمار، اعلان‌ها و ثبت آگهی استخدام فعلاً فقط در سایت)",
   "مقاله‌ی وبلاگ اختصاصی برای کسب‌وکارهای پریمیوم",
   "نمایش چندشعبه‌ای روی نقشه",
-  "دریافت رزومه داخل چارانا (درخواست‌ها مستقیم به خود کسب‌وکار می‌رود)",
+  "دریافت رزومه داخل گوپلازا (درخواست‌ها مستقیم به خود کسب‌وکار می‌رود)",
 ];
 
 export default function FeaturesScreen() {

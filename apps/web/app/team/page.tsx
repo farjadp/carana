@@ -1,7 +1,7 @@
 // ============================================================================
 // Source: app/team/page.tsx
 // Version: 1.0.0 — 2026-08-15
-// Why: Who builds čārana. Facts from the company's own sites; no invented
+// Why: Who builds GOPLAZA. Facts from the company's own sites; no invented
 //      titles, no stock faces. One founder today — that is the truth.
 // ============================================================================
 import type { Metadata } from "next";
@@ -12,11 +12,11 @@ import { InnerPage } from "@/components/inner-page";
 import { BrandMark } from "@/components/brand-mark";
 import { company } from "@/lib/data/company";
 
-export const metadata: Metadata = { title: "معرفی تیم", description: "چه کسانی چارانا را می‌سازند." };
+export const metadata: Metadata = { title: "معرفی تیم", description: "چه کسانی گوپلازا را می‌سازند." };
 
 export default function TeamPage() {
   return (
-    <InnerPage currentPath="/team" currentSection="brand" eyebrow="تیم" title="یک نفر، یک شرکت، یک جامعه." description="چارانا را آشاوید می‌سازد — و جامعه‌ای که هر روز با ثبت، احراز و نظر دادن کاملش می‌کند.">
+    <InnerPage currentPath="/team" currentSection="brand" eyebrow="تیم" title="یک نفر، یک شرکت، یک جامعه." description="گوپلازا را آشاوید می‌سازد — و جامعه‌ای که هر روز با ثبت، احراز و نظر دادن کاملش می‌کند.">
       <section className="grid lg:grid-cols-12 gap-6" dir="rtl">
         <div className="lg:col-span-7 rounded-3xl bg-white border border-[color:var(--line)] p-6 md:p-7">
           <div className="flex items-start gap-4">
@@ -28,12 +28,12 @@ export default function TeamPage() {
             </div>
           </div>
           <p className="mt-5 text-[15px] leading-[1.9] text-[color:var(--text)]/85">
-            مشاور استراتژیک و مهندس سیستم. هفده سال در فناوری، بیش از ۲۵ استارتاپ منتورشده، بیش از ۳ میلیون دلار جذب‌شده توسط تیم‌هایی که همراهی کرده، سرممیز ISO 27001. ایده‌های مبهم، تیم‌های گیرکرده و عملیات دستی را به محصول و شرکتی تبدیل می‌کند که رشد مرکب داشته باشد — و چارانا دقیقاً همان مشکلی است که خودش به‌عنوان تازه‌وارد داشت: پیدا کردنِ آدم درست، به زبان خودش، در شهر خودش.
+            مشاور استراتژیک و مهندس سیستم. هفده سال در فناوری، بیش از ۲۵ استارتاپ منتورشده، بیش از ۳ میلیون دلار جذب‌شده توسط تیم‌هایی که همراهی کرده، سرممیز ISO 27001. ایده‌های مبهم، تیم‌های گیرکرده و عملیات دستی را به محصول و شرکتی تبدیل می‌کند که رشد مرکب داشته باشد — و گوپلازا دقیقاً همان مشکلی است که خودش به‌عنوان تازه‌وارد داشت: پیدا کردنِ آدم درست، به زبان خودش، در شهر خودش.
           </p>
           <div className="mt-5 flex flex-wrap gap-2 text-xs">
             <a href="https://www.farjadp.com" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-[color:var(--bg)] hover:bg-[color:var(--line)] px-3 py-1.5 rounded-full font-bold text-[color:var(--text)] transition"><Globe size={13} /> farjadp.com</a>
             <a href={company.social.linkedin} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-[color:var(--bg)] hover:bg-[color:var(--line)] px-3 py-1.5 rounded-full font-bold text-[color:var(--text)] transition"><Briefcase size={13} /> لینکدین</a>
-            <Link href="/businesses/farjad-pourmohammad" className="inline-flex items-center gap-1.5 bg-[color:var(--annabi)]/8 hover:bg-[color:var(--annabi)]/12 px-3 py-1.5 rounded-full font-bold text-[color:var(--annabi)] transition">پروفایل در چارانا <ArrowLeft size={12} /></Link>
+            <Link href="/businesses/farjad-pourmohammad" className="inline-flex items-center gap-1.5 bg-[color:var(--annabi)]/8 hover:bg-[color:var(--annabi)]/12 px-3 py-1.5 rounded-full font-bold text-[color:var(--annabi)] transition">پروفایل در گوپلازا <ArrowLeft size={12} /></Link>
           </div>
         </div>
 
@@ -43,10 +43,10 @@ export default function TeamPage() {
             <div className="relative">
               <div className="text-xs text-[#f6f1e8]/60">شرکت</div>
               <div className="text-xl font-black mt-1">{company.legalName}</div>
-              <p className="text-sm text-[#f6f1e8]/80 leading-relaxed mt-3">شرکت اجرایی و تحول دیجیتال در تورنتو: سیستم‌های عملیاتی، اتوماسیون هوش مصنوعی و مسیرهای بنیان‌گذاری برای مهاجران. چارانا محصولِ خودِ آشاوید است — نه پروژه‌ی مشتری.</p>
+              <p className="text-sm text-[#f6f1e8]/80 leading-relaxed mt-3">شرکت اجرایی و تحول دیجیتال در تورنتو: سیستم‌های عملیاتی، اتوماسیون هوش مصنوعی و مسیرهای بنیان‌گذاری برای مهاجران. گوپلازا محصولِ خودِ آشاوید است — نه پروژه‌ی مشتری.</p>
               <div className="mt-4 flex flex-wrap gap-2 text-xs">
                 <a href={company.parentSite} target="_blank" rel="noreferrer" className="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition">ashavid.ca</a>
-                <Link href="/businesses/ashavid" className="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition">پروفایل در چارانا</Link>
+                <Link href="/businesses/ashavid" className="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition">پروفایل در گوپلازا</Link>
               </div>
             </div>
           </div>

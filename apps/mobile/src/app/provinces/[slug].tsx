@@ -9,7 +9,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronRight } from "lucide-react-native";
 
-import { getProvinceBySlug } from "@charana/core";
+import { getProvinceBySlug } from "@goplaza/core";
 import { BusinessCardView } from "../../components/business-card";
 import {
   listBusinessesByProvince,

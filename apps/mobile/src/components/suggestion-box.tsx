@@ -8,6 +8,7 @@
 //      first tap, not on mount). Multipart POST; the file goes as
 //      { uri, name, type } which RN's fetch turns into a real part.
 // ============================================================================
+import { brand } from "@goplaza/core";
 import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import {
@@ -23,7 +24,7 @@ import { CheckCircle2, Lightbulb, Mic, Pause, Play, Send, Square, Trash2 } from 
 import { supabase } from "../lib/supabase";
 import { colors, fonts, radius, shadow, space, type } from "../theme";
 
-const BASE = (process.env.EXPO_PUBLIC_API_URL ?? "https://charana.ca").replace(/\/$/, "");
+const BASE = (process.env.EXPO_PUBLIC_API_URL ?? brand.url).replace(/\/$/, "");
 const MAX_SECONDS = 180;
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
@@ -270,7 +271,7 @@ const styles = StyleSheet.create({
   mic: {
     alignSelf: "flex-end", flexDirection: "row-reverse", alignItems: "center", gap: 8,
     height: 38, paddingHorizontal: 14, borderRadius: radius.pill,
-    borderWidth: 1, borderStyle: "dashed", borderColor: "rgba(128,0,0,0.4)",
+    borderWidth: 1, borderStyle: "dashed", borderColor: "rgba(122,24,49,0.4)",
   },
   micRecording: { backgroundColor: colors.annabi, borderStyle: "solid", borderColor: colors.annabi },
   micText: { fontSize: 13, fontFamily: fonts.bold, color: colors.annabi },

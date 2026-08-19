@@ -72,8 +72,8 @@ export default async function BlogPostPage({ params }: Params) {
     datePublished: post.published_at ?? undefined,
     dateModified: post.updated_at,
     inLanguage: "fa-IR",
-    author: { "@type": "Organization", name: "čārana", url: SITE },
-    publisher: { "@type": "Organization", name: "čārana", url: SITE, logo: { "@type": "ImageObject", url: `${SITE}/brand/charana-mark-primary.svg` } },
+    author: { "@type": "Organization", name: "GOPLAZA", url: SITE },
+    publisher: { "@type": "Organization", name: "GOPLAZA", url: SITE, logo: { "@type": "ImageObject", url: `${SITE}/brand/goplaza-symbol.svg` } },
     articleSection: cat?.name_en ?? undefined,
     keywords: post.tags.join(", "),
     wordCount: post.body_md.split(/\s+/).length,
@@ -139,7 +139,7 @@ export default async function BlogPostPage({ params }: Params) {
 
           <div className="mt-12 rounded-3xl bg-[color:var(--annabi)] p-6 text-[#f6f1e8] md:p-8">
             <h2 className="text-xl font-black">دنبال کسب‌وکار ایرانی می‌گردی؟</h2>
-            <p className="mt-1 text-sm text-[#f6f1e8]/80">جستجوی چارانا فارسی و انگلیسی را می‌فهمد — حتی با کیبورد اشتباه.</p>
+            <p className="mt-1 text-sm text-[#f6f1e8]/80">جستجوی گوپلازا فارسی و انگلیسی را می‌فهمد — حتی با کیبورد اشتباه.</p>
             <form action="/search" method="get" className="mt-4 flex gap-2">
               <input name="q" placeholder="مثلاً دندان‌پزشک، رستوران، ریچموندهیل…" className="h-11 flex-1 rounded-full bg-white px-4 text-sm text-[color:var(--text)] outline-none" aria-label="جستجو" />
               <button type="submit" className="h-11 rounded-full bg-[#14213d] px-5 text-sm font-bold text-[#f6f1e8]">جستجو</button>

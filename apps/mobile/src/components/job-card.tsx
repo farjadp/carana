@@ -2,7 +2,7 @@
 // Source: apps/mobile/src/components/job-card.tsx
 // Version: 1.2.0 — 2026-08-18 (business logo; SVG logos fall back)
 // Why: One hiring ad as a row — on the board, and on a business profile.
-//      Every label and the salary line come from @charana/core, so the app
+//      Every label and the salary line come from @goplaza/core, so the app
 //      and the website cannot describe the same ad differently.
 // Env / Identity: Presentational.
 // ============================================================================
@@ -16,7 +16,7 @@ import {
   formatSalaryFa,
   jobDaysRemaining,
   languageRequirementFa,
-} from "@charana/core";
+} from "@goplaza/core";
 
 import type { JobPost } from "../lib/jobs";
 import { colors, fonts, radius, shadow, space, type } from "../theme";

@@ -20,6 +20,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function visitorHash(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const ua = req.headers.get("user-agent") ?? "";
+  // Fallback salt kept verbatim through the rebrand so hashes stay stable.
   const salt = process.env.CRON_SECRET ?? "charana";
   return createHash("sha256").update(`${ip}|${ua}|${new Date().toISOString().slice(0, 10)}|${salt}`).digest("hex").slice(0, 32);
 }

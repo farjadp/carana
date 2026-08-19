@@ -7,7 +7,7 @@ is still open and still decides whether that stays true.
 
 ## What shipped, and what did not
 
-Built: the `job_posts` migration, `latinSlug` moved into `@charana/core`, the
+Built: the `job_posts` migration, `latinSlug` moved into `@goplaza/core`, the
 owner form at `/dashboard/business/[id]/jobs`, the public `/jobs` and
 `/jobs/[slug]` with `JobPosting` JSON-LD, the admin queue at `/admin/jobs`
 with a live sidebar badge, the «فرصت‌های شغلی» section on the business
@@ -72,7 +72,7 @@ the service role after it re-proves ownership.
 | Column | Notes |
 |---|---|
 | `id`, `business_id`, `created_by` | `business_id` is required — a job always belongs to a listing |
-| `slug` | **English**, unique. Per the standing URL rule. Needs `latinSlug` moved out of `scripts/import-listings.mts` into `@charana/core` |
+| `slug` | **English**, unique. Per the standing URL rule. Needs `latinSlug` moved out of `scripts/import-listings.mts` into `@goplaza/core` |
 | `title`, `description` | Persian or English, owner's choice |
 | `employment_type` | `full_time` \| `part_time` \| `contract` \| `casual` \| `internship` |
 | `workplace_type` | `on_site` \| `hybrid` \| `remote` |

@@ -1,7 +1,7 @@
 // ============================================================================
 // Source: apps/web/app/.well-known/assetlinks.json/route.ts
 // Version: 1.0.0 — 2026-08-21
-// Why: Proves domain ownership to Android so charana.ca links open in the app.
+// Why: Proves domain ownership to Android so goplaza.ca links open in the app.
 // Env / Identity: Public, unauthenticated. A signing-certificate SHA-256
 //      fingerprint is a public value, not a secret.
 //
@@ -13,6 +13,8 @@
 import { NextResponse } from "next/server";
 
 const SHA256 = process.env.ANDROID_SHA256_FINGERPRINT;
+// Deliberately unchanged by the 2026-08 rebrand: the package name is the
+// installed app's identity. See REBRAND_PLAN.md D6.
 const PACKAGE_NAME = "ca.charana.app";
 
 export function GET() {

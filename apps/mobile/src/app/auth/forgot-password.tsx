@@ -10,11 +10,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronRight, MailCheck } from "lucide-react-native";
 
 import { Alert, Field, PrimaryButton } from "../../components/ui";
-import { authErrorMessage } from "@charana/core";
+import { authErrorMessage, brand } from "@goplaza/core";
 import { supabase } from "../../lib/supabase";
 import { colors, radius, shadow, space, type } from "../../theme";
 
-const WEB_ORIGIN = "https://charana.ca";
+const WEB_ORIGIN = brand.url;
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();

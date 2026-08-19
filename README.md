@@ -1,6 +1,6 @@
-# čārana
+# GOPLAZA
 
-Frontend for `čārana`, a Persian-first directory of Iranian businesses in Canada.
+Frontend for `GOPLAZA` (rebranded 2026-08-18 — see `REBRAND_COMPLETE.md`), a Persian-first directory of Iranian businesses in Canada.
 
 ## Stack
 

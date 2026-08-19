@@ -13,7 +13,7 @@ import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import { createClient } from "@supabase/supabase-js";
 
-import type { Database } from "@charana/core/database";
+import type { Database } from "@goplaza/core/database";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;

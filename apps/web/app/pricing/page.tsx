@@ -20,7 +20,7 @@ import { breadcrumbLd } from "@/lib/seo/local";
 
 export const metadata: Metadata = {
   title: "تعرفه‌ها",
-  description: "ثبت کسب‌وکار و نشان تأیید در چارانا همیشه رایگان است. پلن‌های حرفه‌ای و ویژه برای آمار کامل، اعلان‌ها و جایگاه برچسب‌دار.",
+  description: "ثبت کسب‌وکار و نشان تأیید در گوپلازا همیشه رایگان است. پلن‌های حرفه‌ای و ویژه برای آمار کامل، اعلان‌ها و جایگاه برچسب‌دار.",
   alternates: { canonical: "/pricing" },
 };
 
@@ -37,7 +37,7 @@ export default function PricingPage() {
             ثبت رایگان است. همیشه.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-8 text-[color:var(--muted-text)] md:text-base">
-            پیدا شدن در چارانا پول نمی‌خواهد. پلن‌های پولی برای وقتی است که می‌خواهی بدانی پروفایلت چه می‌کند،
+            پیدا شدن در گوپلازا پول نمی‌خواهد. پلن‌های پولی برای وقتی است که می‌خواهی بدانی پروفایلت چه می‌کند،
             بیشتر درباره‌ی کسب‌وکارت بگویی، یا بالاتر دیده شوی.
           </p>
         </section>
@@ -67,7 +67,7 @@ export default function PricingPage() {
             return (
               <div
                 key={plan.id}
-                className={`relative flex flex-col rounded-3xl border bg-white p-6 ${highlight ? "border-[color:var(--annabi)]/40 shadow-[0_20px_50px_rgba(128,0,0,0.10)]" : "border-[color:var(--line)]"}`}
+                className={`relative flex flex-col rounded-3xl border bg-white p-6 ${highlight ? "border-[color:var(--annabi)]/40 shadow-[0_20px_50px_rgba(122,24,49,0.10)]" : "border-[color:var(--line)]"}`}
               >
                 {highlight ? (
                   <span className="absolute -top-3 right-6 rounded-full bg-[color:var(--annabi)] px-3 py-1 text-[11px] font-black text-[#f6f1e8]">
@@ -108,7 +108,7 @@ export default function PricingPage() {
                   href={paid ? "/dashboard/business" : "/dashboard/business/new"}
                   className={`mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-full font-black transition ${
                     highlight
-                      ? "bg-[color:var(--annabi)] text-[#f6f1e8] hover:bg-[#5c0000]"
+                      ? "bg-[color:var(--annabi)] text-[#f6f1e8] hover:bg-[#5A1124]"
                       : "border border-[color:var(--line)] bg-white text-[color:var(--text)] hover:border-[color:var(--annabi)]/40"
                   }`}
                 >

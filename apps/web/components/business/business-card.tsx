@@ -60,7 +60,7 @@ export function BusinessCard({
     // wastes the largest tap target on the screen, which matters most on mobile.
     <Link
       href={href}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-[rgba(20,33,61,0.10)] bg-white transition hover:-translate-y-0.5 hover:border-[#800000]/30 hover:shadow-lg"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-[rgba(20,33,61,0.10)] bg-white transition hover:-translate-y-0.5 hover:border-[#7A1831]/30 hover:shadow-lg"
     >
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-4 flex items-start gap-3">
@@ -74,12 +74,12 @@ export function BusinessCard({
                 loading="lazy"
               />
             ) : (
-              <Building2 size={22} className="text-[#800000]/40" />
+              <Building2 size={22} className="text-[#7A1831]/40" />
             )}
           </div>
 
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-base font-bold text-[#14213d] group-hover:text-[#800000]">
+            <h3 className="truncate text-base font-bold text-[#14213d] group-hover:text-[#7A1831]">
               {business.name}
             </h3>
             {business.category && (
@@ -120,7 +120,7 @@ export function BusinessCard({
 
         <div className="flex items-center justify-between text-xs text-[#5f6472]">
           <span className="flex min-w-0 items-center gap-1.5">
-            <MapPin size={13} className="shrink-0 text-[#800000]" />
+            <MapPin size={13} className="shrink-0 text-[#7A1831]" />
             <span className="truncate">
               {business.city || "شهر ثبت نشده"}
               {business.province ? `، ${business.province}` : ""}
@@ -139,7 +139,7 @@ export function BusinessCard({
       {/* Says what happens next, in the words a visitor would use. "View
           profile" is our jargon: nobody looking for a dentist thinks of it as
           a profile. */}
-      <div className="border-t border-[rgba(20,33,61,0.08)] bg-[#f6f1e8]/60 px-5 py-3 text-center text-sm font-bold text-[#800000] transition group-hover:bg-[#800000] group-hover:text-[#f6f1e8]">
+      <div className="border-t border-[rgba(20,33,61,0.08)] bg-[#f6f1e8]/60 px-5 py-3 text-center text-sm font-bold text-[#7A1831] transition group-hover:bg-[#7A1831] group-hover:text-[#f6f1e8]">
         دیدن اطلاعات و تماس
       </div>
     </Link>

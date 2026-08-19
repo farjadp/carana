@@ -5,9 +5,9 @@
 //      the web's dashboard/business/new/actions.ts, written straight to
 //      Supabase under the user's session (RLS restricts rows to created_by).
 // Env / Identity: Anon client, signed-in user. Validation with the shared
-//      zod schemas from @charana/core so web and mobile accept the same data.
+//      zod schemas from @goplaza/core so web and mobile accept the same data.
 // ============================================================================
-import { finalBusinessSchema, slugify, type BusinessFormData, type TablesInsert } from "@charana/core";
+import { finalBusinessSchema, slugify, type BusinessFormData, type TablesInsert } from "@goplaza/core";
 
 import { supabase } from "./supabase";
 

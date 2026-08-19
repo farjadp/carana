@@ -14,7 +14,7 @@ import { getBusinessForEdit } from "./actions";
 import BusinessEditForm from "./edit-form";
 import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { getVerificationStatus, isTrusted } from "@/lib/verification/status";
-import { ownerProfileId } from "@charana/core";
+import { ownerProfileId } from "@goplaza/core";
 
 export const metadata: Metadata = {
   title: "ویرایش کسب‌وکار",

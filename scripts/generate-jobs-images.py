@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate the hero imagery for the čārana jobs board.
+Generate the hero imagery for the GOPLAZA jobs board.
 
 Same locked art direction as generate-category-images.py — this is one campaign
 and the jobs board must not look like a different product. The only deviations

@@ -7,7 +7,7 @@
 import { useRouter } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Flame, Moon } from "lucide-react-native";
-import { activeBusyStatus } from "@charana/core";
+import { activeBusyStatus } from "@goplaza/core";
 
 import type { BusinessCard as Business } from "../lib/businesses";
 import { colors, fonts, radius, shadow, space, type } from "../theme";

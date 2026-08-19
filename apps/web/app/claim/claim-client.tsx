@@ -98,8 +98,8 @@ export default function ClaimClient({
         <div className="text-xl font-black text-emerald-900">مالکیت «{businessName}» احراز شد</div>
         <p className="text-sm text-emerald-900/80 mt-1 leading-relaxed">نشان تایید همین حالا روی پروفایل است و شش ماه اعتبار دارد. سی روز قبل از پایان، برای تمدید ایمیل می‌فرستیم.</p>
         <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
-          <Link href="/dashboard/business" className="rounded-xl bg-[#800000] px-4 py-2.5 font-bold text-[#f6f1e8]">ویرایش پروفایل کسب‌وکار</Link>
-          <button onClick={() => router.push("/")} className="rounded-xl bg-white border border-emerald-200 px-4 py-2.5 font-bold text-emerald-900">بازگشت به چارانا</button>
+          <Link href="/dashboard/business" className="rounded-xl bg-[#7A1831] px-4 py-2.5 font-bold text-[#f6f1e8]">ویرایش پروفایل کسب‌وکار</Link>
+          <button onClick={() => router.push("/")} className="rounded-xl bg-white border border-emerald-200 px-4 py-2.5 font-bold text-emerald-900">بازگشت به گوپلازا</button>
         </div>
       </div>
     );
@@ -109,7 +109,7 @@ export default function ClaimClient({
     <div className="mt-6 space-y-5">
       <div className="rounded-2xl border border-[rgba(20,33,61,0.10)] bg-white p-5">
         <h2 className="mb-3 flex items-center gap-2 font-bold text-[#14213d]">
-          <ShieldCheck size={18} className="text-[#800000]" />
+          <ShieldCheck size={18} className="text-[#7A1831]" />
           چطور مالکیت احراز می‌شود
         </h2>
         <p className="text-sm leading-relaxed text-[#5f6472]">
@@ -124,7 +124,7 @@ export default function ClaimClient({
         <button
           onClick={request}
           disabled={pending}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#800000] px-4 py-3 font-bold text-[#f6f1e8] transition disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#7A1831] px-4 py-3 font-bold text-[#f6f1e8] transition disabled:opacity-60"
         >
           <MessageSquare size={18} />
           {pending ? "در حال ارسال…" : "ارسال کد به شماره‌ی آگهی"}
@@ -149,7 +149,7 @@ export default function ClaimClient({
           <button
             onClick={confirm}
             disabled={pending || code.length !== 6}
-            className="w-full rounded-xl bg-[#800000] px-4 py-3 font-bold text-[#f6f1e8] transition disabled:opacity-40"
+            className="w-full rounded-xl bg-[#7A1831] px-4 py-3 font-bold text-[#f6f1e8] transition disabled:opacity-40"
           >
             {pending ? "در حال بررسی…" : "تایید و احراز مالکیت"}
           </button>

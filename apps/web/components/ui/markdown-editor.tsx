@@ -24,7 +24,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Bold, Heading3, Italic, List, ListOrdered, Quote } from "lucide-react";
 
-import { normalizeJobMarkdown } from "@charana/core";
+import { normalizeJobMarkdown } from "@goplaza/core";
 
 type Action = { icon: typeof Bold; label: string; wrap?: string; prefix?: string; ordered?: boolean };
 

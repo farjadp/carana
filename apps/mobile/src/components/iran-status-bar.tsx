@@ -19,7 +19,7 @@
 // ============================================================================
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { formatTehranDate, formatTehranTime, nowInTehran } from "@charana/core";
+import { formatTehranDate, formatTehranTime, nowInTehran } from "@goplaza/core";
 
 import { fetchExchangeRates, type ExchangeRates, type Rate } from "../lib/exchange-rates";
 import { colors, fonts, radius, space } from "../theme";

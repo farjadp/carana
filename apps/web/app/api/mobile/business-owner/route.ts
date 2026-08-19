@@ -14,7 +14,7 @@ import { NextResponse } from "next/server";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { getVerificationStatus, isTrusted } from "@/lib/verification/status";
-import { ownerProfileId, ownerSectionVisible, type PublicOwner } from "@charana/core";
+import { ownerProfileId, ownerSectionVisible, type PublicOwner } from "@goplaza/core";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

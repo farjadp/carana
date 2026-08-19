@@ -2,7 +2,7 @@
 // Source: app/layout.tsx
 // Version: 1.2.0 — 2026-08-11
 // Why: Define the global App Router shell, fonts, metadata, and RTL document.
-// Env / Identity: Brand identity for čārana, no secrets used here.
+// Env / Identity: Brand identity for GOPLAZA, no secrets used here.
 // ============================================================================
 import type { Metadata, Viewport } from "next";
 import { Manrope, Vazirmatn } from "next/font/google";
@@ -26,11 +26,11 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   title: {
-    default: "čārana | دایرکتوری کسب‌وکارهای ایرانیان کانادا",
-    template: "%s | čārana",
+    default: "GOPLAZA | دایرکتوری کسب‌وکارهای ایرانیان کانادا",
+    template: "%s | GOPLAZA",
   },
   description:
-    "čārana دایرکتوری فارسی‌زبان برای معرفی کسب‌وکارهای ایرانیان کاناداست؛ از خدمات محلی تا برندهای حرفه‌ای.",
+    "گوپلازا دایرکتوری فارسی‌زبان برای معرفی کسب‌وکارهای ایرانیان کاناداست؛ از خدمات محلی تا برندهای حرفه‌ای.",
   // Assets come from the designer's favicon pack in public/. Declared here
   // rather than as raw <link> tags so Next owns deduplication and ordering.
   icons: {
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
       { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
-    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#800000" }],
+    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#7A1831" }],
   },
   manifest: "/manifest.webmanifest",
 };
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
  * Metadata is silently ignored.
  */
 export const viewport: Viewport = {
-  themeColor: "#800000",
+  themeColor: "#7A1831",
 };
 
 export default function RootLayout({

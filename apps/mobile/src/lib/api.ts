@@ -6,11 +6,12 @@
 //      web app's /api/mobile/* routes, authenticated with the user's Supabase
 //      access token as a Bearer header.
 // Env / Identity: EXPO_PUBLIC_API_URL overrides the base (dev builds point at
-//      the laptop); production defaults to https://charana.ca.
+//      the laptop); production defaults to https://goplaza.ca.
 // ============================================================================
+import { brand } from "@goplaza/core";
 import { supabase } from "./supabase";
 
-const BASE = (process.env.EXPO_PUBLIC_API_URL ?? "https://charana.ca").replace(/\/$/, "");
+const BASE = (process.env.EXPO_PUBLIC_API_URL ?? brand.url).replace(/\/$/, "");
 
 export type ApiResult<T> = ({ success: true } & T) | { success: false; error: string };
 

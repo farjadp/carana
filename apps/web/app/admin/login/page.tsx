@@ -76,7 +76,7 @@ export default function AdminLoginPage() {
           <div className="admin-shield-icon">
             <ShieldCheck size={28} />
           </div>
-          <h1>پنل مدیریت چارانا</h1>
+          <h1>پنل مدیریت گوپلازا</h1>
           <p>دروازه کنترل و نظارت امنیتی پلتفرم</p>
         </div>
 
@@ -90,7 +90,7 @@ export default function AdminLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@charana.ca"
+                placeholder="admin@example.com"
                 required
                 className="pr-11"
               />

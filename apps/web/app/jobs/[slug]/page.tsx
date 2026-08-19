@@ -25,7 +25,7 @@ import {
   languageRequirementFa,
   type EmploymentType,
   type WorkplaceType,
-} from "@charana/core";
+} from "@goplaza/core";
 
 import { JsonLd } from "@/components/json-ld";
 import { PageShell } from "@/components/page-shell";
@@ -216,7 +216,7 @@ export default async function JobPage({ params }: { params: Promise<{ slug: stri
               value={job.apply_value}
             />
             <p className="mt-3 text-xs text-[color:var(--muted-text)]">
-              درخواست مستقیم به همین کسب‌وکار می‌رود؛ چارانا در استخدام واسطه نیست و رزومه‌ای دریافت نمی‌کند.
+              درخواست مستقیم به همین کسب‌وکار می‌رود؛ گوپلازا در استخدام واسطه نیست و رزومه‌ای دریافت نمی‌کند.
             </p>
           </div>
 

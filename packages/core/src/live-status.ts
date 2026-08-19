@@ -3,7 +3,7 @@
 // Version: 1.0.0 — 2026-08-16
 // Why: "Busy now / quiet now" — a manual, self-expiring status the owner
 //      sets (Starter+ feature, see apps/web/lib/billing/plans.ts). Lives in
-//      @charana/core, not apps/web, so the mobile app reads the same expiry
+//      @goplaza/core, not apps/web, so the mobile app reads the same expiry
 //      rule instead of re-deriving it — same reason verification status
 //      moved here (see apps/web/lib/verification/status.ts, a re-export).
 //      Self-expiring on purpose: a status set once during a Friday rush must

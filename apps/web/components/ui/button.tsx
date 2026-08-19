@@ -16,7 +16,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         solid:
-          "bg-[linear-gradient(135deg,var(--annabi),#a11111)] text-white shadow-[0_16px_28px_rgba(128,0,0,0.24)]",
+          "bg-[linear-gradient(135deg,var(--annabi),#a11111)] text-white shadow-[0_16px_28px_rgba(122,24,49,0.24)]",
         muted: "border-[color:var(--line)] bg-white/70 text-[color:var(--text)]",
         ghost: "text-[color:var(--muted-text)] hover:text-[color:var(--text)]",
       },

@@ -26,7 +26,7 @@ export async function generateMetadata({
     title: `${config.name} ایرانیان کانادا`,
     description: config.description,
     openGraph: {
-      title: `${config.name} ایرانی در کانادا | دایرکتوری چارانا`,
+      title: `${config.name} ایرانی در کانادا | دایرکتوری گوپلازا`,
       description: config.description,
       images: [config.imageUrl],
     },

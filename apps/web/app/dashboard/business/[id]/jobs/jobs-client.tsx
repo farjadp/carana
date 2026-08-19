@@ -34,7 +34,7 @@ import {
   type JobStatus,
   type SalaryPeriod,
   type WorkplaceType,
-} from "@charana/core";
+} from "@goplaza/core";
 
 import { Button } from "@/components/ui/button";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";

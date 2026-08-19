@@ -2,7 +2,7 @@
  * Source: app/globals.css
  * Version: 1.2.0 — 2026-08-11
  * Why: Global visual system, layout rules, and branded utility classes.
- * Env / Identity: Pure styling layer for čārana.
+ * Env / Identity: Pure styling layer for GOPLAZA.
  * ========================================================================= */
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -42,7 +42,7 @@
   --lajvard: #0047ab;
   --firouzeh: #40e0d0;
   --kahgeli: #d2b48c;
-  --annabi: #800000;
+  --annabi: #7A1831;
   /* Gold is an accent only — never a surface. Brand book, section 12. */
   --gold: #c9a24b;
   --mesi: #b87333;
@@ -285,7 +285,7 @@ a {
 }
 
 /* ============================================================================
-   NEW PREMIUM AUTHENTICATION STYLES (čārana Redesign)
+   NEW PREMIUM AUTHENTICATION STYLES (GOPLAZA Redesign)
    ============================================================================ */
 
 .auth-split-container {
@@ -306,7 +306,7 @@ a {
   justify-content: space-between;
   padding: 50px;
   background: 
-    radial-gradient(circle at top right, rgba(0, 71, 171, 0.94), rgba(128, 0, 0, 0.88)),
+    radial-gradient(circle at top right, rgba(0, 71, 171, 0.94), rgba(122, 24, 49, 0.88)),
     #0047ab;
   color: #fff;
   position: relative;
@@ -603,9 +603,9 @@ a {
 }
 
 .auth-alert.is-error {
-  background: rgba(128, 0, 0, 0.06);
-  border: 1px solid rgba(128, 0, 0, 0.1);
-  color: #800000;
+  background: rgba(122, 24, 49, 0.06);
+  border: 1px solid rgba(122, 24, 49, 0.1);
+  color: #7A1831;
 }
 
 .auth-alert.is-success {
@@ -1175,8 +1175,8 @@ section {
   height: 14px;
   flex: 0 0 14px;
   border-radius: 999px;
-  background: rgba(128, 0, 0, 0.7);
-  box-shadow: 0 0 0 8px rgba(128, 0, 0, 0.08);
+  background: rgba(122, 24, 49, 0.7);
+  box-shadow: 0 0 0 8px rgba(122, 24, 49, 0.08);
 }
 
 .status-dot.is-live {
@@ -1268,7 +1268,7 @@ section {
 }
 
 /* ============================================================================
-   ADMIN PORTAL STYLES (čārana Redesign)
+   ADMIN PORTAL STYLES (GOPLAZA Redesign)
    ============================================================================ */
 
 /* Admin Login Layout (Dedicated Cyber-Dark Theme) */
@@ -1971,7 +1971,7 @@ section {
   align-items: flex-start;
   padding: 1rem;
   border-radius: 12px;
-  background: rgba(128, 0, 0, 0.06);
+  background: rgba(122, 24, 49, 0.06);
   color: var(--annabi);
   margin-bottom: 1rem;
 }
@@ -2116,7 +2116,7 @@ section {
   min-width: 3.2rem;
   padding: 0.4rem 0.6rem;
   border-radius: 12px;
-  background: rgba(128, 0, 0, 0.07);
+  background: rgba(122, 24, 49, 0.07);
   color: var(--annabi);
   font-weight: 700;
   text-align: center;
@@ -2264,11 +2264,15 @@ section {
 .brand svg { display: block; flex-shrink: 0; }
 
 .brand-name {
-  font-size: 1.1rem;
+  /* GOPLAZA wordmark: geometric caps, tracked open, GO in burgundy. */
+  font-family: var(--font-latin), sans-serif;
+  font-size: 1.05rem;
   font-weight: 800;
   color: var(--text);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.08em;
+  direction: ltr;
 }
+.brand-name b { color: var(--annabi); font-weight: inherit; }
 
 /* --- desktop nav --------------------------------------------------------- */
 
@@ -2392,7 +2396,7 @@ section {
 
 .mobile-menu-link.is-active {
   color: var(--annabi);
-  background: rgba(128, 0, 0, 0.06);
+  background: rgba(122, 24, 49, 0.06);
 }
 
 .mobile-menu-link.is-secondary {
@@ -2579,7 +2583,7 @@ section {
   color: var(--text); text-decoration: none;
 }
 .header-nav-menu-link:hover { background: var(--bg); }
-.header-nav-menu-link.is-active { color: var(--annabi); background: rgba(128, 0, 0, 0.06); }
+.header-nav-menu-link.is-active { color: var(--annabi); background: rgba(122, 24, 49, 0.06); }
 .mobile-menu-group-label { font-size: 12px; font-weight: 700; color: var(--muted-text); padding: 6px 12px 2px; }
 
 /* Header search — a compact field that submits to /search. 2026-08-15 */
@@ -2588,7 +2592,7 @@ section {
   border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--muted-text);
   transition: box-shadow .15s, border-color .15s;
 }
-.header-search:focus-within { border-color: rgba(128,0,0,0.35); box-shadow: 0 0 0 4px rgba(128,0,0,0.08); }
+.header-search:focus-within { border-color: rgba(122,24,49,0.35); box-shadow: 0 0 0 4px rgba(122,24,49,0.08); }
 .header-search input { width: 120px; background: transparent; border: 0; outline: none; font: inherit; font-size: 13.5px; color: var(--text); }
 .header-search input::placeholder { color: var(--muted-text); }
 .header-search input:focus { width: 180px; transition: width .15s; }
@@ -2627,9 +2631,9 @@ section {
 .bp-action.is-primary {
   --tint: var(--annabi);
   color: #f6f1e8; background: var(--annabi); border-color: transparent;
-  box-shadow: 0 10px 24px rgba(128, 0, 0, 0.22);
+  box-shadow: 0 10px 24px rgba(122, 24, 49, 0.22);
 }
-.bp-action.is-primary:hover { background: #5c0000; box-shadow: 0 14px 30px rgba(128, 0, 0, 0.30); }
+.bp-action.is-primary:hover { background: #5A1124; box-shadow: 0 14px 30px rgba(122, 24, 49, 0.30); }
 .bp-action.is-primary .bp-action-icon { color: #f6f1e8; background: rgba(246, 241, 232, 0.16); }
 
 /* Booking — strong but clearly second to the call: lajvard outline, filled on hover. */
@@ -2661,28 +2665,28 @@ section {
   padding: 10px 12px; font: inherit; font-size: 14px; line-height: 1.7; resize: vertical; outline: none;
   transition: border-color .15s, box-shadow .15s;
 }
-.sbox textarea:focus, .sbox-foot input:focus { border-color: rgba(128,0,0,0.35); box-shadow: 0 0 0 4px rgba(128,0,0,0.08); background: #fff; }
+.sbox textarea:focus, .sbox-foot input:focus { border-color: rgba(122,24,49,0.35); box-shadow: 0 0 0 4px rgba(122,24,49,0.08); background: #fff; }
 .sbox-mic {
   justify-self: start; display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px;
-  border-radius: 999px; border: 1px dashed rgba(128,0,0,0.35); background: transparent; color: var(--annabi);
+  border-radius: 999px; border: 1px dashed rgba(122,24,49,0.35); background: transparent; color: var(--annabi);
   font-weight: 700; font-size: 13px; cursor: pointer; transition: background .15s, border-color .15s;
 }
-.sbox-mic:hover { background: rgba(128,0,0,0.05); }
+.sbox-mic:hover { background: rgba(122,24,49,0.05); }
 .sbox-mic.is-recording { border-style: solid; background: var(--annabi); color: #f6f1e8; animation: sbox-pulse 1.2s ease-in-out infinite; }
-@keyframes sbox-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(128,0,0,0.35);} 50% { box-shadow: 0 0 0 8px rgba(128,0,0,0);} }
+@keyframes sbox-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(122,24,49,0.35);} 50% { box-shadow: 0 0 0 8px rgba(122,24,49,0);} }
 .sbox-voice { display: flex; align-items: center; gap: 10px; }
 .sbox-voice audio { flex: 1; height: 36px; }
 .sbox-voice-time { font-size: 12px; color: var(--muted-text); font-variant-numeric: tabular-nums; }
 .sbox-icon-btn { display: inline-flex; padding: 8px; border-radius: 10px; border: 0; background: var(--bg); color: var(--muted-text); cursor: pointer; }
-.sbox-icon-btn:hover { color: var(--annabi); background: rgba(128,0,0,0.06); }
+.sbox-icon-btn:hover { color: var(--annabi); background: rgba(122,24,49,0.06); }
 .sbox-foot { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .sbox-foot input { flex: 1; min-width: 200px; height: 42px; padding: 0 12px; }
 .sbox-send {
   display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 18px; border: 0; border-radius: 999px;
   background: var(--annabi); color: #f6f1e8; font-weight: 800; font-size: 14px; cursor: pointer;
-  box-shadow: 0 8px 20px rgba(128,0,0,0.22); transition: background .15s, transform .15s, opacity .15s;
+  box-shadow: 0 8px 20px rgba(122,24,49,0.22); transition: background .15s, transform .15s, opacity .15s;
 }
-.sbox-send:hover:not(:disabled) { background: #5c0000; transform: translateY(-1px); }
+.sbox-send:hover:not(:disabled) { background: #5A1124; transform: translateY(-1px); }
 .sbox-send:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
 .sbox-err { margin: 0; font-size: 12.5px; color: var(--annabi); }
 .sbox.is-done { grid-template-columns: auto 1fr auto; align-items: center; color: var(--success, #0f7b4f); }

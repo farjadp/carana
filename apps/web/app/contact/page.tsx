@@ -50,7 +50,7 @@ export default function ContactPage() {
       <section className="grid md:grid-cols-2 gap-4" dir="rtl">
         {INTENTS.map(({ icon: Icon, title, body, href, cta, tone, ltr }) => (
           <IntentLink key={title} href={href} className={`group rounded-2xl p-5 border transition flex gap-4 ${
-            tone === "annabi" ? "bg-[color:var(--annabi)] border-transparent text-[#f6f1e8] hover:bg-[#5c0000]"
+            tone === "annabi" ? "bg-[color:var(--annabi)] border-transparent text-[#f6f1e8] hover:bg-[#5A1124]"
             : tone === "lajvard" ? "bg-[color:var(--lajvard)]/8 border-[color:var(--lajvard)]/20 hover:bg-[color:var(--lajvard)]/12"
             : "bg-white border-[color:var(--line)] hover:shadow-[0_14px_36px_rgba(20,33,61,0.10)]"}`}>
             <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${

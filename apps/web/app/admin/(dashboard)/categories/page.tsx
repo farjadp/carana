@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import CategoriesClient from "./categories-client";
 
 export const metadata: Metadata = {
-  title: "مدیریت دسته‌بندی‌ها | پنل مدیریت čārana",
+  title: "مدیریت دسته‌بندی‌ها | پنل مدیریت",
 };
 
 export default async function AdminCategoriesPage() {

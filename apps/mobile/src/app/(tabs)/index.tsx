@@ -38,7 +38,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, BadgeCheck, Briefcase, ChevronLeft, Clock3, Megaphone, Search, Store } from "lucide-react-native";
-import { getVerificationStatus } from "@charana/core";
+import { brand, getVerificationStatus } from "@goplaza/core";
 
 import { BrandLoading, BrandMark, MerlonGlyph, MerlonRow } from "../../components/brand-mark";
 import { BusinessCardView } from "../../components/business-card";
@@ -63,7 +63,7 @@ import { listJobs, type JobPost } from "../../lib/jobs";
 import { openNow } from "../../lib/hours";
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
-const WEB = "https://charana.ca";
+const WEB = brand.url;
 const { width: SCREEN_W } = Dimensions.get("window");
 const fa = (n: number) => n.toLocaleString("fa-IR");
 
@@ -201,7 +201,7 @@ export default function HomeScreen() {
           <View style={styles.heroTop}>
             <View style={styles.heroBrand}>
               <BrandMark size={30} color={colors.onAnnabi} />
-              <Text style={styles.heroBrandName}>čārana</Text>
+              <Text style={styles.heroBrandName}>GOPLAZA</Text>
             </View>
             {total > 0 ? (
               <View style={styles.countChip}>
@@ -460,7 +460,7 @@ export default function HomeScreen() {
 
         <View style={styles.foot}>
           <MerlonRow color={colors.gold} height={7} opacity={0.6} />
-          <Text style={styles.footText}>با اطمینان پیدا کن.</Text>
+          <Text style={styles.footText}>{brand.tagline.fa}</Text>
           <IranStatusBar />
         </View>
 
@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: "rgba(128, 0, 0, 0.14)",
+    borderColor: "rgba(122, 24, 49, 0.14)",
     ...shadow.card,
   },
   ownerIcon: {

@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 
 import { AuthForm } from "@/components/auth-form";
 import { PageShell } from "@/components/page-shell";
+import { getDirectoryStats } from "@/lib/data/directory-stats";
 import { redirectIfAuthenticated } from "@/lib/auth/session";
 import { sanitizeAuthSearchParams } from "@/lib/auth/sanitize";
 
@@ -26,6 +27,8 @@ export default async function LoginPage({
   const resolvedSearchParams = await searchParams;
   const resetSuccess = resolvedSearchParams.reset === "success";
 
+  const stats = await getDirectoryStats();
+
   return (
     <PageShell currentPath="/auth/login" currentSection="business">
       <main className="page-main">
@@ -35,7 +38,7 @@ export default async function LoginPage({
             <span>حالا با رمز جدید وارد حساب کاربری شو.</span>
           </div>
         ) : null}
-        <AuthForm mode="login" />
+        <AuthForm mode="login" stats={stats} />
       </main>
     </PageShell>
   );

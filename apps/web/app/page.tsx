@@ -13,7 +13,7 @@
 //        • The owner CTA appeared three times (hero, sticky header, dedicated
 //          section). Removed from the hero; the header carries it everywhere
 //          and the dedicated section explains it properly.
-//        • "چرا čārana؟" (4 cards) and "اطلاعات قابل اعتماد" (a paragraph)
+//        • "چرا GOPLAZA؟" (4 cards) and "اطلاعات قابل اعتماد" (a paragraph)
 //          were the same trust argument told twice. Merged into one section.
 //        • The three legal links were repeated here and in the footer, which
 //          renders directly beneath. Kept the footer's.
@@ -42,6 +42,7 @@ import { Search, MapPin, ArrowLeft, Star, ShieldCheck, Bookmark, MessageSquare, 
 
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
+import { getDirectoryStats } from "@/lib/data/directory-stats";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BusinessCard } from "@/components/business/business-card";
 import { HomeHero } from "@/components/home-hero";
@@ -73,7 +74,7 @@ const FA = "۰۱۲۳۴۵۶۷۸۹";
 const fa = (n: number) => String(n).replace(/\d/g, (d) => FA[Number(d)]);
 
 export const metadata: Metadata = {
-  title: "čārana | دایرکتوری کسب‌وکارهای ایرانیان کانادا",
+  title: "GOPLAZA | دایرکتوری کسب‌وکارهای ایرانیان کانادا",
 };
 
 export default async function HomePage() {
@@ -136,19 +137,11 @@ export default async function HomePage() {
     .limit(18);
 
   // Live numbers for the hero — every one is a real count, never a claim.
-  const [{ count: totalCount }, { count: verifiedCount }, { data: cityRows }, { count: categoryCount }] =
-    await Promise.all([
-      supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", ["APPROVED", "PUBLISHED"]),
-      supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", ["APPROVED", "PUBLISHED"]).gt("verified_until", nowIso),
-      supabase.from("businesses").select("city").in("status", ["APPROVED", "PUBLISHED"]).not("city", "is", null),
-      supabase.from("categories").select("id", { count: "exact", head: true }).eq("is_active", true),
-    ]);
-  const cityCount = new Set((cityRows ?? []).map((r) => (r.city as string).trim().toLowerCase()).filter(Boolean)).size;
+  // Shared with the auth panel through one helper so the two never disagree.
+  const directory = await getDirectoryStats();
   const catLabel = new Map((categories ?? []).map((c) => [c.slug as string, c.name as string]));
-  const stats = { total: totalCount ?? 0, verified: verifiedCount ?? 0, cities: cityCount, categories: categoryCount ?? 0 };
-  const cityFreq = new Map<string, number>();
-  for (const r of cityRows ?? []) { const c = (r.city as string).trim(); if (c) cityFreq.set(c, (cityFreq.get(c) ?? 0) + 1); }
-  const topCities = [...cityFreq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([c]) => c);
+  const stats = { total: directory.total, verified: directory.verified, cities: directory.cities, categories: directory.categories };
+  const topCities = directory.topCities.slice(0, 12);
 
   // The fix for the repetition Farjad saw: a business already shown as "newest"
   // never appears again as "most visited". Two sections that restate each
@@ -170,7 +163,7 @@ export default async function HomePage() {
           <div className="mx-auto max-w-7xl">
             <SectionHead
               title="دنبال چه خدمتی می‌گردی؟"
-              subtitle="دسته‌بندی‌های پرجستجوی چارانا"
+              subtitle="دسته‌بندی‌های پرجستجوی گوپلازا"
               center
             />
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
@@ -235,7 +228,7 @@ export default async function HomePage() {
         {latestAnnouncements && latestAnnouncements.length > 0 && (
           <section className="border-t border-gray-100 bg-white px-4 py-16">
             <div className="mx-auto max-w-7xl">
-              <SectionHead title="تازه‌ترین اعلان‌ها" subtitle="تخفیف، رویداد و خبر تازه از کسب‌وکارهای چارانا" />
+              <SectionHead title="تازه‌ترین اعلان‌ها" subtitle="تخفیف، رویداد و خبر تازه از کسب‌وکارهای گوپلازا" />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {latestAnnouncements.map((a: any) => (
                   <Link
@@ -264,7 +257,7 @@ export default async function HomePage() {
           <section className="border-t border-gray-100 bg-white px-4 py-16">
             <div className="mx-auto max-w-7xl">
               <div className="mb-8 flex items-end justify-between gap-4">
-                <SectionHead title="جدیدترین کسب‌وکارها" subtitle="تازه‌ترین کسب‌وکارهایی که در چارانا منتشر شده‌اند" bare />
+                <SectionHead title="جدیدترین کسب‌وکارها" subtitle="تازه‌ترین کسب‌وکارهایی که در گوپلازا منتشر شده‌اند" bare />
                 <Button asChild variant="ghost" className="hidden shrink-0 text-[color:var(--lajvard)] sm:inline-flex">
                   <Link href="/businesses">مشاهده همه <ArrowLeft className="mr-1 h-4 w-4" /></Link>
                 </Button>
@@ -283,7 +276,7 @@ export default async function HomePage() {
         {popularBusinesses.length > 0 && (
           <section className="border-t border-gray-100 bg-gray-50/70 px-4 py-16">
             <div className="mx-auto max-w-7xl">
-              <SectionHead title="پربازدیدترین کسب‌وکارها" subtitle="بیشترین بازدید در چارانا" />
+              <SectionHead title="پربازدیدترین کسب‌وکارها" subtitle="بیشترین بازدید در گوپلازا" />
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {popularBusinesses.map((biz) => (
                   <BusinessCard key={biz.id} business={biz} showViews categoryLabel={catLabel.get(biz.category)} />
@@ -336,12 +329,12 @@ export default async function HomePage() {
         </section>
 
         {/* 8. Why this directory, and how it stays honest. Previously two
-            sections — a four-card "چرا čārana؟" and a paragraph headed
+            sections — a four-card "چرا GOPLAZA؟" and a paragraph headed
             "اطلاعات قابل اعتماد" — making the same argument twice. */}
         <section className="border-t border-gray-100 bg-gray-50 px-4 py-16">
           <div className="mx-auto max-w-7xl">
             <SectionHead
-              title="چرا čārana؟"
+              title="چرا گوپلازا؟"
               subtitle="یک دایرکتوری که فقط چیزی را نشان می‌دهد که پشتش داده‌ی واقعی هست."
               center
             />
@@ -369,7 +362,7 @@ export default async function HomePage() {
             <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold">
               <Users className="h-3.5 w-3.5" /> برای صاحبان کسب‌وکار
             </div>
-            <h2 className="mb-5 text-3xl font-black md:text-4xl">کسب‌وکار ایرانی داری؟ در čārana معرفی‌اش کن.</h2>
+            <h2 className="mb-5 text-3xl font-black md:text-4xl">کسب‌وکار ایرانی داری؟ در گوپلازا معرفی‌اش کن.</h2>
             <p className="mx-auto mb-12 max-w-2xl leading-relaxed text-white/90">
               ثبت رایگان است و همیشه رایگان می‌ماند. آدرس سایتت را بده — بقیه‌ی اطلاعات را خودمان می‌خوانیم و پر می‌کنیم.
             </p>
@@ -410,7 +403,7 @@ export default async function HomePage() {
           `}</style>
 
           {/* One warm glow behind the phone instead of wallpaper texture. */}
-          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[640px] w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#800000]/25 blur-[130px] md:left-[28%]" />
+          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[640px] w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#7A1831]/25 blur-[130px] md:left-[28%]" />
           {/* A single stepped horizon along the base — the parapet drawn once,
               as a line, not repeated as a pattern. */}
           <div
@@ -442,7 +435,7 @@ export default async function HomePage() {
 
                   {/* app header */}
                   <div className="flex items-center justify-between px-4 pb-2 pt-1">
-                    <span className="text-lg font-black text-[#800000]">چارانا</span>
+                    <span className="text-lg font-black text-[#7A1831]">گوپلازا</span>
                     <span className="rounded-full bg-[#14213d]/5 px-2 py-1 text-[9px] font-bold text-[#14213d]">تورنتو ▾</span>
                   </div>
 
@@ -458,7 +451,7 @@ export default async function HomePage() {
                       <span
                         key={c}
                         className={`rounded-full px-2.5 py-1 text-[9px] font-bold ${
-                          i === 0 ? "bg-[#800000] text-[#f6f1e8]" : "bg-white text-[#14213d]"
+                          i === 0 ? "bg-[#7A1831] text-[#f6f1e8]" : "bg-white text-[#14213d]"
                         }`}
                       >
                         {c}
@@ -473,7 +466,7 @@ export default async function HomePage() {
                   ].map((b) => (
                     <div key={b.name} className="mx-4 mb-2.5 rounded-xl bg-white p-3 shadow-sm">
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#f6f1e8] text-[11px] font-black text-[#800000]">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#f6f1e8] text-[11px] font-black text-[#7A1831]">
                           {b.name.slice(0, 1)}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -483,7 +476,7 @@ export default async function HomePage() {
                         <Star className="h-3.5 w-3.5 shrink-0 text-[#c9a24b]" fill="#c9a24b" />
                       </div>
                       {b.badge && (
-                        <span className="mt-2 inline-flex items-center gap-1 rounded-md bg-[#800000] px-1.5 py-0.5 text-[8px] font-bold text-[#f6f1e8]">
+                        <span className="mt-2 inline-flex items-center gap-1 rounded-md bg-[#7A1831] px-1.5 py-0.5 text-[8px] font-bold text-[#f6f1e8]">
                           <ShieldCheck className="h-2.5 w-2.5" /> مالکیت احرازشده
                         </span>
                       )}
@@ -492,7 +485,7 @@ export default async function HomePage() {
 
                   {/* bottom nav */}
                   <div className="mt-1 flex items-center justify-around border-t border-[#14213d]/8 bg-white px-4 py-2.5">
-                    <Search className="h-4 w-4 text-[#800000]" />
+                    <Search className="h-4 w-4 text-[#7A1831]" />
                     <Bookmark className="h-4 w-4 text-[#5f6472]" />
                     <MessageSquare className="h-4 w-4 text-[#5f6472]" />
                     <div className="h-4 w-4 rounded-full bg-[#5f6472]/30" />
@@ -510,7 +503,7 @@ export default async function HomePage() {
                 {fa(stats.total)} کسب‌وکار
               </div>
               <div
-                className="chip-float-b absolute -left-16 bottom-24 flex items-center gap-1 rounded-xl bg-[#800000] px-3 py-2 text-[10px] font-black text-[#f6f1e8] shadow-xl"
+                className="chip-float-b absolute -left-16 bottom-24 flex items-center gap-1 rounded-xl bg-[#7A1831] px-3 py-2 text-[10px] font-black text-[#f6f1e8] shadow-xl"
                 style={{ animation: "chip-float-b 6.5s ease-in-out infinite" }}
               >
                 <ShieldCheck className="h-3 w-3" /> تایید با پیامک
@@ -528,7 +521,7 @@ export default async function HomePage() {
               </span>
 
               <h2 className="mb-5 text-3xl font-black leading-[1.25] md:text-5xl">
-                چارانا توی جیبت،
+                گوپلازا توی جیبت،
                 <br />
                 <span className="text-[#c9a24b]">هرجای کانادا که باشی</span>
               </h2>

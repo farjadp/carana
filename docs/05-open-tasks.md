@@ -3,13 +3,40 @@
 **Updated:** 2026-08-18, end of the jobs-board session (three commits: board, editor + AI, mobile + feature lists).
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
+## Rebrand → GOPLAZA (18 Aug night, branch `rebrand/goplaza`) — Farjad's dashboards
+
+Code is done and verified; production is not GOPLAZA until these are done, in
+this order — full detail in `REBRAND_EXTERNAL_ACTIONS.md`:
+
+1. Vercel: add `goplaza.ca` + www, 308 `charana.ca` → `goplaza.ca` path-preserving,
+   `NEXT_PUBLIC_BASE_URL=https://goplaza.ca`, check build command has no
+   `@charana/web` filter. **Before merging.**
+2. Supabase Auth: Site URL + add `goplaza://**`, `https://goplaza.ca/**` to
+   Redirect URLs (keep the old ones). `pnpm db:push` for the data migration.
+   **Before merging** — mobile signup mail links now use `goplaza://`.
+3. Resend: verify `goplaza.ca`, create the mailboxes, then flip `company.ts`.
+4. Stripe: rename the two live products; keep metadata keys.
+5. Search Console change-of-address; Maps key referrer; X handle.
+6. Supply the master vector of the G-mark; run `scripts/generate-brand-assets.mjs`.
+7. Decide whether old blog post bodies get «چارانا» → «گوپلازا» (data, not code).
+8. ~~Fix the false claim on the auth side panel («+۲۰٬۰۰۰ کسب‌وکار ثبت‌شده»)~~
+   — **done, `d561f1c`.** Real counts now come from `lib/data/directory-stats.ts`,
+   shared with the home hero; the «نامشخص» sentinel no longer inflates the
+   city count (46 → 45 real).
+9. `expo prebuild --clean` → build APK **1.3.0** (`app.json` already bumped
+   for the rebrand). In the same commit as that build, update
+   `apps/web/lib/data/releases.ts`: `APP_VERSION`, `STORES.apkDirect` /
+   `apkVersion` / `apkSizeMb` / `apkBuiltAt`, and one new `RELEASES` entry.
+   `/download` still advertises 1.2.0 on purpose — it is the only binary that
+   exists, and that page is a download promise, not a changelog of intent.
+
 ## Farjad — dashboard work, minutes each
 
 **Stripe, before any real charge:**
 - **Roll the live secret key** — it was pasted into a chat transcript on 16 Aug
 - Settings → Tax → set the head office address (automatic tax fails without it)
 - Settings → Billing → enable the Customer Portal
-- Create the production webhook endpoint at `https://charana.ca/api/stripe/webhook`
+- Create the production webhook endpoint at `https://goplaza.ca/api/stripe/webhook`
   and put its signing secret in Vercel as `STRIPE_WEBHOOK_SECRET`
 - Run `scripts/seed-stripe-plans.mts` against live (it refuses live keys by
   design — create the live products deliberately), then set the four
@@ -74,7 +101,7 @@ The live board is Notion → 🧿 Charana → Mission Control; this is the narra
   (120 requests/month), so the blast radius is a quota, not money — but
   rotate it anyway and put the new one in Vercel + `apps/web/.env.local`.
 - ~~Set `NAVASAN_API_KEY` in **Vercel**~~ — done; verified 17 Aug by
-  reading charana.ca's footer, which renders all three rates.
+  reading goplaza.ca's footer, which renders all three rates.
 - ~~Check the response shape once a real key exists~~ — done 16 Aug
   (`c85a42b`). Field names are the bare `usd`/`eur`/`cad` keys; a
   3-day staleness guard now drops dead symbols (`cad_cash` was 299 days
@@ -130,7 +157,7 @@ Still open:
   **No real email has been sent yet** — both templates were rendered and
   checked, and the cron's selection, idempotency and extend-reset were
   verified against real rows, but nothing was actually delivered. Fire one:
-  `curl -H "Authorization: Bearer $CRON_SECRET" https://charana.ca/api/cron/job-expiry-reminders`
+  `curl -H "Authorization: Bearer $CRON_SECRET" https://goplaza.ca/api/cron/job-expiry-reminders`
 - ~~**Mobile**~~ — **done 18 Aug (`6c1084f`)**: board, detail, home rail,
   profile section, account row. Read-only; posting stays on web with the rest
   of the owner controls.
@@ -251,10 +278,10 @@ separate from item 4 above, which should just be English from the start.
 ## Features page (16 Aug, `016c8f8` web / `8540df1` mobile)
 
 `/features` on web and a native screen on mobile, both reading plan
-quantities from `@charana/core` so they cannot drift from what the server
+quantities from `@goplaza/core` so they cannot drift from what the server
 clamps. Both carry a "چیزهایی که هنوز نداریم" section listing everything
 audited as absent — removing it is what would make the rest untrustworthy.
-`plans.ts` moved into `@charana/core` for this (fourth module to make that
+`plans.ts` moved into `@goplaza/core` for this (fourth module to make that
 move); `apps/web/lib/billing/plans.ts` is now a re-export.
 
 ## Announcement discovery (16 Aug, `ac3cef6`)
@@ -296,6 +323,6 @@ test review deleted after); exercising the call site needs an admin session.
   through at every width and killed `position: sticky` below 720px. See
   the gotcha in `06-gotchas.md`.
 - Footer now shows Tehran time + Jalali + Shahanshahi date (web and app,
-  shared conversion in `@charana/core`), plus a real free-market USD/EUR/
+  shared conversion in `@goplaza/core`), plus a real free-market USD/EUR/
   CAD line via Navasan once `NAVASAN_API_KEY` is set (see Farjad's action
   items above) — absent, not fabricated, until then.

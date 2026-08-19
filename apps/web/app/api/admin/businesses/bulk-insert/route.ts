@@ -16,7 +16,7 @@ import {
 } from "@/lib/auth/require-admin";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { createSupabaseRouteHandlerClient } from "@/lib/supabase/route-handler";
-import { slugify } from "@charana/core";
+import { slugify } from "@goplaza/core";
 
 const MAX_ROWS = 500;
 const BATCH_SIZE = 50;

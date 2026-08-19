@@ -40,7 +40,7 @@ import {
   type EmploymentType,
   type SalaryPeriod,
   type WorkplaceType,
-} from "@charana/core";
+} from "@goplaza/core";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { sendEmail } from "@/lib/email/send";

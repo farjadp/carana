@@ -41,9 +41,9 @@ Set these in Vercel → Settings → Environment Variables, for **Production** a
 | `TWILIO_API_KEY_SID` | server only |
 | `TWILIO_API_KEY_SECRET` | server only |
 | `TWILIO_FROM_NUMBER` | `+12495549408` — the Canadian number |
-| `EMAIL_FROM` | e.g. `čārana <noreply@charana.ca>` |
+| `EMAIL_FROM` | `GOPLAZA <noreply@charana.ca>` today; `GOPLAZA <noreply@goplaza.ca>` once goplaza.ca is verified in Resend |
 | `NEXT_PUBLIC_GOOGLE_MAPS_KEY` | restrict by HTTP referrer in Google Cloud |
-| `NEXT_PUBLIC_BASE_URL` | `https://charana.ca` — the build fails without it |
+| `NEXT_PUBLIC_BASE_URL` | `https://goplaza.ca` — the build fails without it |
 | `APPLE_TEAM_ID` | once the Apple account exists |
 | `ANDROID_SHA256_FINGERPRINT` | after the first EAS Android build |
 
@@ -52,10 +52,13 @@ production. It creates pre-confirmed accounts through the admin API.
 
 ### Domains
 
-- `charana.ca` — primary
-- `www.charana.ca` — redirect to apex
-- `carana.ca`, `www.carana.ca` — add to the same project; `vercel.json`
-  308-redirects them to `charana.ca` so the directory is never indexed twice
+- `goplaza.ca` — primary (rebrand 2026-08-18)
+- `www.goplaza.ca` — redirect to apex
+- `charana.ca`, `www.charana.ca` — the old brand domain. Keep it on the same
+  project and 308-redirect to `goplaza.ca` **path-preserving**, indefinitely:
+  it carries the SEO equity, the mobile Universal/App Links of installed
+  builds, and every link already shared. Never let it serve a copy.
+- `carana.ca`, `www.carana.ca` — misspelling, same 308 to `goplaza.ca`
 
 ## Supabase
 
@@ -82,11 +85,14 @@ Two rules learned the hard way:
 
 Supabase Dashboard → Authentication → URL Configuration:
 
-- **Site URL**: `https://charana.ca`
+- **Site URL**: `https://goplaza.ca`
 - **Redirect URLs**:
-  - `https://charana.ca/auth/callback`
-  - `https://charana.ca/auth/update-password`
-  - `charana://**` — required for the mobile app
+  - `https://goplaza.ca/auth/callback`
+  - `https://goplaza.ca/auth/update-password`
+  - `https://charana.ca/auth/callback`, `https://charana.ca/auth/update-password`
+    — keep until the old domain's mail links have aged out
+  - `goplaza://**` — required for the mobile app (new scheme)
+  - `charana://**` — builds installed before the rebrand still use this
   - `http://localhost:3000/**` — local development
 
 Password reset and email confirmation links break without these.
@@ -104,8 +110,12 @@ and mobile.
 
 ## Email
 
-Transactional mail goes through **Resend**. `charana.ca` is already a verified
-sending domain, so mail leaves from `noreply@charana.ca` with SPF/DKIM in place.
+Transactional mail goes through **Resend**. `charana.ca` is the verified
+sending domain, so mail leaves from `noreply@charana.ca` with SPF/DKIM in place
+under the display name **GOPLAZA**. Verifying `goplaza.ca` in Resend and moving
+the four mailboxes is an external action (`REBRAND_EXTERNAL_ACTIONS.md`); until
+then the addresses in `apps/web/lib/data/company.ts` stay on the old domain
+on purpose.
 
 What the app sends today:
 
@@ -128,8 +138,8 @@ Supabase Dashboard → Project Settings → Authentication → SMTP Settings
 | Port | `465` |
 | Username | `resend` |
 | Password | the Resend API key |
-| Sender email | `noreply@charana.ca` |
-| Sender name | `čārana` |
+| Sender email | `noreply@charana.ca` (→ `noreply@goplaza.ca` after Resend verification) |
+| Sender name | `GOPLAZA` |
 
 Until that is done, signup confirmation will throttle as soon as more than a
 few people register in an hour.
@@ -158,11 +168,12 @@ application-to-person traffic at volume. Low volume works; watch for
 
 ## Post-deploy checklist
 
-- [ ] `https://charana.ca/robots.txt` resolves and points at the sitemap
-- [ ] `https://charana.ca/sitemap.xml` lists published businesses only
-- [ ] `https://charana.ca/.well-known/apple-app-site-association` returns JSON
+- [ ] `https://goplaza.ca/robots.txt` resolves and points at the sitemap
+- [ ] `https://goplaza.ca/sitemap.xml` lists published businesses only
+- [ ] `https://goplaza.ca/.well-known/apple-app-site-association` returns JSON
       with the real `APPLE_TEAM_ID`
-- [ ] `https://carana.ca` redirects to `https://charana.ca`
+- [ ] `https://charana.ca/businesses/x` 308s to `https://goplaza.ca/businesses/x`
+- [ ] `https://carana.ca` redirects to `https://goplaza.ca`
 - [ ] Signup → confirmation email → callback completes
 - [ ] Password reset email links to the production domain, not localhost
 - [ ] An anonymous request returns zero `DRAFT` listings

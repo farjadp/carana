@@ -18,7 +18,7 @@ const DOORS = [
   { href: "/categories", label: "دسته‌بندی‌ها", hint: "۱۲ دسته، از پزشک تا رستوران", icon: LayoutGrid },
   { href: "/cities", label: "شهرها", hint: "تورنتو، ونکوور، مونترال…", icon: MapPin },
   { href: "/businesses", label: "همه کسب‌وکارها", hint: "فهرست کامل، تأییدشده‌ها اول", icon: Building2 },
-  { href: "/how-it-works", label: "چطور کار می‌کند", hint: "چارانا چیست و نشان تأیید یعنی چه", icon: Compass },
+  { href: "/how-it-works", label: "چطور کار می‌کند", hint: "گوپلازا چیست و نشان تأیید یعنی چه", icon: Compass },
 ];
 
 export default function NotFound() {
@@ -40,15 +40,15 @@ export default function NotFound() {
             شاید لینک قدیمی باشد، شاید کسب‌وکاری که دنبالش بودی هنوز ثبت نشده. چیزی که می‌خواهی را همین‌جا جستجو کن — فارسی یا انگلیسی، حتی با کیبورد اشتباه.
           </p>
 
-          <form action="/search" method="get" role="search" className="mx-auto mt-8 flex max-w-xl items-center gap-2 rounded-full border border-[color:var(--line)] bg-white p-1.5 pr-4 shadow-[0_16px_40px_rgba(20,33,61,0.08)] focus-within:border-[color:var(--annabi)]/40 focus-within:shadow-[0_0_0_4px_rgba(128,0,0,0.08)]">
+          <form action="/search" method="get" role="search" className="mx-auto mt-8 flex max-w-xl items-center gap-2 rounded-full border border-[color:var(--line)] bg-white p-1.5 pr-4 shadow-[0_16px_40px_rgba(20,33,61,0.08)] focus-within:border-[color:var(--annabi)]/40 focus-within:shadow-[0_0_0_4px_rgba(122,24,49,0.08)]">
             <Search size={18} className="text-[color:var(--muted-text)]" aria-hidden />
             <input
               name="q"
               placeholder="مثلاً دندان‌پزشک، رستوران، ریچموندهیل…"
-              aria-label="جستجو در چارانا"
+              aria-label="جستجو در گوپلازا"
               className="h-11 flex-1 bg-transparent text-[15px] text-[color:var(--text)] outline-none placeholder:text-[color:var(--muted-text)]"
             />
-            <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-full bg-[color:var(--annabi)] px-5 font-bold text-[#f6f1e8] transition hover:bg-[#5c0000]">
+            <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-full bg-[color:var(--annabi)] px-5 font-bold text-[#f6f1e8] transition hover:bg-[#5A1124]">
               جستجو
             </button>
           </form>

@@ -5,6 +5,7 @@
 //      failure if the key is missing rather than a confusing 500 later.
 // Env / Identity: Server only. Never import from a client component.
 // ============================================================================
+import { brand } from "@goplaza/core";
 import Stripe from "stripe";
 
 let cached: Stripe | null = null;
@@ -17,7 +18,7 @@ export function stripe(): Stripe {
     // Pinned deliberately: an unpinned version means Stripe can change a
     // response shape under a deployment that has not been tested against it.
     apiVersion: "2026-07-29.dahlia",
-    appInfo: { name: "charana", url: "https://charana.ca" },
+    appInfo: { name: "goplaza", url: brand.url },
   });
   return cached;
 }

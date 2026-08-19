@@ -23,7 +23,7 @@ import {
   type EmploymentType,
   type JobStatus,
   type WorkplaceType,
-} from "@charana/core";
+} from "@goplaza/core";
 
 import { Button } from "@/components/ui/button";
 import { JobMarkdown } from "@/components/ui/markdown-editor";

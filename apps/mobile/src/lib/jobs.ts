@@ -11,12 +11,12 @@
 //      in the future — so an expired ad is not returned at all rather than
 //      returned and hidden. Exactly what the web does, and it has to be
 //      exactly that, or the two surfaces disagree about what is live.
-//      `isJobLive` from @charana/core is the same rule, and is used on the
+//      `isJobLive` from @goplaza/core is the same rule, and is used on the
 //      row that comes back so a stale response cannot render as current.
 // Env / Identity: Anon client. RLS already restricts these rows to live posts
 //      on APPROVED/PUBLISHED businesses; the filters here say it out loud.
 // ============================================================================
-import type { EmploymentType, SalaryPeriod, WorkplaceType } from "@charana/core";
+import type { EmploymentType, SalaryPeriod, WorkplaceType } from "@goplaza/core";
 
 import { supabase } from "./supabase";
 

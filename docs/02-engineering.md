@@ -9,7 +9,7 @@ services it talks to. Read 01-product first if you want to know *what* it is.
 
 ### Product
 
-čārana is a Persian-first directory of Iranian businesses in Canada, operated by
+GOPLAZA is a Persian-first directory of Iranian businesses in Canada, operated by
 **Ashavid Inc.** (Toronto, Ontario). Consumers search for Persian-speaking
 lawyers, doctors, restaurants, realtors. Business owners pay for featured
 placement and advertising — a B2B advertising service, which is why the App
@@ -18,7 +18,7 @@ Store's in-app-purchase rules do not apply (see `05-mobile.md`).
 ### Repository shape
 
 ```
-charana/
+goplaza/  (folder on disk is still Charana/)
 ├── apps/
 │   ├── web/          Next.js 16, App Router — the whole website + admin
 │   └── mobile/       Expo SDK 57, Expo Router — consumer app
@@ -266,9 +266,9 @@ Set these in Vercel → Settings → Environment Variables, for **Production** a
 | `TWILIO_API_KEY_SID` | server only |
 | `TWILIO_API_KEY_SECRET` | server only |
 | `TWILIO_FROM_NUMBER` | `+12495549408` — the Canadian number |
-| `EMAIL_FROM` | e.g. `čārana <noreply@charana.ca>` |
+| `EMAIL_FROM` | e.g. `GOPLAZA <noreply@charana.ca>` |
 | `NEXT_PUBLIC_GOOGLE_MAPS_KEY` | restrict by HTTP referrer in Google Cloud |
-| `NEXT_PUBLIC_BASE_URL` | `https://charana.ca` — the build fails without it |
+| `NEXT_PUBLIC_BASE_URL` | `https://goplaza.ca` — the build fails without it |
 | `APPLE_TEAM_ID` | once the Apple account exists |
 | `ANDROID_SHA256_FINGERPRINT` | after the first EAS Android build |
 
@@ -277,10 +277,10 @@ production. It creates pre-confirmed accounts through the admin API.
 
 #### Domains
 
-- `charana.ca` — primary
-- `www.charana.ca` — redirect to apex
+- `goplaza.ca` — primary
+- `www.goplaza.ca` — redirect to apex
 - `carana.ca`, `www.carana.ca` — add to the same project; `vercel.json`
-  308-redirects them to `charana.ca` so the directory is never indexed twice
+  308-redirects them to `goplaza.ca` so the directory is never indexed twice
 
 ### Supabase
 
@@ -307,11 +307,11 @@ Two rules learned the hard way:
 
 Supabase Dashboard → Authentication → URL Configuration:
 
-- **Site URL**: `https://charana.ca`
+- **Site URL**: `https://goplaza.ca`
 - **Redirect URLs**:
-  - `https://charana.ca/auth/callback`
-  - `https://charana.ca/auth/update-password`
-  - `charana://**` — required for the mobile app
+  - `https://goplaza.ca/auth/callback`
+  - `https://goplaza.ca/auth/update-password`
+  - `goplaza://**` and `charana://**` — required for the mobile app (new + legacy scheme)
   - `http://localhost:3000/**` — local development
 
 Password reset and email confirmation links break without these.
@@ -329,7 +329,7 @@ and mobile.
 
 ### Email
 
-Transactional mail goes through **Resend**. `charana.ca` is already a verified
+Transactional mail goes through **Resend**. `goplaza.ca` is already a verified
 sending domain, so mail leaves from `noreply@charana.ca` with SPF/DKIM in place.
 
 What the app sends today:
@@ -354,7 +354,7 @@ Supabase Dashboard → Project Settings → Authentication → SMTP Settings
 | Username | `resend` |
 | Password | the Resend API key |
 | Sender email | `noreply@charana.ca` |
-| Sender name | `čārana` |
+| Sender name | `GOPLAZA` |
 
 Until that is done, signup confirmation will throttle as soon as more than a
 few people register in an hour.
@@ -383,11 +383,11 @@ application-to-person traffic at volume. Low volume works; watch for
 
 ### Post-deploy checklist
 
-- [ ] `https://charana.ca/robots.txt` resolves and points at the sitemap
-- [ ] `https://charana.ca/sitemap.xml` lists published businesses only
-- [ ] `https://charana.ca/.well-known/apple-app-site-association` returns JSON
+- [ ] `https://goplaza.ca/robots.txt` resolves and points at the sitemap
+- [ ] `https://goplaza.ca/sitemap.xml` lists published businesses only
+- [ ] `https://goplaza.ca/.well-known/apple-app-site-association` returns JSON
       with the real `APPLE_TEAM_ID`
-- [ ] `https://carana.ca` redirects to `https://charana.ca`
+- [ ] `https://carana.ca` redirects to `https://goplaza.ca`
 - [ ] Signup → confirmation email → callback completes
 - [ ] Password reset email links to the production domain, not localhost
 - [ ] An anonymous request returns zero `DRAFT` listings
@@ -407,7 +407,7 @@ Added after the original handover was written. All live and verified.
 
 ### Email — Resend
 
-`charana.ca` is a **verified sending domain**, so mail leaves from
+`goplaza.ca` is a **verified sending domain**, so mail leaves from
 `noreply@charana.ca` with SPF and DKIM already in place. Confirmed by sending.
 
 `apps/web/lib/email/send.ts` creates the client **lazily** — reading the key at
@@ -557,10 +557,10 @@ Served as WebP from `public/images/{categories,cities}/`; masters in
 
 ### Mobile auth deep link
 
-Signup passes `emailRedirectTo: "charana://auth/confirmed"`; that screen
+Signup passes `emailRedirectTo: "goplaza://auth/confirmed"` (via `brand.scheme`); that screen
 parses fragment tokens, `setSession`s, greets by first name, CTA to profile.
 Custom scheme, not Universal Links (free signing can't hold the
-entitlement). **Requires `charana://**` in Supabase Redirect URLs.**
+entitlement). **Requires `goplaza://**` (and `charana://**` for old builds) in Supabase Redirect URLs.**
 Supabase dashboard work (SMTP, sender name, templates, URLs) documented in
 `13-supabase-email-templates.md` — pending Farjad.
 
@@ -583,36 +583,36 @@ honours), everything inline because mail clients strip `<style>`.
 
 `{{ .ConfirmationURL }}` is Supabase's variable — leave it exactly as is.
 
-Sender identity ("Supabase Auth" → čārana) is **not** set here; it comes from
+Sender identity ("Supabase Auth" → GOPLAZA) is **not** set here; it comes from
 the SMTP settings. See `12-integrations.md` and the SMTP mission in Notion.
 
 ---
 
 ### Confirm signup
 
-**Subject:** `تایید ایمیل شما در چارانا`
+**Subject:** `تایید ایمیل شما در گوپلازا`
 
 ```html
 <div dir="rtl" style="margin:0;padding:0;background:#f6f1e8;font-family:Tahoma,Arial,sans-serif;">
   <div style="max-width:520px;margin:0 auto;padding:32px 20px;">
     <div style="text-align:center;margin-bottom:24px;">
-      <span style="font-size:26px;font-weight:bold;color:#800000;">čārana</span>
+      <span style="font-size:26px;font-weight:bold;color:#800000;">GOPLAZA</span>
     </div>
     <div style="background:#ffffff;border-radius:14px;padding:28px 24px;color:#14213d;font-size:15px;line-height:2;text-align:right;">
       <p style="margin:0 0 14px;">سلام،</p>
-      <p style="margin:0 0 18px;">به چارانا خوش آمدید. برای فعال شدن حسابتان کافی است روی دکمه‌ی زیر بزنید:</p>
+      <p style="margin:0 0 18px;">به گوپلازا خوش آمدید. برای فعال شدن حسابتان کافی است روی دکمه‌ی زیر بزنید:</p>
       <div style="text-align:center;margin:24px 0;">
         <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#800000;color:#ffffff;text-decoration:none;padding:13px 30px;border-radius:999px;font-weight:bold;font-size:15px;">تایید ایمیل و ورود</a>
       </div>
       <p style="margin:0 0 10px;color:#5f6472;font-size:13px;">اگر دکمه کار نکرد، این نشانی را در مرورگر باز کنید:</p>
       <p style="margin:0 0 18px;font-size:12px;direction:ltr;text-align:left;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#0047ab;">{{ .ConfirmationURL }}</a></p>
-      <p style="margin:0;color:#5f6472;font-size:13px;">اگر شما در چارانا ثبت‌نام نکرده‌اید، این ایمیل را نادیده بگیرید — بدون این تایید هیچ حسابی فعال نمی‌شود.</p>
+      <p style="margin:0;color:#5f6472;font-size:13px;">اگر شما در گوپلازا ثبت‌نام نکرده‌اید، این ایمیل را نادیده بگیرید — بدون این تایید هیچ حسابی فعال نمی‌شود.</p>
     </div>
     <div style="text-align:center;margin-top:20px;color:#5f6472;font-size:12px;line-height:1.9;">
-      <div>چارانا — دایرکتوری کسب‌وکارهای ایرانی کانادا</div>
+      <div>گوپلازا — دایرکتوری کسب‌وکارهای ایرانی کانادا</div>
       <div style="margin-top:6px;">
-        <a href="https://charana.ca/privacy" style="color:#5f6472;">حریم خصوصی</a> ·
-        <a href="https://charana.ca/support" style="color:#5f6472;">پشتیبانی</a>
+        <a href="https://goplaza.ca/privacy" style="color:#5f6472;">حریم خصوصی</a> ·
+        <a href="https://goplaza.ca/support" style="color:#5f6472;">پشتیبانی</a>
       </div>
     </div>
   </div>
@@ -623,13 +623,13 @@ the SMTP settings. See `12-integrations.md` and the SMTP mission in Notion.
 
 ### Reset password
 
-**Subject:** `بازنشانی رمز عبور چارانا`
+**Subject:** `بازنشانی رمز عبور گوپلازا`
 
 ```html
 <div dir="rtl" style="margin:0;padding:0;background:#f6f1e8;font-family:Tahoma,Arial,sans-serif;">
   <div style="max-width:520px;margin:0 auto;padding:32px 20px;">
     <div style="text-align:center;margin-bottom:24px;">
-      <span style="font-size:26px;font-weight:bold;color:#800000;">čārana</span>
+      <span style="font-size:26px;font-weight:bold;color:#800000;">GOPLAZA</span>
     </div>
     <div style="background:#ffffff;border-radius:14px;padding:28px 24px;color:#14213d;font-size:15px;line-height:2;text-align:right;">
       <p style="margin:0 0 14px;">سلام،</p>
@@ -640,10 +640,10 @@ the SMTP settings. See `12-integrations.md` and the SMTP mission in Notion.
       <p style="margin:0;color:#5f6472;font-size:13px;">اگر شما این درخواست را نداده‌اید، این ایمیل را نادیده بگیرید — رمز شما بدون این لینک تغییر نمی‌کند.</p>
     </div>
     <div style="text-align:center;margin-top:20px;color:#5f6472;font-size:12px;line-height:1.9;">
-      <div>چارانا — دایرکتوری کسب‌وکارهای ایرانی کانادا</div>
+      <div>گوپلازا — دایرکتوری کسب‌وکارهای ایرانی کانادا</div>
       <div style="margin-top:6px;">
-        <a href="https://charana.ca/privacy" style="color:#5f6472;">حریم خصوصی</a> ·
-        <a href="https://charana.ca/support" style="color:#5f6472;">پشتیبانی</a>
+        <a href="https://goplaza.ca/privacy" style="color:#5f6472;">حریم خصوصی</a> ·
+        <a href="https://goplaza.ca/support" style="color:#5f6472;">پشتیبانی</a>
       </div>
     </div>
   </div>
@@ -654,7 +654,7 @@ the SMTP settings. See `12-integrations.md` and the SMTP mission in Notion.
 
 ### Magic link — only if magic-link login is ever enabled
 
-Same shell; headline «ورود به چارانا», button label «ورود», and the
+Same shell; headline «ورود به گوپلازا», button label «ورود», and the
 "ignore this" line: «اگر شما درخواست ورود نداده‌اید، این ایمیل را نادیده
 بگیرید.»
 
@@ -668,12 +668,12 @@ everything else that was wrong with the screenshot from 14 August:
 | Problem | Fix | Where |
 | --- | --- | --- |
 | Lands in junk | Custom SMTP through Resend (own domain, own reputation) | Project Settings → Auth → SMTP |
-| Sender reads "Supabase Auth" | Sender name `čārana`, sender `noreply@charana.ca` | Same SMTP form |
-| Link opens localhost | Site URL `https://charana.ca` | Auth → URL Configuration |
-| App signups should reopen the app | Add `charana://**` to Redirect URLs | Auth → URL Configuration |
+| Sender reads "Supabase Auth" | Sender name `GOPLAZA`, sender `noreply@charana.ca` | Same SMTP form |
+| Link opens localhost | Site URL `https://goplaza.ca` | Auth → URL Configuration |
+| App signups should reopen the app | Add `goplaza://**` and `charana://**` to Redirect URLs | Auth → URL Configuration |
 
 The app side is already done in code: mobile signup passes
-`emailRedirectTo: "charana://auth/confirmed"`, and that screen greets the
+`emailRedirectTo: "goplaza://auth/confirmed"`, and that screen greets the
 person by name, hands them a session, and points them at their profile.
 
 ---

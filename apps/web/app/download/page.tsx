@@ -16,7 +16,7 @@ import { APP_VERSION, STORES } from "@/lib/data/releases";
 
 export const metadata: Metadata = {
   title: "دانلود اپلیکیشن",
-  description: "اپ چارانا برای iOS و Android — دایرکتوری کسب‌وکارهای ایرانی کانادا در جیب شما.",
+  description: "اپ گوپلازا برای iOS و Android — دایرکتوری کسب‌وکارهای ایرانی کانادا در جیب شما.",
 };
 
 const fa = (s: string | number) => String(s).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
@@ -27,7 +27,7 @@ export default function DownloadPage() {
       currentPath="/download"
       currentSection="brand"
       eyebrow="دانلود"
-      title="چارانا را همراه داشته باش."
+      title="گوپلازا را همراه داشته باش."
       description={`نسخه‌ی ${fa(APP_VERSION)} — همان حساب سایت، همان کسب‌وکارها، با تماس و مسیریابی یک‌لمسی. رایگان.`}
     >
       <section className="grid md:grid-cols-3 gap-4" dir="rtl">
@@ -53,7 +53,7 @@ export default function DownloadPage() {
             <div className="text-xs text-[#f6f1e8]/70 mt-0.5">اندروید · نسخه‌ی {fa(STORES.apkVersion)} · {fa(STORES.apkSizeMb)} مگابایت · {fa(STORES.apkBuiltAt)}</div>
             <p className="text-sm text-[#f6f1e8]/85 mt-3 leading-relaxed">همین حالا، بدون استور. روی گوشی اندرویدی باز کن، اجازه‌ی نصب از منبع ناشناس را یک‌بار بده، نصب کن.</p>
           </div>
-          <a href={STORES.apkDirect} className="relative mt-4 h-12 rounded-xl bg-[#f6f1e8] font-bold flex items-center justify-center gap-2 hover:bg-white transition" style={{ color: "#800000" }}>
+          <a href={STORES.apkDirect} className="relative mt-4 h-12 rounded-xl bg-[#f6f1e8] font-bold flex items-center justify-center gap-2 hover:bg-white transition" style={{ color: "#7A1831" }}>
             <Download size={18} /> دانلود APK
           </a>
         </div>

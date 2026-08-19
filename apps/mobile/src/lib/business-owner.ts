@@ -7,9 +7,10 @@
 //      person, has a name, not hidden by a Premium owner).
 // Env / Identity: Client. Same EXPO_PUBLIC_API_URL base as lib/api.ts.
 // ============================================================================
-import type { PublicOwner } from "@charana/core";
+import type { PublicOwner } from "@goplaza/core";
+import { brand } from "@goplaza/core";
 
-const BASE = (process.env.EXPO_PUBLIC_API_URL ?? "https://charana.ca").replace(/\/$/, "");
+const BASE = (process.env.EXPO_PUBLIC_API_URL ?? brand.url).replace(/\/$/, "");
 
 /**
  * Returns null on any failure and on every "should not be shown" case alike —

@@ -5,10 +5,12 @@
 //      some clients refuse HTML, and a text part improves deliverability.
 // Env / Identity: Pure strings, no secrets.
 // ============================================================================
+import { brand } from "@goplaza/core";
+
 import { company } from "@/lib/data/company";
 
 const CREAM = "#f6f1e8";
-const ANNABI = "#800000";
+const ANNABI = "#7A1831";
 const NAVY = "#14213d";
 const MUTED = "#5f6472";
 
@@ -34,8 +36,8 @@ function shell(bodyHtml: string) {
       <div>${company.brandFa} — دایرکتوری کسب‌وکارهای ایرانی کانادا</div>
       <div>${company.legalName} · ${company.address}</div>
       <div style="margin-top:6px;">
-        <a href="https://charana.ca/privacy" style="color:${MUTED};">حریم خصوصی</a> ·
-        <a href="https://charana.ca/support" style="color:${MUTED};">پشتیبانی</a>
+        <a href="${brand.url}/privacy" style="color:${MUTED};">حریم خصوصی</a> ·
+        <a href="${brand.url}/support" style="color:${MUTED};">پشتیبانی</a>
       </div>
     </div>
   </div>
@@ -60,7 +62,7 @@ export function verificationCodeEmail(code: string) {
 }
 
 export function listingApprovedEmail(input: { name: string; slug: string }) {
-  const url = `https://charana.ca/businesses/${encodeURIComponent(input.slug)}`;
+  const url = `${brand.url}/businesses/${encodeURIComponent(input.slug)}`;
   return {
     subject: `«${input.name}» در ${company.brandFa} منتشر شد`,
     html: shell(`
@@ -87,11 +89,11 @@ export function listingNeedsChangesEmail(input: { name: string; reason?: string 
           : ""
       }
       <div style="text-align:center;margin:24px 0;">
-        <a href="https://charana.ca/dashboard/business" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">ویرایش کسب‌وکار</a>
+        <a href="${brand.url}/dashboard/business" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">ویرایش کسب‌وکار</a>
       </div>
       <p style="margin:0;color:${MUTED};font-size:13px;">اگر سؤالی دارید به ${company.email.support} بنویسید.</p>
     `),
-    text: `«${input.name}» نیاز به اصلاح دارد.\n${input.reason ?? ""}\nhttps://charana.ca/dashboard/business`,
+    text: `«${input.name}» نیاز به اصلاح دارد.\n${input.reason ?? ""}\n${brand.url}/dashboard/business`,
   };
 }
 
@@ -106,7 +108,7 @@ export function newAnnouncementEmail(input: {
   title: string;
   body?: string | null;
 }) {
-  const url = `https://charana.ca/businesses/${encodeURIComponent(input.businessSlug)}`;
+  const url = `${brand.url}/businesses/${encodeURIComponent(input.businessSlug)}`;
   return {
     subject: `اعلان تازه از ${input.businessName}: ${input.title}`,
     html: shell(`
@@ -119,7 +121,7 @@ export function newAnnouncementEmail(input: {
       <div style="text-align:center;margin:24px 0;">
         <a href="${url}" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">دیدن پروفایل</a>
       </div>
-      <p style="margin:0;color:${MUTED};font-size:13px;">این ایمیل را می‌گیری چون تصمیم گرفتی از اعلان‌های این کسب‌وکار باخبر شوی — از پروفایلش یا <a href="https://charana.ca/profile/interactions" style="color:${MUTED};">دفترچه‌ی خودت</a> می‌توانی خاموشش کنی.</p>
+      <p style="margin:0;color:${MUTED};font-size:13px;">این ایمیل را می‌گیری چون تصمیم گرفتی از اعلان‌های این کسب‌وکار باخبر شوی — از پروفایلش یا <a href="${brand.url}/profile/interactions" style="color:${MUTED};">دفترچه‌ی خودت</a> می‌توانی خاموشش کنی.</p>
     `),
     text: `${input.businessName} اعلان تازه گذاشت: ${input.title}\n${input.body ?? ""}\n${url}\n\nاین ایمیل را می‌گیری چون از اعلان‌های این کسب‌وکار باخبر می‌شوی — از پروفایلش می‌توانی خاموشش کنی.`,
   };
@@ -139,8 +141,8 @@ export function reviewModeratedEmail(input: {
   outcome: "published" | "needs_changes" | "rejected";
   reason?: string | null;
 }) {
-  const url = `https://charana.ca/businesses/${encodeURIComponent(input.businessSlug)}`;
-  const mine = "https://charana.ca/profile/interactions";
+  const url = `${brand.url}/businesses/${encodeURIComponent(input.businessSlug)}`;
+  const mine = `${brand.url}/profile/interactions`;
 
   if (input.outcome === "published") {
     return {
@@ -196,7 +198,7 @@ export function newReviewEmail(input: {
   body: string;
   canReply: boolean;
 }) {
-  const url = `https://charana.ca/businesses/${encodeURIComponent(input.businessSlug)}`;
+  const url = `${brand.url}/businesses/${encodeURIComponent(input.businessSlug)}`;
   const stars = "★".repeat(input.rating) + "☆".repeat(5 - input.rating);
   return {
     subject: `نظر تازه درباره‌ی ${input.businessName}`,
@@ -252,7 +254,7 @@ export function verificationRenewalEmail(input: {
   daysRemaining: number;
   stage: 30 | 7 | 0;
 }) {
-  const url = "https://charana.ca/dashboard/business";
+  const url = `${brand.url}/dashboard/business`;
   const fa = (n: number) =>
     String(Math.abs(n)).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
 
@@ -273,7 +275,7 @@ export function verificationRenewalEmail(input: {
     html: shell(`
       <p style="margin:0 0 14px;">سلام،</p>
       <p style="margin:0 0 18px;">${lead}</p>
-      <p style="margin:0 0 18px;">چارانا هر شش ماه یک‌بار شماره تماس و ایمیل هر کسب‌وکار را دوباره تایید می‌کند. این کاری است که باعث می‌شود نشان تایید معنا داشته باشد: کاربری که آن را می‌بیند مطمئن است اطلاعات تماس همین چند ماه اخیر بررسی شده، نه یک بار در گذشته.</p>
+      <p style="margin:0 0 18px;">گوپلازا هر شش ماه یک‌بار شماره تماس و ایمیل هر کسب‌وکار را دوباره تایید می‌کند. این کاری است که باعث می‌شود نشان تایید معنا داشته باشد: کاربری که آن را می‌بیند مطمئن است اطلاعات تماس همین چند ماه اخیر بررسی شده، نه یک بار در گذشته.</p>
       <p style="margin:0 0 18px;">تمدید چند ثانیه طول می‌کشد و از داشبورد انجام می‌شود.</p>
       <div style="text-align:center;margin:24px 0;">
         <a href="${url}" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">${lapsed ? "تمدید تایید" : "تمدید کنید"}</a>
@@ -310,15 +312,15 @@ export function jobModeratedEmail(input: {
   /** Suppresses the verification nudge for a business that is already verified. */
   isVerified?: boolean;
 }) {
-  const jobUrl = `https://charana.ca/jobs/${encodeURIComponent(input.jobSlug)}`;
-  const manageUrl = `https://charana.ca/dashboard/business/${input.businessId}/jobs`;
+  const jobUrl = `${brand.url}/jobs/${encodeURIComponent(input.jobSlug)}`;
+  const manageUrl = `${brand.url}/dashboard/business/${input.businessId}/jobs`;
 
   if (input.outcome === "published") {
     return {
       subject: `آگهی «${input.jobTitle}» منتشر شد`,
       html: shell(`
         <p style="margin:0 0 14px;">سلام،</p>
-        <p style="margin:0 0 18px;">آگهی <strong>${input.jobTitle}</strong> برای <strong>${input.businessName}</strong> بررسی شد و حالا روی تابلوی فرصت‌های شغلی چارانا منتشر است.</p>
+        <p style="margin:0 0 18px;">آگهی <strong>${input.jobTitle}</strong> برای <strong>${input.businessName}</strong> بررسی شد و حالا روی تابلوی فرصت‌های شغلی گوپلازا منتشر است.</p>
         <div style="text-align:center;margin:24px 0;">
           <a href="${jobUrl}" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">دیدن آگهی</a>
         </div>
@@ -372,8 +374,8 @@ export function jobExpiringEmail(input: {
   /** Live apply-clicks, only passed when there are any. */
   applyClicks?: number | null;
 }) {
-  const manageUrl = `https://charana.ca/dashboard/business/${input.businessId}/jobs`;
-  const jobUrl = `https://charana.ca/jobs/${encodeURIComponent(input.jobSlug)}`;
+  const manageUrl = `${brand.url}/dashboard/business/${input.businessId}/jobs`;
+  const jobUrl = `${brand.url}/jobs/${encodeURIComponent(input.jobSlug)}`;
 
   return {
     subject: `${faDigits(input.daysRemaining)} روز تا پایان آگهی «${input.jobTitle}»`,

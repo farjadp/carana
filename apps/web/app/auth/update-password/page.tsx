@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 
 import { AuthForm } from "@/components/auth-form";
 import { PageShell } from "@/components/page-shell";
+import { getDirectoryStats } from "@/lib/data/directory-stats";
 import { sanitizeAuthSearchParams } from "@/lib/auth/sanitize";
 
 export const metadata: Metadata = {
@@ -21,10 +22,12 @@ export default async function UpdatePasswordPage({
 }) {
   await sanitizeAuthSearchParams("/auth/update-password", searchParams);
 
+  const stats = await getDirectoryStats();
+
   return (
     <PageShell currentPath="/auth/update-password" currentSection="business">
       <main className="page-main">
-        <AuthForm mode="update-password" />
+        <AuthForm mode="update-password" stats={stats} />
       </main>
     </PageShell>
   );

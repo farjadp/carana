@@ -3,7 +3,7 @@
 // Version: 2.0.0 — 2026-08-15
 // Why: The real "about" page. Replaces the placeholder that literally said
 //      "this section is waiting for your data" with the actual story: why
-//      čārana exists, who builds it (Ashavid Inc., founded by Farjad
+//      GOPLAZA exists, who builds it (Ashavid Inc., founded by Farjad
 //      Pourmohammad), the four brand principles from the brand book, how the
 //      product works, and the numbers — live from the database, never claims.
 // Env / Identity: Server component; public reads only.
@@ -11,6 +11,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, BadgeCheck, Compass, Heart, Leaf, MapPin, ShieldCheck, Sparkles, Store } from "lucide-react";
+import { brand } from "@goplaza/core";
 
 import { InnerPage } from "@/components/inner-page";
 import { BrandMark } from "@/components/brand-mark";
@@ -19,7 +20,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "درباره ما",
-  description: `چارانا دایرکتوری فارسی‌زبان کسب‌وکارهای ایرانی در کاناداست — ساخته‌ی ${company.legalName} در تورنتو. با اطمینان پیدا کن.`,
+  description: `گوپلازا دایرکتوری فارسی‌زبان کسب‌وکارهای ایرانی در کاناداست — ساخته‌ی ${company.legalName} در تورنتو. ${brand.tagline.fa}`,
 };
 
 const FA = "۰۱۲۳۴۵۶۷۸۹";
@@ -36,7 +37,7 @@ const HOW = [
   { n: "۱", title: "جستجو یا گشتن", body: "بر اساس دسته، شهر یا استان — یا مستقیم نام کسب‌وکار و خدمت." },
   { n: "۲", title: "پروفایل کامل", body: "تلفن، واتساپ، آدرس، ساعات کاری، خدمات و تعرفه، شبکه‌های اجتماعی و لینک رزرو — همه یک‌جا." },
   { n: "۳", title: "نشان اعتماد", body: "ببین چه کسی مالکیتش را ثابت کرده. بقیه را با یک کلیک ذخیره کن یا برای خودت یادداشت بگذار." },
-  { n: "۴", title: "تماس مستقیم", body: "زنگ بزن، پیام بده، مسیر بگیر یا نوبت رزرو کن — چارانا واسطه‌ی هیچ معامله‌ای نیست." },
+  { n: "۴", title: "تماس مستقیم", body: "زنگ بزن، پیام بده، مسیر بگیر یا نوبت رزرو کن — گوپلازا واسطه‌ی هیچ معامله‌ای نیست." },
 ];
 
 export default async function AboutPage() {
@@ -55,7 +56,7 @@ export default async function AboutPage() {
       currentPath="/about"
       currentSection="brand"
       eyebrow="درباره ما"
-      title="چارانا برای این ساخته شد که با اطمینان پیدا کنی."
+      title="گوپلازا برای این ساخته شد که با اطمینان پیدا کنی."
       description="یک دایرکتوری فارسی‌زبان برای کسب‌وکارهای ایرانی در کانادا — با اطلاعات واقعی، نشان احراز مالکیت و تجربه‌ی هم‌زبان‌ها. نه تبلیغ، نه لیست خالی."
     >
       {/* Numbers */}
@@ -77,7 +78,7 @@ export default async function AboutPage() {
       {/* Why */}
       <section className="mt-12 grid lg:grid-cols-12 gap-8 items-start" dir="rtl">
         <div className="lg:col-span-7 space-y-4 text-[15px] leading-[1.95] text-[color:var(--text)]/85">
-          <h2 className="text-2xl font-black text-[color:var(--text)] flex items-center gap-2"><Merlon /> چرا چارانا؟</h2>
+          <h2 className="text-2xl font-black text-[color:var(--text)] flex items-center gap-2"><Merlon /> چرا گوپلازا؟</h2>
           <p>
             وقتی تازه به کانادا می‌رسی، اولین سؤال‌ها ساده‌اند و جوابشان سخت: کدام وکیل مهاجرت فارسی حرف می‌زند؟
             دندانپزشکی که خانواده‌ام راحت باشد کجاست؟ حسابداری که مالیات کانادا و شرایط تازه‌وارد را با هم بفهمد؟
@@ -85,15 +86,15 @@ export default async function AboutPage() {
             «کسی که واقعاً کارش را بلد است» و «کسی که فقط تبلیغ می‌کند» فرق گذاشتن، تجربه می‌خواست که تازه‌وارد ندارد.
           </p>
           <p>
-            چارانا آن مرجع متمرکز است: کسب‌وکارهای ایرانی کانادا، به فارسی، با اطلاعات کامل — و یک تفاوت مهم:
+            گوپلازا آن مرجع متمرکز است: کسب‌وکارهای ایرانی کانادا، به فارسی، با اطلاعات کامل — و یک تفاوت مهم:
             <strong className="text-[color:var(--annabi)]"> نشان احراز مالکیت.</strong> وقتی صاحب کسب‌وکار با شماره‌ی خودش ثابت
             کرده که این پروفایل مال اوست، تو می‌دانی با چه کسی طرفی. و چون این نشان هر شش ماه باید تمدید شود،
             «تاییدشده» یعنی همین امروز، نه سه سال پیش.
           </p>
           <p>
-            اسم را از ریشه‌های ایرانی باستان گرفتیم — <span dir="ltr" className="font-bold">čārana</span>، چیزی نزدیک به «جای گردش و
-            دادوستد» — و هویت بصری را از تخت‌جمشید: کنگره‌های پلکانی، نه هیچ کلیشه‌ی «شرقی». چون می‌خواستیم
-            ایرانی باشد، نه نوستالژیک. <Link href="/story" className="text-[color:var(--lajvard)] font-bold">داستان اسم →</Link>
+            اسم ساده است و همان کاری را می‌گوید که می‌کند: <span dir="ltr" className="font-bold">GOPLAZA</span> — «برو» و
+            «پلازا»؛ جایی که مردم برای پیدا کردن، دیدن و معامله کردن به آن سر می‌زنند. نشانش یک G است که میله‌اش
+            به مسیر تبدیل می‌شود و پایه‌اش به مکان: کشف کن، وصل شو، رشد کن. <Link href="/story" className="text-[color:var(--lajvard)] font-bold">داستان برند →</Link>
           </p>
         </div>
 
@@ -107,7 +108,7 @@ export default async function AboutPage() {
               <div className="text-sm text-[#f6f1e8]/75 mt-1">شرکت اجرایی و تحول دیجیتال · تورنتو</div>
               <p className="text-sm text-[#f6f1e8]/80 leading-relaxed mt-4">
                 آشاوید برای کسب‌وکارها سیستم‌های عملیاتی و اتوماسیون هوش مصنوعی می‌سازد و به بنیان‌گذاران مهاجر کمک
-                می‌کند شرکت واقعی در کانادا راه بیندازند. چارانا محصولی است که برای همین جامعه ساخته و منتشر می‌کند.
+                می‌کند شرکت واقعی در کانادا راه بیندازند. گوپلازا محصولی است که برای همین جامعه ساخته و منتشر می‌کند.
               </p>
               <div className="mt-5 pt-4 border-t border-white/10">
                 <div className="text-xs text-[#f6f1e8]/60 mb-1">بنیان‌گذار</div>
@@ -166,7 +167,7 @@ export default async function AboutPage() {
             </p>
           </div>
           <div className="md:col-span-4 flex md:justify-end">
-            <Link href="/dashboard/business/new" className="inline-flex items-center gap-2 bg-[#f6f1e8] font-bold px-5 py-3 rounded-xl hover:bg-white transition" style={{ color: "#800000" }}>
+            <Link href="/dashboard/business/new" className="inline-flex items-center gap-2 bg-[#f6f1e8] font-bold px-5 py-3 rounded-xl hover:bg-white transition" style={{ color: "#7A1831" }}>
               شروع ثبت <ArrowLeft size={16} />
             </Link>
           </div>

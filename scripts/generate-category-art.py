@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate the čārana category illustration system.
+Generate the GOPLAZA category illustration system.
 
 Direction: minimal geometric flat illustration, not photography. Iranian
 identity lives in the geometry and rhythm, never in a monument or a
@@ -50,7 +50,7 @@ instantly at small size on a phone.
 
 Background: solid warm cream #F6F1E8, filling the entire frame, completely
 plain.
-Main shape: solid deep maroon #800000.
+Main shape: solid deep maroon #7A1831.
 Optional second shape: deep navy #14213D, only where it genuinely helps.
 Maximum two colours in the pictogram. No third colour.
 
