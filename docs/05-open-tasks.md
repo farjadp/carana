@@ -19,7 +19,9 @@ know these three ran, since they went in outside `db push`. Next real
 `pnpm db:push` might try to re-apply one and hit an "already exists" error —
 if so, `npx supabase migration repair --status applied <version>` for that
 timestamp, then push again. Not worth doing pre-emptively; deal with it if
-it happens.
+it happens. **Now covers five files**: the original three plus
+`20260830300000_smart_search.sql` and `20260830310000_settings_and_backups.sql`
+(both also applied via SQL Editor, 19–21 Aug).
 
 ## Rebrand → GOPLAZA (18 Aug night, branch `rebrand/goplaza`) — Farjad's dashboards
 

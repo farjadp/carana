@@ -4,6 +4,52 @@
 
 ---
 
+# 2026-08-21 — smart search shipped; admin settings became real (+ backup/restore)
+
+## Smart search (`577ff4e`)
+
+«هوس آلبالو کردم» works. Three layers over the existing lexical RPC — the
+model produces search TERMS, never results: announcements became searchable
+at all (`search_announcements`, all-but-one-word rule for Persian filler
+words), gpt-4o-mini expansion with the ai_usage guardrail shape (DB cache
+per unique query, row inserted BEFORE the call, daily cap counted in the
+DB, per-IP limit), and a visibly-labelled «جستجوی هوشمند» block whose
+reason line must say «مرتبط», never claim stock. Verified live: expansion
+terms آلبالو/لواشک/مربا/میوه‌فروشی/آب‌میوه + iranian-grocery; cache hit on
+repeat; injection query returned empty terms; «طراحی سایت میخوام» surfaces
+the real Ashavid discount announcement. Fail-soft before its migration —
+deliberately unlike saved_count.
+
+## Admin settings (`86ded38`)
+
+The placeholder page («تمام پارامترها در حالت استاندارد قرار دارند» — over
+nothing) became three real sections: smart-search kill switch + cap
+(site_settings; kill switch verified to stop spend with a fresh query),
+backup/restore, infra probes. Backup: client-driven per-table JSONL +
+manifest into the private 'backups' bucket; verified with a real 19-table
+5,652-business backup, signed downloads, and a 19/19 restore of
+category_aliases. Restore is upsert-only with a forced pre-restore backup
+and typed confirmation; the page says Supabase dashboard backups are the
+point-in-time tool.
+
+## Traps and honesty notes
+
+- **`storage.list()` on a missing bucket succeeds, empty, no error.** The
+  bucket-missing warning and the infra probe were both lying until the
+  check moved to `getBucket()`. In 06-gotchas.
+- The BSD `sed` alternation `\|` silently doesn't match, so a redaction
+  pattern printed the temporary admin password into the chat transcript.
+  It was already scheduled for rotation since 15 Aug ("change the two temp
+  passwords, delete the file") — that task is now urgent, not hygiene.
+- Two new React-Compiler lint errors were introduced and fixed before
+  commit (mount-effect setState; Date.now() in an RSC body) — the count
+  stays at the 6 pre-existing.
+- Migrations 20260830300000 + 310000 applied via SQL Editor, same CLI
+  password blocker; the CLI migration-history repair note in 05-open-tasks
+  now covers five files.
+
+---
+
 # 2026-08-19 — no default sort, a random-boost for paid placement, and Platinum
 
 Farjad's ask: `/businesses` should have **no default sort at all** — genuinely

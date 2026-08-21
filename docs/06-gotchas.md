@@ -1045,3 +1045,16 @@ interval is ever added: `scripts/seed-stripe-plans.mts`'s `STRIPE_RECURRING`
 both directions before assuming `recurring.interval` alone tells you
 anything — `interval_count` is not optional context, it can change what
 the interval *means*.
+
+## storage.list() on a missing bucket succeeds — empty, no error
+
+**Symptom.** The admin backup UI showed a normal «هنوز پشتیبانی گرفته نشده»
+empty state and a green infra probe while the `backups` bucket did not
+exist at all.
+**Cause.** supabase-js `storage.from(bucket).list()` returns `data: []`
+with no error for a nonexistent bucket. Absence and emptiness are
+indistinguishable through list().
+**Fix.** Ask existence explicitly: `storage.getBucket(name)` — null data
+means missing. Used by both the backup route and the settings-page probe.
+**Lesson.** A probe that cannot fail is not a probe. Verified against the
+live project before shipping the green light.
