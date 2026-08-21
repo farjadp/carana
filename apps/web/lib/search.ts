@@ -52,6 +52,48 @@ export async function searchBusinesses(
   return { hits, total: hits[0]?.total_count ?? 0 };
 }
 
+export type AnnouncementHit = {
+  announcement_id: string;
+  announcement_title: string;
+  announcement_body: string | null;
+  announcement_created_at: string;
+  announcement_expires_at: string | null;
+  business_id: string;
+  slug: string | null;
+  name: string;
+  category: string | null;
+  city: string | null;
+  province: string | null;
+  logo_url: string | null;
+  verified_until: string | null;
+  plan: string | null;
+  plan_until: string | null;
+};
+
+/**
+ * Search live announcements (unexpired, ≤90 days old, public businesses
+ * only — the RPC runs as invoker, so RLS decides visibility). Fail-soft: if
+ * the RPC does not exist yet (migration 20260830300000 pending), returns []
+ * and search behaves exactly as before.
+ */
+export async function searchAnnouncements(
+  supabase: SupabaseClient,
+  q: string,
+  limit = 6
+): Promise<AnnouncementHit[]> {
+  const cleaned = cleanQuery(q);
+  if (!cleaned) return [];
+  const { data, error } = await supabase.rpc("search_announcements", { q: cleaned, p_limit: limit });
+  if (error) {
+    // Expected while the migration is pending; anything else is worth a log line.
+    if (!/function .*search_announcements/i.test(error.message ?? "")) {
+      console.error("search_announcements:", error);
+    }
+    return [];
+  }
+  return (data ?? []) as AnnouncementHit[];
+}
+
 /** Fire-and-forget log. Anonymous insert is allowed by policy; nothing else. */
 export async function logSearch(
   supabase: SupabaseClient,

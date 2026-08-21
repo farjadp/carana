@@ -1,22 +1,37 @@
 // ============================================================================
 // Source: app/search/page.tsx
-// Version: 1.0.0 — 2026-08-15
+// Version: 2.0.0 — 2026-08-19
 // Why: The search results page — the P0 that was open since launch. Reads
 //      q / city / category / verified from the URL so results are shareable,
 //      calls the ranked Persian-aware RPC, logs every query (zero-result ones
 //      are the demand signal), and offers the honest next step when nothing
 //      matches: broaden, or ask for it.
+//
+//      v2 adds two layers over the lexical RPC:
+//      · Announcements — «آلبالو ترش رسید», posted yesterday, is the best
+//        possible answer to «هوس آلبالو کردم», and announcements were never
+//        searchable before. Live ones now surface in their own strip.
+//      · Smart expansion (lib/search/smart.ts) — when lexical results are
+//        thin, a small model extracts what the visitor is after and the SAME
+//        lexical RPC re-runs over those terms. The model produces search
+//        terms, never results, so nothing it says can invent a business.
+//        Its block is visibly labelled as interpretation («جستجوی هوشمند»)
+//        and its reason line never claims a business stocks anything —
+//        related, not confirmed. Both layers fail soft to plain lexical.
 // Env / Identity: Server component; RLS applies.
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, BadgeCheck, MapPin, Search as SearchIcon, SlidersHorizontal, Sparkles } from "lucide-react";
+import { headers } from "next/headers";
+import { ArrowLeft, BadgeCheck, MapPin, Megaphone, Search as SearchIcon, SlidersHorizontal, Sparkles, Wand2 } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
 import { BusinessCard } from "@/components/business/business-card";
 import { SuggestionBox } from "@/components/suggestion-box";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { cleanQuery, logSearch, searchBusinesses } from "@/lib/search";
+import { getCategoryDetail } from "@/lib/data/category-details";
+import { cleanQuery, logSearch, searchAnnouncements, searchBusinesses, type AnnouncementHit, type SearchHit } from "@/lib/search";
+import { expandQuery, type SmartExpansion } from "@/lib/search/smart";
 
 const PAGE = 24;
 const fa = (n: number | string) => String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
@@ -49,6 +64,65 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   if (q && city && total === 0) {
     const wide = await searchBusinesses(supabase, { q, category, verifiedOnly, limit: PAGE, offset: (page - 1) * PAGE });
     if (wide.total > 0) { hits = wide.hits; total = wide.total; widened = true; }
+  }
+
+  // ── Layer 2: live announcements matching the literal query ──────────────
+  let announcementHits: AnnouncementHit[] = q ? await searchAnnouncements(supabase, q, 6) : [];
+
+  // ── Layer 3: smart expansion, only when lexical came back thin ──────────
+  // First page only — the block does not paginate, repeating it on page 2
+  // would just duplicate cards.
+  let smart: SmartExpansion | null = null;
+  let smartHits: (SearchHit & { via: string })[] = [];
+  let smartCategoryPicks: { slug: string; name: string; count: number }[] = [];
+  if (q && page === 1 && total < 5) {
+    const hdrs = await headers();
+    const ip = (hdrs.get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
+    smart = await expandQuery(q, ip);
+  }
+  if (smart) {
+    const terms = smart.terms.slice(0, 4);
+    const directIds = new Set(hits.map((h) => h.id));
+    const [termResults, termAnnouncements] = await Promise.all([
+      Promise.all(terms.map((t) => searchBusinesses(supabase, { q: t, city, category, verifiedOnly, limit: 8 }))),
+      Promise.all(terms.map((t) => searchAnnouncements(supabase, t, 4))),
+    ]);
+    const seen = new Set<string>(directIds);
+    terms.forEach((term, i) => {
+      for (const hit of termResults[i].hits) {
+        if (seen.has(hit.id)) continue;
+        seen.add(hit.id);
+        smartHits.push({ ...hit, via: term });
+      }
+    });
+    smartHits = smartHits.slice(0, 12);
+    // Announcements found through expanded terms join the strip, deduped.
+    const annSeen = new Set(announcementHits.map((a) => a.announcement_id));
+    for (const list of termAnnouncements) {
+      for (const a of list) {
+        if (annSeen.has(a.announcement_id)) continue;
+        annSeen.add(a.announcement_id);
+        announcementHits.push(a);
+      }
+    }
+    announcementHits = announcementHits.slice(0, 6);
+    // Category fallback: when even the expanded terms found little, point at
+    // the categories the model picked — as browse links with real counts,
+    // not as more cards pretending to match.
+    if (smartHits.length < 3 && smart.categories.length) {
+      const counts = await Promise.all(
+        smart.categories.map((slug) =>
+          supabase
+            .from("businesses")
+            .select("id", { count: "exact", head: true })
+            .in("status", ["APPROVED", "PUBLISHED"])
+            .eq("category", slug)
+        )
+      );
+      smartCategoryPicks = smart.categories
+        .map((slug, i) => ({ slug, name: getCategoryDetail(slug).name, count: counts[i].count ?? 0 }))
+        .filter((c) => c.count > 0);
+    }
   }
   const catLabel = new Map((categories ?? []).map((c) => [c.slug as string, c.name as string]));
   const cityFreq = new Map<string, number>();
@@ -121,6 +195,38 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           </div>
         </div>
 
+        {/* Live announcements that mention what was searched — a business
+            that just posted «آلبالو رسید» beats any static listing match. */}
+        {announcementHits.length ? (
+          <section className="mt-6">
+            <h2 className="flex items-center gap-2 text-sm font-black text-[color:var(--text)]">
+              <Megaphone size={16} className="text-[color:var(--annabi)]" /> در اعلان‌های تازه‌ی کسب‌وکارها
+            </h2>
+            <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+              {announcementHits.map((a) => (
+                <Link
+                  key={a.announcement_id}
+                  href={`/businesses/${a.slug || a.business_id}`}
+                  className="group rounded-2xl border border-[color:var(--gold)]/40 bg-[color:var(--gold)]/8 p-4 transition hover:border-[color:var(--gold)]"
+                >
+                  <div className="font-bold text-[color:var(--text)] group-hover:text-[color:var(--annabi)]">{a.announcement_title}</div>
+                  {a.announcement_body ? (
+                    <p className="mt-1 line-clamp-2 text-xs leading-6 text-[color:var(--muted-text)]">{a.announcement_body}</p>
+                  ) : null}
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[color:var(--muted-text)]">
+                    <span className="font-bold text-[color:var(--text)]">{a.name}</span>
+                    {a.city ? <span>· {a.city}</span> : null}
+                    <span>· {new Date(a.announcement_created_at).toLocaleDateString("fa-IR", { day: "numeric", month: "long" })}</span>
+                    {a.announcement_expires_at ? (
+                      <span>· تا {new Date(a.announcement_expires_at).toLocaleDateString("fa-IR", { day: "numeric", month: "long" })}</span>
+                    ) : null}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         {/* Results */}
         {hits.length ? (
           <>
@@ -135,7 +241,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               </nav>
             ) : null}
           </>
-        ) : q || city || category ? (
+        ) : (q || city || category) && !smartHits.length && !smartCategoryPicks.length && !announcementHits.length ? (
           <div className="mt-8 rounded-3xl bg-white border border-[color:var(--line)] p-8 text-center">
             <div className="w-14 h-14 rounded-2xl bg-[color:var(--bg)] text-[color:var(--annabi)] flex items-center justify-center mx-auto mb-3"><SearchIcon size={24} /></div>
             <div className="text-lg font-black text-[color:var(--text)]">چیزی پیدا نشد</div>
@@ -158,7 +264,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               />
             </div>
           </div>
-        ) : (
+        ) : !(q || city || category) ? (
           <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {["وکیل مهاجرت", "دندانپزشک", "رستوران ایرانی", "حسابدار", "املاک", "آرایشگاه", "سوپرمارکت ایرانی", "مکانیک"].map((s) => (
               <Link key={s} href={`/search?q=${encodeURIComponent(s)}`} className="rounded-2xl bg-white border border-[color:var(--line)] px-4 py-3 font-bold text-[color:var(--text)] hover:shadow-[0_14px_36px_rgba(20,33,61,0.10)] transition inline-flex items-center justify-between">
@@ -166,7 +272,67 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               </Link>
             ))}
           </div>
-        )}
+        ) : null}
+
+        {/* Smart block — visibly labelled interpretation, never presented as
+            direct matches. Cards are real RPC results for the expanded
+            terms; the reason line says "related", the prompt forbids it from
+            claiming any business stocks anything. */}
+        {smart && (smartHits.length || smartCategoryPicks.length) ? (
+          <section className="mt-8">
+            <div className="rounded-3xl border border-[color:var(--lajvard)]/25 bg-[color:var(--lajvard)]/[0.04] p-5 md:p-6">
+              <h2 className="flex items-center gap-2 text-base font-black text-[color:var(--text)]">
+                <Wand2 size={17} className="text-[color:var(--lajvard)]" /> جستجوی هوشمند
+              </h2>
+              {hits.length === 0 ? (
+                <p className="mt-1 text-xs text-[color:var(--muted-text)]">نتیجه‌ی مستقیمی برای «{q}» نبود؛ این‌ها بر اساس برداشت ما از جستجوی توست.</p>
+              ) : null}
+              {smart.reason ? (
+                <p className="mt-2 text-sm leading-7 text-[color:var(--text)]/85">{smart.reason}</p>
+              ) : null}
+              {smart.terms.length ? (
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                  <span className="text-[color:var(--muted-text)]">جستجوهای مرتبط:</span>
+                  {smart.terms.map((t) => (
+                    <Link key={t} href={`/search?q=${encodeURIComponent(t)}`} className="rounded-full border border-[color:var(--lajvard)]/30 bg-white px-3 py-1.5 font-bold text-[color:var(--lajvard)] transition hover:bg-[color:var(--lajvard)] hover:text-white">
+                      {t}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+              {smartHits.length ? (
+                <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+                  {smartHits.map((h) => (
+                    <div key={h.id}>
+                      <BusinessCard business={h as never} categoryLabel={h.category ? catLabel.get(h.category) : null} />
+                      <p className="mt-1 pr-1 text-[11px] text-[color:var(--muted-text)]">مرتبط با «{h.via}»</p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              {smartCategoryPicks.length ? (
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {smartCategoryPicks.map((c) => (
+                    <Link key={c.slug} href={`/categories/${c.slug}`} className="inline-flex items-center gap-2 rounded-2xl border border-[color:var(--line)] bg-white px-4 py-3 text-sm font-bold text-[color:var(--text)] transition hover:border-[color:var(--lajvard)]/40">
+                      مرور {c.name} <span className="text-xs font-normal text-[color:var(--muted-text)]">({fa(c.count)} کسب‌وکار)</span>
+                      <ArrowLeft size={14} className="text-[color:var(--muted-text)]" />
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {hits.length === 0 ? (
+              <div className="mt-4 text-right">
+                <SuggestionBox
+                  page={`/search?q=${encodeURIComponent(q)}`}
+                  compact
+                  title="این‌ها آن چیزی نبود که می‌خواستی؟"
+                  hint="بگو یا بنویس دنبال چه بودی — همین درخواست‌ها می‌گویند چه کسب‌وکاری را باید پیدا و دعوت کنیم."
+                />
+              </div>
+            ) : null}
+          </section>
+        ) : null}
       </div>
     </PageShell>
   );
