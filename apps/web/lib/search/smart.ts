@@ -13,12 +13,13 @@
 //      cannot invent a business that does not exist.
 //
 //      Guardrails, same shape as /api/ai/job-description (the pattern in
-//      charana-ai-guardrails): cheapest gate first —
+//      the ai-guardrails memory): cheapest gate first —
 //        1. query shape (length, has letters) — free
-//        2. cache hit in search_ai_expansions — one indexed read, and the
+//        2. admin switch (site_settings 'smart_search'.enabled) — kill switch
+//        3. cache hit in search_ai_expansions — one indexed read, and the
 //           reason repeated queries cost nothing
-//        3. per-IP in-memory rate limit — stops casual hammering
-//        4. daily cap COUNTED IN THE DATABASE (rows created in 24h), and the
+//        4. per-IP in-memory rate limit — stops casual hammering
+//        5. daily cap COUNTED IN THE DATABASE (rows created in 24h), and the
 //           row is inserted BEFORE the model call: an abandoned request
 //           still spent money, so it still counts
 //      Every failure path returns null and the search page silently stays
@@ -35,6 +36,7 @@ import { generateObject } from "ai";
 import { z } from "zod";
 
 import { CATEGORY_DETAILS } from "@/lib/data/category-details";
+import { SETTING_KEYS, getSetting } from "@/lib/settings";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/utils/rate-limit";
 
@@ -48,8 +50,12 @@ export type SmartExpansion = {
   cached: boolean;
 };
 
-/** Hard ceiling on model calls per rolling 24h, counted in the database. */
-const DAILY_CAP = 300;
+/**
+ * Default ceiling on model calls per rolling 24h, counted in the database.
+ * The admin settings page can override it (site_settings key 'smart_search'),
+ * including to 0 — the kill switch for this whole layer.
+ */
+const DEFAULT_DAILY_CAP = 300;
 const MODEL = "gpt-4o-mini";
 
 const CATEGORY_SLUGS = Object.keys(CATEGORY_DETAILS);
@@ -113,7 +119,17 @@ export async function expandQuery(rawQuery: string, ip: string): Promise<SmartEx
   }
 
   try {
-    // Gate 2 — cache. One row per normalised query, forever.
+    // Gate 2 — the admin switch (site_settings, admin page). enabled=false
+    // turns the whole layer off — no cache reads, no block rendered — while
+    // daily_cap only limits NEW model spend (gate 5). Fail-soft: no
+    // settings table or row behaves as enabled with the default cap.
+    const cfg = await getSetting(SETTING_KEYS.smartSearch, {
+      enabled: true,
+      daily_cap: DEFAULT_DAILY_CAP,
+    });
+    if (!cfg.enabled) return null;
+
+    // Gate 3 — cache. One row per normalised query, forever.
     const { data: cached, error: cacheErr } = await admin
       .from("search_ai_expansions")
       .select("terms, categories, reason, status, hit_count")
@@ -138,17 +154,18 @@ export async function expandQuery(rawQuery: string, ip: string): Promise<SmartEx
       };
     }
 
-    // Gate 3 — per-IP rate limit (in-memory: casual-abuse brake only; the
+    // Gate 4 — per-IP rate limit (in-memory: casual-abuse brake only; the
     // real spend gate is the DB cap below).
     if (!rateLimit(`smart-search:${ip}`, 10, 10 * 60).allowed) return null;
+    if (cfg.daily_cap <= 0) return null; // cap 0 = serve cache, spend nothing
 
-    // Gate 4 — daily cap, counted in the database.
+    // Gate 5 — daily cap, counted in the database.
     const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
     const { count, error: countErr } = await admin
       .from("search_ai_expansions")
       .select("q_norm", { count: "exact", head: true })
       .gt("created_at", dayAgo);
-    if (countErr || (count ?? 0) >= DAILY_CAP) return null;
+    if (countErr || (count ?? 0) >= cfg.daily_cap) return null;
 
     // Claim the row BEFORE calling the model. A concurrent request for the
     // same query loses the insert race and simply goes lexical this once.
