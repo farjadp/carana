@@ -11,7 +11,8 @@ export type SourceName =
   | "taablo"
   | "bazaarche"
   | "farsilink"
-  | "iranbusiness";
+  | "iranbusiness"
+  | "iranianlawyer";
 
 export type SourceListing = {
   source: SourceName;

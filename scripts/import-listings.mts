@@ -182,18 +182,35 @@ async function main() {
   console.log(`loaded ${loaded.length} listings from ${inputPath}; ${outside.length} outside Canada skipped`);
 
   // ---- 1. collapse duplicates inside the export (same phone + overlapping name)
+  //
+  // NAMES MUST OVERLAP. Until 23 Aug 2026 a shared website host counted as
+  // identity on its own, and that silently deleted people: iranianlawyer.org
+  // lists each lawyer separately, so three pairs of genuinely different
+  // lawyers who share a firm's reception number and firm website (Beygi /
+  // Yeganeh at englobelaw.com, Baghshahi / Naseri at mohajerbal.com,
+  // Haghighi / Samiei at sc-law.ca) collapsed into one record each and three
+  // real lawyers vanished with no entry in the report. A firm's switchboard
+  // and homepage are not an identity — the same lesson the phone rule already
+  // learned. Dropping the host clause is the safe direction: a listing that
+  // really is a duplicate still meets the DB-matching stage below, which
+  // adjudicates shared-phone cases with the model and can route to `review`
+  // instead of deleting anything.
   const collapsed: HamvatanListing[] = [];
+  const droppedInFile: { kept: string; dropped: string; why: string }[] = [];
   const byPhone = new Map<string, HamvatanListing[]>();
   const richness = (l: HamvatanListing) =>
     [l.description, l.tagline, l.street, l.postal_code, l.website, l.instagram, l.telegram].filter(Boolean).length + l.phones.length;
   outer: for (const l of listings) {
     for (const p of l.phones.map(phoneKey).filter(Boolean) as string[]) {
       for (const prior of byPhone.get(p) ?? []) {
-        if (namesOverlap(prior.name, l.name) || hostKey(prior.website) && hostKey(prior.website) === hostKey(l.website)) {
+        if (namesOverlap(prior.name, l.name)) {
           // Same business listed twice; keep the richer record, union the categories.
           const keep = richness(l) > richness(prior) ? l : prior;
           const drop = keep === l ? prior : l;
           if (drop.category && !(keep.category ?? "").includes(drop.category)) keep.category = [keep.category, drop.category].filter(Boolean).join(" / ");
+          // A collapse removes a record from the run; say so in the report, so
+          // "189 in, 186 planned" is never an unexplained three.
+          droppedInFile.push({ kept: keep.source_url, dropped: drop.source_url, why: `shared phone ${p} and overlapping names` });
           if (keep !== prior) {
             collapsed[collapsed.indexOf(prior)] = keep;
             for (const pp of prior.phones.map(phoneKey).filter(Boolean) as string[]) {
@@ -474,6 +491,7 @@ ${JSON.stringify(chunk.map((l, k) => ({ rowId: i + k, name: l.name, source_categ
     inserts: inserts.map((d) => d.payload),
     inserted_despite_shared_phone: phoneShared,
     skipped_outside_canada: outside.map((l) => ({ name: l.name, city_hint: l.city_hint, source_url: l.source_url })),
+    collapsed_in_file: droppedInFile,
     review: reviews,
   }, null, 1), "utf8");
   console.log(`  report -> ${REPORT}`);

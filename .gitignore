@@ -42,3 +42,8 @@ taablo.json
 bazaarche.json
 farsilink.json
 iranbusiness.json
+
+# Scraped directory exports and import reports. Kept on disk for auditing a
+# run, never committed — they are large, they are someone else's data, and
+# git history is not where a 700KB snapshot belongs.
+/data/imports/

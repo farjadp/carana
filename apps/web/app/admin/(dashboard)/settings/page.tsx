@@ -18,13 +18,14 @@
 //      routes re-check with requireAdmin).
 // ============================================================================
 import { Metadata } from "next";
-import { Database, Settings, Wand2 } from "lucide-react";
+import { Database, Download, Settings, Wand2 } from "lucide-react";
 
 import { BACKUP_TABLES } from "@/lib/admin/backup-tables";
 import { APP_VERSION } from "@/lib/data/releases";
 import { SETTING_KEYS, getSetting } from "@/lib/settings";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { BackupManager } from "./backup-manager";
+import { BusinessExport } from "./business-export";
 import { SmartSearchSettings } from "./smart-search-settings";
 
 export const metadata: Metadata = {
@@ -104,6 +105,15 @@ export default async function SettingsPage() {
           <h2 className="text-lg font-bold text-[color:var(--text)]">پشتیبان‌گیری و بازیابی</h2>
         </div>
         <BackupManager tables={BACKUP_TABLES} />
+      </section>
+
+      {/* 2b — Export businesses */}
+      <section className="rounded-2xl border border-[color:var(--line)] bg-white p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <Download className="h-6 w-6 text-[color:var(--lajvard)]" />
+          <h2 className="text-lg font-bold text-[color:var(--text)]">خروجی لیست کسب‌وکارها</h2>
+        </div>
+        <BusinessExport />
       </section>
 
       {/* 3 — Infrastructure probes */}

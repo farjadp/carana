@@ -1058,3 +1058,44 @@ indistinguishable through list().
 means missing. Used by both the backup route and the settings-page probe.
 **Lesson.** A probe that cannot fail is not a probe. Verified against the
 live project before shipping the green light.
+
+## A shared firm website is not an identity — the importer deleted three real people
+
+**Symptom.** `import-listings.mts` on the iranianlawyer.org export reported
+«after in-file de-duplication: 186 (dropped 3)» for 189 scraped lawyers. The
+three were never mentioned again: not in `inserts`, not in `enrich`, not in
+`review`. 189 went in, 186 were planned, and nothing in the report said which
+three vanished or why.
+**Cause.** Step 1's collapse rule was `same phone AND (names overlap OR same
+website host)`. Three pairs of genuinely different lawyers share a firm's
+reception number *and* the firm's homepage — Beygi/Yeganeh at englobelaw.com,
+Baghshahi/Naseri at mohajerbal.com, Haghighi/Samiei at sc-law.ca. The host
+clause declared each pair one business and silently dropped the poorer record.
+**Fix.** The collapse now requires `namesOverlap` — a shared host alone no
+longer merges anything — and every collapse is recorded in the report under
+`collapsed_in_file` (kept, dropped, why). Dropping the host clause is the safe
+direction: a listing that really is a duplicate still reaches the DB-matching
+stage, which adjudicates shared-phone cases with the model and can route to
+`review` instead of deleting.
+**Lesson.** The phone rule already learned that a shared number is not
+identity; the host clause was the same mistake wearing a different hat. And a
+step that can remove records must say what it removed — an unexplained
+`189 → 186` is the bug hiding, not the bug reporting itself.
+
+## iranianlawyer.org serves its sitemaps with HTTP 404 and a valid body
+
+**Symptom.** The new scraper found «0 lawyer profiles worldwide» while
+`curl` on the same URL printed a full `<urlset>` with 707 entries.
+**Cause.** `wp-sitemap.xml` and `wp-sitemap-posts-lawyers-1.xml` answer **404**
+while serving the complete document. The shared `get()` helper correctly
+treats 404 as "gone" and returned null. Real lawyer pages 200 and a made-up
+one 404s, so the status code is trustworthy for detail pages and worthless for
+sitemaps on this host.
+**Fix.** `getSitemap()` reads the body regardless of status. Safe because it is
+self-validating — no `<loc>`, no URLs, and the run exits loudly with a
+non-zero code rather than writing an empty export.
+**Lesson.** Also worth knowing: that site's `/location/canada/` archive renders
+44 profiles and links a `page/2` that 301s back to page 1, while the real
+Canadian count is **189**. Never trust a listing archive for completeness —
+enumerate from the sitemap and filter on each record's own data. Summing the
+province archives (49) was the first hint the country archive was lying.
