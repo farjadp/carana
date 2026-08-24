@@ -12,7 +12,13 @@ export type SourceName =
   | "bazaarche"
   | "farsilink"
   | "iranbusiness"
-  | "iranianlawyer";
+  | "iranianlawyer"
+  // Not scraped by us: rows that arrive as a spreadsheet. `iranjavan` is the
+  // original directory re-exported by hand, `ocr` is text lifted off scanned
+  // printed pages. They have no per-record URL, so their provenance token is
+  // a file+row reference instead — see csv-to-listings.mts.
+  | "iranjavan"
+  | "ocr";
 
 export type SourceListing = {
   source: SourceName;

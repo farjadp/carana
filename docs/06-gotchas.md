@@ -1099,3 +1099,45 @@ non-zero code rather than writing an empty export.
 Canadian count is **189**. Never trust a listing archive for completeness —
 enumerate from the sitemap and filter on each record's own data. Summing the
 province archives (49) was the first hint the country archive was lying.
+
+## A spreadsheet of businesses goes through import-listings, never import-businesses
+
+**Symptom.** A 721-row CSV was handed over as "import these too". Its columns
+match `normalizeImportRow` exactly, so `import-businesses.mts` looked like the
+obvious tool.
+**Cause.** `import-businesses.mts` de-duplicates **only inside its own file**.
+Against the database it does nothing but reserve slugs — a colliding name just
+becomes `-2` and is inserted anyway. That CSV was **96% already in the
+directory** (632 of its 633 IranJavan rows, imported back in August, plus 57
+of 87 OCR rows), so it would have created ~690 duplicate listings.
+**Fix.** `scripts/csv-to-listings.mts` converts a spreadsheet into
+`SourceListing[]`, which then goes through `import-listings.mts` and its real
+matching. Result on that file: 664 existing rows enriched, 43 genuinely new
+rows inserted, 3 held for review. Rows have no per-record URL, so provenance
+is a `<file>#row-<n>-<source>` token — never a URL invented to look real.
+**Lesson.** Check the overlap **before** choosing an importer: hash the
+incoming phones and names against the DB and count. Two minutes of counting
+decides which of two similar-looking scripts is the safe one.
+
+## Two identical names with one phone still slipped through — nameTokens was empty
+
+**Symptom.** The CSV import created `xo-center-2` beside an existing
+`xo-center`: same name, same city, same phone written two ways
+("905-883-1234" and "9058831234").
+**Cause.** Two compounding defects. (1) `namesOverlap` is pure token overlap,
+and `nameTokens("XO CENTER")` is the **empty set** — "xo" is under the 3-char
+floor and "center" is a stop word — so two identical names "shared nothing"
+and fell through to model adjudication. (2) That fallback adjudicated
+`phoneRows[0]` only. Several DB rows shared that number; the model was shown
+`supermarket-toranj`, correctly said "different", and the row was inserted —
+while the real `xo-center` further down the same list was never compared.
+**Fix.** `namesOverlap` now returns true on an exact folded-name match before
+consulting tokens, and the fallback sorts the phone-sharing candidates (same
+city, then closest name) so the model sees the most plausible one. The stray
+row was merged back by hand — its only unique field, `sub_category`, was
+copied onto the keeper first — and a directory-wide sweep confirms **0** rows
+sharing a normalised name and a phone.
+**Lesson.** A name made entirely of stop words and 2-letter tokens is
+invisible to token matching; exact equality must be checked first. And when a
+key can point at several rows, "take the first one" is a coin toss dressed up
+as a decision — rank the candidates or compare them all.

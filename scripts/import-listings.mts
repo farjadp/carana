@@ -97,7 +97,18 @@ function nameTokens(name: string): Set<string> {
       .filter((t) => t.length >= 3 && !STOP.has(t))
   );
 }
+/** Folded, punctuation-free, single-spaced — for exact-name comparison only. */
+const nameExact = (s: string) =>
+  foldPersian(s.toLowerCase()).replace(/[^\p{L}\p{N}]+/gu, " ").trim().replace(/\s+/g, " ");
+
 const namesOverlap = (a: string, b: string) => {
+  // Token overlap misses names built entirely from short or category words:
+  // nameTokens("XO CENTER") is EMPTY — "xo" is under the 3-char floor and
+  // "center" is a stop word — so two identical "XO CENTER" rows sharing one
+  // phone number looked like strangers, and the import created xo-center-2
+  // next to xo-center. Identical names are the same business; check that
+  // before giving up on tokens.
+  if (a && b && nameExact(a) === nameExact(b)) return true;
   const ta = nameTokens(a), tb = nameTokens(b);
   for (const t of ta) if (tb.has(t)) return true;
   return false;
@@ -212,9 +223,22 @@ async function main() {
           // "189 in, 186 planned" is never an unexplained three.
           droppedInFile.push({ kept: keep.source_url, dropped: drop.source_url, why: `shared phone ${p} and overlapping names` });
           if (keep !== prior) {
-            collapsed[collapsed.indexOf(prior)] = keep;
-            for (const pp of prior.phones.map(phoneKey).filter(Boolean) as string[]) {
-              const arr = byPhone.get(pp)!; arr[arr.indexOf(prior)] = keep;
+            const at = collapsed.indexOf(prior);
+            if (at >= 0) collapsed[at] = keep;
+            // Re-point EVERY phone index that held `prior`, and register `keep`
+            // under the numbers `prior` never had. Indexing only `prior.phones`
+            // was wrong twice over: a record that replaced an earlier one stayed
+            // invisible under its own extra numbers (a silently missed merge),
+            // and `byPhone.get(pp)` could be undefined outright — which is how
+            // the 721-row spreadsheet crashed this loop with
+            // "Cannot read properties of undefined (reading 'indexOf')".
+            const keys = new Set([...prior.phones, ...keep.phones].map(phoneKey).filter(Boolean) as string[]);
+            for (const pp of keys) {
+              const arr = byPhone.get(pp);
+              if (!arr) { byPhone.set(pp, [keep]); continue; }
+              const i = arr.indexOf(prior);
+              if (i >= 0) arr[i] = keep;
+              else if (!arr.includes(keep)) arr.push(keep);
             }
           }
           continue outer;
@@ -319,7 +343,17 @@ async function main() {
     const byName = phoneRows.find((r) => namesOverlap(r.name, l.name) || (r.name_en && namesOverlap(r.name_en, l.name)));
     if (byName) { decisions.push({ kind: "enrich", row: byName, via: "phone+name", patch: enrichPatch(byName, l) }); continue; }
 
-    undecided.push({ l, row: phoneRows[0] });
+    // Several DB rows can share one number (a plaza's switchboard, a family
+    // business). Adjudicating `phoneRows[0]` blindly showed the model an
+    // obviously-unrelated row, got a correct "different", and inserted a
+    // duplicate of a DIFFERENT row further down the same list. Put the most
+    // plausible candidate in front of the model instead: same city first,
+    // then the closest name.
+    const score = (r: DbRow) =>
+      (r.city && l.city_hint && normalizeCity(r.city) === normalizeCity(l.city_hint) ? 2 : 0) +
+      (nameExact(r.name).includes(nameExact(l.name)) || nameExact(l.name).includes(nameExact(r.name)) ? 1 : 0);
+    const best = [...phoneRows].sort((a, b) => score(b) - score(a))[0];
+    undecided.push({ l, row: best });
   }
 
   // ---- 3b. phone matches with no name overlap: ask the model, merge only on a confident yes
