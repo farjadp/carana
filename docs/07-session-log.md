@@ -65,9 +65,9 @@ Three layers, measured rather than assumed:
    naming genuinely different people — a clinic and each of its dentists —
    and those must stay separate. Same lesson the iranianlawyer host rule paid
    for on 23 Aug.
-3. **Against the database.** 2,390 of 7,307 (33%) matched an existing row and
+3. **Against the database.** 2,396 of 7,307 (33%) matched an existing row and
    enrich it instead of inserting: 1,330 phone+name, 574 website, 275
-   instagram, 153 phone+model, 58 website+path.
+   instagram, 159 phone+model, 58 website+path.
 
 ## Three pages lost to HTTP 503, and got back
 
@@ -83,17 +83,27 @@ file. All three came back.
 loaded 7471; 1 outside Canada skipped
 after in-file de-duplication: 7307 (dropped 163 — 145 phone, 18 instagram)
 existing listings: 5802
-matched existing : 2390 (all gain data)
-new listings     : 4873
-needs review     :   44 (not written)
+matched existing : 2396 (all gain data)
+new listings     : 4882
+needs review     :   29 (not written)
 ```
 
-Enrichment fills `logo_url` 1,819 · `instagram` 1,661 · `tagline` 1,639 ·
-`contact_email` 1,535 · `description` 974 · `website` 716 · `whatsapp` 607.
+Enrichment fills `logo_url` 1,822 · `instagram` 1,664 · `tagline` 1,641 ·
+`contact_email` 1,537 · `description` 975 · `website` 716 · `whatsapp` 613.
 
-The 44 held for a human are the right ones — `Soheila Shayan (Sosha Salon)`
+The 29 held for a human are the right ones — `Soheila Shayan (Sosha Salon)`
 against an existing `کلینیک زیبایی سوشا` on one phone number. They are not
 written, so they can produce neither a duplicate nor a bad merge.
+
+**Two runs of the same file do not agree exactly.** 323 phone-only and
+website-only matches go to a model, and it is not deterministic: the run
+before the `کبک سیتی` fix said 4,873 / 2,390 / 44 where this one says
+4,882 / 2,396 / 29. Both are the same plan within a rounding error, but a
+number quoted from an old run is not a number about the current file. The
+city fix is the part that is not noise — `Quebec City` went from 556 to
+**1**, `Montreal` from 344 to **608** (plus Laval 11, Brossard 6), and 180
+listings that named no city at all correctly became DRAFT instead of being
+filed in a city they never mentioned.
 
 ## What was said wrongly
 
