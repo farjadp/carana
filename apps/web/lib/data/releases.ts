@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: lib/data/releases.ts
-// Version: 1.2.0 — 2026-08-24
+// Version: 1.3.0 — 2026-08-24
 // Why: One source of truth for "where do I get the app" and "what changed".
 //      The download page, the releases page and the home app section all read
 //      this. Store URLs are empty until the listings exist — the UI must say
@@ -24,7 +24,7 @@
  * bump one without the others — this page is a download promise, not a
  * changelog of intent.
  */
-export const APP_VERSION = "1.3.0";
+export const APP_VERSION = "1.4.0";
 
 export const STORES = {
   /** Fill when the App Store listing is live (blocked on the paid Apple account / D-U-N-S). */
@@ -32,8 +32,8 @@ export const STORES = {
   /** Fill when the Play listing is live. */
   playStore: "",
   /** Direct APK — Android only, sideload. Latest preview build from EAS. */
-  apkDirect: "https://expo.dev/artifacts/eas/qBbr3wGjl7q1d98TnFb1y0DtH9-E5i-SbCw0frVypQs.apk",
-  apkVersion: "1.3.0",
+  apkDirect: "https://expo.dev/artifacts/eas/ftzaPxtSp95XjWZLX0Jp7V5uGvirtJHN1wnGngmRLEQ.apk",
+  apkVersion: "1.4.0",
   apkSizeMb: 110,
   apkBuiltAt: "2026-08-24",
   /** iOS TestFlight invite — empty until the Apple organisation account exists. */
@@ -50,6 +50,22 @@ export type Release = {
 
 /** Newest first. Keep in step with git tags / EAS builds. */
 export const RELEASES: Release[] = [
+  {
+    version: "1.4.0",
+    date: "2026-08-24",
+    title: "شمارش درست، ترتیب تازه، و جستجویی که منظورت را می‌فهمد",
+    // Every line here was checked in the 1.4.0 bundle itself, not just in
+    // the source: the strings below are present in the shipped binary.
+    highlights: [
+      "شمار کسب‌وکارها درست شد — اپ فقط ۱٬۰۰۰ تا از ۵٬۲۵۱ کسب‌وکار را می‌شمرد، و همه‌ی عددهای دسته، شهر و استان یک‌پنجم واقعیت بود",
+      "فهرست‌ها می‌گویند چند تا را نشان می‌دهند و از چند تا — «۱۰۰ از ۱٬۶۹۹»، نه «۱۰۰ کسب‌وکار»",
+      "ترتیب تصادفی با هر بار باز کردن، به‌علاوه‌ی چهار مرتب‌سازی: پربازدیدترین، پرمخاطب‌ترین، جدیدترین، تازه تأییدشده",
+      "نشان «ویژه» روی کارت‌ها — هر جایگاه پولی برچسب دارد، هیچ‌وقت پنهان نیست",
+      "پلن پلاتینیوم در صفحه‌ی امکانات، با قیمت‌های واقعی هر پلن",
+      "جستجوی هوشمند: «هوس آلبالو کردم» هم نتیجه می‌دهد — و اعلان‌های مرتبط هم در نتایج جستجو می‌آیند",
+    ],
+    platforms: ["android"],
+  },
   {
     version: "1.3.0",
     date: "2026-08-24",

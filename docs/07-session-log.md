@@ -1,3 +1,113 @@
+# 2026-08-24, later — gooyalisting.ca: the ninth directory, 7,471 businesses
+
+Farjad asked for the usual treatment on a site we had not touched:
+gooyalisting.ca. It turned out to be the largest single Persian-Canadian
+source we have found: 7,471 published listings, against a directory that
+holds 5,802 in total after merging seven others.
+
+**Nothing has been written to the database.** This session ends at a dry run.
+
+## The sitemap hides 2,000 businesses
+
+Yoast splits the listings across `listing-sitemap1..8.xml`. `sitemap1`
+serves an empty `<urlset>`, and the eight together carry 5,471 URLs. The REST
+collection answers `X-WP-Total: 7,471`. Enumerating from the sitemap — the
+obvious move, and what `CLAUDE.md` tells us to do when auditing *our own*
+routes — would have silently dropped 2,000 businesses with no error anywhere.
+
+Two smaller traps in the same API: the CPT's `rest_base` is `listings`
+(plural), so `/wp/v2/listing` 404s; and `meta` comes back as an empty array,
+so every contact detail still costs a detail-page fetch.
+
+## The footer that would have stamped itself on 7,471 records
+
+Contact details live in one sidebar box, `.wilcity-sidebar-item-business-info`.
+The site footer carries the *directory operator's* own phone, email and
+Thornhill address on every single page. A document-wide `tel:`/`mailto:`
+sweep — which is how a scraper gets written when the sample page happens to
+have no contact box — would have given all 7,471 businesses the same
+`+1 647 556 4811` and `info@fantasticabranding.ca`. The selector is scoped to
+the box for exactly this reason.
+
+## «کبک سیتی» is not a city
+
+The first dry run's plan read `Quebec City 556` against `Montreal 344`. For a
+Persian-Canadian directory that is backwards, and it was wrong.
+
+gooya files 636 listings under `کبک سیتی`. Their area codes are 397×514/438
+(the island of Montreal) and 13×450 against **7** ×418/581 for the actual city
+of Quebec, and their own prose says مونترال 311 times to Quebec City's 4. The
+label means the *province*. The alias added earlier in this session —
+`"کبک سیتی": "Quebec City"` — would have filed roughly 550 Montreal
+businesses in the wrong city, which is precisely the quiet lie the house rule
+forbids, introduced by the very change meant to improve city coverage.
+
+Fixed in two places. `کبک سیتی` and `کبک` are now `CITY_JUNK`, so they resolve
+to nothing. And `import-listings.mts` gained `cityFromProse` as the *last*
+fallback, after street, postal code and the source's own label: the city the
+listing's own text names, and only when it names exactly one — "we serve
+Toronto, Markham and Vaughan" yields nothing rather than a coin flip. It is
+not an inference from an area code; the source printed the word.
+
+## Duplicates, which is what Farjad actually asked about
+
+Three layers, measured rather than assumed:
+
+1. **Inside gooya.** A 246-record sample said zero duplicate handles, phones
+   or names. The full 7,471 said otherwise: 297 records share an Instagram
+   handle, 639 share a phone, 121 share a name. Sampling was the mistake.
+2. The importer's in-file collapse only indexed **phones**. Simulating it
+   showed 145 collapses and **18 misses** — businesses filed twice, once under
+   the shop name and once under the owner's (`Beauty By Azadeh` /
+   `Azadeh Eltejaei`, `Pixelman` / `Pixelman Creative`), with a *different*
+   phone on each copy. `byPhone` became `byKey` over namespaced `tel:` and
+   `ig:` keys. The name test stays: 41 further pairs share a handle while
+   naming genuinely different people — a clinic and each of its dentists —
+   and those must stay separate. Same lesson the iranianlawyer host rule paid
+   for on 23 Aug.
+3. **Against the database.** 2,390 of 7,307 (33%) matched an existing row and
+   enrich it instead of inserting: 1,330 phone+name, 574 website, 275
+   instagram, 153 phone+model, 58 website+path.
+
+## Three pages lost to HTTP 503, and got back
+
+The first full run finished 7,468 of 7,471. The generic 1.2s backoff was
+never going to survive a 503. 503 now waits like 429 does, and the scraper
+grew a `--repair <log>` mode that reads the `giving up on <url>` lines out of
+a previous run's log, re-fetches only those, and **merges** into the output
+file. All three came back.
+
+## The dry run
+
+```
+loaded 7471; 1 outside Canada skipped
+after in-file de-duplication: 7307 (dropped 163 — 145 phone, 18 instagram)
+existing listings: 5802
+matched existing : 2390 (all gain data)
+new listings     : 4873
+needs review     :   44 (not written)
+```
+
+Enrichment fills `logo_url` 1,819 · `instagram` 1,661 · `tagline` 1,639 ·
+`contact_email` 1,535 · `description` 974 · `website` 716 · `whatsapp` 607.
+
+The 44 held for a human are the right ones — `Soheila Shayan (Sosha Salon)`
+against an existing `کلینیک زیبایی سوشا` on one phone number. They are not
+written, so they can produce neither a duplicate nor a bad merge.
+
+## What was said wrongly
+
+- "This directory stores NO street addresses." Written into the scraper's
+  header after `oAddress` came back `false` on every listing the card API
+  returns. The detail pages do render `.wil-listing-address`; it is a
+  free-text Google-Maps *search* link that usually says no more than
+  "Toronto, Ontario, Canada". The conclusion (don't trust it as a street) was
+  right, the stated reason was false, and the header now says so properly.
+- The 246-record duplicate sample was reported as if it settled the question.
+  It did not — the full file had 297 shared handles.
+
+---
+
 # 2026-08-24 — the app caught up with the website, and shipped the rebrand it never shipped
 
 Farjad asked one question — "are the mobile apps the same as this web
@@ -79,6 +189,21 @@ sentence was simply false. They now say «۱۰۰ از ۲۵۸».
 - The dead-end suggestion box no longer appears above smart results. Asking
   «دنبال چی بودی که نبود؟» directly above what we just found is asking about
   a question we answered.
+
+## APK 1.4.0 (EAS `6f8b7259`)
+
+Everything above, built and linked. Checked in the artifact the same way
+1.3.0 was, and with the same discipline: the first pass reported the new
+Persian strings as *absent*, which was wrong — Hermes stores non-ASCII as
+UTF-16LE, and a control string known to have shipped in 1.2.0 came back
+absent too, which is what exposed the bad method rather than a bad build.
+Re-checked properly, every one is present: «ویژه» ×6, پلاتینیوم,
+«جستجوی هوشمند», «ترتیب تصادفی», «اعلان‌های مرتبط», «پرمخاطب‌ترین», plus the
+`/api/mobile/search/smart` path. And `localhost:3000` — the API override used
+during simulator verification — is **not** in the bundle, which was the thing
+worth being sure about.
+
+*A control that also fails tells you the test is broken, not the subject.*
 
 ## Two smaller things
 
