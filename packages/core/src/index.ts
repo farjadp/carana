@@ -47,5 +47,14 @@ export * from "./iran-calendar";
 // the server-side entitlement clamps.
 export * from "./plans";
 
+// What a plan actually unlocks right now (expiry-aware), and the two
+// orderings that depend on it — shared so the app and the site cannot rank
+// the same directory differently. Moved out of apps/web on 24 Aug.
+export * from "./entitlements";
+
 // Persian messages for Supabase Auth errors (web + mobile).
 export * from "./auth-errors";
+
+// Draining a query past PostgREST's silent 1,000-row cap. Shared because the
+// cap is a property of the API, not of one client.
+export * from "./fetch-all";

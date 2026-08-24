@@ -1141,3 +1141,95 @@ sharing a normalised name and a phone.
 invisible to token matching; exact equality must be checked first. And when a
 key can point at several rows, "take the first one" is a coin toss dressed up
 as a decision — rank the candidates or compare them all.
+
+---
+
+## `search_businesses` returns fewer columns than the `businesses` table
+
+**Symptom:** the same `BusinessCardView` shows the «ویژه» chip on a category
+screen and not on a search result for the same business — with no error, no
+warning, and a type that says both rows are `BusinessCard`.
+
+**Cause:** the RPC projects its own column list (`plan`, `plan_until` and the
+ranking fields are in it; `view_count`, `saved_count`, `created_at` and
+`website` are not). Both call sites then cast the result to the same type, so
+TypeScript agrees they are identical and the missing fields arrive as
+`undefined` at runtime.
+
+**Fix:** the fields the RPC does not return are optional on `BusinessCard`
+(`view_count?`, `saved_count?`, `created_at?`) so the type stops claiming
+otherwise. If a *rendered* field is ever added to the card, add it to the RPC's
+`returns` clause in the same change, not just to the cast.
+
+**Lesson:** a cast is not a check. Two rows with one type name can have two
+different shapes, and the surface that notices is the UI, silently.
+
+---
+
+## A `count: "exact"` select still counts everything, whatever the limit says
+
+**Symptom:** expecting `.select(cols, { count: "exact" }).limit(1)` to be
+cheap-and-wrong, and being surprised the count is the real total.
+
+**Cause:** in PostgREST the count is computed over the filtered set, not the
+returned page. The `limit` bounds the rows in the body only.
+
+**Fix:** this is the behaviour to rely on, not to work around — it is how the
+mobile listing screens learned to say «۱۰۰ از ۱٬۶۹۹» instead of counting the
+page they happen to hold. Beware the mirror image though: `rows.length` is a
+page size and must never be printed as a total.
+
+**Lesson:** before printing a number to a user, ask which set it counts. The
+mobile listing screens printed «۱۰۰ کسب‌وکار» for a Toronto category matching
+1,699 for two months, and it read perfectly.
+
+---
+
+## "Humanise" passes invent facts, and they do it convincingly
+
+**Symptom:** the blog's second model pass — the one that rewrites the prose in
+a human voice — produced, from a draft that contained neither: "در بعضی مدارس
+ریچموند هیل، والدین ... تا ۱۵ درصد صرفه‌جویی کرده‌اند" and "ما در گوپلازا
+دیده‌ایم که برندهای خاص پوشاک در **تابستان ۲۰۲۳**…". GOPLAZA launched in 2026.
+The same pass also slipped into first-person singular ("وقتی به این اعداد نگاه
+می‌کنم") in an article whose brief forbade it.
+
+**Cause:** the first pass is told "quote only the FACTS given" and obeys. The
+second pass is told to make the prose vivid and concrete — and a model asked
+for concreteness with nothing concrete to hand will manufacture it. The style
+rules ("never first-person singular", "do not invent statistics") lived only in
+the *draft* prompt; the humanise prompt never restated them, so they did not
+survive the rewrite.
+
+**Fix:** two things, and the deterministic one matters more.
+`lib/blog/pipeline.ts` now compares the digits before and after every creative
+pass (`inventedNumbers()`, Persian digits folded, separators ignored). `expand`
+keeps the shorter draft if new numbers appear; `humanise` retries once with the
+offending figures named, then falls back to the draft prose. Separately,
+`HUMAN_VOICE` restates the bans the draft prompt already carried.
+
+**Lesson:** every rule you want to survive a pipeline must be repeated in every
+prompt of that pipeline — a constraint stated upstream does not propagate. And
+where a rule can be checked with code instead of asked for in a prompt, check
+it: a regex over digits caught what three paragraphs of careful instruction did
+not.
+
+---
+
+## `buildInventory()` cannot run outside the Next runtime
+
+**Symptom:** a script that imports anything from `lib/blog/pipeline.ts` and
+calls `buildInventory()` dies with `Invariant: incrementalCache missing in
+unstable_cache`.
+
+**Cause:** it reaches `countCategoryCities` → `lib/seo/geo-index.ts`, which
+wraps its query in `unstable_cache`. That only works inside a request or build,
+not in a bare `tsx` process.
+
+**Fix:** exercise the writers from a route (`/api/cron/blog-source?dry=1`), or
+hand them a hand-built inventory object of the same shape when testing offline.
+Do not "fix" it by unwrapping the cache — the cache is why the city×category
+counts do not cost a query per page render.
+
+**Lesson:** a function is only portable if everything under it is. Check what
+your imports import before promising a script it can call them.

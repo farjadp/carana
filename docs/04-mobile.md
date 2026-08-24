@@ -2,6 +2,29 @@
 
 Expo SDK 57, Expo Router, TypeScript. Lives in `apps/mobile`.
 
+## Parity with the website (24 Aug)
+
+Checked commit by commit, then by running the app. What mobile has:
+
+| Web feature | Mobile |
+|---|---|
+| Ranked Persian-aware search (`search_businesses`) | yes — same RPC |
+| Announcement search (`search_announcements`) | yes, 24 Aug — same RPC, called directly |
+| Smart search (LLM query expansion) | yes, 24 Aug — via `/api/mobile/search/smart`, which returns terms only |
+| Random default listing order + 89% featured boost | yes, 24 Aug — shared `weightedRandomOrder` |
+| «ویژه» chip | yes, 24 Aug — shipped in the same change as the boost, deliberately |
+| Four listing sorts (views / saved / new / verified) | yes, 24 Aug |
+| Four plan tiers incl. **پلاتینیوم** + live prices | yes, 24 Aug — generated from `PAID_PLANS` |
+| Owner controls (edit, insights, billing, announcement + job writing) | **no — the single biggest remaining gap** |
+| Push notifications | no infrastructure at all |
+| Admin | web-only by decision |
+
+**Shipped versions are a separate question from source.** The rebrand sat in
+`app.json` at 1.3.0 for six days without a build, so every installed app said
+čārana while the site said GOPLAZA. Whenever `app.json` moves, either build
+it or record why not — `releases.ts` is a download promise, not a statement
+of intent.
+
 ## What works
 
 Runs on the **iOS simulator** with live data from production Supabase.

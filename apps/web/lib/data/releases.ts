@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: lib/data/releases.ts
-// Version: 1.1.0 — 2026-08-18
+// Version: 1.2.0 — 2026-08-24
 // Why: One source of truth for "where do I get the app" and "what changed".
 //      The download page, the releases page and the home app section all read
 //      this. Store URLs are empty until the listings exist — the UI must say
@@ -13,14 +13,18 @@
  * The version a visitor can actually download today — NOT the version in
  * apps/mobile/app.json, which is what the *next* native build will be.
  *
- * After the 2026-08-18 rebrand app.json moved to 1.3.0 (new name, icon, second
- * URL scheme) but no 1.3.0 binary has been built, so everything on this page
- * still describes 1.2.0. When the 1.3.0 APK exists, change APP_VERSION,
- * STORES.apkDirect / apkVersion / apkSizeMb / apkBuiltAt and add a RELEASES
- * entry in the same commit. Never bump one without the others — this page is
- * a download promise, not a changelog of intent.
+ * 1.3.0 (EAS build 7efff12a, 24 Aug) is the first binary carrying the
+ * GOPLAZA rebrand: app.json moved to 1.3.0 on 18 Aug and sat there unbuilt
+ * for six days, so until this build every installed app still said čārana.
+ * Credentials confirmed inlined in the Hermes bundle before this line was
+ * changed — the 1.1.0 lesson, which shipped with none and could not start.
+ *
+ * When a new APK exists, change APP_VERSION, STORES.apkDirect / apkVersion /
+ * apkSizeMb / apkBuiltAt and add a RELEASES entry in the same commit. Never
+ * bump one without the others — this page is a download promise, not a
+ * changelog of intent.
  */
-export const APP_VERSION = "1.2.0";
+export const APP_VERSION = "1.3.0";
 
 export const STORES = {
   /** Fill when the App Store listing is live (blocked on the paid Apple account / D-U-N-S). */
@@ -28,10 +32,10 @@ export const STORES = {
   /** Fill when the Play listing is live. */
   playStore: "",
   /** Direct APK — Android only, sideload. Latest preview build from EAS. */
-  apkDirect: "https://expo.dev/artifacts/eas/SH-Fh00zi3xLZu862JVY2QsFli-L0LHBvFkj2Mv33mo.apk",
-  apkVersion: "1.2.0",
+  apkDirect: "https://expo.dev/artifacts/eas/qBbr3wGjl7q1d98TnFb1y0DtH9-E5i-SbCw0frVypQs.apk",
+  apkVersion: "1.3.0",
   apkSizeMb: 110,
-  apkBuiltAt: "2026-08-16",
+  apkBuiltAt: "2026-08-24",
   /** iOS TestFlight invite — empty until the Apple organisation account exists. */
   testFlight: "",
 } as const;
@@ -46,6 +50,20 @@ export type Release = {
 
 /** Newest first. Keep in step with git tags / EAS builds. */
 export const RELEASES: Release[] = [
+  {
+    version: "1.3.0",
+    date: "2026-08-24",
+    title: "اپ هم گوپلازا شد",
+    // Only what this binary actually carries. The parity work of the same
+    // day (پلاتینیوم, «ویژه», ترتیب تصادفی, جستجوی هوشمند) landed after this
+    // build was cut and belongs to the next version, not here.
+    highlights: [
+      "نام، آیکون و هویت جدید: چارانا رسماً شد گوپلازا",
+      "لینک‌های goplaza.ca مستقیم داخل اپ باز می‌شوند",
+      "شمار واقعی کسب‌وکارها و شهرها در صفحه‌ی ورود — به‌جای عدد گرد و نادرست قبلی",
+    ],
+    platforms: ["android"],
+  },
   {
     version: "1.2.0",
     date: "2026-08-16",

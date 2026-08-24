@@ -1,19 +1,35 @@
 // ============================================================================
 // Source: apps/mobile/src/components/listing-screen.tsx
-// Version: 1.0.0 — 2026-08-22
+// Version: 2.0.0 — 2026-08-24
 // Why: The category and city screens are the same screen with a different
 //      filter, so they share one implementation.
+//
+//      v2 (24 Aug): the four sorts the website offers, and an honest count.
+//      v1 fetched 100 rows and printed «۱۰۰ کسب‌وکار» — in Toronto, where
+//      1,699 match, that sentence was simply false. The total now comes from
+//      the database and the line says how much of it is on screen. Default
+//      order is the shared weighted shuffle, so the «ویژه» chip on
+//      BusinessCardView is doing real work here.
 // ============================================================================
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronRight } from "lucide-react-native";
 
 import { BrandLoading } from "./brand-mark";
 import { BusinessCardView } from "./business-card";
-import { listBusinesses, listCategories, type BusinessCard } from "../lib/businesses";
-import { colors, radius, shadow, space, type } from "../theme";
+import {
+  LISTING_SORTS,
+  listBusinesses,
+  listCategories,
+  type BusinessCard,
+  type ListingSort,
+} from "../lib/businesses";
+import { colors, fonts, radius, shadow, space, type } from "../theme";
+
+const PAGE = 100;
+const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export function ListingScreen({
   title,
@@ -26,26 +42,46 @@ export function ListingScreen({
 }) {
   const router = useRouter();
   const [items, setItems] = useState<BusinessCard[]>([]);
+  const [total, setTotal] = useState(0);
+  const [sort, setSort] = useState<ListingSort | null>(null);
   const [labels, setLabels] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const sortsRef = useRef<ScrollView>(null);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
     (async () => {
       try {
-        const [rows, cats] = await Promise.all([
-          listBusinesses({ ...filter, limit: 100 }),
+        const [page, cats] = await Promise.all([
+          listBusinesses({ ...filter, sort: sort ?? undefined, limit: PAGE }),
           listCategories(),
         ]);
-        setItems(rows);
+        if (cancelled) return;
+        setItems(page.rows);
+        setTotal(page.total);
         setLabels(Object.fromEntries(cats.map((c) => [c.slug, c.name])));
+        setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "خطای ناشناخته");
+        if (!cancelled) setError(err instanceof Error ? err.message : "خطای ناشناخته");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
-  }, [filter.category, filter.city]);
+    return () => {
+      cancelled = true;
+    };
+  }, [filter.category, filter.city, sort]);
+
+  // Says what is true: how many are on screen, out of how many exist. Only
+  // the shuffled default reshuffles, so only it gets that note.
+  const countLine =
+    error ??
+    (items.length >= total
+      ? `${fa(total)} کسب‌وکار`
+      : `${fa(items.length)} از ${fa(total)} کسب‌وکار`) +
+      (sort ? "" : " · ترتیب تصادفی");
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -67,9 +103,39 @@ export function ListingScreen({
           keyExtractor={(b) => b.id}
           contentContainerStyle={styles.list}
           ListHeaderComponent={
-            <Text style={styles.count}>
-              {error ?? `${items.length} کسب‌وکار`}
-            </Text>
+            <>
+              {/*
+                The app styles RTL with row-reverse rather than
+                I18nManager.forceRTL, so the scroll container itself is still
+                LTR: the first (rightmost) chip starts past the right edge.
+                Scrolling to the end on layout is what puts «تصادفی» — the
+                default, and the one a reader looks for first — on screen.
+              */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.sorts}
+                ref={sortsRef}
+                onContentSizeChange={() => sortsRef.current?.scrollToEnd({ animated: false })}
+              >
+                <Pressable
+                  onPress={() => setSort(null)}
+                  style={[styles.chip, sort === null && styles.chipActive]}
+                >
+                  <Text style={[styles.chipText, sort === null && styles.chipTextActive]}>تصادفی</Text>
+                </Pressable>
+                {LISTING_SORTS.map(({ key, label }) => (
+                  <Pressable
+                    key={key}
+                    onPress={() => setSort(key)}
+                    style={[styles.chip, sort === key && styles.chipActive]}
+                  >
+                    <Text style={[styles.chipText, sort === key && styles.chipTextActive]}>{label}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+              <Text style={styles.count}>{countLine}</Text>
+            </>
           }
           ListEmptyComponent={
             <Text style={styles.empty}>هنوز کسب‌وکاری در این بخش ثبت نشده است.</Text>
@@ -108,6 +174,17 @@ const styles = StyleSheet.create({
   title: { ...type.h1, fontSize: 22, textAlign: "right" },
   subtitle: { ...type.muted, textAlign: "right", marginTop: 2 },
   list: { paddingHorizontal: space.md, gap: space.sm, paddingBottom: space.xl },
+  sorts: { flexDirection: "row-reverse", gap: space.xs, paddingBottom: space.sm },
+  chip: {
+    borderRadius: radius.pill,
+    paddingHorizontal: space.md,
+    paddingVertical: 7,
+    backgroundColor: colors.surface,
+    ...shadow.card,
+  },
+  chipActive: { backgroundColor: colors.annabi },
+  chipText: { fontSize: 12, fontFamily: fonts.heavy, color: colors.text },
+  chipTextActive: { color: "#fff" },
   count: { ...type.muted, textAlign: "right", marginBottom: space.xs },
   empty: { ...type.muted, textAlign: "center", marginTop: space.xl },
 });

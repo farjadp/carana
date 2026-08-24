@@ -115,7 +115,7 @@ export default function HomeScreen() {
       const [cats, counted, latest, cityList, withSignals, verifiedRows, blogPosts, news, hiring] = await Promise.all([
         listCategories(),
         countByCategory(),
-        listBusinesses({ limit: 5 }),
+        listBusinesses({ sort: "new", limit: 5 }),
         listCities(),
         listWithSignals(80),
         listVerified(8),
@@ -126,7 +126,7 @@ export default function HomeScreen() {
       setCategories(cats);
       setJobs(hiring);
       setCounts(counted);
-      setNewest(latest);
+      setNewest(latest.rows);
       setCities(cityList);
       setSignals(withSignals);
       // The rail must agree with the badge on the profile — same rule.

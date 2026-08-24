@@ -528,6 +528,7 @@ export type Database = {
           preferred_contact: string | null
           province: string | null
           ref_no: number
+          saved_count: number
           search_text: string | null
           service_area: string | null
           service_type: string | null
@@ -598,6 +599,7 @@ export type Database = {
           preferred_contact?: string | null
           province?: string | null
           ref_no?: number
+          saved_count?: number
           search_text?: string | null
           service_area?: string | null
           service_type?: string | null
@@ -668,6 +670,7 @@ export type Database = {
           preferred_contact?: string | null
           province?: string | null
           ref_no?: number
+          saved_count?: number
           search_text?: string | null
           service_area?: string | null
           service_type?: string | null
@@ -1119,6 +1122,42 @@ export type Database = {
           },
         ]
       }
+      search_ai_expansions: {
+        Row: {
+          categories: string[]
+          created_at: string
+          hit_count: number
+          model: string | null
+          q_norm: string
+          reason: string | null
+          status: string
+          terms: string[]
+          updated_at: string
+        }
+        Insert: {
+          categories?: string[]
+          created_at?: string
+          hit_count?: number
+          model?: string | null
+          q_norm: string
+          reason?: string | null
+          status?: string
+          terms?: string[]
+          updated_at?: string
+        }
+        Update: {
+          categories?: string[]
+          created_at?: string
+          hit_count?: number
+          model?: string | null
+          q_norm?: string
+          reason?: string | null
+          status?: string
+          terms?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       search_queries: {
         Row: {
           category: string | null
@@ -1152,6 +1191,27 @@ export type Database = {
           result_count?: number
           source?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
         }
         Relationships: []
       }
@@ -1515,6 +1575,26 @@ export type Database = {
       review_current_status: {
         Args: { target_review_id: string }
         Returns: Database["public"]["Enums"]["public_review_status"]
+      }
+      search_announcements: {
+        Args: { p_limit?: number; q: string }
+        Returns: {
+          announcement_body: string
+          announcement_created_at: string
+          announcement_expires_at: string
+          announcement_id: string
+          announcement_title: string
+          business_id: string
+          category: string
+          city: string
+          logo_url: string
+          name: string
+          plan: string
+          plan_until: string
+          province: string
+          slug: string
+          verified_until: string
+        }[]
       }
       search_businesses: {
         Args: {

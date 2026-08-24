@@ -1,3 +1,107 @@
+# 2026-08-24 — the app caught up with the website, and shipped the rebrand it never shipped
+
+Farjad asked one question — "are the mobile apps the same as this web
+version?" — and the answer was no in two different ways, one of which nobody
+had noticed.
+
+## What the audit found
+
+`apps/mobile` had not been touched since `d561f1c`. Five web commits had
+landed after it. Four were real gaps (`29f222f` random order + featured boost
++ Platinum, `577ff4e` smart search + announcement search, and the two
+web-only ones), and none of them had broken anything — every new migration
+was additive and `search_businesses` kept its signature — so the app just
+quietly showed less than the site. That is exactly why it went unnoticed.
+
+**The bigger gap was the binary.** The newest installable artifact was APK
+1.2.0 from 16 Aug. `app.json` had said 1.3.0 since the 18 Aug rebrand. Six
+days of "GOPLAZA is live" while every installed app still said čārana.
+
+## APK 1.3.0 (EAS `7efff12a`)
+
+Built first, before any new code, so the rebrand shipped on already-tested
+code rather than waiting behind a day of parity work. Verified by inspecting
+the artifact, not by trusting EAS: Supabase project ref and publishable key
+both present in the Hermes bundle, the «Missing EXPO_PUBLIC» throw string
+gone, `GOPLAZA` in `resources.arsc` as the launcher label, and **zero**
+occurrences of čārana/چارانا. `releases.ts` now points at it.
+
+## The bug nobody was looking for
+
+Running the app on the simulator, the home hero read **«۱٬۰۰۰ کسب‌وکار»**.
+The directory has 5,251.
+
+It was the same PostgREST 1,000-row cap the SEO audit killed on 18 Aug —
+`fetchAllRows` was written for exactly this and put in `apps/web`, so mobile
+never got it. `countByCategory`, `listCities` and `listProvinces` were all
+counting a 1,000-row slice client-side. Every category badge, every city
+count, every province total and the hero number were a fifth of the truth,
+with no error anywhere. After the fix: hero ۵٬۲۵۱, «خدمات دیجیتال و IT» ۵۳ →
+۲۵۸, «رویدادها» ۳۵ → ۱۶۳. `fetch-all.ts` now lives in `@goplaza/core` — its
+own header had already noted it was typed for two supabase-js versions.
+
+The listing screens told a second version of the same lie: they fetched 100
+rows and printed «۱۰۰ کسب‌وکار». For a Toronto category matching 1,699 that
+sentence was simply false. They now say «۱۰۰ از ۲۵۸».
+
+## Parity work
+
+- **`entitlements.ts` moved into `@goplaza/core`.** `entitlementsFor`,
+  `sortFeaturedFirst` and `weightedRandomOrder` were pure but marked "server
+  only", which is how the two clients ended up ranking the same directory
+  differently. `getEntitlements` stayed in `apps/web` — it takes a
+  SupabaseClient.
+- **The «ویژه» chip landed in the same change as the boost, on purpose.**
+  Mobile had no chip at all and did not even select `plan`. Shipping the 89%
+  boost first would have been an unmarked paid ranking — house rule #2.
+  Verified in isolation: Starter never gets the chip, a lapsed `plan_until`
+  loses it whatever the column says, Platinum gets it, and over 20,000
+  shuffles the boosted row lands first 17.1% of the time against a 10% fair
+  share — a tendency, not a guaranteed slot.
+- **Random default order + four sorts** on the listing screens. Two details
+  the web version does not need: the pool is a `RANDOM_POOL` window at a
+  random offset (Toronto alone exceeds the 1,000-row response cap), and
+  featured rows are fetched separately and merged in so a window cannot
+  silently switch off the boost someone paid for.
+- **`features.tsx` is generated from `PAID_PLANS`.** It had three hard-coded
+  sections, so the 19 Aug Platinum tier did not exist on mobile at all — the
+  site selling a plan the app denied. Prices now come from the table too, so
+  the repricing cannot go stale here again. Platinum shows only its confirmed
+  bullets, including "the full list is still being finalised".
+- **Smart search + announcement search.** `search_announcements` is a plain
+  RPC the app calls directly. The expansion layer needs a service-role client
+  and `OPENAI_API_KEY`, so it got a public route — `/api/mobile/search/smart`
+  — that returns TERMS and never results, with every gate left inside
+  `expandQuery` so the two surfaces cannot drift. Verified end to end on the
+  simulator against a local server: «هوس آلبالو کردم» → 0 literal results,
+  then a labelled «جستجوی هوشمند» block with the model's own reason line and
+  Torshack (لواشک) and Alma Goodies (مربا).
+- The dead-end suggestion box no longer appears above smart results. Asking
+  «دنبال چی بودی که نبود؟» directly above what we just found is asking about
+  a question we answered.
+
+## Two smaller things
+
+- The RTL chip rows were scrolled off-screen. The app uses `row-reverse`
+  rather than `I18nManager.forceRTL`, so the ScrollView is still LTR and the
+  first (rightmost) chip — «تصادفی» on the new sort row, and «همه» on the
+  search filters, which clears the filter — started past the right edge.
+  Both now scroll to their start on layout.
+- `search_businesses` returns fewer columns than the `businesses` table, and
+  both call sites cast to the same type. The fields the RPC omits are now
+  optional. In `06-gotchas`.
+
+## Said wrongly
+
+The first answer to Farjad claimed «۴ مورد» of missing work and led with the
+feature gaps. The feature list was right, but the ordering was wrong: the
+unshipped binary mattered more than all four, and the 1,000-row undercount —
+the worst thing in the app — was not in that answer at all, because it was
+found by running the app rather than by reading the diff. Reading commits
+tells you what changed; only running the thing tells you what is wrong.
+
+---
+
 # Session log — 2026-08-23/24
 
 14 commits, from a codebase that would not build to a live site.

@@ -1,10 +1,105 @@
 # Open tasks
 
-**Updated:** 2026-08-19 — `pnpm db:push` is now the single blocker on three
-unapplied migrations, one of which breaks a live page. See below before
-anything else.
+**Updated:** 2026-08-24 — the mobile gap below is now **closed**, including
+one bug the audit did not predict. What is still open on mobile is owner
+controls and push, both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
+
+## Blog sources — what a human still has to do (24 Aug)
+
+The source-driven writer is code-complete and type-clean, and its two model
+passes were exercised end-to-end against a live atash.ca article. Three things
+are not done, and none of them are code:
+
+1. **Run the migration.** `supabase/migrations/20260830320000_blog_sources.sql`
+   in the Supabase SQL Editor — same route as every migration since Plans v3.
+   Until it runs, the desk's source panel and the "از منابع بنویس" button will
+   error: the tables do not exist.
+2. **Read the first batch before publishing it.** `BLOG_AUTO_PUBLISH` is off,
+   so the first run lands in the review queue. Read three of them end to end
+   for tone, and check that the "منبع خبر" block at the foot points where it
+   should.
+3. **Decide the Telegram / LinkedIn credentials.** Both adapters are written
+   and both are inert without env (see `13-blog-sources.md` for exactly which
+   variables and where to get them). Nothing is shared until they exist, and
+   nothing claims to have been.
+
+Open questions worth a decision, not blockers:
+
+- **Only atash.ca is seeded.** `blog_sources` takes any WordPress site; adding
+  a second is one `insert`. Which ones are worth reading?
+- **`fresh_days` is 21 and `BLOG_SOURCE_PER_DAY` is 5.** Five a day exhausts a
+  quiet week's news and starts pulling archive; that is by design, but it means
+  the mix shifts toward evergreen over time. Watch the run log's notes column.
+- **The originality gate is calibrated on two drafts.** Six shared runs, 2%.
+  If real runs start getting skipped for overlap, the reason is in the ledger —
+  raise it on evidence, not on impatience.
+
+## ~~Mobile is behind the web~~ — closed 24 Aug
+
+Everything below was the audit as written before the work. All five code gaps
+are fixed and APK **1.3.0** is built and linked (EAS `7efff12a`), with
+**1.4.0** carrying the parity work. Two things the audit did *not* predict
+turned up while running the app, both now fixed:
+
+- **The 1,000-row cap was still live on mobile.** The home hero said
+  «۱٬۰۰۰ کسب‌وکار» for a 5,251-listing directory, and every category, city and
+  province count was a fifth of the truth. `fetchAllRows` (the 18 Aug fix)
+  lived in `apps/web`, so native never got it; it is now in `@goplaza/core`.
+- **The listing screens printed a page size as a total** — «۱۰۰ کسب‌وکار» for
+  a Toronto category matching 1,699. They now say «۱۰۰ از ۱٬۶۹۹».
+
+Still open on mobile, unchanged and long-standing: **no owner controls at
+all** (item 11 below) and **no push infrastructure** (item 13).
+
+### The audit as it stood (24 Aug)
+
+`apps/mobile` was last touched at `d561f1c`. Five web commits have landed
+since and **none of them touched the app**:
+
+| Commit | What it added | On mobile? |
+|---|---|---|
+| `29f222f` | random default listing order, four sorts, filters, 89% featured boost, **Platinum tier** | no |
+| `8aae807` | SEO / canonicals / entity graph | n/a — web-only by nature |
+| `577ff4e` | **smart search** (LLM query understanding) + announcement search | no |
+| `86ded38` | admin settings | n/a — web-only by nature |
+| `14e8b23` | lawyer import + admin export | n/a — data, arrives on its own |
+
+**The binary is the bigger gap.** The newest artifact anyone can install is
+**APK 1.2.0** (EAS `7d468902`, 16 Aug, commit `c6bd835`). The source has been
+at 1.3.0 since `d561f1c`. So the GOPLAZA rebrand — done in code on 18 Aug —
+**has never reached a single installed app**. Every phone running it still
+says čārana.
+
+**Nothing is broken, which is why this was easy to miss.** `search_businesses`
+kept its signature (the smart-search migration only *added*
+`search_announcements` and the LLM cache table), and all four new migrations
+are additive. The app does not error; it simply shows less than the site.
+
+Code gaps found, in the order they must be fixed:
+
+1. **`features.tsx` hard-codes three plan sections** (`free`/`pro`/`featured`).
+   Platinum will not appear even after a rebuild, and any shipped build still
+   quotes the old Starter/Premium prices. This is the honesty-rule case: the
+   site sells a tier the app denies exists.
+2. **The «ویژه» chip does not exist on mobile at all.** `business-card.tsx`
+   renders busy status and nothing else, and `CARD_COLUMNS` does not even
+   select `plan`/`plan_until`. **The featured boost may not be ported until
+   the chip is there** — house rule #2 in `plans.ts` says a paid position must
+   be labelled, so a boost without a chip is an unmarked advertisement.
+3. **`listBusinesses()` still orders `created_at` desc** — no random default,
+   no boost, no `view_count`/`saved_count` sorts, no filter chips.
+4. **`listBusinesses()`'s own search path still hand-rolls `ilike`.** The
+   search *screen* correctly calls the RPC; this second path does not.
+5. **Smart search cannot be called from the app.** `apps/web/lib/search/smart.ts`
+   is server-only (service-role client + `OPENAI_API_KEY`). Mobile needs a
+   public route under `/api/mobile` carrying the same five gates. Note the
+   existing `api.ts` `post()` helper requires a Supabase session and smart
+   search must work signed-out, so it needs an unauthenticated helper too.
+   `search_announcements` by contrast is a plain RPC the app can call directly.
+
+Baseline `pnpm typecheck` in `apps/mobile` was clean before any of this work.
 
 ## ~~`pnpm db:push`~~ — done, 19 Aug
 

@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: apps/mobile/src/app/features.tsx
-// Version: 1.0.0 — 2026-08-16
+// Version: 2.0.0 — 2026-08-24
 // Why: The mobile half of /features on the web — what a visitor gets, what
 //      a business owner gets per plan, and what does not exist yet.
 //
@@ -8,6 +8,15 @@
 //      ANNOUNCEMENT_LIMITS), the same table the web page renders and the
 //      server clamps against. Hand-typing "۵ عکس" here is precisely how a
 //      mobile screen ends up promising more than the server allows.
+//
+//      v2 (24 Aug parity audit): the plan sections were three hard-coded
+//      calls, so when a fourth tier (پلاتینیوم) shipped on the web on 19 Aug
+//      this screen went on insisting there were three — the site selling a
+//      plan the app denies exists. Sections are now generated from
+//      PAID_PLANS, and every plan shows its real price and interval from the
+//      table, so a repricing cannot go stale here either. The per-plan prose
+//      rows stay hand-written because they are claims, not data; Platinum
+//      has none of its own yet and says so, exactly like `bullets` does.
 //
 //      The "not built yet" section is not padding. Two of its lines are
 //      about this very app (no store listing, no push notifications), so
@@ -19,7 +28,17 @@ import { useRouter } from "expo-router";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronRight } from "lucide-react-native";
-import { ANNOUNCEMENT_LIMITS, GALLERY_LIMITS, PLANS, brand } from "@goplaza/core";
+import {
+  ANNOUNCEMENT_LIMITS,
+  GALLERY_LIMITS,
+  INTERVAL_LABEL_FA,
+  PAID_PLANS,
+  PLANS,
+  brand,
+  formatCad,
+  intervalsFor,
+  type PlanId,
+} from "@goplaza/core";
 
 import { MerlonRow } from "../components/brand-mark";
 import { colors, fonts, radius, space } from "../theme";
@@ -33,6 +52,9 @@ const G = GALLERY_LIMITS;
 const A = ANNOUNCEMENT_LIMITS;
 
 type Row = { title: string; body: string };
+
+/** «چهار» today, and correct on its own the day a fifth tier is added. */
+const PLANS_COUNT_FA = (PAID_PLANS.length + 1).toLocaleString("fa-IR");
 
 const VISITOR_FREE: Row[] = [
   { title: "جستجوی فارسی که اشتباه تایپ را می‌بخشد", body: "اگر کیبورد روی فارسی مانده باشد و به‌جای dental بنویسی «یثدفشم»، باز هم پیدایش می‌کند." },
@@ -78,6 +100,24 @@ const OWNER_PREMIUM: Row[] = [
   { title: "بخش ویژه‌ی صفحه‌ی اول", body: "در بالای صفحه‌ی نخست گوپلازا." },
 ];
 
+/**
+ * The prose rows for each paid tier. Platinum is deliberately absent: its
+ * exclusive list is not decided yet, so the screen shows its confirmed
+ * bullets from the plan table and nothing invented. Adding a row here for a
+ * perk nobody has agreed to is the exact failure this file exists to avoid.
+ */
+const OWNER_ROWS: Partial<Record<PlanId, Row[]>> = {
+  pro: OWNER_STARTER,
+  featured: OWNER_PREMIUM,
+};
+
+/** «۲۱ دلار کانادا · ماهانه» — from the table, never typed by hand. */
+function priceLine(id: PlanId): string {
+  return intervalsFor(id)
+    .map((i) => `${formatCad(PLANS[id].price[i]!)} · ${INTERVAL_LABEL_FA[i]}`)
+    .join("  |  ");
+}
+
 const COMING = [
   "رزرو نوبت واقعی داخل گوپلازا (الان فقط لینک بیرونی است)",
   "نقشه‌ی جاسازی‌شده روی پروفایل",
@@ -114,12 +154,19 @@ export default function FeaturesScreen() {
 
         <View style={styles.divider}><MerlonRow color={colors.gold} height={6} opacity={0.5} /></View>
         <Text style={styles.ownerIntro}>
-          برای صاحب کسب‌وکار — سه پلن، و مرزهای صریحشان. عددها همان‌هایی هستند که سرور اعمال می‌کند.
+          برای صاحب کسب‌وکار — {PLANS_COUNT_FA} پلن، و مرزهای صریحشان. عددها همان‌هایی هستند که سرور اعمال می‌کند.
         </Text>
 
         <Section eyebrow={PLANS.free.name} title="رایگان، برای همیشه" rows={OWNER_FREE} />
-        <Section eyebrow={PLANS.pro.name} title="به‌علاوه‌ی همه‌ی موارد رایگان" rows={OWNER_STARTER} />
-        <Section eyebrow={PLANS.featured.name} title={`به‌علاوه‌ی همه‌ی موارد ${PLANS.pro.name}`} rows={OWNER_PREMIUM} />
+        {PAID_PLANS.map((id, i) => (
+          <Section
+            key={id}
+            eyebrow={PLANS[id].name}
+            title={`به‌علاوه‌ی همه‌ی موارد ${i === 0 ? PLANS.free.name : PLANS[PAID_PLANS[i - 1]].name}`}
+            price={priceLine(id)}
+            rows={OWNER_ROWS[id] ?? PLANS[id].bullets.map((b) => ({ title: b, body: "" }))}
+          />
+        ))}
 
         <View style={styles.promise}>
           <Text style={styles.promiseText}>
@@ -153,15 +200,26 @@ export default function FeaturesScreen() {
   );
 }
 
-function Section({ eyebrow, title, rows }: { eyebrow: string; title: string; rows: Row[] }) {
+function Section({
+  eyebrow,
+  title,
+  rows,
+  price,
+}: {
+  eyebrow: string;
+  title: string;
+  rows: Row[];
+  price?: string;
+}) {
   return (
     <View style={styles.section}>
       <Text style={styles.eyebrow}>{eyebrow}</Text>
       <Text style={styles.h2}>{title}</Text>
+      {price ? <Text style={styles.price}>{price}</Text> : null}
       {rows.map((r) => (
         <View key={r.title} style={styles.card}>
           <Text style={styles.cardTitle}>{r.title}</Text>
-          <Text style={styles.cardBody}>{r.body}</Text>
+          {r.body ? <Text style={styles.cardBody}>{r.body}</Text> : null}
         </View>
       ))}
     </View>
@@ -185,6 +243,13 @@ const styles = StyleSheet.create({
   lede: { fontSize: 13, fontFamily: fonts.regular, color: colors.mutedText, textAlign: "right", lineHeight: 24, marginTop: space.sm },
 
   section: { marginTop: space.lg },
+  price: {
+    fontSize: 12.5,
+    color: colors.annabi,
+    fontFamily: fonts.heavy,
+    textAlign: "right",
+    marginBottom: space.xs,
+  },
   eyebrow: { fontSize: 11.5, fontFamily: fonts.bold, color: colors.lajvard, textAlign: "right" },
   h2: { fontSize: 19, fontFamily: fonts.heavy, color: colors.text, textAlign: "right", marginTop: 3, marginBottom: space.sm },
 
