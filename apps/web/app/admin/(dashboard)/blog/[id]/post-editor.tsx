@@ -1,6 +1,9 @@
 // ============================================================================
 // Source: app/admin/(dashboard)/blog/[id]/post-editor.tsx
-// Version: 1.0.0 — 2026-08-16
+// Version: 1.1.0 — 2026-08-24
+// Why: v1.1 exposes `key_takeaway` — the standalone answer block the post page
+//      renders first and answer engines quote. It is editable because it is
+//      the one paragraph worth an admin's time.
 // ============================================================================
 "use client";
 
@@ -13,14 +16,14 @@ import { ArrowRight, Check, Save } from "lucide-react";
 import { savePost, setPostStatus } from "../actions";
 
 type Post = {
-  id: string; slug: string; status: string; title: string; title_en: string | null; excerpt: string | null; summary_en: string | null;
+  id: string; slug: string; status: string; title: string; title_en: string | null; excerpt: string | null; summary_en: string | null; key_takeaway: string | null;
   body_md: string; category_slug: string | null; tags: string[]; cover_url: string | null; cover_alt: string | null; admin_note: string | null;
   topic_seed: string | null; internal_links: string[]; faq: { q: string; a: string }[] | null;
 };
 
 export function PostEditor({ post, categories }: { post: Post; categories: { slug: string; name: string }[] }) {
   const [f, setF] = useState({
-    title: post.title, title_en: post.title_en ?? "", excerpt: post.excerpt ?? "", summary_en: post.summary_en ?? "",
+    title: post.title, title_en: post.title_en ?? "", excerpt: post.excerpt ?? "", summary_en: post.summary_en ?? "", key_takeaway: post.key_takeaway ?? "",
     body_md: post.body_md, category_slug: post.category_slug ?? "", tags: post.tags.join("، "), cover_url: post.cover_url ?? "",
     cover_alt: post.cover_alt ?? "", admin_note: post.admin_note ?? "",
   });
@@ -56,6 +59,7 @@ export function PostEditor({ post, categories }: { post: Post; categories: { slu
           <label className="block text-xs font-bold">عنوان<input className={inp} value={f.title} onChange={set("title")} /></label>
           <label className="block text-xs font-bold">English title<input className={inp} dir="ltr" value={f.title_en} onChange={set("title_en")} /></label>
           <label className="block text-xs font-bold">خلاصه<textarea className={inp} rows={2} value={f.excerpt} onChange={set("excerpt")} /></label>
+          <label className="block text-xs font-bold">کوتاه و مفید — پاسخ مستقل ۴۰ تا ۶۰ کلمه‌ای<textarea className={inp} rows={3} value={f.key_takeaway} onChange={set("key_takeaway")} /></label>
           <label className="block text-xs font-bold">English summary (quoted by AI)<textarea className={inp} dir="ltr" rows={3} value={f.summary_en} onChange={set("summary_en")} /></label>
           <div className="grid grid-cols-2 gap-3">
             <label className="block text-xs font-bold">دسته<select className={inp} value={f.category_slug} onChange={set("category_slug")}><option value="">—</option>{categories.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}</select></label>

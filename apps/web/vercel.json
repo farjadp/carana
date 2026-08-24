@@ -10,6 +10,10 @@
       "schedule": "0 11 * * *"
     },
     {
+      "path": "/api/cron/blog-source",
+      "schedule": "0 12 * * *"
+    },
+    {
       "path": "/api/cron/job-expiry-reminders",
       "schedule": "30 13 * * *"
     }

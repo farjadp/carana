@@ -1,10 +1,20 @@
 // ============================================================================
 // Source: app/blog/[slug]/page.tsx
-// Version: 1.0.0 — 2026-08-16
+// Version: 1.1.0 — 2026-08-24
 // Why: One post. Markdown body (GFM), FAQ block mirrored as FAQPage LD,
 //      Article LD with the English title as alternateName and summary_en as
 //      the abstract, related posts, and the "بعدش چه کار کنم" doors into the
 //      directory. Internal links inside the body are plain markdown links.
+//
+//      v1.1 adds the two blocks that make the page quotable rather than only
+//      rankable, and honest about where a topic came from:
+//        · `key_takeaway` — 40–60 Persian words that answer the article's
+//          question standalone, rendered first and mirrored into the Article
+//          LD as `description`. It is the passage an answer engine lifts.
+//        · `sources` — the publications whose reporting a topic came from,
+//          rendered at the foot and emitted as schema.org `citation`. The
+//          links are rel="nofollow noopener" because attribution is not an
+//          endorsement and the body deliberately carries no outbound links.
 // Env / Identity: Public. Revalidates every 10 min.
 // ============================================================================
 import type { Metadata } from "next";
@@ -44,7 +54,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       images: [{ url: post.cover_url || OG_FALLBACK }],
       publishedTime: post.published_at ?? undefined,
       modifiedTime: post.updated_at,
-      locale: "fa_IR",
+      locale: "fa_CA",
       alternateLocale: ["en_CA"],
     },
     other: post.title_en ? { "article:title:en": post.title_en } : undefined,
@@ -68,7 +78,7 @@ export default async function BlogPostPage({ params }: Params) {
     headline: post.title,
     alternativeHeadline: post.title_en ?? undefined,
     abstract: post.summary_en ?? undefined,
-    description: post.excerpt ?? undefined,
+    description: post.key_takeaway ?? post.excerpt ?? undefined,
     image: post.cover_url ? [post.cover_url] : undefined,
     datePublished: post.published_at ?? undefined,
     dateModified: post.updated_at,
@@ -78,6 +88,7 @@ export default async function BlogPostPage({ params }: Params) {
     articleSection: cat?.name_en ?? undefined,
     keywords: post.tags.join(", "),
     wordCount: post.body_md.split(/\s+/).length,
+    citation: post.sources?.length ? post.sources.map((s) => ({ "@type": "CreativeWork", name: s.title, url: s.url })) : undefined,
   };
 
   return (
@@ -104,6 +115,17 @@ export default async function BlogPostPage({ params }: Params) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={post.cover_url} alt={post.cover_alt ?? ""} className="aspect-[16/9] w-full object-cover" />
             </figure>
+          ) : null}
+
+          {/* The answer, first and whole. Rendered before the prose because a
+              reader who leaves after one block should still have the answer,
+              and because an answer engine quotes the first self-contained
+              passage it finds. */}
+          {post.key_takeaway ? (
+            <aside className="mt-8 rounded-2xl border-r-4 border-[color:var(--gold)] bg-white p-5 text-[15px] leading-8 text-[color:var(--text)]">
+              <strong className="mb-1 block text-[11px] font-black tracking-wide text-[color:var(--annabi)]">کوتاه و مفید</strong>
+              {post.key_takeaway}
+            </aside>
           ) : null}
 
           {/* English abstract — the block an answer engine quotes. Visible, not hidden. */}
@@ -136,6 +158,20 @@ export default async function BlogPostPage({ params }: Params) {
             <div className="mt-8 flex flex-wrap gap-2">
               {post.tags.map((t) => <span key={t} className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[color:var(--muted-text)]">#{t}</span>)}
             </div>
+          ) : null}
+
+          {post.sources?.length ? (
+            <section className="mt-8 rounded-2xl border border-[color:var(--line)] bg-white p-5" aria-labelledby="src-h">
+              <h2 id="src-h" className="mb-2 text-sm font-black text-[color:var(--text)]">منبع خبر</h2>
+              <p className="mb-3 text-xs leading-6 text-[color:var(--muted-text)]">این نوشته را تیم گوپلازا نوشته است. خبری که موضوع را ساخت، این‌جا منتشر شده بود:</p>
+              <ul className="space-y-1.5 text-sm">
+                {post.sources.map((s) => (
+                  <li key={s.url}>
+                    <a href={s.url} target="_blank" rel="nofollow noopener noreferrer" className="font-bold text-[color:var(--lajvard)] underline underline-offset-4">{s.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ) : null}
 
           <div className="mt-12 rounded-3xl bg-[color:var(--annabi)] p-6 text-[#f6f1e8] md:p-8">

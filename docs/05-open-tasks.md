@@ -353,6 +353,12 @@ Still open:
    two sources of truth.
 7. `notFound()` in the city routes returns 200 (pre-existing, cosmetic —
    the body is noindex).
+8. **Two loose ends from the blog-discovery work (24 Aug).** The
+   «جدیدترین مقالات» strip on `/jobs/[slug]` has never rendered — no job ad
+   is published, so the page could not be loaded; the tag is identical to
+   the five that were verified. And the mobile app has none of this: the
+   article strip and the home band live in `apps/web` only, which is exactly
+   the pattern `04-mobile` was written about.
 
 Featured placement is now fully backed: city × category, `/cities/[slug]`,
 `/search`, and (16 Aug) the home page's `homepage_slot` section all sort and
