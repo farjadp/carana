@@ -55,11 +55,30 @@ const CITY_ALIASES: Record<string, string> = {
   "ریچموندهیل": "Richmond Hill",
   "ریچموند هیل": "Richmond Hill",
   "نورث یورک": "North York",
+  // gooyalisting.ca files every listing under a Persian `listing_location`
+  // term, so its whole city vocabulary has to resolve here (added 24 Aug 2026).
+  "اتاوا": "Ottawa",
+  "ادمونتون": "Edmonton",
+  "کلگری": "Calgary",
+  "کلگری کانادا": "Calgary",
+  "مارکهام": "Markham",
+  "نیومارکت": "Newmarket",
+  "نورث ونکوور": "North Vancouver",
+  "وست ونکوور": "West Vancouver",
+  "ریچموند-هیل": "Richmond Hill",
   "تورنهیل": "Thornhill",
 };
 
-/** Values that are form placeholders rather than real locations. */
-const CITY_JUNK = new Set(["enter a location", "n/a", "na", "-", "نامشخص", ""]);
+/**
+ * Values that are form placeholders rather than real locations — plus
+ * `کبک سیتی`, which looks like a city and is not one. gooyalisting.ca files
+ * 636 listings under it; their area codes are 397×514/438 (the island of
+ * Montreal) and 13×450 against just 7×418/581 for the actual city of Quebec,
+ * and the listings' own prose says مونترال 311 times to Quebec City's 4. The
+ * label means the PROVINCE. Resolving it to "Quebec City" would have filed
+ * roughly 550 Montreal businesses in the wrong city.
+ */
+const CITY_JUNK = new Set(["enter a location", "n/a", "na", "-", "نامشخص", "", "کبک سیتی", "کبک"]);
 
 const ONTARIO_CITIES = new Set([
   "Toronto", "North York", "Scarborough", "Etobicoke", "East York",
@@ -98,6 +117,7 @@ export function provinceForCity(city: string | null): string | null {
   if (city === "Ottawa") return "Ontario";
   if (city === "Calgary" || city === "Edmonton") return "Alberta";
   if (city === "Winnipeg") return "Manitoba";
+  if (city === "Quebec City") return "Quebec";
   return null;
 }
 

@@ -13,6 +13,7 @@ export type SourceName =
   | "farsilink"
   | "iranbusiness"
   | "iranianlawyer"
+  | "gooya"
   // Not scraped by us: rows that arrive as a spreadsheet. `iranjavan` is the
   // original directory re-exported by hand, `ocr` is text lifted off scanned
   // printed pages. They have no per-record URL, so their provenance token is

@@ -1233,3 +1233,94 @@ counts do not cost a query per page render.
 
 **Lesson:** a function is only portable if everything under it is. Check what
 your imports import before promising a script it can call them.
+
+---
+
+## A directory's sitemap can be short by thousands of URLs
+
+**Symptom:** none. Scraping gooyalisting.ca from its sitemaps yields 5,471
+listings and looks complete.
+
+**Cause:** Yoast splits `listing-sitemap1..8.xml`; `sitemap1` serves an empty
+`<urlset>` and the rest are capped. The site's own REST collection answers
+`X-WP-Total: 7,471`. Two thousand businesses were missing with no error, no
+404, and no gap in the numbering to notice.
+
+**Fix:** enumerate from the CPT's REST collection and treat the sitemap as a
+hint. Cross-check the count against `X-WP-Total` before trusting any
+enumeration. Related WordPress traps found on the same site: the `rest_base`
+can differ from the post type (`/wp/v2/listings`, not `/wp/v2/listing`), and
+`meta` comes back `[]` even when the post has plenty of it, so postmeta still
+costs a detail-page fetch.
+
+**Lesson:** "the sitemap said so" is not a count. `CLAUDE.md` says to enumerate
+*our* routes from `sitemap.xml`; that rule is about our own site, where we
+control the generator. On someone else's site the sitemap is marketing output,
+not an inventory.
+
+---
+
+## The site footer will happily become every business's phone number
+
+**Symptom:** a scrape in which all 7,471 records share one phone, one email
+and one address.
+
+**Cause:** gooyalisting.ca prints the *directory operator's* contact block in
+its footer on every page. A document-wide `tel:` / `mailto:` sweep cannot tell
+it from the listing's own. It is invisible while testing on a page that has a
+contact box, because the listing's details appear first and a `.first()` picks
+the right one by luck.
+
+**Fix:** scope every contact selector to the listing's own container
+(`.wilcity-sidebar-item-business-info` there). Then test on a listing with
+**no** contact details — that is the only page where the bug shows.
+
+**Lesson:** pick your test page for where the code is weakest, not for where
+the data is richest.
+
+---
+
+## RTL drags the `+` to the end of a phone number
+
+**Symptom:** `tel:14506391629+` in the markup, and phones that fail every
+`^\+?1` check downstream.
+
+**Cause:** the number is stored as `+1 450 …` and the RTL layout writes the
+plus last. It is not a suffix and not a typo — every phone on the site looks
+like this.
+
+**Fix:** move a trailing `+` back to the front before normalising. Note that
+`p.replace(/\+(?!^)/g, "")` does **not** mean "keep a leading plus" — it
+strips the one at index 0 too. Capture the lead explicitly.
+
+**Lesson:** the RTL digit trap already cost this project sign-in and
+verification. It is not only about Persian digits; direction reorders ASCII
+punctuation in stored strings as well.
+
+---
+
+## A location label that names a city can mean the province
+
+**Symptom:** an import plan reading `Quebec City 556` against `Montreal 344`
+for a Persian-Canadian directory.
+
+**Cause:** gooyalisting.ca files 636 listings under the taxonomy term
+`کبک سیتی`. The term translates to "Quebec City" and means the province: the
+listings' area codes are 397×514/438 (the island of Montreal) and 13×450
+against **7** ×418/581 for the actual city, and their own prose says مونترال
+311 times to Quebec City's 4. Adding `"کبک سیتی": "Quebec City"` to
+`CITY_ALIASES` — a change made *to improve* city coverage — would have filed
+roughly 550 Montreal businesses in the wrong city.
+
+**Fix:** `کبک سیتی` and `کبک` are `CITY_JUNK`, so they resolve to nothing.
+Where a source's taxonomy is coarser than its prose, `cityFromProse` in
+`import-listings.mts` takes the city the listing's own text names, as the last
+fallback after street, postal code and the source label, and only when the
+text names exactly one city.
+
+**Fastest check:** area codes. A column of 514s under a label that says
+anything other than Montreal is the whole diagnosis, in one query.
+
+**Lesson:** verify a translated label against the data it covers before
+trusting it, especially when you are the one adding the alias. Every new city
+alias is a claim about hundreds of rows.

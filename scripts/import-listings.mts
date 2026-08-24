@@ -164,6 +164,53 @@ const provinceForKnownCity = (city: string | null) => (city ? CITY_PROVINCE[city
 
 const postalIn = (a: string | null | undefined) => (a ?? "").match(/\b([A-Za-z]\d[A-Za-z])\s?(\d[A-Za-z]\d)\b/)?.slice(1, 3).join(" ").toUpperCase() ?? null;
 
+/**
+ * Last resort: the city the listing's OWN text names. Not an inference from an
+ * area code or a postal prefix — the source printed the word.
+ *
+ * Needed because a directory's location taxonomy can be coarser than its
+ * prose: gooyalisting.ca files 636 businesses under a label that means the
+ * province of Quebec, and 311 of them say مونترال in their own description.
+ *
+ * Requires EXACTLY ONE city after the specific-beats-generic pass, so a page
+ * that says "we serve Toronto, Markham and Vaughan" yields nothing rather than
+ * a coin flip. "North Vancouver" does not count as also naming "Vancouver".
+ */
+const PROSE_CITIES: [string, RegExp][] = [
+  ["Montreal", /مونترال|montr[eé]al/i],
+  ["Laval", /لاوال|\blaval\b/i],
+  ["Brossard", /بروسارد|\bbrossard\b/i],
+  ["Longueuil", /لانگوی|لانگی|\blongueuil\b/i],
+  ["Quebec City", /کبک\s*سیتی|quebec city/i],
+  ["North Vancouver", /نورث\s*ونکوور|north vancouver/i],
+  ["West Vancouver", /وست\s*ونکوور|west vancouver/i],
+  ["Vancouver", /ونکوور|\bvancouver\b/i],
+  ["Burnaby", /برنابی|\bburnaby\b/i],
+  ["Coquitlam", /کوکیتلام|\bcoquitlam\b/i],
+  ["Surrey", /\bsurrey\b/i],
+  ["North York", /نورث\s*یورک|north york/i],
+  ["Richmond Hill", /ریچموند\s*-?\s*هیل|richmond hill/i],
+  ["Thornhill", /تورنهیل|\bthornhill\b/i],
+  ["Markham", /مارکهام|\bmarkham\b/i],
+  ["Vaughan", /\bvaughan\b/i],
+  ["Newmarket", /نیومارکت|\bnewmarket\b/i],
+  ["Mississauga", /می?سی?ساگا|\bmississauga\b/i],
+  ["Scarborough", /اسکاربورو|\bscarborough\b/i],
+  ["Etobicoke", /اتوبیکو|\betobicoke\b/i],
+  ["Toronto", /تورنتو|\btoronto\b/i],
+  ["Ottawa", /اتاوا|\bottawa\b/i],
+  ["Calgary", /کلگری|\bcalgary\b/i],
+  ["Edmonton", /ادمونتون|\bedmonton\b/i],
+  ["Winnipeg", /وینیپگ|\bwinnipeg\b/i],
+];
+function cityFromProse(text: string | null | undefined): string | null {
+  if (!text) return null;
+  let hits = PROSE_CITIES.filter(([, re]) => re.test(text)).map(([c]) => c);
+  // "North Vancouver" subsumes "Vancouver"; "Quebec City" subsumes nothing.
+  hits = hits.filter((c) => !hits.some((o) => o !== c && o.toLowerCase().includes(c.toLowerCase())));
+  return hits.length === 1 ? hits[0] : null;
+}
+
 /** "7330 Yonge St, Thornhill, ON L4J 7Y6, Canada" → "Thornhill" (the token before the province code). */
 function cityFromCanadianAddress(a: string | null | undefined): string | null {
   const m = (a ?? "").match(/,\s*([A-Za-z][A-Za-z .'-]{2,40}?)\s*,\s*(?:ON|BC|AB|QC|MB|SK|NS|NB|NL|PE|Ontario|British Columbia|Alberta|Quebec|Qu\u00e9bec)\b/);
@@ -192,7 +239,7 @@ async function main() {
   const listings = loaded.filter((l) => !outside.includes(l));
   console.log(`loaded ${loaded.length} listings from ${inputPath}; ${outside.length} outside Canada skipped`);
 
-  // ---- 1. collapse duplicates inside the export (same phone + overlapping name)
+  // ---- 1. collapse duplicates inside the export (same phone or instagram + overlapping name)
   //
   // NAMES MUST OVERLAP. Until 23 Aug 2026 a shared website host counted as
   // identity on its own, and that silently deleted people: iranianlawyer.org
@@ -208,12 +255,29 @@ async function main() {
   // instead of deleting anything.
   const collapsed: HamvatanListing[] = [];
   const droppedInFile: { kept: string; dropped: string; why: string }[] = [];
-  const byPhone = new Map<string, HamvatanListing[]>();
+  // Identity keys are phone numbers AND the instagram handle. Adding instagram
+  // came from gooyalisting.ca (24 Aug 2026): 7,471 rows in which 18 businesses
+  // are filed twice, once under the shop name and once under the owner's
+  // ("Beauty By Azadeh" / "Azadeh Eltejaei", "Pixelman" / "Pixelman Creative"),
+  // with a different phone on each copy — invisible to a phone-only index.
+  // The name test is NOT dropped: 41 more pairs share a handle while naming
+  // genuinely different people (a clinic and each of its dentists), and those
+  // must stay separate — the same lesson the phone rule and the iranianlawyer
+  // host rule already paid for.
+  const byKey = new Map<string, HamvatanListing[]>();
+  // Namespaced, so an all-digit handle can never be mistaken for a phone key.
+  const keysOf = (l: HamvatanListing) => {
+    const ik = instaKey(l.instagram);
+    return [
+      ...(l.phones.map(phoneKey).filter(Boolean) as string[]).map((p) => `tel:${p}`),
+      ...(ik ? [`ig:${ik}`] : []),
+    ];
+  };
   const richness = (l: HamvatanListing) =>
     [l.description, l.tagline, l.street, l.postal_code, l.website, l.instagram, l.telegram].filter(Boolean).length + l.phones.length;
   outer: for (const l of listings) {
-    for (const p of l.phones.map(phoneKey).filter(Boolean) as string[]) {
-      for (const prior of byPhone.get(p) ?? []) {
+    for (const k of keysOf(l)) {
+      for (const prior of byKey.get(k) ?? []) {
         if (namesOverlap(prior.name, l.name)) {
           // Same business listed twice; keep the richer record, union the categories.
           const keep = richness(l) > richness(prior) ? l : prior;
@@ -221,21 +285,21 @@ async function main() {
           if (drop.category && !(keep.category ?? "").includes(drop.category)) keep.category = [keep.category, drop.category].filter(Boolean).join(" / ");
           // A collapse removes a record from the run; say so in the report, so
           // "189 in, 186 planned" is never an unexplained three.
-          droppedInFile.push({ kept: keep.source_url, dropped: drop.source_url, why: `shared phone ${p} and overlapping names` });
+          droppedInFile.push({ kept: keep.source_url, dropped: drop.source_url, why: `shared ${k.startsWith("ig:") ? `instagram @${k.slice(3)}` : `phone ${k.slice(4)}`} and overlapping names` });
           if (keep !== prior) {
             const at = collapsed.indexOf(prior);
             if (at >= 0) collapsed[at] = keep;
-            // Re-point EVERY phone index that held `prior`, and register `keep`
-            // under the numbers `prior` never had. Indexing only `prior.phones`
-            // was wrong twice over: a record that replaced an earlier one stayed
+            // Re-point EVERY key that held `prior`, and register `keep` under
+            // the keys `prior` never had. Indexing only `prior`'s own keys was
+            // wrong twice over: a record that replaced an earlier one stayed
             // invisible under its own extra numbers (a silently missed merge),
-            // and `byPhone.get(pp)` could be undefined outright — which is how
+            // and `byKey.get(kk)` could be undefined outright — which is how
             // the 721-row spreadsheet crashed this loop with
             // "Cannot read properties of undefined (reading 'indexOf')".
-            const keys = new Set([...prior.phones, ...keep.phones].map(phoneKey).filter(Boolean) as string[]);
-            for (const pp of keys) {
-              const arr = byPhone.get(pp);
-              if (!arr) { byPhone.set(pp, [keep]); continue; }
+            const keys = new Set([...keysOf(prior), ...keysOf(keep)]);
+            for (const kk of keys) {
+              const arr = byKey.get(kk);
+              if (!arr) { byKey.set(kk, [keep]); continue; }
               const i = arr.indexOf(prior);
               if (i >= 0) arr[i] = keep;
               else if (!arr.includes(keep)) arr.push(keep);
@@ -246,7 +310,7 @@ async function main() {
       }
     }
     collapsed.push(l);
-    for (const p of l.phones.map(phoneKey).filter(Boolean) as string[]) byPhone.set(p, [...(byPhone.get(p) ?? []), l]);
+    for (const k of keysOf(l)) byKey.set(k, [...(byKey.get(k) ?? []), l]);
   }
   console.log(`after in-file de-duplication: ${collapsed.length} (dropped ${listings.length - collapsed.length})`);
 
@@ -454,7 +518,14 @@ ${JSON.stringify(chunk.map((l, k) => ({ rowId: i + k, name: l.name, source_categ
     // Province names, slashes and mixed-script labels are not cities either.
     if (cityHint && (/^(ontario|british columbia|alberta|quebec|québec|manitoba|saskatchewan|nova scotia|new brunswick|montérégie|canada)$/i.test(cityHint.trim()) || /[\/|]/.test(cityHint))) cityHint = null;
     if (cityHint) cityHint = cityHint.replace(/[،,]\s*qc$/i, "").trim();
-    const city = cityFromAddress(l.street) ?? cityFromPostalCode(l.postal_code ?? postalIn(l.street)) ?? cityFromCanadianAddress(l.street) ?? normalizeCity(cityHint);
+    const city =
+      cityFromAddress(l.street) ??
+      cityFromPostalCode(l.postal_code ?? postalIn(l.street)) ??
+      cityFromCanadianAddress(l.street) ??
+      normalizeCity(cityHint) ??
+      // Only once every structured signal is exhausted: the city the listing's
+      // own text names, and only if it names exactly one.
+      cityFromProse([l.name, l.tagline, l.description].filter(Boolean).join(" "));
     // Never default a province: a Montréal listing filed as Ontario is exactly the kind of quiet lie the house rule forbids.
     const province = provinceForCity(city) ?? provinceFromAddress(l.street) ?? provinceFromAddress(l.city_hint) ?? provinceForKnownCity(city);
     // Some sources open the description by repeating the name (or hold only the name); drop that echo.
