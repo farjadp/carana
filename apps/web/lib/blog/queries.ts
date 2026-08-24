@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: lib/blog/queries.ts
-// Version: 1.0.0 — 2026-08-16
+// Version: 1.2.0 — 2026-08-24
 // Why: Read side of the blog for the public pages and the feed.
 // Env / Identity: Anon client; RLS shows published only.
 // ============================================================================
@@ -14,7 +14,13 @@ export type PostCard = {
   cover_url: string | null; cover_alt: string | null; category_slug: string | null; tags: string[];
   published_at: string | null; author_name: string; reading_minutes: number | null; updated_at: string;
 };
-export type PostFull = PostCard & { body_md: string; faq: { q: string; a: string }[] | null; internal_links: string[]; sources: { title: string; url: string }[] | null };
+export type PostFull = PostCard & {
+  body_md: string;
+  key_takeaway: string | null;
+  faq: { q: string; a: string }[] | null;
+  internal_links: string[];
+  sources: { title: string; url: string }[] | null;
+};
 export type BlogCategory = { slug: string; name: string; name_en: string; description: string | null; display_order: number };
 
 export async function listCategories(supabase: SupabaseClient): Promise<BlogCategory[]> {
@@ -35,7 +41,7 @@ export async function listPosts(supabase: SupabaseClient, opts: { category?: str
 export async function getPost(supabase: SupabaseClient, slug: string): Promise<PostFull | null> {
   const { data } = await supabase
     .from("blog_posts")
-    .select(`${POST_COLUMNS}, body_md, faq, internal_links, sources`)
+    .select(`${POST_COLUMNS}, body_md, key_takeaway, faq, internal_links, sources`)
     .eq("slug", slug)
     .eq("status", "published")
     .maybeSingle();
@@ -55,3 +61,27 @@ export async function relatedPosts(supabase: SupabaseClient, post: PostCard, n =
 }
 
 export const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("fa-IR", { dateStyle: "long" }) : "");
+
+/**
+ * Newest published posts, for the sections that live outside /blog — the home
+ * page and the bottom of every inner page. Takes the same published-only path
+ * as every other read here; when the table is empty it returns [] and the
+ * caller renders nothing, because an empty «جدیدترین مقالات» heading would be
+ * a promise the page cannot keep.
+ */
+export async function latestPosts(
+  supabase: SupabaseClient,
+  n = 3,
+  opts: { excludeSlug?: string; category?: string } = {},
+): Promise<PostCard[]> {
+  let q = supabase
+    .from("blog_posts")
+    .select(POST_COLUMNS)
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .limit(n);
+  if (opts.category) q = q.eq("category_slug", opts.category);
+  if (opts.excludeSlug) q = q.neq("slug", opts.excludeSlug);
+  const { data } = await q;
+  return (data ?? []) as PostCard[];
+}

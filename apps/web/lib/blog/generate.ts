@@ -1,113 +1,52 @@
 // ============================================================================
 // Source: lib/blog/generate.ts
-// Version: 1.0.0 — 2026-08-16
-// Why: The article pipeline. Topic → brief → draft → humanise → images →
-//      internal links → row in `blog_posts` (status `review`, or `published`
-//      when BLOG_AUTO_PUBLISH=true).
+// Version: 2.0.0 — 2026-08-24
+// Why: The data-driven half of the article pipeline: topic → brief → draft →
+//      humanise → images → internal links → row in `blog_posts`.
 //
-//      Design choices, and why:
-//      - Topics come from the directory, not from a keyword list: category
-//        rotation, cities with real counts, zero-result searches, suggestions,
-//        and the calendar. That is what keeps this from being "scaled content
-//        abuse" — every post is anchored to something only GOPLAZA knows.
-//      - Two model passes. The first writes with structure (JSON); the second
-//        rewrites the prose in a specific human voice with concrete rules
-//        (short/long rhythm, no listicle tics, first-person plural, one
-//        opinion). Humanised output is measurably less templated.
-//      - Internal links are not asked for as free text. The writer picks from
-//        an inventory of real paths we hand it, and we verify each one exists
-//        before publishing. A blog that 404s inside itself is worse than none.
-//      - Every claim of a number must be one we passed in. The prompt says so,
-//        and the summary block at the top of each post is rendered from the
-//        same numbers, so the article cannot drift from the site.
+//      Topics come from the directory, not from a keyword list: category
+//      rotation, cities with real counts, zero-result searches, suggestions,
+//      and the calendar. That is what keeps this from being "scaled content
+//      abuse" — every post is anchored to something only GOPLAZA knows.
+//
+//      v2 — the inventory, the voice, link enforcement, the slug and the
+//      insert moved to pipeline.ts so the source-driven writer
+//      (source-writer.ts) shares them. What is left here is topic selection
+//      and the draft prompt. The draft now also produces `key_takeaway`, the
+//      40–60-word block an answer engine can quote whole.
 // Env / Identity: Server only. OpenAI + FAL + service role.
 // ============================================================================
-import { generateObject, generateText } from "ai";
+import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 
-import { PUBLIC_STATUSES } from "@goplaza/core";
-import { CATEGORY_DETAILS } from "@/lib/data/category-details";
-import { cityConfigs } from "@/lib/data/cities";
-import { slugify } from "@goplaza/core";
-import { MIN_INDEXABLE, countCategoryCities } from "@/lib/seo/local";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { generatePostImage } from "./images";
+import {
+  AUTO_PUBLISH,
+  HOUSE_STYLE,
+  WRITER_MODEL,
+  buildInventory,
+  enforceLinks,
+  expand,
+  factsBlock,
+  humanise,
+  insertPost,
+  linkBlock,
+  uniqueSlug,
+  wordCount,
+  type GenerateResult,
+  type Inventory,
+} from "./pipeline";
 
-const WRITER_MODEL = process.env.BLOG_MODEL ?? "gpt-4.1";
-const AUTO_PUBLISH = process.env.BLOG_AUTO_PUBLISH === "true";
-
-// ---------------------------------------------------------------------------
-// 1. Inventory — what the writer may link to and quote
-// ---------------------------------------------------------------------------
-type LinkTarget = { path: string; label: string; kind: "category" | "city" | "local" | "business" | "page" };
-
-async function buildInventory() {
-  const admin = createSupabaseAdminClient();
-  const targets: LinkTarget[] = [
-    { path: "/search", label: "جستجوی گوپلازا", kind: "page" },
-    { path: "/how-it-works", label: "چطور کار می‌کند", kind: "page" },
-    { path: "/trust", label: "نشان تأیید چیست", kind: "page" },
-    { path: "/dashboard/business/new", label: "ثبت رایگان کسب‌وکار", kind: "page" },
-    { path: "/download", label: "دانلود اپ گوپلازا", kind: "page" },
-    { path: "/blog", label: "وبلاگ گوپلازا", kind: "page" },
-  ];
-  for (const c of Object.values(CATEGORY_DETAILS)) targets.push({ path: `/categories/${c.slug}`, label: c.name, kind: "category" });
-  for (const c of cityConfigs) targets.push({ path: `/cities/${c.slug}`, label: `کسب‌وکارهای ایرانی ${c.nameFa}`, kind: "city" });
-
-  // City × category pages that are indexable, with counts (the writer quotes these).
-  const localFacts: { path: string; label: string; count: number }[] = [];
-  for (const cat of Object.values(CATEGORY_DETAILS)) {
-    const perCity = await countCategoryCities(admin, cat.slug, cat.name);
-    for (const { city, count } of perCity) {
-      if (count >= MIN_INDEXABLE) {
-        localFacts.push({ path: `/cities/${city.slug}/${cat.slug}`, label: `${cat.name} در ${city.nameFa}`, count });
-        targets.push({ path: `/cities/${city.slug}/${cat.slug}`, label: `${cat.name} در ${city.nameFa} (${count})`, kind: "local" });
-      }
-    }
-  }
-
-  // A handful of verified businesses — real names the writer may mention.
-  const { data: verified } = await admin
-    .from("businesses")
-    .select("slug, name, category, city")
-    .in("status", PUBLIC_STATUSES)
-    .gt("verified_until", new Date().toISOString())
-    .limit(20);
-  for (const b of verified ?? []) if (b.slug) targets.push({ path: `/businesses/${b.slug}`, label: `${b.name} (${b.city ?? ""})`, kind: "business" });
-
-  // Site-wide numbers.
-  const [{ count: total }, { count: verifiedCount }] = await Promise.all([
-    admin.from("businesses").select("id", { count: "exact", head: true }).in("status", PUBLIC_STATUSES),
-    admin.from("businesses").select("id", { count: "exact", head: true }).in("status", PUBLIC_STATUSES).gt("verified_until", new Date().toISOString()),
-  ]);
-
-  // Demand signals: zero-result searches (last 30 days) and recent suggestions.
-  const since = new Date(Date.now() - 30 * 864e5).toISOString();
-  const [{ data: zero }, { data: sugg }] = await Promise.all([
-    admin.from("search_queries").select("q, city").eq("result_count", 0).gte("created_at", since).limit(200),
-    admin.from("suggestions").select("body").not("body", "is", null).gte("created_at", since).limit(50),
-  ]);
-  const zeroFreq = new Map<string, number>();
-  for (const r of zero ?? []) { const k = String(r.q).trim(); if (k.length > 2) zeroFreq.set(k, (zeroFreq.get(k) ?? 0) + 1); }
-  const zeroTop = [...zeroFreq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 15).map(([q, n]) => `${q} (${n})`);
-
-  return {
-    targets,
-    localFacts: localFacts.sort((a, b) => b.count - a.count).slice(0, 40),
-    total: total ?? 0,
-    verified: verifiedCount ?? 0,
-    zeroTop,
-    suggestions: (sugg ?? []).map((s) => String(s.body).slice(0, 120)).slice(0, 15),
-  };
-}
+export type { GenerateResult } from "./pipeline";
 
 // ---------------------------------------------------------------------------
-// 2. Topic selection — anchored to data + calendar, avoiding what we already wrote
+// 1. Topic selection — anchored to data + calendar, avoiding what we already wrote
 // ---------------------------------------------------------------------------
 const CATEGORY_ROTATION = ["guides", "business", "city-life", "culture", "newcomers", "data", "guides"];
 
-function seasonalHooks(now = new Date()) {
+export function seasonalHooks(now = new Date()) {
   const m = now.getMonth() + 1; // 1..12
   const hooks: string[] = [];
   if (m === 3) hooks.push("نوروز و سفره‌ی هفت‌سین در کانادا", "خانه‌تکانی و خدمات نظافت");
@@ -132,8 +71,9 @@ const briefSchema = z.object({
   numbers_to_use: z.array(z.string()).describe("Verbatim facts from the FACTS list; nothing invented"),
   image_scenes: z.array(z.string()).min(2).describe("Two scene sentences: cover, then inline; concrete objects, no people"),
 });
+export type Brief = z.infer<typeof briefSchema>;
 
-async function planTopics(n: number, inv: Awaited<ReturnType<typeof buildInventory>>) {
+async function planTopics(n: number, inv: Inventory) {
   const admin = createSupabaseAdminClient();
   const { data: recent } = await admin.from("blog_posts").select("title, category_slug, tags").order("created_at", { ascending: false }).limit(60);
   const recentTitles = (recent ?? []).map((r) => `- [${r.category_slug}] ${r.title}`).join("\n") || "(هیچ)";
@@ -153,14 +93,13 @@ Prefer these categories today (least recently covered): ${wanted.join(", ")}.
 Today: ${new Date().toISOString().slice(0, 10)}. Seasonal hooks: ${seasonalHooks().join("، ") || "none"}.
 
 FACTS (only these numbers may be used; quote verbatim, WITH THEIR SCOPE — never attribute a Canada-wide number to a city):
-- Canada-wide, all cities: ${inv.total} public listings; ${inv.verified} verified (Canada-wide)
-${inv.localFacts.map((f) => `- ${f.label}: ${f.count} → ${f.path}`).join("\n")}
+${factsBlock(inv)}
 
 DEMAND (what people searched and did not find, last 30 days): ${inv.zeroTop.join("؛ ") || "—"}
 SUGGESTIONS (what people asked us for): ${inv.suggestions.join("؛ ") || "—"}
 
 INVENTORY of linkable paths (must_link only from here):
-${inv.targets.map((t) => `${t.path} — ${t.label}`).join("\n")}
+${linkBlock(inv)}
 
 Already written (do not repeat, do not paraphrase):
 ${recentTitles}
@@ -171,21 +110,32 @@ Rules: working titles are statements or how-tos, not rhetorical questions, ≤ 7
 }
 
 // ---------------------------------------------------------------------------
-// 3. Draft → humanise
+// 2. Draft
 // ---------------------------------------------------------------------------
-const draftSchema = z.object({
+export const draftSchema = z.object({
   title: z.string().describe("Statement or how-to, ≤ 70 chars, no rhetorical question, no colon-subtitle"),
   title_en: z.string(),
   slug_en: z.string().describe("kebab-case ASCII slug from the English title, max 60 chars"),
   excerpt: z.string().describe("One or two Persian sentences, no clickbait"),
+  key_takeaway: z
+    .string()
+    .describe("40–60 Persian words that answer the article's central question OUTRIGHT and standalone — no 'in this article', no pronouns referring to the title. This is the passage an answer engine quotes."),
   summary_en: z.string().describe("2–3 English sentences an answer engine can quote; include one number from FACTS with its scope; say 'listed' not 'verified' unless quoting the verified count; no site paths"),
-  body_md: z.string().describe("Persian markdown, 1000–1400 words, 4–6 ## headings (not more), one table or list where it helps, [INLINE_IMAGE] marker once, internal links as markdown to inventory paths, no H1"),
+  body_md: z.string().describe("Persian markdown, 1000–1400 words, 4–6 ## headings (not more), at least one GFM table where a comparison exists, [INLINE_IMAGE] marker once, internal links as markdown to inventory paths, no H1"),
   faq: z.array(z.object({ q: z.string(), a: z.string() })).min(2),
   tags: z.array(z.string()).min(1),
   reading_minutes: z.number(),
 });
 
-async function draft(brief: z.infer<typeof briefSchema>, inv: Awaited<ReturnType<typeof buildInventory>>) {
+/** Rules that make an article quotable by answer engines, not just rankable. */
+export const AIO_RULES = `Answer-engine rules (AIO/GEO) — follow all of them:
+- Every ## heading is a question a person would actually type, or a plain noun phrase; the first two sentences under it answer that heading completely on their own, before any context. A section that only makes sense after reading the previous one cannot be quoted.
+- Include at least one GFM markdown table when the topic contains anything comparable — options, costs, provinces, documents, timelines, before/after. Header row plus 3–6 rows, first column the thing being compared, no empty cells, no cell longer than a short phrase. Do not fabricate a table for a topic with nothing to compare.
+- State entities in full at least once: "سازمان مالیاتی کانادا (CRA)", "اداره مهاجرت کانادا (IRCC)", city names with their province on first mention.
+- Attach a date or a period to anything time-sensitive ("از ژانویه ۲۰۲۶", "در سال تحصیلی جاری") so a stale claim is visibly stale.
+- Never state a statistic, price, law, deadline or business name that was not given to you in this prompt. If a number would help but you were not given it, describe the shape without inventing the figure.`;
+
+async function draft(brief: Brief, inv: Inventory) {
   const { object } = await generateObject({
     model: openai(WRITER_MODEL),
     schema: draftSchema,
@@ -195,87 +145,30 @@ async function draft(brief: z.infer<typeof briefSchema>, inv: Awaited<ReturnType
 
 BRIEF: ${JSON.stringify(brief, null, 2)}
 
-FACTS you may quote (verbatim numbers only, with the scope given here; if a number is not here, do not state one). Canada-wide across all cities: ${inv.total} listings, ${inv.verified} verified. Per city×category (these are city-scoped):
-${inv.localFacts.map((f) => `${f.label}: ${f.count} (${f.path})`).join("; ")}
+FACTS you may quote (verbatim numbers only, with the scope given here; if a number is not here, do not state one):
+${factsBlock(inv)}
 
-Linkable paths (use ONLY these for internal links; every path in brief.must_link must appear at least once as a markdown link with a natural Persian anchor, and paths must be relative like /categories/medical-clinic):
-${inv.targets.map((t) => `${t.path} — ${t.label}`).join("\n")}
+Linkable paths (use ONLY these for internal links; every path in brief.must_link must appear at least once as a markdown link with a natural Persian anchor, and paths must be relative like /categories/medical-clinic). Link 3–6 times in total, spread through the body, never two links in one sentence:
+${linkBlock(inv)}
 
-Style: expert but plain; second-person singular خودمانی ("پیدا کن", "بپرس"); never first-person singular ("من", "خودم") and never invented personal anecdotes — the only first person allowed is "ما در گوپلازا" about the directory's data; written register, not spoken (می‌رسد not می‌رسه, است not ـه، را not رو); GOPLAZA launched in 2026 — never "سال‌ها" or "همیشه" about our own experience; the word "تأییدشده/verified" only for the verified count itself, never as a synonym for "listed"; nim-fasele (نیم‌فاصله) always; Persian digits inside Persian text; keep English proper nouns (city names, RRSP, TFSA, T1) in Latin; no "در این مقاله"; no filler intro; open with the reader's situation in two sentences; end with a short "بعدش چه کار کنم" section that points to the site. Put exactly one [INLINE_IMAGE] marker on its own line after the second or third section. Do not invent statistics, prices, laws or names. Where a rule depends on province, say "در انتاریو…" explicitly and keep it general.`,
+${AIO_RULES}
+
+${HOUSE_STYLE} Put exactly one [INLINE_IMAGE] marker on its own line after the second or third section.`,
   });
   return object;
 }
 
-const wordCount = (md: string) => md.replace(/!\[[^\]]*\]\([^)]*\)/g, "").split(/\s+/).filter(Boolean).length;
-
-/** If a draft comes out short, grow it with substance — examples, a table, a checklist — never filler. */
-async function expand(body: string, target = 1100): Promise<string> {
-  const { text } = await generateText({
-    model: openai(WRITER_MODEL),
-    temperature: 0.7,
-    prompt: `This Persian article is ${wordCount(body)} words; it should be about ${target}. Expand it to roughly ${target} words by adding SUBSTANCE only: a concrete example under each thin section, one comparison table or checklist where it helps, a short "اشتباه‌های رایج" section if there is none. Keep every existing heading, fact, number, link and the [INLINE_IMAGE] marker exactly. Do not add filler sentences, do not add an intro or a conclusion paragraph, do not invent statistics, prices, laws or business names. Keep نیم‌فاصله and Persian digits. Return only the markdown.
-
-ARTICLE:
-${body}`,
-  });
-  return text.trim();
-}
-
-async function humanise(body: string): Promise<string> {
-  const { text } = await generateText({
-    model: openai(WRITER_MODEL),
-    temperature: 0.9,
-    prompt: `Rewrite the following Persian article so it reads as written by one experienced person, not a template. Keep every fact, number, heading, link, table and the [INLINE_IMAGE] marker exactly; do not add or remove sections; keep the total length within 10% of the original (do not compress — expand a thin paragraph with a concrete example instead). Change the prose:
-
-- Vary sentence length: some very short. Some longer, with a clause that adds a concrete detail.
-- Remove listicle tics and AI-isms: no "در دنیای امروز", "قابل توجه است که", "به طور کلی", "در نهایت", "بیایید", "مهم است بدانید"; no sentence that starts with "این" three times in a row; no bullet list longer than five items.
-- One place, allow an aside in first-person plural ("ما در گوپلازا دیده‌ایم که…") tied to the directory's data. Never first-person singular, never an invented personal memory.
-- One place, take a position ("به نظر ما…") and give the reason.
-- Prefer verbs to nominalisations; cut adverbs.
-- Keep the written register: no spoken/broken forms (می‌رسه، می‌شه، رو، تو به‌جای در) — خودمانی means plain and direct, not colloquial spelling.
-- Keep نیم‌فاصله and Persian digits. Return only the markdown.
-
-ARTICLE:
-${body}`,
-  });
-  return text.trim();
-}
-
 // ---------------------------------------------------------------------------
-// 4. Link verification, images, persist
+// 3. Run
 // ---------------------------------------------------------------------------
-function extractInternalLinks(md: string): string[] {
-  const out = new Set<string>();
-  for (const m of md.matchAll(/\]\((\/[^)\s#?]+)/g)) out.add(m[1]);
-  return [...out];
-}
-
-async function verifyPaths(paths: string[], inv: Awaited<ReturnType<typeof buildInventory>>) {
-  const known = new Set(inv.targets.map((t) => t.path));
-  return paths.filter((p) => known.has(p));
-}
-
-async function uniqueSlug(base: string) {
-  const admin = createSupabaseAdminClient();
-  let slug = slugify(base).slice(0, 70) || `post-${Date.now()}`;
-  const { data } = await admin.from("blog_posts").select("slug").like("slug", `${slug}%`);
-  const taken = new Set((data ?? []).map((r) => r.slug));
-  if (!taken.has(slug)) return slug;
-  let i = 2;
-  while (taken.has(`${slug}-${i}`)) i++;
-  return `${slug}-${i}`;
-}
-
-export type GenerateResult = { created: { id: string; slug: string; title: string }[]; errors: { title?: string; error: string }[] };
-
-/** Generate `n` posts. Each brief is independent; one failure does not stop the run. */
+/** Generate `n` posts from our own data. Each brief is independent; one failure does not stop the run. */
 export async function generatePosts(n: number, opts?: { publish?: boolean; dryRun?: boolean }): Promise<GenerateResult> {
   const admin = createSupabaseAdminClient();
   const result: GenerateResult = { created: [], errors: [] };
-  const { data: run } = await admin.from("blog_runs").insert({ requested: n }).select("id").single();
+  const { data: run } = await admin.from("blog_runs").insert({ requested: n, notes: "data-driven" }).select("id").single();
 
-  let inv: Awaited<ReturnType<typeof buildInventory>>;
-  let briefs: z.infer<typeof briefSchema>[];
+  let inv: Inventory;
+  let briefs: Brief[];
   try {
     inv = await buildInventory();
     briefs = await planTopics(n, inv);
@@ -287,20 +180,16 @@ export async function generatePosts(n: number, opts?: { publish?: boolean; dryRu
 
   // Posts are independent; run them concurrently so five fit inside one
   // serverless invocation (each is ~25–40 s of model + image time).
-  const writeOne = async (brief: z.infer<typeof briefSchema>) => {
+  const writeOne = async (brief: Brief) => {
     try {
       const d = await draft(brief, inv);
       let full = d.body_md;
       if (wordCount(full) < 850) full = await expand(full);
       const humanBody = await humanise(full);
       const slug = await uniqueSlug(d.slug_en || d.title_en);
+      const { body: linked, links } = enforceLinks(humanBody, inv);
+      let body = linked;
 
-      // Links: only ones that exist. Strip the rest to plain text.
-      const wanted = extractInternalLinks(humanBody);
-      const ok = new Set(await verifyPaths(wanted, inv));
-      let body = humanBody.replace(/\[([^\]]+)\]\((\/[^)\s#?]+)[^)]*\)/g, (m, text, path) => (ok.has(path) ? m : text));
-
-      // Images
       let cover: string | null = null;
       if (!opts?.dryRun) {
         const [c, i] = await Promise.all([
@@ -314,12 +203,17 @@ export async function generatePosts(n: number, opts?: { publish?: boolean; dryRu
       }
 
       const publish = opts?.publish ?? AUTO_PUBLISH;
-      const row = {
+      if (opts?.dryRun) {
+        result.created.push({ id: "dry-run", slug, title: d.title });
+        return;
+      }
+      const inserted = await insertPost({
         slug,
         title: d.title,
         title_en: d.title_en,
         excerpt: d.excerpt,
         summary_en: d.summary_en,
+        key_takeaway: d.key_takeaway,
         body_md: body,
         cover_url: cover,
         cover_alt: brief.image_scenes[0].slice(0, 140),
@@ -330,16 +224,10 @@ export async function generatePosts(n: number, opts?: { publish?: boolean; dryRu
         reading_minutes: d.reading_minutes,
         faq: d.faq,
         sources: null,
-        internal_links: [...ok],
+        internal_links: links,
         ai_model: WRITER_MODEL,
         topic_seed: `${brief.why_now} — ${brief.angle}`,
-      };
-      if (opts?.dryRun) {
-        result.created.push({ id: "dry-run", slug, title: d.title });
-        return;
-      }
-      const { data: inserted, error } = await admin.from("blog_posts").insert(row).select("id, slug, title").single();
-      if (error) throw error;
+      });
       result.created.push(inserted);
     } catch (e) {
       result.errors.push({ title: brief.working_title, error: e instanceof Error ? e.message : String(e) });

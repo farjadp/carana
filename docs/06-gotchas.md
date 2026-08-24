@@ -1324,3 +1324,85 @@ anything other than Montreal is the whole diagnosis, in one query.
 **Lesson:** verify a translated label against the data it covers before
 trusting it, especially when you are the one adding the alias. Every new city
 alias is a claim about hundreds of rows.
+
+---
+
+## A refusal must not have to fill in the whole form
+
+**Symptom:** the source writer's first live run threw `No object generated:
+response did not match schema` on exactly the two atash.ca articles it *should*
+have rejected — a Trudeau-and-Katy-Perry story and a "police mistook a statue
+for a person" piece. The one usable article wrote fine.
+
+**Cause:** the read step's zod schema carried `usable: boolean` alongside
+`facts.min(1)`, `must_link.min(1)`, `image_scenes.min(2)`. A model saying *no*
+has no angle, no links and no image scenes to give — so a correct refusal was
+structurally invalid, and the useful part (the reason) was thrown away with it.
+Relaxing them to `.default([])` was **not enough**: a rejecting model does not
+omit those keys, it sends `null`, and a zod default does not accept null.
+
+**Fix:** everything past `usable` is `.nullish().transform(v => v ?? fallback)`
+(the `orEmpty` helper in `source-writer.ts`). Completeness is then checked in
+code — `briefGap()` — where a "yes" with nothing behind it becomes a *skip with
+a reason* instead of an exception. After the fix both articles were refused
+properly, with reasons an admin can read.
+
+**Lesson:** when a schema has an escape hatch, every other field has to be
+optional *and* null-tolerant, or the escape hatch is unreachable. And check
+what your validator does with `null` versus missing — they are not the same
+value, and models pick the one you did not handle.
+
+---
+
+## A markdown link without a leading slash sails straight through the link gate
+
+**Symptom:** a generated post shipped with `internal_links: []` while its body
+was full of links — and the links rendered as the literal text "/search" and
+pointed at `/blog/<slug>/search`.
+
+**Cause:** the model wrote `[/search](search)` — path as the anchor text, href
+with no leading slash. `enforceLinks()` matched only `](/…`, so those links were
+neither *recognised* (hence the empty `internal_links`) nor *demoted* to plain
+text. They were the one thing the gate exists to prevent — a blog that 404s
+inside itself — and the gate could not see them.
+
+**Fix:** hrefs are normalised before they are judged (missing slash added,
+`#`/`?` and trailing slashes trimmed), outbound and `mailto:`/`tel:` links are
+stripped to text, and when the visible anchor text is itself a path it is
+replaced with the inventory's own Persian label. The rewritten post came back
+with eight well-formed links and natural anchors.
+
+**Lesson:** a validator that only matches the well-formed case validates
+nothing. Normalise first, then judge — and make the malformed case fail loudly
+rather than pass invisibly.
+
+---
+
+## The desktop nav had no slack left, and the breakpoint hid it
+
+**Symptom:** adding one link («مقالات») to the header bar pushed
+`.site-header-inner` into horizontal overflow at desktop widths just above
+the nav's breakpoint. Nothing looked broken at 1280px, where the work was
+done.
+
+**Cause:** `.header-nav` switched on at `min-width: 900px` with a flat
+`gap: 1.35rem`. Measured at exactly 900px, the four links plus three menu
+triggers already needed **568px inside 567px** of available width — the row
+had been full since the third dropdown was added, and the header overflowed
+by ~9px the moment anything else joined it. The breakpoint was chosen for the
+bar of an earlier session, and nobody re-measured it after the bar grew.
+
+**Fix:** the gap is fluid (`clamp(0.85rem, 1.35vw, 1.35rem)`) and the desktop
+bar now takes over at `min-width: 960px`. At 960 the items measure 472px
+inside 602px — 130px of slack. Below 960 the burger menu carries the same
+links, so nothing is lost.
+
+**How to measure it without a screenshot:** clone `.site-header-inner` into a
+fixed-width absolutely-positioned holder in the page and read
+`inner.scrollWidth` against that width. Note that media queries still answer
+to the *real* viewport, so the browser viewport has to be resized too — a
+clone at a fake width will keep the display value of the real one.
+
+**Lesson:** a navigation bar has a width budget, and "it fits on my screen"
+tests the widest case only. Measure at the breakpoint, which is the narrowest
+width the desktop layout ever has to survive.
