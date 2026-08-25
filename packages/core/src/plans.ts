@@ -252,6 +252,21 @@ export function planHas(id: string | null | undefined, feature: Feature): boolea
   return planOf(id).features.includes(feature);
 }
 
+/**
+ * Every plan id that unlocks `feature` — for the queries that have to narrow
+ * by plan before they can compute an entitlement.
+ *
+ * Added 24 Aug 2026 after the home page's featured section was found doing
+ * `.eq("plan", "featured")`, with a comment claiming it mirrored
+ * `entitlementsFor`. It did not: Platinum also holds `homepage_slot`, so the
+ * most expensive tier was silently excluded from the slot it pays for, and
+ * the bug was invisible while nobody held the tier. Ask this instead of
+ * typing a plan id into a filter.
+ */
+export function plansWith(feature: Feature): PlanId[] {
+  return (Object.keys(PLANS) as PlanId[]).filter((id) => PLANS[id].features.includes(feature));
+}
+
 /** Price ids come from the environment so test and live can differ. */
 export function priceIdFor(plan: PlanId, interval: BillingInterval): string | undefined {
   const key = `STRIPE_PRICE_${plan.toUpperCase()}_${interval.toUpperCase()}`;

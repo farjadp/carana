@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/page.tsx
-// Version: 2.0.0 — 2026-08-16
+// Version: 2.1.0 — 2026-08-24
 // Why: The home page. v2 is a redesign around the one job a directory home
 //      page has — get someone to the right business — after Farjad flagged it
 //      as repetitive and unfocused. What was actually wrong, and what changed:
@@ -42,11 +42,13 @@ import { Search, MapPin, ArrowLeft, Star, ShieldCheck, Bookmark, MessageSquare, 
 
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
+import { plansWith } from "@goplaza/core";
 import { getDirectoryStats } from "@/lib/data/directory-stats";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BusinessCard } from "@/components/business/business-card";
 import { HomeHero } from "@/components/home-hero";
 import { SuggestionBox } from "@/components/suggestion-box";
+import { HomeLatestPosts } from "@/components/blog/latest-posts";
 import { STORES } from "@/lib/data/releases";
 
 // The eight cities with generated background art. Kept here rather than read
@@ -90,20 +92,24 @@ export default async function HomePage() {
     .order("display_order", { ascending: true })
     .limit(10);
 
-  // Featured businesses — the plan's homepage_slot feature
-  // (lib/billing/plans.ts). Filtered here the same way entitlementsFor()
-  // decides "featured": plan = 'featured' and not expired. That's a
-  // performance filter, not the source of truth — BusinessCard recomputes
-  // the entitlement itself from plan/plan_until before it renders the چیپ,
-  // so a row that slipped past this query still can't wear an unearned
-  // label. Section renders only when it actually has something to show:
-  // an empty "ویژه" section would be the same broken promise as a search
-  // box that doesn't search.
+  // Featured businesses — every plan that holds the `homepage_slot` feature,
+  // asked of plans.ts rather than typed here. It used to say
+  // `.eq("plan", "featured")` under a comment claiming it mirrored
+  // entitlementsFor(); it did not, because Platinum holds homepage_slot too,
+  // so the most expensive tier was excluded from the slot it pays for. The
+  // bug was unobservable while nobody held the tier (24 Aug 2026).
+  //
+  // Still a performance filter, not the source of truth — BusinessCard
+  // recomputes the entitlement from plan/plan_until before it renders the
+  // چیپ, so a row that slipped past this query still cannot wear an unearned
+  // label. Section renders only when it actually has something to show: an
+  // empty "ویژه" section would be the same broken promise as a search box
+  // that doesn't search.
   const { data: featuredBusinesses } = await supabase
     .from("businesses")
     .select("*")
     .or("status.eq.APPROVED,status.eq.PUBLISHED")
-    .eq("plan", "featured")
+    .in("plan", plansWith("homepage_slot"))
     .or(`plan_until.is.null,plan_until.gte.${nowIso}`)
     .order("plan_until", { ascending: true, nullsFirst: false })
     .limit(6);
@@ -329,7 +335,12 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 8. Why this directory, and how it stays honest. Previously two
+        {/* 8. The blog. It used to be reachable from one link inside one
+            dropdown, so nothing written there was ever read. Renders nothing
+            when no post is published — see components/blog/latest-posts.tsx. */}
+        <HomeLatestPosts />
+
+        {/* 9. Why this directory, and how it stays honest. Previously two
             sections — a four-card "چرا GOPLAZA؟" and a paragraph headed
             "اطلاعات قابل اعتماد" — making the same argument twice. */}
         <section className="border-t border-gray-100 bg-gray-50 px-4 py-16">
@@ -356,7 +367,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 9. Business owner path */}
+        {/* 10. Business owner path */}
         <section className="relative overflow-hidden bg-[color:var(--lajvard)] px-4 py-20 text-white">
           <div className="absolute inset-0 bg-black/10" />
           <div className="relative z-10 mx-auto max-w-4xl text-center">
@@ -385,14 +396,14 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 10. Ask the visitor what is missing — text or voice */}
+        {/* 11. Ask the visitor what is missing — text or voice */}
         <section className="border-t border-gray-100 bg-white px-4 py-16">
           <div className="mx-auto max-w-3xl">
             <SuggestionBox page="/" />
           </div>
         </section>
 
-        {/* 11. The app — a working miniature of the real UI, not a dead frame */}
+        {/* 12. The app — a working miniature of the real UI, not a dead frame */}
         <section className="relative overflow-hidden bg-[#14213d] px-4 py-24 text-[#f6f1e8]">
           <style>{`
             @keyframes app-float { 0%,100% { transform: rotate(-5deg) translateY(0); } 50% { transform: rotate(-5deg) translateY(-10px); } }
