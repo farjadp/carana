@@ -1,3 +1,122 @@
+# 2026-08-25 — GPLZ Link: a link-in-bio product, built end to end
+
+Farjad bought `gplz.link` and asked for a Linktree-class page per business,
+"managed, not separate". That framing decided everything: it is a second
+hostname on this same app, one repo, one database, one deploy. Removing the
+whole product would be deleting one branch in `proxy.ts`, five tables and one
+route folder — nothing else in the codebase would know it had existed. That,
+not the migration guards, is the actual insurance policy.
+
+Ten commits, nine migrations, all applied. The loop closes: an owner creates,
+names and publishes a page → the page records its own traffic → the traffic
+becomes durable daily analytics → raw rows are pruned on schedule → the owner
+sees real numbers, tiered by plan.
+
+## The decisions, and why they are the ones that mattered
+
+**One handle namespace.** `businesses.vanity_slug` and `link_pages.handle`
+would both have held "the custom name for a business", neither aware of the
+other, so the same name could be free in one and taken in the other forever
+with nowhere to ask. The old column is gone; the handle is the one namespace,
+asked through `handle_available()`.
+
+**$13 Link Pro is a second axis, not a fifth plan.** `hasLinkPro` ORs a
+standalone subscription with any paid directory plan, so Starter at $21
+strictly dominates Link Pro rather than competing with it. If that OR ever
+becomes an AND the pricing breaks silently, which is why the checker asserts
+it.
+
+**A mirror item may not keep a copy.** `link_items_mirror_has_no_copy` makes
+caching a URL unrepresentable, so a changed phone number changes the page with
+no edit and no sync job. That constraint is the product.
+
+**The plan gates the query, never the data.** Every page's events are recorded
+in full; the window is clamped at read time. Upgrading reveals real history
+instead of an empty chart.
+
+**A Toronto day, decided before any rollup existed.** A UTC boundary cuts a
+Toronto evening in half. Stored buckets cannot be reinterpreted later and the
+raw events behind them expire at 90 days, so this was cheap exactly once.
+
+## Four bugs that only running it found
+
+Reading the code found none of these. Each was caught by executing the thing.
+
+1. **The database accepted `a` and `Kabab-Sara`.** A checker already asserted
+   that the TypeScript regex and the SQL CHECK were identical — and they were.
+   Both were wrong in the same two ways: no minimum length, and `citext` making
+   the regex case-insensitive. **An equality assertion proves two sides agree;
+   it can never prove either is right.** Written up in `06-gotchas.md`.
+2. **Clicks were silently not recorded.** The once-per-visit guard sat at the
+   top of the tracker's effect as an early return, so on a second mount it
+   returned *before* attaching the click listener. Views recorded, clicks did
+   not — the worst shape for this bug, because the number that exists looks
+   correct and the missing one looks like nobody tapped anything.
+3. **Every analytics breakdown was wrong.** `link_page_summary` returns one row
+   *per day* per value; the component mapped those straight into a list, so a
+   link clicked eleven times rendered as «تماس تلفنی ۱» repeated and the top-6
+   cut kept six single days instead of the six biggest categories. The shape
+   was valid, the meaning was not — no type or test would have caught it.
+4. **`/link/*` was publicly reachable on goplaza.ca**, a duplicate of the bio
+   page under the wrong domain; and `/Kabab-Sara` silently served the same page
+   as `/kabab-sara`. Both found by curling every proxy branch.
+
+## What was said wrongly, in order
+
+- **"`check:brand` prints failures and exits 0."** It exits 1. The command I
+  checked captured an `echo`'s exit code. It had drifted from 21 references to
+  46, partly from my own files — the hash-salt allowance had not followed the
+  salt when it moved to `lib/analytics/visitor.ts`. Fixed; clean now.
+- **"No bullet promises the vanity URL."** True of `plans.ts`, wrong about the
+  site: `/features` advertised «آدرس اختصاصی انگلیسی — GoPlaza.ca/b/dr-ahmadi».
+  Retiring it therefore had user-facing copy attached.
+- **"Three source files still read `vanity_slug`."** Six did, including
+  `lib/actions/owner-visibility.ts`, which I had missed.
+- **"Six earlier migrations are unapplied and `db push` would run them."** A
+  first `migration list` showed them with empty remote entries. Two later
+  read-only checks disagreed and the objects existed in production. I cannot
+  explain the first reading and did not invent a cause; the caution cost
+  nothing.
+
+## Two things about the environment, not the code
+
+**Another session was working in the same folder** and switched the shared
+tree from `gplz-link` to `main` mid-flight. Nothing was lost and there was zero
+file overlap, but two agents sharing one working tree is a standing hazard:
+whoever is second can have the branch pulled out from under them. Their
+finished-but-uncommitted work was committed separately, twice, so it kept its
+own history instead of arriving inside mine.
+
+**The repository is public.** `docs/11-business-report.{docx,html,pdf}` heads
+itself «سند فرماندهی داخلی · محرمانه» and carries revenue, annual cost,
+competitor-by-competitor analysis and the pricing arithmetic. It is now in
+`.gitignore`. A commit containing it would be public permanently, whatever a
+later commit removes.
+
+## Found in passing, recorded, not fixed
+
+**Every missing listing and job returns HTTP 200, not 404** —
+`/businesses/definitely-not-here`, `/jobs/nope`. Documented Next 16 behaviour:
+200 for streamed responses, and this app has a `loading.tsx` so everything
+streams. Next injects `noindex`, so they are not indexed, but they are soft
+404s. For a directory whose discovery is organic, every stale URL keeps
+consuming crawl budget. Its own Mission Control row.
+
+## What is still missing
+
+No editor, no themes, no QR, no scheduling, no lead capture — all specified,
+none built. The individual free tier is **not** open, deliberately: its abuse
+defenses are a launch blocker, because a phishing page on our own domain gets
+`gplz.link` flagged and every short link on the platform dies with it.
+
+`gplz.link` is not connected in Vercel and the Stripe product does not exist.
+Everything that had to precede the domain is in: the host is closed to
+indexing, pages carry `noindex` + canonical, and traffic is recorded from the
+first visitor.
+
+
+---
+
 # 2026-08-24, later still — the blog gets a front door
 
 Eight published posts, and the only way to reach any of them was one link

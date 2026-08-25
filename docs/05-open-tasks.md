@@ -1,5 +1,9 @@
 # Open tasks
 
+**Updated:** 2026-08-25 — **GPLZ Link** is built end to end and waiting on two
+dashboard steps from Farjad; its remaining engineering is the first section
+below. Everything from 24 Aug follows unchanged.
+
 **Updated:** 2026-08-24 — gooyalisting.ca is **imported**; the directory
 nearly doubled (5,802 → 10,680) and the three follow-ups it left are the
 first section below. The mobile gap is **closed**, including one bug the audit
@@ -7,6 +11,60 @@ did not predict. What is still open on mobile is owner controls and push,
 both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
+
+## GPLZ Link — BUILT 25 Aug; two on Farjad, three on us
+
+A bio page per business on `gplz.link`, served by this same app. Nine
+migrations applied, ten commits, deployed. What is missing is listed honestly
+below — nothing here is half-shipped, it is simply not started.
+
+**Farjad, minutes each — these two are what stop anyone using it:**
+
+1. **Add `gplz.link` to the Vercel project.** Same project as goplaza.ca, apex,
+   no www. Everything that had to precede it is in: the host is closed to
+   indexing (`Disallow: /` answered in `proxy.ts`), pages carry `noindex` +
+   canonical, and traffic is recorded from the first visitor. Until this is
+   done the pages render only at `goplaza.ca/link/<handle>` in development —
+   in production that path 301s away, by design.
+2. **Create the Stripe product for «لینک حرفه‌ای»** — $13/mo and $130/yr, CAD,
+   following the existing `STRIPE_PRICE_*` env-var naming so `priceIdFor`
+   keeps working. Until then nobody can buy the paid tier; the entitlement
+   itself (`hasLinkPro`) is live and already granted by every paid directory
+   plan.
+
+**Us, in dependency order:**
+
+3. **Abuse defenses — the launch blocker for the individual free tier.**
+   `link_pages.business_id` is nullable precisely so a freelancer with no
+   listing can own a page, and that flow is deliberately not built. A phishing
+   page on our own domain gets `gplz.link` flagged by Safe Browsing, and
+   **every short link on the platform dies with it**, not just bio pages.
+   Minimum: publish only after phone verification, one page per free account,
+   a report button, an automated blocklist scan of outbound domains, and a
+   light review queue for new low-traffic pages. `rel="nofollow ugc"` and the
+   host-wide `noindex` are already in.
+4. **The editor** — reorder, add custom links, toggle mirror modules. The free
+   cap is 5 custom links and the server must clamp it too; a client-side cap
+   is not a cap. `LINK_LIMITS` in `@goplaza/core` already holds the numbers.
+5. **QR, themes, scheduling, lead capture.** All specified in the Notion spec,
+   none started. QR needs a decision first: there is no QR library in the
+   project, so it means adding a dependency. Lead capture needs consent copy
+   and snapshotting — the column exists (`link_leads.consent_text`) and stores
+   what the person actually agreed to, not a reference to current wording.
+
+**Two smaller things this work left:**
+
+- `toLatinDigits` now has **three** copies — the canonical one in
+  `@goplaza/core`, plus `apps/web/lib/utils/digits.ts` and
+  `apps/web/lib/sms/send.ts`. All three behave identically today. The two in
+  `apps/web` were deliberately not touched so that step stayed additive.
+- **Every missing listing and job returns HTTP 200, not 404.** Pre-existing and
+  app-wide, not caused by this work: documented Next 16 behaviour (200 for
+  streamed responses, and this app has a `loading.tsx`). Next injects
+  `noindex` so they are not indexed, but a directory that answers 200 for URLs
+  that do not exist burns crawl budget on every stale one. The fix the Next
+  docs point at is checking before the response streams — i.e. in `proxy.ts` —
+  which is a real design decision, not a one-liner.
 
 ## gooyalisting.ca — IMPORTED 24 Aug; three follow-ups
 

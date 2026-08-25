@@ -1487,3 +1487,42 @@ prove they are right, and a shared source of truth propagates a mistake as
 faithfully as it propagates a rule. Calling the function against the real
 database found both holes in about a minute. Run the thing. "The SQL parses"
 and "the SQL ran" are different sentences.
+
+---
+
+## A daily rollup is not a total, and the shape will not tell you
+
+**Symptom.** The link-page analytics showed «تماس تلفنی ۱» three times, «t.me ۱»
+twice, «موبایل ۱» four times. Every category looked like it had been touched
+once. The real numbers were 11, 27 and 21.
+
+**Cause.** `link_page_summary` returns **one row per day per value** — it reads
+`analytics_daily`, which is a daily rollup. The component mapped those rows
+straight into a list, so each row rendered as its own entry and the
+`.slice(0, 6)` kept six arbitrary *days* instead of the six biggest
+categories. Sorting made it worse by looking deliberate.
+
+**Fix.** Group by value and sum before sorting or truncating:
+
+```ts
+function totalBy(rows, eventType, label) {
+  const sums = new Map<string, number>();
+  for (const r of rows) {
+    if (r.event_type !== eventType) continue;
+    const key = label(r.value);
+    sums.set(key, (sums.get(key) ?? 0) + r.n);
+  }
+  return [...sums].map(([label, n]) => ({ label, n })).sort((a, b) => b.n - a.n);
+}
+```
+
+**Lesson.** TypeScript checked this and was satisfied: the rows had the right
+shape, and `{value, n}` is `{value, n}` whether it means a day or a total.
+There is no type for "already aggregated". Any query whose name ends in
+`_summary` or reads a rollup table needs the question asked out loud —
+*one row per what?* — and the answer verified against the source numbers, not
+against whether the page looks plausible. It looked entirely plausible.
+
+**How this one was actually caught:** by rendering the page and comparing
+three figures to a `SELECT` over the raw events. Not by reading the code, and
+not by any check that could have been automated from the types.
