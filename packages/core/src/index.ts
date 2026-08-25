@@ -66,3 +66,7 @@ export * from "./digits";
 // GPLZ Link: handle rules, short-link building, and the one table that says
 // what each of the two link-in-bio packages includes.
 export * from "./link";
+
+// "Is it open right now?" — read against the listing's own provincial clock,
+// so a Vancouver shop is not judged on Toronto time.
+export * from "./hours";
