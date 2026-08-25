@@ -1406,3 +1406,44 @@ clone at a fake width will keep the display value of the real one.
 **Lesson:** a navigation bar has a width budget, and "it fits on my screen"
 tests the widest case only. Measure at the breakpoint, which is the narrowest
 width the desktop layout ever has to survive.
+
+---
+
+## Committing code that imports a file you never committed kills every deploy, silently
+
+**Symptom:** the live site is stale for days. Everything works locally, `pnpm
+build` passes, `tsc` is clean, pushes succeed, and nobody sees an error. On 25
+Aug the site was found serving a build from **before 18 August** — a week of
+shipped work that had never reached a user, including a fix for the bug that
+was being complained about at the time.
+
+**Cause:** `8aae807` committed `lib/seo/local.ts`, `sitemap.ts` and four page
+files that import `@/lib/seo/geo-index` and `@/lib/data/category-aliases`, and
+committed neither module. `lib/seo/entity.ts` grew `listingOgImage` in the
+working tree and was never committed either. Locally everything resolves,
+because the files are on disk. A clean checkout cannot compile:
+
+```
+app/businesses/[slug]/page.tsx(21,41): error TS2307: Cannot find module
+  '@/lib/seo/geo-index' or its corresponding type declarations.
+```
+
+Vercel builds a clean checkout. Every deploy since had failed in CI, where
+nobody was looking.
+
+**Fix:** commit the missing modules. Then check the deploy actually went green
+rather than assuming a push equals a release.
+
+**How to catch it in one command** — never trust `git status` for this, since
+untracked files are easy to skim past:
+
+```bash
+git worktree add --detach /tmp/check origin/main && \
+  (cd /tmp/check/apps/web && npx tsc --noEmit)
+```
+
+**Lesson:** "it builds on my machine" and "it builds from the repository" are
+different claims, and only the second one ships. A push is not a release —
+verify against the live URL. This is also why the deploy check belongs in the
+end-of-session ritual: the same session that wrote the code is the one that
+still remembers what the live site should now say.
