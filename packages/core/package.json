@@ -9,7 +9,8 @@
     "./database": "./src/database.types.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check": "npx tsx src/link.check.mts"
   },
   "dependencies": {
     "zod": "^4.4.3"

@@ -48,6 +48,14 @@ export const brand = {
   /** Mobile URL scheme. The old scheme stays registered for installed builds. */
   scheme: "goplaza",
   legacyScheme: "charana",
+  /**
+   * The short domain, bought 24 Aug 2026. It is NOT a second site: `proxy.ts`
+   * serves it from this same app — bio pages at `gplz.link/<handle>` and the
+   * platform's own short links at `/b`, `/j`, `/a`. Written here rather than
+   * typed by hand for the same reason the brand name is.
+   */
+  shortDomain: "gplz.link",
+  shortUrl: "https://gplz.link",
 } as const;
 
 /** `https://goplaza.ca/foo` — joins without doubling slashes. */

@@ -46,7 +46,16 @@ export type Entitlements = {
   announcementLimit: number | null;
 };
 
-export type BillingRow = { plan?: string | null; plan_until?: string | null };
+export type BillingRow = {
+  plan?: string | null;
+  plan_until?: string | null;
+  /**
+   * End of a standalone Link Pro subscription — the $13/mo second axis, which
+   * an individual with no listing can also buy (it is on `profiles` as well as
+   * `businesses`). Never read it directly; see `hasLinkPro`.
+   */
+  link_pro_until?: string | null;
+};
 
 /** Pure: given a row, what is actually unlocked right now. */
 export function entitlementsFor(row: BillingRow | null | undefined, now = new Date()): Entitlements {
@@ -64,6 +73,27 @@ export function entitlementsFor(row: BillingRow | null | undefined, now = new Da
     galleryLimit: GALLERY_LIMITS[plan] ?? GALLERY_LIMITS.free,
     announcementLimit: ANNOUNCEMENT_LIMITS[plan] ?? ANNOUNCEMENT_LIMITS.free,
   };
+}
+
+/**
+ * May this owner use the paid link-in-bio features right now?
+ *
+ * Two ways to qualify, and they are OR-ed on purpose:
+ *   1. a standalone Link Pro subscription ($13/mo), or
+ *   2. any paid directory plan, which includes Link Pro at no extra cost.
+ *
+ * (2) is what makes Starter at $21 strictly better than Link Pro at $13
+ * instead of a rival to it. If this ever becomes an AND, or if a caller
+ * branches on `link_pro_until` alone, that pricing logic quietly breaks.
+ *
+ * Expiry is recomputed here rather than trusted, for the same reason
+ * `entitlementsFor` recomputes it: the webhook that ends a period can be
+ * late, and lateness must not cost the customer or us.
+ */
+export function hasLinkPro(row: BillingRow | null | undefined, now = new Date()): boolean {
+  if (entitlementsFor(row, now).plan !== "free") return true;
+  const until = row?.link_pro_until;
+  return !!until && new Date(until) > now;
 }
 
 /**

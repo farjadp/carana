@@ -58,3 +58,11 @@ export * from "./auth-errors";
 // Draining a query past PostgREST's silent 1,000-row cap. Shared because the
 // cap is a property of the API, not of one client.
 export * from "./fetch-all";
+
+// Persian/Arabic-Indic digits to ASCII. Canonical copy — the app forces RTL,
+// so anything parsed as ASCII digits must fold first.
+export * from "./digits";
+
+// GPLZ Link: handle rules, short-link building, and the one table that says
+// what each of the two link-in-bio packages includes.
+export * from "./link";
