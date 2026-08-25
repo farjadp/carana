@@ -30,7 +30,14 @@ export type QuietFailure =
   | "request_error"
   | "exchange_rates_http"
   | "exchange_rates_shape"
-  | "exchange_rates_fetch_failed";
+  | "exchange_rates_fetch_failed"
+  // GPLZ Link analytics. A rollup that fails is not an outage — the raw
+  // events are still there and the next run retries the day — but it must
+  // leave a trace, because the symptom otherwise is a customer's chart
+  // missing a day months later with nothing to explain it.
+  | "link_rollup_day"
+  | "link_rollup_backlog"
+  | "link_prune";
 
 /**
  * Record a failure the product deliberately swallowed.
