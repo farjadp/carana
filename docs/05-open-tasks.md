@@ -37,8 +37,12 @@ import reversible**, so copy it somewhere durable before /tmp is cleared).
    `/businesses` order feel like now that realtors are the largest single
    group in the directory.
 
-Logos were re-hosted off gooyalisting.ca into our own Supabase storage
-(`scripts/rehost-logos.mts`) — see the session log for the count.
+Logos are done: **6,675 re-hosted** into our own Supabase storage, and a
+database check confirms **zero rows still point at gooyalisting.ca**. The two
+failures are your own showcase listings (`ashavid`, `farjad-pourmohammad`) —
+their logos are SVG, which `rehost-logos.mts` refuses on purpose because an
+SVG can carry script. They keep their original URLs and still render; convert
+them to PNG and re-run if you want them off your own domains too.
 
 ## Blog sources — what a human still has to do (24 Aug)
 

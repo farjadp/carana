@@ -1,3 +1,55 @@
+# 2026-08-24, later still — the blog gets a front door
+
+Eight published posts, and the only way to reach any of them was one link
+called «وبلاگ» inside the «راهنما» dropdown. Farjad asked for three things:
+a real section on the home page, a place in the menu that does not break the
+menu, and «جدیدترین مقالات» at the foot of the inner pages.
+
+## One component, six surfaces
+
+`components/blog/latest-posts.tsx` exports two server components that read
+their own rows, so a page adds a tag and nothing else:
+
+- `HomeLatestPosts` — the editorial band on the home page (section 8, between
+  the city grid and «چرا گوپلازا؟»): one lead post with its cover at 661×473,
+  three more as thumbnail rows beside it, the blog's category chips, and
+  «همه‌ی مقالات».
+- `LatestPostsStrip` — three cards above the footer on the business profile,
+  the city page, the province page, the category page and the job detail
+  page, each with a subtitle written for that page.
+
+Both return `null` when nothing is published. `latestPosts()` in
+`lib/blog/queries.ts` takes the same `status = 'published'` path as every
+other read there, with `excludeSlug` so a post can never link to itself.
+
+## The menu was already one link from breaking
+
+«مقالات» went into the bar next to «استخدام» and «وبلاگ» came out of the
+«راهنما» menu — it moved, it was not added. Then the bar overflowed, and the
+measurement said it was not this link's fault: at the 900px breakpoint the
+row needs **568px inside 567px**, and `.site-header-inner` overflows by 9px.
+It had been borderline since the bar picked up its third dropdown; «مقالات»
+is only what pushed it over.
+
+Two fixes in `globals.css`: the nav gap is fluid now
+(`clamp(0.85rem, 1.35vw, 1.35rem)`), and the desktop bar takes over at
+**960px instead of 900px**. Measured at 960: items 472px inside 602px, 130px
+of slack, no overflow. Between 900 and 960 the burger menu carries the same
+links, so nothing is lost.
+
+## What was not verified
+
+- **The job detail page.** No job ad is published in the database, so there
+  was no page to load. The tag is identical to the five that were checked.
+- **A screenshot of the section itself.** The browser pane painted the header
+  fine and then returned blank frames for anything below the fold. The
+  section was confirmed by measuring the DOM instead — lead card 661×473,
+  four covers loaded (`naturalWidth` 1024), links and chips correct — and by
+  the SSR HTML of `/`, the business profile, `/cities/toronto`,
+  `/provinces/ontario` and `/categories/restaurants`, all 200 and all
+  carrying the section. That is weaker evidence than a picture, and it is
+  what there is.
+
 # 2026-08-24, later — gooyalisting.ca: the ninth directory, 7,471 businesses
 
 Farjad asked for the usual treatment on a site we had not touched:
@@ -5,7 +57,9 @@ gooyalisting.ca. It turned out to be the largest single Persian-Canadian
 source we have found: 7,471 published listings, against a directory that
 holds 5,802 in total after merging seven others.
 
-**Nothing has been written to the database.** This session ends at a dry run.
+**It was imported.** Farjad said commit after seeing the plan, so the numbers
+below are what a dry run predicted and the bottom of this entry is what
+actually landed.
 
 ## The sitemap hides 2,000 businesses
 
@@ -104,6 +158,45 @@ city fix is the part that is not noise — `Quebec City` went from 556 to
 **1**, `Montreal` from 344 to **608** (plus Laval 11, Brossard 6), and 180
 listings that named no city at all correctly became DRAFT instead of being
 filed in a city they never mentioned.
+
+## What landed
+
+```
+done: 2392 enriched, 4878 inserted, 37 left for review
+```
+
+The directory went **5,802 → 10,680** (9,686 published, 994 draft), counted
+from the database rather than by adding the plan to the old total. 7,235 rows
+now cite gooyalisting.ca in `verification_notes` — the 4,878 new ones plus the
+2,392 that gained an "also listed at" line.
+
+Two numbers moved in the wrong direction and are honest: «نامشخص» went from
+≈930 to **1,401**, because ~450 of the new listings name no city anywhere in
+their own text and correctly stay DRAFT rather than being filed in a city they
+never mentioned. And 37 businesses are simply absent — they share a phone with
+something we already had and nobody has adjudicated them yet.
+
+The commit report is 22 MB in `/tmp`. It is the only thing that makes this
+reversible; it does not belong in git and it does not belong in `/tmp` either.
+
+## The logo script had the project's own favourite bug
+
+`rehost-logos.mts` selected its work with a plain `.select()` — no paging.
+Written for a 189-row import, where PostgREST's 1,000-row cap never bites. On
+7,000 rows it would have re-hosted 1,000, printed "1000 externally hosted
+logos" as if that were the total, and left the rest hotlinked to a competitor
+with no error anywhere. This is the same cap that made the mobile hero say
+1,000 for a 5,251-row directory earlier the same day, and the same one the SEO
+audit found in the sitemap on 18 Aug. Third time.
+
+Paged through `fetchAllRows`, ordered by `id`, and the real number came back:
+**6,677**. Downloads run six at a time; serial was four hours.
+
+Result: **6,675 re-hosted, 2 failed**, and a database check confirms zero rows
+still point at gooyalisting.ca. The two failures are Farjad's own showcase
+listings, whose logos are SVG — refused on purpose, since an SVG can carry
+script. They keep their original URLs, so nothing is broken; they are simply
+still hotlinked from ashavid.ca and farjadp.com.
 
 ## What was said wrongly
 
