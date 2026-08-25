@@ -1,9 +1,12 @@
 // ============================================================================
 // Source: app/api/reports/route.ts
-// Version: 1.0.0 — 2026-08-16
+// Version: 1.1.0 — 2026-08-25
 // Why: The profile's "report a problem" button used to show a toast and write
 //      nothing — it told the user a falsehood. It posts here now, the row
 //      lands in /admin/reports, and the response only claims what happened.
+//      v1.1 (25 Aug): also accepts a GPLZ Link bio page. Deliberately the
+//      same endpoint and the same queue — a second one would be the one
+//      nobody opens.
 // Env / Identity: Server only. Anonymous allowed (someone reporting a
 //      fraudulent listing should not have to register first); rate-limited,
 //      attributed when a session exists.
@@ -40,7 +43,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { businessId?: string; reason?: string; details?: string; contact?: string; source?: string };
+  let body: {
+    businessId?: string;
+    linkPageId?: string;
+    reason?: string;
+    details?: string;
+    contact?: string;
+    source?: string;
+  };
   try {
     body = await req.json();
   } catch {
@@ -48,8 +58,17 @@ export async function POST(req: NextRequest) {
   }
 
   const businessId = String(body.businessId ?? "");
+  const linkPageId = String(body.linkPageId ?? "");
   const reason = String(body.reason ?? "");
-  if (!UUID.test(businessId)) return NextResponse.json({ success: false, error: "کسب‌وکار نامعتبر است." }, { status: 400 });
+
+  // Exactly one subject. Accepting both would produce a row the admin queue
+  // cannot render under one heading, and the check constraint only requires
+  // at least one.
+  const aboutBusiness = UUID.test(businessId);
+  const aboutLinkPage = UUID.test(linkPageId);
+  if (aboutBusiness === aboutLinkPage) {
+    return NextResponse.json({ success: false, error: "موضوع گزارش نامعتبر است." }, { status: 400 });
+  }
   if (!REASONS.has(reason)) return NextResponse.json({ success: false, error: "دلیل گزارش را انتخاب کنید." }, { status: 400 });
 
   const details = String(body.details ?? "").replace(/\s+/g, " ").trim().slice(0, 2000);
@@ -58,11 +77,19 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = createSupabaseAdminClient();
-  const { data: exists } = await admin.from("businesses").select("id").eq("id", businessId).maybeSingle();
-  if (!exists) return NextResponse.json({ success: false, error: "کسب‌وکار پیدا نشد." }, { status: 404 });
+  const { data: exists } = aboutBusiness
+    ? await admin.from("businesses").select("id").eq("id", businessId).maybeSingle()
+    : await admin.from("link_pages").select("id").eq("id", linkPageId).maybeSingle();
+  if (!exists) {
+    return NextResponse.json(
+      { success: false, error: aboutBusiness ? "کسب‌وکار پیدا نشد." : "صفحه پیدا نشد." },
+      { status: 404 },
+    );
+  }
 
   const { error } = await admin.from("business_reports").insert({
-    business_id: businessId,
+    business_id: aboutBusiness ? businessId : null,
+    link_page_id: aboutLinkPage ? linkPageId : null,
     reporter_id: userId,
     reason,
     details: details || null,

@@ -638,11 +638,12 @@ export type Database = {
       business_reports: {
         Row: {
           admin_note: string | null
-          business_id: string
+          business_id: string | null
           contact: string | null
           created_at: string
           details: string | null
           id: string
+          link_page_id: string | null
           reason: string
           reporter_id: string | null
           resolved_at: string | null
@@ -652,11 +653,12 @@ export type Database = {
         }
         Insert: {
           admin_note?: string | null
-          business_id: string
+          business_id?: string | null
           contact?: string | null
           created_at?: string
           details?: string | null
           id?: string
+          link_page_id?: string | null
           reason: string
           reporter_id?: string | null
           resolved_at?: string | null
@@ -666,11 +668,12 @@ export type Database = {
         }
         Update: {
           admin_note?: string | null
-          business_id?: string
+          business_id?: string | null
           contact?: string | null
           created_at?: string
           details?: string | null
           id?: string
+          link_page_id?: string | null
           reason?: string
           reporter_id?: string | null
           resolved_at?: string | null
@@ -684,6 +687,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_reports_link_page_id_fkey"
+            columns: ["link_page_id"]
+            isOneToOne: false
+            referencedRelation: "link_pages"
             referencedColumns: ["id"]
           },
         ]
@@ -2126,6 +2136,7 @@ export type Database = {
       }
       live_job_count: { Args: { p_business_id: string }; Returns: number }
       prune_link_events: { Args: { p_keep_days?: number }; Returns: number }
+      restore_link_page: { Args: { p_page_id: string }; Returns: undefined }
       review_current_status: {
         Args: { target_review_id: string }
         Returns: Database["public"]["Enums"]["public_review_status"]
@@ -2188,6 +2199,10 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      suspend_link_page: {
+        Args: { p_page_id: string; p_reason: string }
+        Returns: undefined
+      }
       unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {

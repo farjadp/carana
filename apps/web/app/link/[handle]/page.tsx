@@ -59,6 +59,7 @@ import {
 } from "@goplaza/core";
 import { cityNameFa, getGeoIndex } from "@/lib/seo/geo-index";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ReportLinkPage } from "./report-link";
 import { LinkPageTracker } from "./tracker";
 
 export const revalidate = 60;
@@ -347,6 +348,8 @@ export default async function LinkPage({ params }: { params: Promise<{ handle: s
             </Link>
           </div>
         )}
+
+        <ReportLinkPage pageId={page.id} />
 
         {footer && (
           <footer className="mt-10 text-center">

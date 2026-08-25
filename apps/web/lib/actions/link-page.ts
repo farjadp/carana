@@ -274,6 +274,45 @@ export async function setLinkPageStatus(pageId: string, live: boolean): Promise<
 }
 
 /**
+ * Take a page off the air. Admin only — enforced by the database function,
+ * not by this file, so an authenticated non-admin calling it directly still
+ * fails.
+ *
+ * A reason is required. A page pulled down with no explanation is an
+ * unappealable decision, and the owner sees the status in their dashboard.
+ */
+export async function suspendLinkPage(pageId: string, reason: string): Promise<Result> {
+  try {
+    const supabase = await createSupabaseActionClient();
+    const { error } = await supabase.rpc("suspend_link_page", { p_page_id: pageId, p_reason: reason });
+    if (error) return { success: false, error: error.message };
+    revalidatePath("/admin/reports");
+    return { success: true };
+  } catch (error) {
+    console.error("Suspend Link Page Error:", error);
+    return { success: false, error: "تعلیق صفحه ناموفق بود." };
+  }
+}
+
+/**
+ * Lift a suspension. Returns the page to DRAFT, never straight to live: the
+ * owner should have to look at their own page and publish it again rather
+ * than have it reappear in front of the public without anyone checking.
+ */
+export async function restoreLinkPage(pageId: string): Promise<Result> {
+  try {
+    const supabase = await createSupabaseActionClient();
+    const { error } = await supabase.rpc("restore_link_page", { p_page_id: pageId });
+    if (error) return { success: false, error: error.message };
+    revalidatePath("/admin/reports");
+    return { success: true };
+  } catch (error) {
+    console.error("Restore Link Page Error:", error);
+    return { success: false, error: "بازگرداندن صفحه ناموفق بود." };
+  }
+}
+
+/**
  * The billing row an entitlement question needs. A page attached to a business
  * inherits that business's plan; a page owned by a person on their own reads
  * their profile. Both carry `link_pro_until`, which is why `hasLinkPro` takes
