@@ -19,14 +19,31 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
-import { hasLinkPro, linkLimitsFor } from "@goplaza/core";
+import { analyticsWindowFor, hasLinkPro, linkLimitsFor } from "@goplaza/core";
 import { PageShell } from "@/components/page-shell";
 import { requireUser } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { LinkAnalytics, type SummaryRow } from "./link-analytics";
 import { LinkPageClient, type LinkItemRow } from "./link-client";
 
 export const metadata: Metadata = { title: "صفحه‌ی لینک" };
 export const dynamic = "force-dynamic";
+
+/** Item kinds, for labelling the click breakdown. Kept beside the analytics
+ *  call rather than imported from the client component, which would drag a
+ *  "use client" module into a server render for one lookup table. */
+const ITEM_KIND_FA: Record<string, string> = {
+  phone: "تماس تلفنی",
+  whatsapp: "واتساپ",
+  directions: "مسیریابی",
+  hours: "ساعت کاری",
+  instagram: "اینستاگرام",
+  telegram: "تلگرام",
+  website: "وب‌سایت",
+  email: "ایمیل",
+  booking: "رزرو نوبت",
+  gallery: "گالری تصاویر",
+};
 
 /** The columns the public renderer reads, so "will this item appear?" is
  *  answered here with the same information rather than a guess. */
@@ -67,6 +84,39 @@ export default async function LinkPageSettings({ params }: { params: Promise<{ i
   const pro = hasLinkPro(business);
   const limits = linkLimitsFor(business);
 
+  // The window is a product rule computed in core, passed to a database
+  // function that clamps to a ceiling of its own. Everyone's events are
+  // recorded in full — the plan gates the query, never the data.
+  const windowDays = analyticsWindowFor(business, "link_page");
+
+  const summary = page
+    ? await Promise.all([
+        supabase.rpc("link_page_summary", { p_page_id: page.id, p_days: windowDays, p_dimension: "" }),
+        pro
+          ? supabase.rpc("link_page_summary", { p_page_id: page.id, p_days: windowDays, p_dimension: "item" })
+          : Promise.resolve({ data: [] }),
+        pro
+          ? supabase.rpc("link_page_summary", { p_page_id: page.id, p_days: windowDays, p_dimension: "referrer" })
+          : Promise.resolve({ data: [] }),
+        pro
+          ? supabase.rpc("link_page_summary", { p_page_id: page.id, p_days: windowDays, p_dimension: "device" })
+          : Promise.resolve({ data: [] }),
+      ])
+    : null;
+
+  // One date, so the upsell can be truthful about history that exists rather
+  // than implying history that does not. The hidden rows are never read.
+  const { data: oldest } = page
+    ? await supabase
+        .from("analytics_daily")
+        .select("day")
+        .eq("subject_kind", "link_page")
+        .eq("subject_id", page.id)
+        .order("day", { ascending: true })
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
+
   // A page attached to a business is only public while the business itself is
   // published — that is the RLS policy, not a UI nicety. Saying so here is the
   // difference between "your page is live" and a live page nobody can open.
@@ -95,6 +145,23 @@ export default async function LinkPageSettings({ params }: { params: Promise<{ i
           pro={pro}
           customLinkLimit={limits.customLinks}
         />
+
+        {page && summary && (
+          <div className="mt-5">
+            <LinkAnalytics
+              windowDays={windowDays}
+              totals={(summary[0].data ?? []) as SummaryRow[]}
+              byItem={(summary[1].data ?? []) as SummaryRow[]}
+              byReferrer={(summary[2].data ?? []) as SummaryRow[]}
+              byDevice={(summary[3].data ?? []) as SummaryRow[]}
+              itemLabels={Object.fromEntries(
+                (items ?? []).map((i) => [i.id, i.label_fa ?? ITEM_KIND_FA[i.kind] ?? i.kind]),
+              )}
+              pro={pro}
+              oldestDay={(oldest?.day as string | undefined) ?? null}
+            />
+          </div>
+        )}
       </main>
     </PageShell>
   );

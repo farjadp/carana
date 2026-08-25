@@ -28,6 +28,10 @@ export type LinkItemRow = { id: string; kind: string; label_fa: string | null; e
 
 type Page = { id: string; handle: string; title: string; status: string; footer_hidden: boolean };
 
+/** Persian digits: the app forces RTL and a Latin numeral mid-sentence reads
+ *  as untranslated. */
+const fa = (n: number) => n.toLocaleString("fa-IR");
+
 const KIND_FA: Record<string, string> = {
   phone: "تماس تلفنی",
   whatsapp: "واتساپ",
@@ -224,7 +228,7 @@ export function LinkPageClient({
         )}
         <p className="mt-4 text-xs leading-6 text-[color:var(--muted-text)]">
           ترتیب دادن و افزودن لینک دلخواه هنوز ساخته نشده.
-          {customLinkLimit !== null && ` وقتی آمد، در پلن فعلی تا ${customLinkLimit} لینک دلخواه می‌توانی اضافه کنی.`}
+          {customLinkLimit !== null && ` وقتی آمد، در پلن فعلی تا ${fa(customLinkLimit)} لینک دلخواه می‌توانی اضافه کنی.`}
         </p>
       </section>
     </div>
