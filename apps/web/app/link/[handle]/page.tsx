@@ -19,8 +19,8 @@
 //      SEO: noindex, follow, canonical to the profile. This page is a thin
 //      restatement of goplaza.ca/businesses/<slug>; letting it be indexed
 //      would cannibalise the very pages the August SEO work is strengthening,
-//      which is the same duplicate-content problem the charana.ca 301 was
-//      built to end. `follow` stays so the link equity still reaches the
+//      which is the same duplicate-content problem the legacy-domain 301 in
+//      proxy.ts was built to end. `follow` stays so the link equity reaches the
 //      profile. robots.txt and sitemap.xml must ALSO branch on host before the
 //      domain goes live — that is separate work and not done here.
 //

@@ -36,6 +36,11 @@ const ALLOW = [
   { re: /^apps\/web\/app\/\.well-known\//, why: "bundle id / package name" },
   { re: /^apps\/mobile\/src\/app\/auth\/signup\.tsx$/, why: "comment about the legacy scheme allow-list" },
   { re: /^apps\/web\/app\/api\/events\/route\.ts$/, why: "hash salt fallback kept for stability" },
+  { re: /^apps\/web\/lib\/analytics\/visitor\.ts$/, why: "the hash salt fallback moved here, 25 Aug — changing it would make every returning visitor look new for a day" },
+  { re: /^apps\/web\/proxy\.ts$/, why: "the charana.ca 301 — the redirect IS the old domain, and it is load-bearing" },
+  { re: /^apps\/web\/app\/robots\.ts$/, why: "comment explaining why the dead host: directive was removed" },
+  { re: /^apps\/web\/lib\/data\/releases\.ts$/, why: "changelog entries from before the rename" },
+  { re: /^docs\/(08-competitors|10-seo-playbook|11-seo-audit-2026-08-24|12-seo-architecture)\.md$/, why: "SEO prose about the two domains and the migration between them" },
   { re: /^packages\/core\/src\/brand\.ts$/, why: "legacyScheme + the rebrand comment" },
   // The rename has to stay machine-readable for years: schema.org
   // alternateName and the llms.txt continuity block are what let a search or
