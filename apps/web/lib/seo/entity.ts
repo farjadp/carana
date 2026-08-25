@@ -25,6 +25,29 @@ import { SITE } from "@/lib/seo/local";
  */
 export const OG_FALLBACK = "/opengraph-image";
 
+/**
+ * Pick a share image for one listing, or null to fall back site-wide.
+ *
+ * `cover_url` is empty on all 5,251 imported rows and `logo_url` is the shared
+ * `business-placeholder.svg` on 3,323 of them (63 %), so "logo_url is 100 %
+ * populated" is true and useless. Worse, it is an SVG, which Facebook,
+ * WhatsApp, Telegram and X all refuse to render as a preview — using it would
+ * turn a generic-but-working card into a broken one.
+ *
+ * So: only a real raster upload wins; everything else gets OG_FALLBACK.
+ */
+export function listingOgImage(input: { cover_url?: string | null; logo_url?: string | null }): string {
+  const candidates = [input.cover_url, input.logo_url];
+  for (const raw of candidates) {
+    const url = raw?.trim();
+    if (!url) continue;
+    if (/placeholder|\/default[-.]/i.test(url)) continue;
+    if (/\.svg(\?|$)/i.test(url)) continue;
+    return url;
+  }
+  return OG_FALLBACK;
+}
+
 /** Stable @id values, so other nodes can point at these instead of repeating them. */
 export const ORG_ID = `${SITE}/#organization`;
 export const SITE_ID = `${SITE}/#website`;
