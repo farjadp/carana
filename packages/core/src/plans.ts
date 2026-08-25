@@ -38,6 +38,14 @@
 //      it off. Note the asymmetry with every other gate here — hiding is
 //      honoured after the plan lapses (see the migration note), because what
 //      would revert is a person's name, not a placement.
+//      v4.1 (24 Aug): the first two features that are about what a profile
+//      does NOT show. `clean_profile` (Premium and Platinum) drops the
+//      "similar businesses" block from the bottom of your own profile —
+//      a directory sending your visitor to a competitor is the thing an owner
+//      is actually paying to stop. `exclusive_profile` (Platinum only) drops
+//      the article block too, so nothing at all follows the listing; it is
+//      Platinum's FIRST confirmed exclusive, so its bullet list gains a real
+//      line instead of only the "coming soon" one.
 //      v4 (19 Aug): repriced Starter/Premium, added a fourth tier —
 //      **Platinum**, `PLATINUM_SEAT_CAP` businesses nationwide, quarterly
 //      billing only. Farjad's Platinum feature list is not finalised yet:
@@ -85,6 +93,8 @@ export type Feature =
                            // the gate for FEATURED_RANDOM_BOOST below
   | "homepage_slot"
   | "owner_privacy"       // hide the "owner" section on the public profile
+  | "clean_profile"       // no rival listings under your own profile
+  | "exclusive_profile"   // nothing at all under it — no rivals, no articles
   | "priority_support";
 
 /**
@@ -193,7 +203,7 @@ export const PLANS: Record<PlanId, Plan> = {
     features: [
       "insights_basic", "insights_full", "announcements", "booking_link",
       "review_replies", "busy_status", "vanity_url", "featured_placement", "homepage_slot",
-      "owner_privacy", "priority_support",
+      "owner_privacy", "clean_profile", "priority_support",
     ],
     bullets: [
       "همه‌ی امکانات استارتر",
@@ -203,6 +213,7 @@ export const PLANS: Record<PlanId, Plan> = {
       "وزن بیشتر در ترتیب پیش‌فرض (تصادفی) فهرست‌ها — همچنان با برچسب «ویژه»",
       "حضور در بخش ویژه‌ی صفحه‌ی اول",
       "اختیار نمایش یا پنهان کردن نام صاحب کسب‌وکار",
+      "پایین پروفایلت هیچ کسب‌وکار دیگری نشان داده نمی‌شود",
       "پشتیبانی با اولویت",
     ],
   },
@@ -220,11 +231,12 @@ export const PLANS: Record<PlanId, Plan> = {
     features: [
       "insights_basic", "insights_full", "announcements", "booking_link",
       "review_replies", "busy_status", "vanity_url", "featured_placement", "homepage_slot",
-      "owner_privacy", "priority_support",
+      "owner_privacy", "clean_profile", "exclusive_profile", "priority_support",
     ],
     bullets: [
       `محدود به ${PLATINUM_SEAT_CAP} کسب‌وکار — وقتی پر شد، تا خالی نشدن یک جایگاه نمی‌توانی بخری`,
       "همه‌ی امکانات پریمیوم، امروز",
+      "پایین پروفایلت هیچ‌چیز نیست — نه کسب‌وکار دیگری، نه مقاله. فقط خودت",
       "فقط صورتحساب سه‌ماهه — بدون ماهانه یا سالانه",
       "فهرست کامل امکانات اختصاصی پلاتینیوم به‌زودی نهایی می‌شود",
     ],

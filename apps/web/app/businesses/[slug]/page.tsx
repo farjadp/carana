@@ -22,7 +22,8 @@ import { cityNameFa, getGeoIndex } from "@/lib/seo/geo-index";
 import { businessDescription, businessTitle } from "@/lib/seo/titles";
 import { getVerificationStatus, isTrusted } from "@/lib/verification/status";
 import { BusinessPosts } from "@/components/blog/business-posts";
-import { ownerProfileId, ownerSectionVisible, type PublicOwner } from "@goplaza/core";
+import { entitlementsFor, ownerProfileId, ownerSectionVisible, type PlanId, type PublicOwner } from "@goplaza/core";
+import { ProfileUpsellBanner } from "@/components/business/profile-upsell-banner";
 
 export const revalidate = 60; // ISR cache 1 minute
 
@@ -293,23 +294,35 @@ export default async function BusinessProfilePage({
     owner_reply_at: r.owner_reply_at,
   }));
 
+  // What the plan actually unlocks right now — never `business.plan`, which
+  // ignores an expired paid period (see entitlements.ts). Two separate
+  // entitlements: Premium clears the rival listings from the foot of its own
+  // profile, Platinum clears the articles as well.
+  const ent = entitlementsFor(business);
+  const hideRivals = ent.has("clean_profile");
+  const hideArticles = ent.has("exclusive_profile");
+
   // Similar businesses: same category or same city. Built with separate eq()
   // queries rather than an interpolated or() filter, because category and city
   // are owner-supplied values that would otherwise land inside a filter string.
-  const [{ data: sameCategory }, { data: sameCity }] = await Promise.all([
-    supabase
-      .from("businesses")
-      .select("id, slug, name, category, city, province, cover_url, logo_url")
-      .eq("category", business.category)
-      .neq("id", business.id)
-      .limit(4),
-    supabase
-      .from("businesses")
-      .select("id, slug, name, category, city, province, cover_url, logo_url")
-      .eq("city", business.city)
-      .neq("id", business.id)
-      .limit(4),
-  ]);
+  // Skipped outright on a paid profile — two queries whose only possible use
+  // would be to render something this listing paid to remove.
+  const [{ data: sameCategory }, { data: sameCity }] = hideRivals
+    ? [{ data: [] as any[] }, { data: [] as any[] }]
+    : await Promise.all([
+        supabase
+          .from("businesses")
+          .select("id, slug, name, category, city, province, cover_url, logo_url")
+          .eq("category", business.category)
+          .neq("id", business.id)
+          .limit(4),
+        supabase
+          .from("businesses")
+          .select("id, slug, name, category, city, province, cover_url, logo_url")
+          .eq("city", business.city)
+          .neq("id", business.id)
+          .limit(4),
+      ]);
 
   // Category label + hero image (the profile used to print the raw slug).
   const { data: categoryRow } = await supabase
@@ -363,14 +376,27 @@ export default async function BusinessProfilePage({
       {/* Three articles chosen for THIS business — a different trio per
           profile, seeded by its id. Absent when nothing is published, and
           headed «مقالات مرتبط» only when something actually matched; the
-          component decides, not this page. */}
-      <BusinessPosts
-        businessId={business.id}
-        city={business.city}
-        cityFa={cityFa}
-        categorySlug={business.category}
-        categoryName={(categoryRow?.name as string) ?? null}
-      />
+          component decides, not this page. Platinum takes these away too. */}
+      {hideArticles ? null : (
+        <BusinessPosts
+          businessId={business.id}
+          city={business.city}
+          cityFa={cityFa}
+          categorySlug={business.category}
+          categoryName={(categoryRow?.name as string) ?? null}
+        />
+      )}
+
+      {/* The banner explains the emptiness it sits in. Only ever rendered when
+          something really was removed, so it can never claim a plan the row
+          does not hold. */}
+      {hideRivals ? (
+        <ProfileUpsellBanner
+          plan={ent.plan as Extract<PlanId, "featured" | "platinum">}
+          businessName={business.name}
+          isOwnerOrAdmin={isOwnerOrAdmin}
+        />
+      ) : null}
     </PageShell>
   );
 }
