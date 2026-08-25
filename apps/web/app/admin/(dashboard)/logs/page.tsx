@@ -7,6 +7,7 @@
 import type { Metadata } from "next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { ADMIN_PAGE_SIZE, AdminPagination } from "@/components/admin/pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +16,12 @@ export const metadata: Metadata = {
   title: "گزارش فعالیت‌ها | پنل ادمین",
 };
 
-export default async function AdminLogsPage() {
+export default async function AdminLogsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const page = Math.max(1, Number((await searchParams).page) || 1);
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -23,9 +29,11 @@ export default async function AdminLogsPage() {
     redirect("/profile");
   }
 
-  // Fetch the latest 50 logs with user profiles joined (if profiles are available)
-  // user_activity_logs has a FK to profiles
-  const { data: logs, error } = await supabase
+  // Paged, 50 at a time. It used to take the newest 100 and stop — which is
+  // fine for a glance and useless for an investigation, because there was no
+  // way to reach log 101.
+  const from = (page - 1) * ADMIN_PAGE_SIZE;
+  const { data: logs, error, count } = await supabase
     .from("user_activity_logs")
     .select(`
       id,
@@ -37,9 +45,9 @@ export default async function AdminLogsPage() {
         email,
         full_name
       )
-    `)
+    `, { count: "exact" })
     .order("created_at", { ascending: false })
-    .limit(100);
+    .range(from, from + ADMIN_PAGE_SIZE - 1);
 
   if (error) {
     console.error("Error fetching logs:", error);
@@ -112,6 +120,7 @@ export default async function AdminLogsPage() {
               </TableBody>
             </Table>
           </div>
+          <AdminPagination page={page} total={count ?? 0} basePath="/admin/logs" itemLabel="فعالیت" />
         </CardContent>
       </Card>
     </div>

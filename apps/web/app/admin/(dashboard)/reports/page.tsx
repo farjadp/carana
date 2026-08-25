@@ -8,6 +8,8 @@
 // ============================================================================
 import { redirect } from "next/navigation";
 
+import { ADMIN_PAGE_SIZE, AdminPagination } from "@/components/admin/pagination";
+
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { ReportsClient, type ReportRow } from "./reports-client";
@@ -15,7 +17,12 @@ import { ReportsClient, type ReportRow } from "./reports-client";
 export const metadata = { title: "گزارش تخلفات | پنل مدیریت" };
 export const dynamic = "force-dynamic";
 
-export default async function AdminReportsPage() {
+export default async function AdminReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const page = Math.max(1, Number((await searchParams).page) || 1);
   const supabase = await createSupabaseActionClient();
   try {
     await requireAdmin(supabase);
@@ -23,11 +30,12 @@ export default async function AdminReportsPage() {
     redirect("/admin/login");
   }
 
-  const { data } = await supabase
+  const from = (page - 1) * ADMIN_PAGE_SIZE;
+  const { data, count } = await supabase
     .from("business_reports")
-    .select("*, business:businesses(id, name, slug, city, status)")
+    .select("*, business:businesses(id, name, slug, city, status)", { count: "exact" })
     .order("created_at", { ascending: false })
-    .limit(300);
+    .range(from, from + ADMIN_PAGE_SIZE - 1);
 
   const rows = (data ?? []) as unknown as ReportRow[];
 
@@ -40,5 +48,12 @@ export default async function AdminReportsPage() {
     : { data: [] };
   const byId = new Map((profiles ?? []).map((p) => [p.id as string, p as { email: string | null; full_name: string | null }]));
 
-  return <ReportsClient rows={rows.map((r) => ({ ...r, reporter: r.reporter_id ? byId.get(r.reporter_id) ?? null : null }))} />;
+  return (
+    <>
+      <ReportsClient rows={rows.map((r) => ({ ...r, reporter: r.reporter_id ? byId.get(r.reporter_id) ?? null : null }))} />
+      <div className="mt-4 rounded-2xl border border-[color:var(--line)] bg-white">
+        <AdminPagination page={page} total={count ?? 0} basePath="/admin/reports" itemLabel="گزارش" />
+      </div>
+    </>
+  );
 }

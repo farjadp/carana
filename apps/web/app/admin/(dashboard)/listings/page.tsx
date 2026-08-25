@@ -1,26 +1,87 @@
 // ============================================================================
 // Source: app/admin/(dashboard)/listings/page.tsx
-// Version: 1.0.0 — 2026-08-13
+// Version: 2.0.0 — 2026-08-25 (server-side paging, search and status filter)
 // Why: Admin business listings management page.
-// Env / Identity: Server Component.
+//
+//      v1 selected every business with no `.range()` and filtered in the
+//      browser. With 10,683 rows that failed twice over: PostgREST caps an
+//      unbounded select at 1,000 rows *with no error*, so the admin was
+//      moderating a 1,000-row slice and had no way to tell; and the whole
+//      slice was serialised into the client bundle on every load.
+//
+//      Paging, searching and filtering are now all server-side, so the page
+//      reads exactly the 50 rows it shows and reports the true total. The
+//      same 1,000-row cap has now been found in the sitemap (18 Aug), the
+//      mobile hero (24 Aug), rehost-logos (24 Aug) and here — assume any
+//      `.select()` without `.range()` is a landmine.
+// Env / Identity: Server Component. Admin-gated by the (dashboard) layout.
 // ============================================================================
 import { Metadata } from "next";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { FileSpreadsheet } from "lucide-react";
+
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ADMIN_PAGE_SIZE, AdminPagination } from "@/components/admin/pagination";
 import ListingsClient from "./listings-client";
 
 export const metadata: Metadata = {
   title: "مدیریت کسب‌وکارها | داشبورد ادمین",
 };
 
-export default async function AdminListingsPage() {
+const STATUSES = ["DRAFT", "SUBMITTED", "NEEDS_CHANGES", "APPROVED", "PUBLISHED", "REJECTED"];
+
+export default async function AdminListingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; q?: string; status?: string }>;
+}) {
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page) || 1);
+  const q = (sp.q ?? "").trim();
+  const status = STATUSES.includes(sp.status ?? "") ? sp.status! : "";
+
   const supabase = await createSupabaseServerClient();
 
-  // We order by created_at desc so the newest submissions are at the top
-  const { data: businesses, error } = await supabase
+  const safeQ = q.replace(/[%,()]/g, " ").trim();
+  let ownerIds: string[] = [];
+  if (safeQ.includes("@")) {
+    const { data: owners } = await supabase
+      .from("profiles")
+      .select("id")
+      .ilike("email", `%${safeQ}%`)
+      .limit(200);
+    ownerIds = (owners ?? []).map((o) => o.id as string);
+  }
+
+  // Build the filter twice: once to count, once to fetch. Counting first is
+  // what makes the range safe — PostgREST answers PGRST103 "Requested range
+  // not satisfiable" when the offset is past the last row, which a stale
+  // bookmark or a filter that shrank the result set produces easily, and the
+  // page used to render that as a red failure box instead of an empty page.
+  const applyFilters = <T,>(qb: T): T => {
+    let out = qb as any;
+    if (status) out = out.eq("status", status);
+    if (q) {
+      // Search kept its old reach — name, English name, and the owner's email.
+      // The email lives on the joined profile, so it is resolved to ids first
+      // rather than filtered through the embed, which would filter the embed
+      // and not the row. `%`, `,` and brackets are stripped: all are PostgREST
+      // filter syntax, and this string is interpolated into it.
+      const clauses = [`name.ilike.%${safeQ}%`, `name_en.ilike.%${safeQ}%`, `city.ilike.%${safeQ}%`];
+      if (ownerIds.length) clauses.push(`created_by.in.(${ownerIds.join(",")})`);
+      out = out.or(clauses.join(","));
+    }
+    return out as T;
+  };
+
+  const { count, error: countErr } = await applyFilters(
+    supabase.from("businesses").select("id", { count: "exact", head: true })
+  );
+
+  let query = supabase
     .from("businesses")
-    .select(`
+    .select(
+      `
       id,
       name,
       name_en,
@@ -30,8 +91,19 @@ export default async function AdminListingsPage() {
       created_at,
       created_by,
       profiles!businesses_created_by_fkey ( id, full_name, email )
-    `)
+    `
+    )
     .order("created_at", { ascending: false });
+
+  query = applyFilters(query);
+
+  const total = countErr ? 0 : count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const from = (safePage - 1) * ADMIN_PAGE_SIZE;
+
+  const { data: businesses, error } =
+    total === 0 ? { data: [], error: null } : await query.range(from, from + ADMIN_PAGE_SIZE - 1);
 
   if (error) {
     // Surface it — an empty admin list that is really a failed query has cost
@@ -45,10 +117,9 @@ export default async function AdminListingsPage() {
     );
   }
 
-  // Ensure type match for the client component
-  const typedBusinesses = (businesses || []).map(b => ({
+  const typedBusinesses = (businesses || []).map((b) => ({
     ...b,
-    profiles: Array.isArray(b.profiles) ? b.profiles[0] : b.profiles
+    profiles: Array.isArray(b.profiles) ? b.profiles[0] : b.profiles,
   })) as any[];
 
   return (
@@ -69,7 +140,20 @@ export default async function AdminListingsPage() {
         </Link>
       </div>
 
-      <ListingsClient businesses={typedBusinesses} />
+      <ListingsClient
+        businesses={typedBusinesses}
+        q={q}
+        status={status}
+        pagination={
+          <AdminPagination
+            page={safePage}
+            total={total}
+            basePath="/admin/listings"
+            params={{ q: q || undefined, status: status || undefined }}
+            itemLabel="کسب‌وکار"
+          />
+        }
+      />
     </div>
   );
 }

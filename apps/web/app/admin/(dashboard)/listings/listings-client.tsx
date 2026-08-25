@@ -1,14 +1,27 @@
 // ============================================================================
 // Source: app/admin/(dashboard)/listings/listings-client.tsx
-// Version: 1.0.0 — 2026-08-13
-// Why: Interactive client component for filtering and managing businesses.
+// Version: 2.0.0 — 2026-08-25 (server-backed search; one-click moderation)
+// Why: Interactive client component for managing businesses.
+//
+//      Search and the status filter used to run over an in-memory array of
+//      every listing. They now write to the URL and the server re-queries, so
+//      a search covers all 10,683 rows instead of the 1,000 that happened to
+//      be loaded. Typing is debounced so each keystroke is not a round trip.
+//
+//      Moderation is three buttons, not a dropdown. The dropdown made the two
+//      decisions an admin makes hundreds of times — publish it, send it back —
+//      cost a click to open, a read of six options, a click to choose and a
+//      confirm() to dismiss. Approve and «نیازمند اصلاح» now act immediately;
+//      only the destructive ones (reject, delete) still confirm, and the rare
+//      statuses stay in the dropdown.
 // Env / Identity: Client-side component with actions.
 // ============================================================================
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
-import { Search, Trash2, Loader2, Building2, ExternalLink } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { Check, Search, Trash2, Loader2, Building2, ExternalLink, Undo2 } from "lucide-react";
 
 import { updateBusinessStatus, deleteBusiness } from "./actions";
 
@@ -32,6 +45,9 @@ interface Business {
 
 interface ListingsClientProps {
   businesses: Business[];
+  q: string;
+  status: string;
+  pagination: React.ReactNode;
 }
 
 const statusLabels: Record<string, string> = {
@@ -52,34 +68,69 @@ const statusColors: Record<string, string> = {
   REJECTED: "bg-red-100 text-red-700"
 };
 
-export default function ListingsClient({ businesses }: ListingsClientProps) {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL"); // Default could be SUBMITTED later, but ALL for now
-  
+export default function ListingsClient({ businesses, q, status, pagination }: ListingsClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(q);
+
   const [isPending, startTransition] = useTransition();
   const [processingId, setProcessingId] = useState<string | null>(null);
+  // The row's status as this browser last saw it, so an accidental publish can
+  // be put back without hunting for what it used to be.
+  const [undoable, setUndoable] = useState<Record<string, string>>({});
 
-  // Filters
-  const filteredListings = businesses.filter((b) => {
-    const matchesSearch = 
-      b.name.includes(search) || 
-      (b.name_en && b.name_en.toLowerCase().includes(search.toLowerCase())) ||
-      b.profiles?.email.toLowerCase().includes(search.toLowerCase());
-      
-    const matchesStatus = statusFilter === "ALL" ? true : b.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
-
-  const handleStatusChange = (id: string, newStatus: string) => {
-    if (confirm(`آیا از تغییر وضعیت این کسب‌وکار به "${statusLabels[newStatus]}" مطمئن هستید؟`)) {
-      setProcessingId(id);
-      startTransition(async () => {
-        const result = await updateBusinessStatus(id, newStatus);
-        if (!result.success) alert(result.error);
-        setProcessingId(null);
-      });
+  /** Rewrite the query string; the server does the filtering. */
+  const push = (next: Record<string, string>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    for (const [k, v] of Object.entries(next)) {
+      if (v) params.set(k, v);
+      else params.delete(k);
     }
+    // Any new filter or search invalidates the page number.
+    params.delete("page");
+    const s = params.toString();
+    startTransition(() => router.push(s ? `/admin/listings?${s}` : "/admin/listings"));
+  };
+
+  // Debounced search: a keystroke should not be a query.
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    const t = setTimeout(() => {
+      if (search.trim() !== q) push({ q: search.trim() });
+    }, 400);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
+
+  const applyStatus = (id: string, newStatus: string, previous: string) => {
+    setProcessingId(id);
+    setUndoable((u) => ({ ...u, [id]: previous }));
+    startTransition(async () => {
+      const result = await updateBusinessStatus(id, newStatus);
+      if (!result.success) {
+        alert(result.error);
+        setUndoable((u) => {
+          const { [id]: _drop, ...rest } = u;
+          return rest;
+        });
+      }
+      setProcessingId(null);
+    });
+  };
+
+  /**
+   * Publishing and asking for changes are the everyday decisions and act at
+   * once — an undo is kinder than a confirm() on something reversible.
+   * Rejection is not everyday, and it emails the owner, so it still asks.
+   */
+  const handleStatusChange = (id: string, newStatus: string, previous: string) => {
+    const needsConfirm = newStatus === "REJECTED";
+    if (needsConfirm && !confirm(`آیا از تغییر وضعیت این کسب‌وکار به "${statusLabels[newStatus]}" مطمئن هستید؟`)) return;
+    applyStatus(id, newStatus, previous);
   };
 
   const handleDelete = (id: string, name: string) => {
@@ -115,8 +166,8 @@ export default function ListingsClient({ businesses }: ListingsClientProps) {
         <div className="flex items-center gap-3 w-full md:w-auto">
           <span className="text-sm text-[color:var(--muted-text)] whitespace-nowrap">وضعیت:</span>
           <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            value={status || "ALL"}
+            onChange={(e) => push({ status: e.target.value === "ALL" ? "" : e.target.value })}
             className="h-10 px-3 py-2 bg-gray-50 border border-[color:var(--line)] rounded-xl text-sm focus:border-[color:var(--lajvard)] outline-none min-w-[150px]"
           >
             <option value="ALL">همه کسب‌وکارها</option>
@@ -142,8 +193,8 @@ export default function ListingsClient({ businesses }: ListingsClientProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-[color:var(--line)]">
-              {filteredListings.length > 0 ? (
-                filteredListings.map((b) => {
+              {businesses.length > 0 ? (
+                businesses.map((b) => {
                   const isProcessing = processingId === b.id;
 
                   return (
@@ -168,18 +219,67 @@ export default function ListingsClient({ businesses }: ListingsClientProps) {
                         <span className="block text-xs text-[color:var(--muted-text)]">{b.profiles?.email}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          {isProcessing && <Loader2 size={14} className="animate-spin text-[color:var(--lajvard)]" />}
-                          <select
-                            value={b.status}
-                            disabled={isProcessing || isPending}
-                            onChange={(e) => handleStatusChange(b.id, e.target.value)}
-                            className={`text-xs px-2 py-1 rounded-full border outline-none font-medium appearance-none cursor-pointer ${statusColors[b.status] || "bg-gray-100"}`}
-                          >
-                            {Object.entries(statusLabels).map(([val, label]) => (
-                              <option key={val} value={val}>{label}</option>
-                            ))}
-                          </select>
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center gap-2">
+                            {isProcessing && <Loader2 size={14} className="animate-spin text-[color:var(--lajvard)]" />}
+                            <select
+                              value={b.status}
+                              disabled={isProcessing || isPending}
+                              onChange={(e) => handleStatusChange(b.id, e.target.value, b.status)}
+                              className={`text-xs px-2 py-1 rounded-full border outline-none font-medium appearance-none cursor-pointer ${statusColors[b.status] || "bg-gray-100"}`}
+                            >
+                              {Object.entries(statusLabels).map(([val, label]) => (
+                                <option key={val} value={val}>{label}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* The two everyday decisions, one click each. Hidden
+                              when the row is already in that state, so the
+                              button never offers a change it would not make. */}
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {b.status !== "PUBLISHED" ? (
+                              <button
+                                type="button"
+                                onClick={() => handleStatusChange(b.id, "PUBLISHED", b.status)}
+                                disabled={isProcessing || isPending}
+                                className="inline-flex items-center gap-1 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[11px] font-bold text-green-700 transition hover:bg-green-600 hover:text-white disabled:opacity-40"
+                              >
+                                <Check size={12} /> تایید
+                              </button>
+                            ) : null}
+                            {b.status !== "NEEDS_CHANGES" ? (
+                              <button
+                                type="button"
+                                onClick={() => handleStatusChange(b.id, "NEEDS_CHANGES", b.status)}
+                                disabled={isProcessing || isPending}
+                                className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-bold text-amber-700 transition hover:bg-amber-500 hover:text-white disabled:opacity-40"
+                              >
+                                اصلاح
+                              </button>
+                            ) : null}
+                            {b.status !== "REJECTED" ? (
+                              <button
+                                type="button"
+                                onClick={() => handleStatusChange(b.id, "REJECTED", b.status)}
+                                disabled={isProcessing || isPending}
+                                className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-bold text-red-700 transition hover:bg-red-600 hover:text-white disabled:opacity-40"
+                              >
+                                رد
+                              </button>
+                            ) : null}
+                            {undoable[b.id] && undoable[b.id] !== b.status ? (
+                              <button
+                                type="button"
+                                onClick={() => applyStatus(b.id, undoable[b.id], b.status)}
+                                disabled={isProcessing || isPending}
+                                className="inline-flex items-center gap-1 rounded-lg border border-[color:var(--line)] bg-white px-2 py-1 text-[11px] font-bold text-[color:var(--muted-text)] transition hover:bg-gray-50 disabled:opacity-40"
+                                title={`بازگرداندن به «${statusLabels[undoable[b.id]]}»`}
+                              >
+                                <Undo2 size={12} /> بازگردانی
+                              </button>
+                            ) : null}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-[color:var(--muted-text)]" dir="ltr">
@@ -218,6 +318,7 @@ export default function ListingsClient({ businesses }: ListingsClientProps) {
             </tbody>
           </table>
         </div>
+        {pagination}
       </div>
     </div>
   );

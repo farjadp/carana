@@ -11,6 +11,7 @@
 // Env / Identity: Admin only.
 // ============================================================================
 import { redirect } from "next/navigation";
+import { ADMIN_PAGE_SIZE, AdminPagination } from "@/components/admin/pagination";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { AUTO_SYNDICATE, configuredChannels } from "@/lib/blog/syndicate";
@@ -20,19 +21,27 @@ import { BlogDesk, type DeskPost, type DeskRun, type DeskShare } from "./blog-de
 export const metadata = { title: "وبلاگ | پنل مدیریت" };
 export const dynamic = "force-dynamic";
 
-export default async function AdminBlogPage() {
+export default async function AdminBlogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const page = Math.max(1, Number((await searchParams).page) || 1);
   const supabase = await createSupabaseActionClient();
   try {
     await requireAdmin(supabase);
   } catch {
     redirect("/admin/login");
   }
-  const [{ data: posts }, { data: runs }, { data: cats }, { data: shares }, { data: srcRows }] = await Promise.all([
+  // Posts are paged; the .limit(200) it replaced would have quietly hidden
+  // post 201 the day the blog got there.
+  const postsFrom = (page - 1) * ADMIN_PAGE_SIZE;
+  const [{ data: posts, count: postCount }, { data: runs }, { data: cats }, { data: shares }, { data: srcRows }] = await Promise.all([
     supabase
       .from("blog_posts")
-      .select("id, slug, title, title_en, status, category_slug, cover_url, published_at, created_at, reading_minutes, internal_links, topic_seed, ai_model, source_article_id, sources")
+      .select("id, slug, title, title_en, status, category_slug, cover_url, published_at, created_at, reading_minutes, internal_links, topic_seed, ai_model, source_article_id, sources", { count: "exact" })
       .order("created_at", { ascending: false })
-      .limit(200),
+      .range(postsFrom, postsFrom + ADMIN_PAGE_SIZE - 1),
     supabase.from("blog_runs").select("*").order("started_at", { ascending: false }).limit(10),
     supabase.from("blog_categories").select("slug, name").order("display_order"),
     supabase.from("blog_syndications").select("post_id, channel, status, url, error"),
@@ -53,6 +62,7 @@ export default async function AdminBlogPage() {
   );
 
   return (
+    <>
     <BlogDesk
       posts={(posts ?? []) as DeskPost[]}
       runs={(runs ?? []) as DeskRun[]}
@@ -65,5 +75,9 @@ export default async function AdminBlogPage() {
       model={process.env.BLOG_MODEL ?? "gpt-4.1"}
       sources={sources}
     />
+    <div className="mt-4 rounded-2xl border border-[color:var(--line)] bg-white">
+      <AdminPagination page={page} total={postCount ?? 0} basePath="/admin/blog" itemLabel="مقاله" />
+    </div>
+    </>
   );
 }

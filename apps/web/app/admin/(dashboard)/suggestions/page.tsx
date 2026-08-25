@@ -7,6 +7,8 @@
 // ============================================================================
 import { redirect } from "next/navigation";
 
+import { ADMIN_PAGE_SIZE, AdminPagination } from "@/components/admin/pagination";
+
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { SuggestionsClient, type SuggestionRow } from "./suggestions-client";
@@ -14,7 +16,13 @@ import { SuggestionsClient, type SuggestionRow } from "./suggestions-client";
 export const metadata = { title: "پیشنهادها | پنل مدیریت" };
 export const dynamic = "force-dynamic";
 
-export default async function AdminSuggestionsPage() {
+export default async function AdminSuggestionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const page = Math.max(1, Number((await searchParams).page) || 1);
+  const pageFrom = (page - 1) * ADMIN_PAGE_SIZE;
   const supabase = await createSupabaseActionClient();
   try {
     await requireAdmin(supabase);
@@ -22,11 +30,11 @@ export default async function AdminSuggestionsPage() {
     redirect("/admin/login");
   }
 
-  const { data } = await supabase
+  const { data, count } = await supabase
     .from("suggestions")
-    .select("id, user_id, body, voice_path, voice_seconds, contact, source, page, status, admin_note, created_at")
+    .select("id, user_id, body, voice_path, voice_seconds, contact, source, page, status, admin_note, created_at", { count: "exact" })
     .order("created_at", { ascending: false })
-    .limit(300);
+    .range(pageFrom, pageFrom + ADMIN_PAGE_SIZE - 1);
 
   const rows = (data ?? []) as SuggestionRow[];
   const admin = createSupabaseAdminClient();
@@ -50,5 +58,12 @@ export default async function AdminSuggestionsPage() {
     author: r.user_id ? byUser.get(r.user_id) ?? null : null,
   }));
 
-  return <SuggestionsClient rows={enriched} />;
+  return (
+    <>
+      <SuggestionsClient rows={enriched} />
+      <div className="mt-4 rounded-2xl border border-[color:var(--line)] bg-white">
+        <AdminPagination page={page} total={count ?? 0} basePath="/admin/suggestions" itemLabel="پیشنهاد" />
+      </div>
+    </>
+  );
 }

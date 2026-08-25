@@ -11,6 +11,8 @@
 // ============================================================================
 import { redirect } from "next/navigation";
 
+import { ADMIN_PAGE_SIZE, AdminPagination } from "@/components/admin/pagination";
+
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import AdminReviewsClient from "./reviews-client";
@@ -40,7 +42,13 @@ async function withAuthors(rows: ReviewRow[]) {
   }));
 }
 
-export default async function AdminReviewsPage() {
+export default async function AdminReviewsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const page = Math.max(1, Number((await searchParams).page) || 1);
+  const pageFrom = (page - 1) * ADMIN_PAGE_SIZE;
   const supabase = await createSupabaseActionClient();
 
   try {
@@ -55,12 +63,14 @@ export default async function AdminReviewsPage() {
     .eq("status", "pending_moderation")
     .order("created_at", { ascending: false });
 
-  const { data: recent } = await supabase
+  // The decided pile is paged; the pending queue above is not, because a
+  // moderation queue you cannot see the bottom of is a queue you cannot clear.
+  const { data: recent, count: recentCount } = await supabase
     .from("public_reviews")
-    .select("*, business:businesses(id, name)")
+    .select("*, business:businesses(id, name)", { count: "exact" })
     .in("status", ["approved", "published", "rejected", "needs_changes"])
     .order("reviewed_at", { ascending: false })
-    .limit(50);
+    .range(pageFrom, pageFrom + ADMIN_PAGE_SIZE - 1);
 
   const [pendingReviews, recentReviews] = await Promise.all([
     withAuthors((pending ?? []) as ReviewRow[]),
@@ -75,6 +85,9 @@ export default async function AdminReviewsPage() {
       </div>
 
       <AdminReviewsClient pendingReviews={pendingReviews} recentReviews={recentReviews} />
+      <div className="mt-4 rounded-2xl border border-[color:var(--line)] bg-white">
+        <AdminPagination page={page} total={recentCount ?? 0} basePath="/admin/reviews" itemLabel="نظر" />
+      </div>
     </div>
   );
 }
