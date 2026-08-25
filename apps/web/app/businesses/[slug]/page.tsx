@@ -124,7 +124,7 @@ export async function generateMetadata({
     // Persian brand suffix and a budget that assumes nothing else is added.
     title: { absolute: title },
     description,
-    // The vanity URL /b/[slug] 301s here, so this is the only citable URL.
+    // The short alias /b/[handle] 301s here, so this is the only citable URL.
     alternates: { canonical: `/businesses/${encodeURIComponent(business.slug ?? rawSlug)}` },
     openGraph: {
       locale: "fa_CA",

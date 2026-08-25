@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -746,7 +746,6 @@ export type Database = {
           tagline: string | null
           telegram: string | null
           updated_at: string
-          vanity_slug: string | null
           verification_documents: string[] | null
           verification_method: string | null
           verification_notes: string | null
@@ -818,7 +817,6 @@ export type Database = {
           tagline?: string | null
           telegram?: string | null
           updated_at?: string
-          vanity_slug?: string | null
           verification_documents?: string[] | null
           verification_method?: string | null
           verification_notes?: string | null
@@ -890,7 +888,6 @@ export type Database = {
           tagline?: string | null
           telegram?: string | null
           updated_at?: string
-          vanity_slug?: string | null
           verification_documents?: string[] | null
           verification_method?: string | null
           verification_notes?: string | null
@@ -2113,6 +2110,10 @@ export type Database = {
         Returns: number
       }
       keyboard_swap: { Args: { t: string }; Returns: string }
+      link_days_needing_rollup: {
+        Args: { p_lookback?: number }
+        Returns: string[]
+      }
       link_page_summary: {
         Args: { p_days?: number; p_dimension?: string; p_page_id: string }
         Returns: {

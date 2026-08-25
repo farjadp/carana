@@ -31,7 +31,7 @@ export async function setOwnerVisibility(businessId: string, hidden: boolean) {
 
     const { data: business } = await supabase
       .from("businesses")
-      .select("id, slug, vanity_slug, plan, plan_until, created_by, owner_user_id")
+      .select("id, slug, plan, plan_until, created_by, owner_user_id")
       .eq("id", businessId)
       .maybeSingle();
 
@@ -57,7 +57,8 @@ export async function setOwnerVisibility(businessId: string, hidden: boolean) {
 
     revalidatePath(`/dashboard/business/${businessId}/edit`);
     if (business.slug) revalidatePath(`/businesses/${business.slug}`);
-    if (business.vanity_slug) revalidatePath(`/b/${business.vanity_slug}`);
+    // No /b/ revalidation: that route is a 301 to the profile above and holds
+    // no rendered content of its own, so there is nothing there to go stale.
     return { success: true, hidden };
   } catch (error: unknown) {
     console.error("Set Owner Visibility Error:", error);

@@ -6,12 +6,24 @@
 -- Leaving `vanity_slug` alongside it would mean the same string can be free on
 -- one and taken on the other, forever, with no single place to ask.
 --
--- THIS IS A SEPARATE FILE ON PURPOSE. Three source files still select the
--- column:
---     apps/web/app/b/[slug]/route.ts
---     apps/web/app/businesses/[slug]/page.tsx
---     apps/web/app/dashboard/business/[id]/edit/edit-form.tsx
--- plus apps/web/lib/actions/vanity-url.ts. Dropping the column while they
+-- THIS IS A SEPARATE FILE ON PURPOSE, and it is numbered last on purpose too.
+-- It was written as 20260830350000 on 24 Aug and deliberately held back while
+-- 360000, 370000 and 380000 went in ahead of it, which left it out of order —
+-- the CLI then refuses it without --include-all. Renumbering costs nothing
+-- because it had never been applied anywhere, and it keeps the history
+-- monotonic so a rebuild from scratch runs in the same order production did.
+-- Reaching for --include-all instead would have made an exception into a habit.
+--
+-- These source files selected the column, and all of them were repointed to
+-- link_pages.handle in the same commit that applies this:
+--     apps/web/app/b/[slug]/route.ts            -> resolves link_pages.handle
+--     apps/web/lib/actions/vanity-url.ts        -> deleted
+--     apps/web/components/business/vanity-url-editor.tsx -> deleted
+--     apps/web/lib/actions/owner-visibility.ts  -> stopped selecting it
+--     apps/web/app/dashboard/business/[id]/edit/edit-form.tsx -> links to the
+--       link page instead of embedding the old editor
+--     apps/web/app/features/page.tsx            -> copy now sells the handle
+-- Dropping the column while they
 -- still read it breaks a live page — and per the gotchas note, `pnpm db:push`
 -- now blocks exactly that class of failure. Keeping the drop in its own file,
 -- ordered after the others, makes "code first" a property of the migration

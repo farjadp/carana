@@ -88,7 +88,6 @@ export type Feature =
   | "booking_link"
   | "review_replies"
   | "busy_status"         // manual, self-expiring "busy now / quiet now"
-  | "vanity_url"          // GoPlaza.ca/b/[custom-english-slug]
   | "featured_placement"  // top of its city × category list, labelled; also
                            // the gate for FEATURED_RANDOM_BOOST below
   | "homepage_slot"
@@ -202,7 +201,7 @@ export const PLANS: Record<PlanId, Plan> = {
     price: { month: 3400, year: 37700, "2year": 61000, quarter: null },
     features: [
       "insights_basic", "insights_full", "announcements", "booking_link",
-      "review_replies", "busy_status", "vanity_url", "featured_placement", "homepage_slot",
+      "review_replies", "busy_status", "featured_placement", "homepage_slot",
       "owner_privacy", "clean_profile", "priority_support",
     ],
     bullets: [
@@ -230,7 +229,7 @@ export const PLANS: Record<PlanId, Plan> = {
     price: { month: null, year: null, "2year": null, quarter: 14400 },
     features: [
       "insights_basic", "insights_full", "announcements", "booking_link",
-      "review_replies", "busy_status", "vanity_url", "featured_placement", "homepage_slot",
+      "review_replies", "busy_status", "featured_placement", "homepage_slot",
       "owner_privacy", "clean_profile", "exclusive_profile", "priority_support",
     ],
     bullets: [

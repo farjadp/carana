@@ -33,8 +33,10 @@
 //      client, not the admin client, so RLS is the enforcement rather than a
 //      politeness — `link_pages` grants the owner insert/update directly, and
 //      a trigger checks that a claimed business is really theirs. That is a
-//      deliberate difference from vanity-url.ts and announcements.ts, which
-//      need the service role because no policy grants what they do.
+//      deliberate difference from announcements.ts and the other plan-gated
+//      writers, which need the service role because no policy grants what
+//      they do. (vanity-url.ts, the third example this once cited, was
+//      deleted when its column was retired — this file replaced it.)
 // ============================================================================
 
 import { revalidatePath } from "next/cache";

@@ -197,8 +197,8 @@ const OWNER_PREMIUM: Item[] = [
   },
   {
     icon: <Link2 size={18} />,
-    title: "آدرس اختصاصی انگلیسی",
-    body: "مثل GoPlaza.ca/b/dr-ahmadi — برای کارت ویزیت و اینستاگرام.",
+    title: "صفحه‌ی لینک با آدرس دلخواه",
+    body: "مثل gplz.link/dr-ahmadi — یک صفحه با همه‌ی راه‌های تماس، برای بیوی اینستاگرام و کارت ویزیت.",
   },
   {
     icon: <Star size={18} />,

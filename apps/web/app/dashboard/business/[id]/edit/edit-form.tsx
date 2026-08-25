@@ -26,7 +26,6 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ImageUploader } from "@/components/ui/image-uploader";
 import { GalleryUploader } from "@/components/ui/gallery-uploader";
-import { VanityUrlEditor } from "@/components/business/vanity-url-editor";
 import { OwnerVisibilityToggle } from "@/components/business/owner-visibility-toggle";
 import { entitlementsFor } from "@/lib/billing/entitlements";
 import { PLANS } from "@/lib/billing/plans";
@@ -633,8 +632,16 @@ export default function BusinessEditForm({ businessId, initialData, ownerIdentit
                     </FormField>
                   </div>
 
+                  {/* The custom address moved to the link page, which is
+                      where the handle actually lives now. Editing it in two
+                      places would be two ways to set one value. */}
                   <FormField label="آدرس اختصاصی">
-                    <VanityUrlEditor business={{ id: businessId, plan: initialData.plan, plan_until: initialData.plan_until, vanity_slug: initialData.vanity_slug }} />
+                    <a
+                      href={`/dashboard/business/${businessId}/link`}
+                      className="text-sm font-bold text-[color:var(--lajvard)] underline"
+                    >
+                      در صفحه‌ی لینک تنظیم می‌شود
+                    </a>
                   </FormField>
 
                   <FormField label="نمایش نام صاحب کسب‌وکار">
