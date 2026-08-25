@@ -1,20 +1,28 @@
 // ============================================================================
 // Source: apps/web/app/sitemap.ts
-// Version: 1.0.0 — 2026-08-21
+// Version: 2.0.0 — 2026-08-24
 // Why: Surface every published listing, category and city to search engines.
 //      Discovery for a directory comes overwhelmingly from organic search.
+//
+//      v2 — geography comes from lib/seo/geo-index.ts instead of the 8 curated
+//      configs, and the MIN_INDEXABLE floor now applies to province and city
+//      pages too, not just city×category. Before this the sitemap announced 8
+//      cities and 45 city×category pages while 43 cities and 168 combinations
+//      cleared the bar — and it announced /provinces/prince-edward-island,
+//      /provinces/nova-scotia and /provinces/new-brunswick, which have zero
+//      listings each. An advertised empty page is the "هموطن دبی" mistake in
+//      docs/10-seo-playbook.md §5.2, committed against ourselves.
 // Env / Identity: Reads only public rows through the request-scoped client, so
 //      unpublished listings can never leak into the sitemap.
 // ============================================================================
 import type { MetadataRoute } from "next";
 
 import { PROVINCES, PUBLIC_STATUSES } from "@goplaza/core";
-import { cityConfigs } from "@/lib/data/cities";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchAllRows } from "@/lib/supabase/fetch-all";
 import { CATEGORY_DETAILS } from "@/lib/data/category-details";
-import { MIN_INDEXABLE, countCategoryCities } from "@/lib/seo/local";
+import { cityCategoryCount, getGeoIndex, isIndexable, provinceCount } from "@/lib/seo/geo-index";
 
 // Revalidate hourly; listings do not change often enough to justify more.
 export const revalidate = 3600;
@@ -52,7 +60,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: path === "" ? 1 : 0.5,
   }));
 
+  const supabase = await createSupabaseServerClient();
+
+  // One pass over the directory answers every "is this place worth a page"
+  // question below, so the sitemap and the pages agree on the same counts.
+  const geo = await getGeoIndex();
+
+  // Provinces: only the ones that actually hold listings. A province that
+  // gains its third listing appears here on the next revalidate — no list to
+  // edit (docs/12-seo-architecture.md §13.2).
   for (const province of PROVINCES) {
+    if (!isIndexable(provinceCount(geo, province.slug))) continue;
     entries.push({
       url: `${base}/provinces/${province.slug}`,
       changeFrequency: "weekly",
@@ -60,15 +78,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  for (const city of cityConfigs) {
+  // Cities: every real city in the data over the floor, not the 8 curated
+  // configs. Richmond Hill (763), North York (457) and Thornhill (257) had
+  // live pages that nothing ever announced.
+  for (const { config, count } of geo.cities) {
+    if (!isIndexable(count)) continue;
     entries.push({
-      url: `${base}/cities/${city.slug}`,
+      url: `${base}/cities/${config.slug}`,
       changeFrequency: "weekly",
       priority: 0.7,
     });
   }
-
-  const supabase = await createSupabaseServerClient();
 
   const { data: categories } = await supabase
     .from("categories")
@@ -83,14 +103,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  // City × category pages — only the ones that clear the indexability bar,
-  // so the sitemap never advertises a noindex page.
+  // City × category — the long-tail engine, and the highest-intent pages on
+  // the site ("دندانپزشک ایرانی ریچموندهیل"). Only combinations that clear the
+  // floor, so the sitemap never advertises a noindex page.
   for (const cat of Object.values(CATEGORY_DETAILS)) {
-    const perCity = await countCategoryCities(supabase, cat.slug, cat.name);
-    for (const { city, count } of perCity) {
-      if (count < MIN_INDEXABLE) continue;
+    for (const { config } of geo.cities) {
+      if (!isIndexable(cityCategoryCount(geo, config.slug, cat.slug))) continue;
       entries.push({
-        url: `${base}/cities/${city.slug}/${cat.slug}`,
+        url: `${base}/cities/${config.slug}/${cat.slug}`,
         changeFrequency: "daily",
         priority: 0.75,
       });
