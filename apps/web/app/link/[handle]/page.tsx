@@ -59,6 +59,7 @@ import {
 } from "@goplaza/core";
 import { cityNameFa, getGeoIndex } from "@/lib/seo/geo-index";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { LinkPageTracker } from "./tracker";
 
 export const revalidate = 60;
 
@@ -201,11 +202,22 @@ function resolveItem(item: Item, business: Business | null): { href: string; lab
   }
 }
 
-function ItemButton({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
+function ItemButton({
+  href,
+  label,
+  icon,
+  itemId,
+}: {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  itemId: string;
+}) {
   const external = /^https?:/i.test(href);
   return (
     <a
       href={href}
+      data-link-item={itemId}
       {...(external ? { target: "_blank", rel: "noopener noreferrer nofollow ugc" } : {})}
       className="flex items-center gap-3 rounded-2xl border border-[rgba(20,33,61,0.10)] bg-white px-5 py-4 text-[15px] font-bold text-[#14213d] transition hover:-translate-y-0.5 hover:border-[#7A1831]/30 hover:shadow-lg"
     >
@@ -289,6 +301,7 @@ export default async function LinkPage({ params }: { params: Promise<{ handle: s
 
   return (
     <main className="min-h-screen bg-[#f6f1e8] px-5 py-12">
+      <LinkPageTracker pageId={page.id} />
       <div className="mx-auto w-full max-w-[520px]">
         <header className="mb-8 text-center">
           {avatar ? (
@@ -323,7 +336,7 @@ export default async function LinkPage({ params }: { params: Promise<{ handle: s
               return business ? <HoursBlock key={item.id} business={business} /> : null;
             }
             const resolved = resolveItem(item, business);
-            return resolved ? <ItemButton key={item.id} {...resolved} /> : null;
+            return resolved ? <ItemButton key={item.id} itemId={item.id} {...resolved} /> : null;
           })}
         </div>
 

@@ -63,9 +63,16 @@ export async function proxy(request: NextRequest) {
   // would be a duplicate of the bio page under the wrong domain, so it is
   // sent to the real one. The internal rewrite above is unaffected: proxy
   // runs once per request, and a rewrite does not re-enter it.
-  const internalLink = /^\/link\/(.+)$/.exec(request.nextUrl.pathname);
-  if (internalLink) {
-    return NextResponse.redirect(new URL(`/${internalLink[1]}`, brand.shortUrl), 301);
+  //
+  // Only on the canonical host. An unconditional redirect also fired on
+  // localhost and on every Vercel preview URL, where gplz.link does not
+  // resolve — so the page became impossible to open anywhere it had not
+  // shipped yet, including while it was being built.
+  if (host === CANONICAL_HOST) {
+    const internalLink = /^\/link\/(.+)$/.exec(request.nextUrl.pathname);
+    if (internalLink) {
+      return NextResponse.redirect(new URL(`/${internalLink[1]}`, brand.shortUrl), 301);
+    }
   }
 
   return await updateSession(request);

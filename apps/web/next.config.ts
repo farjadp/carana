@@ -75,6 +75,13 @@ const nextConfig: NextConfig = {
   // to compile it like first-party source.
   transpilePackages: ["@goplaza/core"],
 
+  // Dev only. Next blocks cross-origin requests to dev assets, and the origin
+  // it trusts is the one it was started with — `localhost`. Opening the dev
+  // server on 127.0.0.1 therefore serves the HTML but 403s every JS chunk, so
+  // the page renders and never hydrates: a silent, confusing half-failure that
+  // looks like broken client code. Has no effect on a production build.
+  allowedDevOrigins: ["127.0.0.1", "0.0.0.0"],
+
   env: {
     ...(publicSupabaseUrl ? { NEXT_PUBLIC_SUPABASE_URL: publicSupabaseUrl } : {}),
     ...(publicSupabaseKey
