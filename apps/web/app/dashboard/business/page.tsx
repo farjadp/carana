@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PlusCircle, Building2, Calendar, Clock, BarChart3, CreditCard, Megaphone, Briefcase } from "lucide-react";
 
+import { entitlementsFor, planLabel } from "@goplaza/core";
 import { PageShell } from "@/components/page-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth/session";
@@ -109,6 +110,15 @@ export default async function BusinessDashboardPage() {
                       <div className="w-6 flex justify-center"><Building2 size={16} /></div>
                       <span>{b.category} • {b.city}</span>
                     </div>
+
+                    {/* What this listing is actually on. The card had an
+                        «اشتراک» button and never said what the subscription
+                        WAS, so a paid listing and a free one looked identical
+                        on the owner's own dashboard — the one screen where
+                        that has to be obvious. Read through entitlementsFor,
+                        so a lapsed period reads as lapsed instead of as the
+                        plan the column still claims. */}
+                    <PlanLine business={b} />
                     
                     <div className="flex items-center gap-2 text-sm text-[color:var(--muted-text)] bg-gray-50 p-2 rounded-lg">
                       <div className="w-6 flex justify-center text-gray-400"><Calendar size={16} /></div>
@@ -177,5 +187,42 @@ export default async function BusinessDashboardPage() {
         )}
       </main>
     </PageShell>
+  );
+}
+
+/**
+ * The plan line on an owner's card. Free says so plainly rather than staying
+ * silent — "no badge" is indistinguishable from "we forgot to tell you".
+ * An expired paid period is named as expired, because entitlementsFor has
+ * already stopped honouring it and the owner needs to know why their
+ * placement went away.
+ */
+function PlanLine({ business }: { business: { plan?: string | null; plan_until?: string | null } }) {
+  const ent = entitlementsFor(business);
+  const paid = ent.plan !== "free";
+  const until = ent.until ? new Date(ent.until).toLocaleDateString("fa-IR") : null;
+
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <div className="w-6 flex justify-center text-gray-400"><CreditCard size={16} /></div>
+      <span className="flex flex-wrap items-center gap-2">
+        <span
+          className={`rounded-full px-2.5 py-0.5 text-xs font-black ${
+            paid
+              ? "bg-[color:var(--annabi)]/10 text-[color:var(--annabi)]"
+              : "bg-gray-100 text-[color:var(--muted-text)]"
+          }`}
+        >
+          {planLabel(ent.plan)}
+        </span>
+        {ent.expired ? (
+          <span className="text-xs font-bold text-amber-700">
+            {planLabel(ent.storedPlan)} منقضی شد{until ? ` (${until})` : ""}
+          </span>
+        ) : paid && until ? (
+          <span className="text-xs text-[color:var(--muted-text)]">تا <span dir="ltr">{until}</span></span>
+        ) : null}
+      </span>
+    </div>
   );
 }
