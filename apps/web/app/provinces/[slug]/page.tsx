@@ -9,10 +9,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { getGeoIndex, isIndexable, provinceCount } from "@/lib/seo/geo-index";
+
 import { PUBLIC_STATUSES, getProvinceBySlug, PROVINCES } from "@goplaza/core";
 import { InnerPage } from "@/components/inner-page";
 import { getProvinceSummary } from "@/lib/data/geography";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { LatestPostsStrip } from "@/components/blog/latest-posts";
 
 export const revalidate = 3600;
 
@@ -25,20 +28,31 @@ export function generateStaticParams() {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ page?: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  const page = Math.max(1, parseInt((await searchParams)?.page ?? "1", 10) || 1);
   const province = getProvinceBySlug(slug);
 
   if (!province) return { title: "استان پیدا نشد" };
 
+  // Four provinces hold the whole directory; the rest hold 0–2 listings and
+  // were being announced in the sitemap regardless. Below the floor the page
+  // still renders for a visitor but carries noindex.
+  const count = provinceCount(await getGeoIndex(), slug);
+
   return {
     title: `کسب‌وکارهای ایرانی ${province.name}`,
     description: `دایرکتوری کسب‌وکارهای ایرانی در استان ${province.name} (${province.nameEn}) کانادا، بر اساس شهر و دسته‌بندی.`,
-    // Paginated with ?page=; every page canonicalises to the unpaginated URL
-    // so the pages do not compete with each other in the index.
-    alternates: { canonical: `/provinces/${slug}` },
+    // Each ?page= canonicalises to ITSELF. Pointing page 2+ at page 1 — which
+    // this did — tells Google the deeper pages are duplicates, so nothing only
+    // reachable from them gets indexed. Google dropped rel=next/prev in 2019
+    // and calls the canonical-to-page-1 pattern a mistake.
+    alternates: { canonical: page > 1 ? `/provinces/${slug}?page=${page}` : `/provinces/${slug}` },
+    robots: isIndexable(count) ? { index: true, follow: true } : { index: false, follow: true },
   };
 }
 
@@ -103,6 +117,27 @@ export default async function ProvincePage({
         </section>
       ) : null}
 
+      {(summary?.total ?? 0) === 0 ? (
+        /* Three provinces hold no listings at all. Rendering the usual
+           "تازه‌ترین کسب‌وکارها" heading over an empty grid is the pattern
+           docs/10-seo-playbook.md §5.2 faults the competitors for — a page
+           that implies coverage it does not have. Say so plainly and send the
+           visitor somewhere that has results. The page is noindex either way
+           and is not in the sitemap. */
+        <section className="province-listings">
+          <h2>هنوز کسب‌وکاری در {province.name} ثبت نشده</h2>
+          <p>
+            گوپلازا دایرکتوری زنده است و این استان فعلاً خالی است. اگر کسب‌وکاری
+            در {province.name} می‌شناسید، ثبتش رایگان است و همین صفحه با اولین
+            ثبت زنده می‌شود.
+          </p>
+          <p>
+            <Link href="/provinces">دیدن استان‌هایی که کسب‌وکار دارند</Link>
+            {" · "}
+            <Link href="/businesses">جست‌وجوی همه‌ی کسب‌وکارها</Link>
+          </p>
+        </section>
+      ) : (
       <section className="province-listings">
         <h2>تازه‌ترین کسب‌وکارها</h2>
         <div className="listing-grid">
@@ -133,6 +168,8 @@ export default async function ProvincePage({
           </nav>
         ) : null}
       </section>
+      )}
+      <LatestPostsStrip subtitle="راهنماهای تازه‌ی گوپلازا درباره‌ی استان‌ها و زندگی ایرانی در کانادا" />
     </InnerPage>
   );
 }

@@ -1,12 +1,15 @@
 // ============================================================================
 // Source: lib/seo/local.ts
-// Version: 1.0.0 — 2026-08-15
+// Version: 2.0.0 — 2026-08-24
 // Why: One place for the city × category "programmatic" pages and the
 //      structured data that goes with them. Everything here is computed from
 //      the live directory — counts, verified counts, open-now — so a page
 //      never asserts more than the database can back. Pages with fewer than
 //      MIN_INDEXABLE listings still render (with a "be the first" CTA) but
 //      carry noindex, so thin combos never reach the index.
+//      v2 — city matching is exact (see cityFilterOr), `resolveCity` is
+//      paginated, and the city list comes from lib/seo/geo-index.ts instead of
+//      the 8 hand-written configs.
 // Env / Identity: Server only. Anon client; explicit public columns.
 // ============================================================================
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -17,34 +20,23 @@ import { resolveProvince } from "@goplaza/core";
 import { sortFeaturedFirst } from "@/lib/billing/entitlements";
 import { getCategoryDetail } from "@/lib/data/category-details";
 import { env } from "@/lib/env";
+import { cityCategoryCount, getGeoIndex } from "@/lib/seo/geo-index";
 import { fetchAllRows } from "@/lib/supabase/fetch-all";
 import { getVerificationStatus, isTrusted, type VerificationMethod } from "@/lib/verification/status";
 
-export const MIN_INDEXABLE = 3;
+// Owned by lib/seo/geo-index.ts now that province and city pages share it.
+// Re-exported so the existing imports keep resolving to one number.
+export { MIN_INDEXABLE } from "@/lib/seo/geo-index";
 
 /** Columns a public list page is allowed to read. Never `*`. */
 export const LOCAL_CARD_COLUMNS =
   "id, slug, name, name_en, category, sub_category, tagline, short_description, city, province, phone, website, logo_url, cover_url, working_hours, view_count, verified_at, verified_until, verified_phone, verified_email, verification_method, plan, plan_until, busy_status, busy_status_until";
 
-/**
- * `businesses.category` is free text (see Notion "businesses.category is not
- * a foreign key"). Until that lands, these are the spellings that mean the
- * same category. Moved here from the category page so every list agrees.
- */
-export function getCategoryAliases(slug: string, name?: string): string[] {
-  const aliases = new Set<string>([slug]);
-  if (name) aliases.add(name);
-  const add = (...xs: string[]) => xs.forEach((x) => aliases.add(x));
-  if (slug === "medical-clinic" || slug === "medical") add("medical", "medical-clinic", "پزشکی، دندانپزشکی و سلامت", "پزشکی");
-  else if (slug === "restaurant-cafe" || slug === "food") add("food", "restaurant-cafe", "رستوران، کافه و غذا", "رستوران");
-  else if (slug === "legal-immigration" || slug === "legal") add("legal", "legal-immigration", "حقوقی و وکالت");
-  else if (slug === "real-estate-mortgage" || slug === "real_estate") add("real_estate", "real-estate-mortgage", "مشاور املاک", "املاک و وام");
-  else if (slug === "accounting-tax" || slug === "financial") add("financial", "accounting-tax", "مالی، حسابداری و بیمه");
-  else if (slug === "beauty-wellness" || slug === "beauty") add("beauty", "beauty-wellness", "آرایشگری و زیبایی");
-  else if (slug === "iranian-grocery" || slug === "retail") add("retail", "iranian-grocery", "فروشگاه و خرده‌فروشی");
-  else if (slug === "skilled-trades" || slug === "construction") add("construction", "skilled-trades", "ساختمان و تاسیسات");
-  return [...aliases];
-}
+// Category spelling variants live in lib/data/category-aliases.ts (extracted to
+// break the local.ts ↔ geo-index.ts import cycle). Re-exported so the many
+// existing `from "@/lib/seo/local"` imports keep working.
+export { getCategoryAliases } from "@/lib/data/category-aliases";
+import { getCategoryAliases } from "@/lib/data/category-aliases";
 
 /**
  * Resolve a URL segment to a city: a curated config (toronto…) or, failing
@@ -55,12 +47,16 @@ export async function resolveCity(supabase: SupabaseClient, segment: string): Pr
   const cfg = findCityConfig(segment);
   if (cfg) return cfg;
   const key = decodeURIComponent(segment).trim().toLowerCase();
-  const { data } = await supabase
-    .from("businesses")
-    .select("city, province")
-    .in("status", PUBLIC_STATUSES)
-    .not("city", "is", null);
-  const rows = (data ?? []) as { city: string; province: string | null }[];
+  // Paginated: unbounded, this stopped at 1,000 rows, so any city whose rows
+  // all sort past that point simply did not resolve and 404'd.
+  const rows = await fetchAllRows<{ city: string; province: string | null }>(() =>
+    supabase
+      .from("businesses")
+      .select("city, province")
+      .in("status", PUBLIC_STATUSES)
+      .not("city", "is", null)
+      .order("id")
+  );
   const hit = rows.find((r) => citySlug(r.city) === key || r.city.toLowerCase() === key);
   if (!hit) return null;
   const nameEn = hit.city.trim();
@@ -73,11 +69,20 @@ export async function resolveCity(supabase: SupabaseClient, segment: string): Pr
   return dynamicCityConfig(nameEn, { nameFa, province: province?.code ?? provinceRow, provinceFa: province?.name ?? null });
 }
 
-/** PostgREST `or=` filter matching a city config's name and neighbourhoods. */
+/**
+ * PostgREST `or=` filter matching a city config's name and neighbourhoods.
+ *
+ * EXACT, not `%term%`. The wildcard form meant "Richmond" (a Vancouver
+ * neighbourhood) matched "Richmond Hill", so /cities/vancouver listed 763
+ * Ontario businesses as Vancouver ones, and "York" matched "North York" and
+ * "East York". ilike without wildcards is still case-insensitive, which is all
+ * that was ever needed. A config now has to name every municipality it claims
+ * — lib/data/cities.ts v2 does.
+ */
 export function cityFilterOr(city: CityConfig): string {
   const terms = [city.nameEn, ...(city.nameFa !== city.nameEn ? [city.nameFa] : []), ...city.neighborhoods];
-  // ilike patterns; commas would break the or() grammar, none of ours have any.
-  return terms.map((t) => `city.ilike.%${t.replace(/[,()]/g, "")}%`).join(",");
+  // Commas would break the or() grammar; none of our city names have any.
+  return terms.map((t) => `city.ilike.${t.replace(/[,()]/g, "")}`).join(",");
 }
 
 export type LocalBusiness = {
@@ -199,29 +204,22 @@ export async function countCityCategories(
     .sort((a, b) => b.count - a.count);
 }
 
-/** Same category across cities — the "also in" block and the sitemap. */
+/**
+ * Same category across cities — the "also in" block and the sitemap.
+ *
+ * Reads lib/seo/geo-index.ts rather than looping the 8 curated configs, which
+ * is what capped the sitemap at 45 city×category URLs while 168 combinations
+ * actually cleared the threshold.
+ */
 export async function countCategoryCities(
-  supabase: SupabaseClient,
+  _supabase: SupabaseClient,
   categorySlug: string,
-  categoryName?: string
+  _categoryName?: string
 ): Promise<{ city: CityConfig; count: number }[]> {
-  // Paginated. Unbounded, a popular category stopped at 1,000 rows, so most
-  // city×category pages measured below MIN_INDEXABLE and were dropped from the
-  // sitemap — the long-tail pages are the whole point of this function.
-  const data = await fetchAllRows<{ city: string | null }>(() =>
-    supabase
-      .from("businesses")
-      .select("city")
-      .in("status", PUBLIC_STATUSES)
-      .in("category", getCategoryAliases(categorySlug, categoryName))
-      .order("id")
-  );
-  const cities = data.map((r) => (r.city ?? "").toLowerCase());
-  return cityConfigs
-    .map((city) => {
-      const terms = [city.nameEn, city.nameFa, ...city.neighborhoods].map((t) => t.toLowerCase());
-      return { city, count: cities.filter((c) => terms.some((t) => c.includes(t))).length };
-    })
+  const index = await getGeoIndex();
+  return index.cities
+    .map(({ config }) => ({ city: config, count: cityCategoryCount(index, config.slug, categorySlug) }))
+    .filter((x) => x.count > 0)
     .sort((a, b) => b.count - a.count);
 }
 
@@ -337,7 +335,12 @@ export function localFaqs(city: CityConfig, categoryName: string, s: LocalStats)
     {
       q: `چند ${cat} در ${city.nameFa} هست؟`,
       a: s.total
-        ? `در حال حاضر ${fa(s.total)} ${cat} در ${city.nameFa} و محله‌های اطراف (${city.neighborhoods.slice(0, 5).join("، ")}) در گوپلازا فهرست شده‌اند. عدد زنده است و با هر ثبت جدید تغییر می‌کند.`
+        // The 35 data-derived cities carry no neighbourhood list, so the
+        // parenthetical has to be conditional — otherwise this rendered
+        // "و محله‌های اطراف ()" into the visible FAQ and into FAQPage schema.
+        ? `در حال حاضر ${fa(s.total)} ${cat} در ${city.nameFa}${
+            city.neighborhoods.length ? ` و محله‌های اطراف (${city.neighborhoods.slice(0, 5).join("، ")})` : ""
+          } در گوپلازا فهرست شده‌اند. عدد زنده است و با هر ثبت جدید تغییر می‌کند.`
         : `هنوز موردی ثبت نشده است. گوپلازا دایرکتوری زنده است؛ اولین ثبت همین‌جا ظاهر می‌شود.`,
     },
     {

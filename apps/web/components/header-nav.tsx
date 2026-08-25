@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: components/header-nav.tsx
-// Version: 2.0.0 — 2026-08-15
+// Version: 2.1.0 — 2026-08-24
 // Why: Interactive half of the site header.
 //
 // v2 fixes the dropdown and takes over the footer's job. The "About" menu was
@@ -37,6 +37,11 @@ export const NAV_ITEMS: NavItem[] = [
   // weekly, and a directory nobody returns to is a phone book. Buried in a
   // menu it would not be that.
   { href: "/jobs", label: "استخدام" },
+  // Articles sit in the bar rather than in the راهنما menu, where the single
+  // "وبلاگ" link was the least-clicked thing on the site. It is the other
+  // reason to come back between two searches, so it belongs next to the jobs
+  // board. The menu keeps its item count: this one moved, it was not added.
+  { href: "/blog", label: "مقالات" },
 ];
 
 /** Grouped menus. Everything the footer used to list lives in one of these. */
@@ -55,7 +60,6 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "راهنما",
     items: [
       { href: "/features", label: "امکانات" },
-      { href: "/blog", label: "وبلاگ" },
       { href: "/pricing", label: "تعرفه‌ها" },
       { href: "/how-it-works", label: "چطور کار می‌کند" },
       { href: "/trust", label: "اعتماد و بررسی" },

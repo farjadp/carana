@@ -12,6 +12,7 @@ import { getCategoryDetail } from "@/lib/data/category-details";
 import { breadcrumbLd, countCategoryCities, getCategoryAliases } from "@/lib/seo/local";
 import { collectionLd } from "@/lib/seo/entity";
 import { JsonLd } from "@/components/json-ld";
+import { LatestPostsStrip } from "@/components/blog/latest-posts";
 import CategoryClientPage from "./category-client";
 
 export const revalidate = 60; // ISR cache 1 minute
@@ -29,6 +30,7 @@ export async function generateMetadata({
     description: config.description,
     alternates: { canonical: `/categories/${slug}` },
     openGraph: {
+      locale: "fa_CA",
       title: `${config.name} ایرانی در کانادا | دایرکتوری گوپلازا`,
       description: config.description,
       images: [config.imageUrl],
@@ -78,6 +80,7 @@ export default async function CategoryDetailPage({
         initialBusinesses={initialBusinesses}
         cityLinks={cityLinks}
       />
+      <LatestPostsStrip subtitle="راهنماهای تازه‌ی گوپلازا برای انتخاب درست و کسب‌وکار ایرانی در کانادا" />
     </>
   );
 }

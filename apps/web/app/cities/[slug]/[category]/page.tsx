@@ -21,6 +21,8 @@ import { JsonLd } from "@/components/json-ld";
 import { SuggestionBox } from "@/components/suggestion-box";
 import { cityConfigs } from "@/lib/data/cities";
 import { CATEGORY_DETAILS, getCategoryDetail } from "@/lib/data/category-details";
+import { brand } from "@goplaza/core";
+import { cityCategoryDescription, cityCategoryTitle } from "@/lib/seo/titles";
 import {
   MIN_INDEXABLE,
   breadcrumbLd,
@@ -59,13 +61,29 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const h1 = localHeadline(city.nameFa, cat.name);
   const path = `/cities/${city.slug}/${category}`;
   return {
-    title: `${h1} | ${s.total ? `${fa(s.total)} مورد` : "گوپلازا"}`,
+    // Title carries the word people type («پزشک»), not the config's display
+    // label («پزشکی، دندانپزشکی و سلامت»), plus the real count.
+    title: {
+      absolute: s.total
+        ? cityCategoryTitle({ categorySlug: category, categoryName: cat.name, cityFa: city.nameFa, count: s.total })
+        : `${h1} | ${brand.nameFa}`,
+    },
     description: s.total
-      ? `${fa(s.total)} ${h1.replace(` در ${city.nameFa}`, "")} در ${city.nameFa} و اطراف (${city.neighborhoods.slice(0, 4).join("، ")}) — ${fa(s.verified)} تأییدشده. شماره، ساعت کاری، مسیر و رزرو در گوپلازا.`
+      ? cityCategoryDescription({
+          categorySlug: category,
+          categoryName: cat.name,
+          cityFa: city.nameFa,
+          count: s.total,
+          // Counted, never asserted. The old copy always appended
+          // "{n} تأییدشده" — and only 3 rows in the entire database have
+          // verified_at, so it read "۰ تأییدشده" almost everywhere.
+          withPhone: rows.filter((r) => r.phone).length,
+          withWebsite: s.withWebsite,
+        })
       : `${h1} — به‌زودی. ثبت رایگان کسب‌وکار در گوپلازا.`,
     alternates: { canonical: path },
     robots: s.total >= MIN_INDEXABLE ? { index: true, follow: true } : { index: false, follow: true },
-    openGraph: { title: h1, description: cat.description, url: path, images: cat.imageUrl ? [{ url: cat.imageUrl }] : undefined },
+    openGraph: { locale: "fa_CA", title: h1, description: cat.description, url: path, images: cat.imageUrl ? [{ url: cat.imageUrl }] : undefined },
   };
 }
 

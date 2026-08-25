@@ -1,7 +1,16 @@
 // ============================================================================
 // Source: lib/data/cities.ts
-// Version: 1.0.0 — 2026-08-12
+// Version: 2.0.0 — 2026-08-24
 // Why: Keep supported city landing-page metadata in one reusable place.
+//
+//      v2 — city matching is EXACT, not substring. `cityFilterOr` used to
+//      build `city.ilike.%Richmond%`, and "Richmond" is a Vancouver
+//      neighbourhood, so /cities/vancouver was listing all 763 Richmond Hill
+//      (Ontario) businesses as Vancouver ones. "York" had the same problem
+//      against "North York" and "East York". Terms are now whole city names
+//      compared for equality, so a neighbourhood list has to name every
+//      municipality it claims — which is why these lists grew to match the
+//      real data.
 // Env / Identity: Static city content, no runtime secrets.
 // ============================================================================
 export type CityConfig = {
@@ -26,7 +35,15 @@ export const cityConfigs = [
     headline: "کسب‌وکارهای ایرانی در تورنتو",
     description:
       "تورنتو یکی از اصلی‌ترین مراکز جامعه ایرانیان کاناداست؛ از نورث‌یورک و ریچموندهیل تا داون‌تاون، این صفحه برای پیدا کردن خدمات، فروشگاه‌ها و متخصصان ایرانی همین منطقه طراحی شده است.",
-    neighborhoods: ["North York", "Richmond Hill", "Thornhill", "Markham", "Vaughan", "Newmarket", "Aurora", "Mississauga", "Downtown Toronto"],
+    // Toronto stays the GTA-wide hub (decided 2026-08-24, docs/12-seo-architecture
+    // §13.1): it is the highest-volume query and gets the richest page. Each of
+    // these also has its own narrower page; the overlap is deliberate.
+    neighborhoods: [
+      "North York", "Scarborough", "Etobicoke", "East York", "York",
+      "Richmond Hill", "Thornhill", "Markham", "Vaughan", "Newmarket",
+      "Aurora", "Mississauga", "Brampton", "Concord", "Maple", "Woodbridge",
+      "Oakville", "King City", "Keswick", "Downtown Toronto",
+    ],
     priorityCategories: ["رستوران و کافه", "پزشک و کلینیک", "وکیل و مهاجرت", "املاک و وام", "زیبایی و سلامت", "فروشگاه ایرانی"],
   },
   {
@@ -38,7 +55,9 @@ export const cityConfigs = [
     headline: "کسب‌وکارهای ایرانی در ونکوور",
     description:
       "مسیر جستجوی کسب‌وکارهای ایرانی در ونکوور و شهرهای اطراف، از خدمات محلی تا متخصصان فارسی‌زبان.",
-    neighborhoods: ["North Vancouver", "West Vancouver", "Burnaby", "Coquitlam", "Richmond", "Downtown Vancouver"],
+    // "Richmond" here is Richmond BC. Under v2 exact matching it no longer
+    // swallows Richmond Hill, Ontario.
+    neighborhoods: ["North Vancouver", "West Vancouver", "Burnaby", "Coquitlam", "Richmond", "Surrey", "Port Moody", "Langley", "Downtown Vancouver"],
     priorityCategories: ["رستوران و کافه", "املاک و وام", "خدمات درمانی", "آموزش", "خدمات فنی"],
   },
   {
@@ -50,7 +69,7 @@ export const cityConfigs = [
     headline: "کسب‌وکارهای ایرانی در مونترال",
     description:
       "دایرکتوری کسب‌وکارها و متخصصان ایرانی در مونترال، با توجه به نیازهای فارسی‌زبانان در فضای دو زبانه کبک.",
-    neighborhoods: ["Downtown Montreal", "Cote-des-Neiges", "Laval", "West Island", "Brossard"],
+    neighborhoods: ["Downtown Montreal", "Cote-des-Neiges", "Laval", "West Island", "Brossard", "Westmount", "Saint-Laurent"],
     priorityCategories: ["رستوران و کافه", "حقوقی و مهاجرت", "آموزش", "فروشگاه ایرانی", "زیبایی و سلامت"],
   },
   {

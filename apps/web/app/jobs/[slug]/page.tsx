@@ -33,6 +33,7 @@ import { env } from "@/lib/env";
 import { breadcrumbLd } from "@/lib/seo/local";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { JobMarkdown } from "@/components/ui/markdown-editor";
+import { LatestPostsStrip } from "@/components/blog/latest-posts";
 import { ApplyButton } from "./apply-button";
 
 export const revalidate = 900;
@@ -70,7 +71,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     // be published as characters in the search snippet.
     description: jobDescriptionPlain(job.description).slice(0, 160),
     alternates: { canonical: `/jobs/${job.slug}` },
-    openGraph: { title: job.title, description: jobDescriptionPlain(job.description).slice(0, 200), type: "article" },
+    openGraph: { locale: "fa_CA", title: job.title, description: jobDescriptionPlain(job.description).slice(0, 200), type: "article" },
   };
 }
 
@@ -229,6 +230,7 @@ export default async function JobPage({ params }: { params: Promise<{ slug: stri
             </p>
           ) : null}
         </article>
+        <LatestPostsStrip subtitle="راهنماهای تازه‌ی گوپلازا درباره‌ی کار، مهاجرت و کسب‌وکار در کانادا" />
       </main>
     </PageShell>
   );

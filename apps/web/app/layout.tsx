@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: brand.name,
-    locale: "fa_IR",
+    locale: "fa_CA",
     title: "GOPLAZA | دایرکتوری کسب‌وکارهای ایرانیان کانادا",
     description: DESCRIPTION,
   },

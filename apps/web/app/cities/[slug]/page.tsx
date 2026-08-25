@@ -7,6 +7,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
+import { cityCount, getGeoIndex, isIndexable } from "@/lib/seo/geo-index";
+import { cityTitle } from "@/lib/seo/titles";
 import {
   ArrowLeft,
   Building2,
@@ -34,6 +37,7 @@ import { JsonLd } from "@/components/json-ld";
 import { breadcrumbLd } from "@/lib/seo/local";
 import { collectionLd } from "@/lib/seo/entity";
 import { fetchAllRows } from "@/lib/supabase/fetch-all";
+import { LatestPostsStrip } from "@/components/blog/latest-posts";
 
 export const revalidate = 60;
 
@@ -75,10 +79,18 @@ export async function generateMetadata({ params }: CityPageParams): Promise<Meta
     };
   }
 
+  // Same floor the city×category pages have always had, applied here for the
+  // first time. A city with one or two listings still renders — a visitor
+  // searching it deserves to find what exists — but it stays out of the index
+  // and out of the sitemap. `follow` so its links still pass equity to the
+  // listings themselves.
+  const count = cityCount(await getGeoIndex(), city.slug);
+
   return {
-    title: `${city.nameFa} | کسب‌وکارهای ایرانی`,
+    title: { absolute: cityTitle({ cityFa: city.nameFa, count }) },
     description: city.description,
     alternates: { canonical: `/cities/${city.slug}` },
+    robots: isIndexable(count) ? { index: true, follow: true } : { index: false, follow: true },
   };
 }
 
@@ -356,6 +368,7 @@ export default async function CityDetailPage({ params }: CityPageParams) {
             </div>
           </div>
         </section>
+        <LatestPostsStrip subtitle="راهنماهای تازه‌ی گوپلازا درباره‌ی شهرها و زندگی ایرانی در کانادا" />
       </main>
     </PageShell>
   );

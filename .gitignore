@@ -47,3 +47,14 @@ iranbusiness.json
 # run, never committed — they are large, they are someone else's data, and
 # git history is not where a 700KB snapshot belongs.
 /data/imports/
+
+# macOS folder metadata and Word's lock files. Never intentional.
+.DS_Store
+~$*.doc*
+
+# The internal business report. This repository is PUBLIC, and the document
+# heads itself «سند فرماندهی داخلی · محرمانه» — it carries revenue, annual
+# cost, competitor-by-competitor analysis and the pricing arithmetic. Publish
+# a commit containing it and it is public permanently, whatever a later commit
+# removes. It lives on disk and in Notion; not here.
+/docs/11-business-report.*
