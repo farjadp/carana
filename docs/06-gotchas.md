@@ -1447,3 +1447,43 @@ different claims, and only the second one ships. A push is not a release —
 verify against the live URL. This is also why the deploy check belongs in the
 end-of-session ritual: the same session that wrote the code is the one that
 still remembers what the live site should now say.
+
+---
+
+## `citext` makes a regex CHECK case-insensitive too
+
+**Symptom.** `link_pages.handle` is `citext` and its CHECK constraint spells out
+`^[a-z0-9]...$` — lowercase only, in plain sight. Yet
+`handle_available('Kabab-Sara')` returned `true`, and an insert would have
+stored the capitals.
+
+**Cause.** `citext` overloads the comparison operators so that equality and
+lookup ignore case. The regex operators `~` and `!~` are part of that set. So a
+pattern that literally says "lowercase letters" stops meaning it the moment the
+column is `citext`. The type is doing exactly what it was chosen to do; the
+pattern is the thing that silently changed meaning.
+
+**Fix.** Cast to `text` for the format test and leave the column `citext`:
+
+```sql
+check (handle::text ~ '^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$')
+```
+
+Uniqueness and lookup stay case-insensitive, which is why `citext` is there.
+The pattern goes back to meaning what it says.
+
+**A second hole found at the same moment.** The original pattern was
+`^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$`, whose whole tail is optional — it
+matches a single character. The three-character minimum existed only in
+`validateHandle()` in TypeScript. The database, which has no `HANDLE_MIN`,
+would have accepted `a`. Put a length floor in the pattern (`1 + {1,28} + 1`),
+not beside it.
+
+**Lesson — and this is the part worth keeping.** There was already an assertion
+in `packages/core/src/link.check.mts` comparing the TypeScript regex to the SQL
+one. It passed. They were byte-identical. **They were also both wrong, in the
+same two ways.** An equality assertion proves two sides agree; it can never
+prove they are right, and a shared source of truth propagates a mistake as
+faithfully as it propagates a rule. Calling the function against the real
+database found both holes in about a minute. Run the thing. "The SQL parses"
+and "the SQL ran" are different sentences.
