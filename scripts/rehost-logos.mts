@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: scripts/rehost-logos.mts
-// Version: 1.0.0 — 2026-08-23
+// Version: 1.1.0 — 2026-08-24 (paged the query; concurrent downloads)
 // Why: Imported listings point at images on the source directory's server.
 //      Hotlinking breaks the moment they reorganise, and every page view leaks
 //      a referrer to a competing directory. This copies them into our own
@@ -13,6 +13,8 @@
 // ============================================================================
 import fs from "node:fs";
 import { createClient } from "@supabase/supabase-js";
+
+import { fetchAllRows } from "../packages/core/src/fetch-all.ts";
 
 const flags = process.argv.slice(2);
 const COMMIT = flags.includes("--commit");
@@ -47,16 +49,23 @@ const EXT: Record<string, string> = {
 };
 
 async function main() {
-  const { data: rows, error } = await supabase
-    .from("businesses")
-    .select("id, slug, logo_url")
-    .not("logo_url", "is", null)
-    // Skip our own placeholder and anything already re-hosted, so a re-run
-    // only retries what genuinely still lives on someone else's server.
-    .not("logo_url", "like", "/images/%")
-    .not("logo_url", "like", `%${new URL(env.SUPABASE_URL).hostname}%`);
-
-  if (error) throw error;
+  // PAGED. This was a plain select until 24 Aug 2026, which silently capped it
+  // at PostgREST's 1,000 rows — fine for a 189-row import, and quietly wrong
+  // for gooyalisting.ca's 7,400 logos: it would have re-hosted 1,000 and
+  // printed "1000 externally hosted logos" as though that were the total.
+  // Ordered by `id` because ordering by anything a batch insert shares would
+  // drop or repeat rows at the page boundaries.
+  const rows = await fetchAllRows<{ id: string; slug: string; logo_url: string }>(() =>
+    supabase
+      .from("businesses")
+      .select("id, slug, logo_url")
+      .not("logo_url", "is", null)
+      // Skip our own placeholder and anything already re-hosted, so a re-run
+      // only retries what genuinely still lives on someone else's server.
+      .not("logo_url", "like", "/images/%")
+      .not("logo_url", "like", `%${new URL(env.SUPABASE_URL).hostname}%`)
+      .order("id", { ascending: true })
+  );
 
   const external = (rows ?? []).filter((r) =>
     /^https?:\/\//i.test(r.logo_url as string)
@@ -82,7 +91,14 @@ async function main() {
   let failed = 0;
   const targets = external.slice(0, LIMIT);
 
-  for (const row of targets) {
+  // Serial was fine for 189 rows and is four hours for 7,400. Six at a time,
+  // which is polite to a directory that is not ours.
+  const CONCURRENCY = 6;
+  let next = 0;
+
+  const worker = async () => {
+    while (next < targets.length) {
+    const row = targets[next++];
     const source = row.logo_url as string;
 
     try {
@@ -128,8 +144,13 @@ async function main() {
       console.error(`\n  ${row.slug}: ${(err as Error).message}`);
     }
 
-    process.stdout.write(`\r  ${done + failed}/${targets.length}  ok=${done} failed=${failed}`);
-  }
+      if ((done + failed) % 25 === 0 || done + failed === targets.length) {
+        process.stdout.write(`\r  ${done + failed}/${targets.length}  ok=${done} failed=${failed}`);
+      }
+    }
+  };
+
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, targets.length) }, worker));
 
   console.log(`\ndone: ${done} re-hosted, ${failed} failed`);
   if (failed) {

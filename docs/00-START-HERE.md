@@ -1,6 +1,6 @@
 # GOPLAZA — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-24 (blog discovery — home band, «مقالات» in the bar, article strip on the inner pages) · **Docs version:** 3.11
+**Written:** 2026-08-24 · **Updated:** 2026-08-24 (gooyalisting.ca imported — 5,802 → 10,680 listings) · **Docs version:** 3.12
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://goplaza.ca (**rebranded from čārana on 2026-08-18** — branch `rebrand/goplaza`; the domain, Supabase URLs, Resend and Stripe still need the dashboard steps in `REBRAND_EXTERNAL_ACTIONS.md` before this is true in production. Until then charana.ca is what resolves.)
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -17,12 +17,12 @@ doc changes, update its Notion page and add one Revisions row.
 
 ## Where things stand, in sixty seconds
 
-The web app is **live** at goplaza.ca with **5,802 listings** — seven
-Iranian-Canadian directories merged on 17 Aug, an eighth (iranianlawyer.org)
-on 23 Aug, and a **ninth scraped on 24 Aug but deliberately not yet
-imported**: gooyalisting.ca's 7,471 listings would roughly double the
-directory, and that is a decision, not a leftover — see `05-open-tasks`.
-The merged seven were: IranJavan (Aug), Hamvatan
+The web app is **live** at goplaza.ca with **10,680 listings (9,686
+published, 994 draft for lack of a city)** — nearly double what it held that
+morning. Nine Iranian-Canadian directories are merged: seven on 17 Aug,
+iranianlawyer.org on 23 Aug, and **gooyalisting.ca on 24 Aug — 4,878 new
+listings and 2,392 existing ones enriched**, the largest single intake the
+directory has had. The first seven were: IranJavan (Aug), Hamvatan
 (`2384aa5`), then Jabeh, Taablo, Bazaarche, FarsiLink and IranBusiness
 (`3cb8868`, `34185f5`), each de-duplicated against what was already there —
 a brand-first home page with
@@ -51,7 +51,7 @@ D-U-N-S.
 | Suggestions | Text or voice, web + app, admin inbox |
 | Admin | Listings, categories, reviews, users, logs, suggestions, blog desk, **reports queue**, **city cleanup queue**; sidebar badges are live counts |
 | Data | **All seven directories merged 17 Aug** (`2384aa5` Hamvatan; `3cb8868` + `34185f5` the rest). Per source, inserted / enriched: Hamvatan 1,385 / 59 · Jabeh 1,393 / 375 · Taablo 1,277 / 540 · Bazaarche 500 / 80 · FarsiLink 330 / 194 · IranBusiness 62 / 6 — plus 30 re-inserted after 51 wrong merges were reverted. One record shape (`scripts/lib/source-listing.ts`), one importer (`scripts/import-listings.mts`), one scraper per site (`scripts/scrape-directories.mts`). Coverage now spans Ontario (≈4,350), BC (≈540), Quebec (≈240), Alberta (≈20). Logos re-hosted into Supabase storage. |
-| Data — gooyalisting.ca | **Scraped 24 Aug, NOT imported.** The ninth and largest source: 7,471 published listings (`scripts/scrape-gooya.mts`). Dry run: 2,396 match an existing row and enrich it, 4,882 are new, 163 were duplicates inside the export, 29 are held for a human. Committing it roughly doubles the directory. **The decision is item 1 in `05-open-tasks`** |
+| Data — gooyalisting.ca | **Imported 24 Aug.** The ninth and largest source: 7,471 scraped (`scripts/scrape-gooya.mts`), 163 duplicates collapsed inside the export, then **4,878 inserted and 2,392 enriched** — the directory went 5,802 → **10,680**. 7,235 rows now cite gooyalisting.ca. **37 are held for a human** (shared phone, model unsure) and were not written. Logos re-hosted off gooyalisting.ca into our own storage |
 | Data gap | **≈930 listings say «نامشخص»** — 409 pre-existing (365 one click away in `/admin/cleanup/cities`) plus ≈520 new DRAFT rows whose source gave no city (mostly Jabeh realtors). ≈70 shared-phone / shared-website cases are held for a human — see `05-open-tasks`. Taxonomy gap: 12 categories have no home for travel agencies, cargo, media, charities; they sit in the closest slot with the source label in `sub_category` |
 | Mobile | **Caught up with the web on 24 Aug** — see `04-mobile` for the parity table. **Two APKs shipped the same day** — **1.3.0** (EAS `7efff12a`), the first binary carrying the GOPLAZA rebrand, and **1.4.0** (EAS `6f8b7259`, what `/download` serves) carrying the parity work; `app.json` had sat at 1.3.0 unbuilt since 18 Aug, so until now every installed app still said čārana. Credentials confirmed in the bundle before /download was pointed at it. Then in the same session: the «ویژه» chip + the shared 89% random boost, four listing sorts, the **Platinum** tier, smart search and announcement search. **And a real bug the audit only found by running the app:** the home hero read «۱٬۰۰۰ کسب‌وکار» for a 5,251-listing directory — the PostgREST 1,000-row cap the SEO audit fixed on the web on 18 Aug, still live on native; every category, city and province count was a fifth of the truth. Fixed by moving `fetchAllRows` into `@goplaza/core`. Still **no owner controls at all** — no edit, insights, billing, or announcement writing — and no push |
 | Owner identity | **New 17 Aug (`5f5c03b`)** — a verified profile names the person behind it (web sidebar + mobile). Four server-side gates: trusted verification, a real person attached (`owner_user_id`, or `created_by` only when `self_onboarded`), a non-empty name, and not hidden. Free and Starter always show it; Premium can hide it (`hide_owner`, new `owner_privacy` feature). The hide is honoured after a plan lapses — a name is not a placement. Rule lives in `packages/core/src/owner-identity.ts` |

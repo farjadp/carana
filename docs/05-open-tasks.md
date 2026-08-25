@@ -1,51 +1,44 @@
 # Open tasks
 
-**Updated:** 2026-08-24 — gooyalisting.ca is scraped and dry-run but **not
-imported**; that decision is the first item below. The mobile gap is
-**closed**, including one bug the audit did not predict. What is still open on
-mobile is owner controls and push, both long-standing.
+**Updated:** 2026-08-24 — gooyalisting.ca is **imported**; the directory
+nearly doubled (5,802 → 10,680) and the three follow-ups it left are the
+first section below. The mobile gap is **closed**, including one bug the audit
+did not predict. What is still open on mobile is owner controls and push,
+both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
-## gooyalisting.ca — scraped and dry-run, NOT imported (24 Aug)
+## gooyalisting.ca — IMPORTED 24 Aug; three follow-ups
 
-The ninth directory, and the largest: **7,471 published listings** against the
-5,802 we hold. Scraper is `scripts/scrape-gooya.mts`; the export lives at
-`/tmp/gooya.json` (regenerate with the command below — it is not in git).
+The ninth and largest directory is in. **7,471 scraped → 163 duplicates
+collapsed inside the export → 4,878 inserted, 2,392 enriched.** The directory
+went from 5,802 to **10,680** (9,686 published, 994 draft). 7,235 rows now
+cite gooyalisting.ca in `verification_notes`.
 
-**Nothing is in the database.** The dry run is done and clean; the commit is a
-decision, not a leftover.
+Scraper `scripts/scrape-gooya.mts`; commit report at
+`/tmp/gooya-commit-report.json` (22 MB, not in git — **it is what makes the
+import reversible**, so copy it somewhere durable before /tmp is cleared).
 
-```bash
-npx tsx scripts/scrape-gooya.mts --out gooya.json
-```
+**What is still open:**
 
-The dry run plan:
+1. **37 listings were not written.** Each shares a phone with a row we already
+   had and the model would not commit either way — `Soheila Shayan (Sosha
+   Salon)` against `کلینیک زیبایی سوشا`, `Leila Haute Couture` against
+   `لیلا خیاط حرفه ای لباس عروس و شب`. They are in the report's `review`
+   array. A human decides merge or insert; until then those businesses are
+   simply absent.
+2. **1,401 listings say «نامشخص»** — up from ≈930, because ~450 of the new
+   rows name no city anywhere in their own text. `/admin/cleanup/cities` is
+   where they get resolved; they stay DRAFT and invisible to the public until
+   they do.
+3. **The directory's shape changed.** 1,010 of the new listings are
+   real-estate agents and 953 are beauty — over 40% of the intake in two
+   categories. Worth looking at what the category pages and the random
+   `/businesses` order feel like now that realtors are the largest single
+   group in the directory.
 
-| | |
-|---|---|
-| in the export | 7,471 (1 outside Canada skipped) |
-| collapsed inside the file | 163 — 145 shared phone, 18 shared instagram |
-| matched an existing listing | 2,396 → enriched, not inserted |
-| new | 4,882 |
-| held for a human | 29 |
-
-Enrichment fills `logo_url` on 1,822 existing rows, `instagram` on 1,664,
-`contact_email` on 1,537, `tagline` on 1,641.
-
-**The plan is not deterministic.** 323 phone-only and website-only matches are
-adjudicated by a model, so two runs of the same file differ by a few rows —
-these numbers came from the run after the `کبک سیتی` fix; the run before it
-said 4,873 / 2,390 / 44. Re-read the report rather than trusting a number
-quoted from an earlier run.
-
-**Open, in order:**
-
-1. **Decide on the commit.** `npx tsx scripts/import-listings.mts gooya.json --commit --report gooya-import-report.json`. It roughly doubles the directory (5,802 → ≈10,684). Re-run the dry run first if the export has been regenerated — the plan above is only valid for that file.
-2. **The 29 reviews.** Each shares a phone with an existing listing and the model would not commit either way — `Soheila Shayan (Sosha Salon)` against `کلینیک زیبایی سوشا`, `Leila Haute Couture` against `لیلا خیاط حرفه ای لباس عروس و شب`. They are in `review` in the report. A human decides merge or insert; nothing is written for them.
-3. **≈443 new rows have no city** and land as DRAFT, on top of the existing ≈930. `cityFromProse` already recovered the ones whose own text names a city; these say nothing at all. `/admin/cleanup/cities` is where they get resolved.
-4. **Logos.** 7,466 of 7,471 carry one, hotlinked to gooyalisting.ca. `scripts/rehost-logos.mts` has to run after the import, as it did for the other eight sources.
-5. **Ask whether we want all 4,873.** 1,008 are real-estate agents and 942 beauty — over 40% of the intake in two categories. That is what the source is, but it changes the directory's shape, and it is a product call rather than an import bug.
+Logos were re-hosted off gooyalisting.ca into our own Supabase storage
+(`scripts/rehost-logos.mts`) — see the session log for the count.
 
 ## Blog sources — what a human still has to do (24 Aug)
 
