@@ -102,8 +102,28 @@ is("footer stays on free even if hiding was requested", showsFooter({ plan: "fre
 is("footer removable when paid", showsFooter({ plan: "free", link_pro_until: soon }, true), false);
 is("footer returns when the plan lapses", showsFooter({ plan: "free", link_pro_until: past }, true), true);
 
-// --- code and database must agree on what a handle looks like
-is("regex matches 20260830330000_link_pages.sql", HANDLE_RE.source, /^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/.source);
+// --- code and database must agree on what a handle looks like.
+//
+// NOTE what this assertion is worth. The first version of it passed: both
+// regexes were byte-identical. Both were also wrong in the same two ways —
+// no minimum length, and citext made the database side case-insensitive so it
+// accepted `Kabab-Sara`. An equality assertion proves the two sides agree; it
+// cannot prove they are right. Only calling handle_available() against the
+// real database found that, in about a minute. Keep this line, and keep
+// running the function too.
+is(
+  "regex matches 20260830360000_handle_format_fix.sql",
+  HANDLE_RE.source,
+  /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/.source,
+);
+
+// The cases that were wrong in production for eleven minutes on 25 Aug, kept
+// here so they can never silently come back.
+is("two chars rejected (was accepted by the DB)", validateHandle("ab").ok, false);
+is("single char rejected", validateHandle("a").ok, false);
+is("three chars accepted", validateHandle("abc").ok, true);
+is("capitals are lowercased, not rejected here", (validateHandle("KABAB") as { handle: string }).handle, "kabab");
+is("regex itself rejects capitals", HANDLE_RE.test("Kabab-Sara"), false);
 
 console.log(fail ? `\n${fail} FAILED` : `\nall passed`);
 process.exit(fail ? 1 : 0);

@@ -37,12 +37,19 @@ export const HANDLE_MAX = 30;
 
 /**
  * Lowercase latin letters, digits and hyphens; must start and end with a
- * letter or digit. Byte-for-byte the same expression as the
- * `link_pages_handle_format` CHECK in 20260830330000_link_pages.sql — if you
- * change one, change both, or the server will accept what the database
- * rejects and the user gets a 500 instead of a message.
+ * letter or digit; 3 to 30 characters. Byte-for-byte the same expression as
+ * the `link_pages_handle_format` CHECK — if you change one, change both, or
+ * the server will accept what the database rejects and the user gets a 500
+ * instead of a sentence.
+ *
+ * The minimum length is expressed IN the pattern (1 + {1,28} + 1) rather than
+ * checked separately. The first version did it the other way round, and the
+ * database — which has no `HANDLE_MIN` — would have accepted a single
+ * character. Two-letter handles are the first thing a squatter reaches for.
+ * Corrected in 20260830360000_handle_format_fix.sql after calling
+ * `handle_available('ab')` against the real database returned true.
  */
-export const HANDLE_RE = /^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/;
+export const HANDLE_RE = /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/;
 
 /**
  * What the user typed → what we would store. Folds Persian and Arabic-Indic
