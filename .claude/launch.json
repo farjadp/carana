@@ -4,13 +4,8 @@
     {
       "name": "web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "--filter",
-        "@goplaza/web",
-        "dev"
-      ],
-      "port": 3000,
-      "autoPort": true
+      "runtimeArgs": ["--filter", "@goplaza/web", "dev"],
+      "port": 3000
     }
   ]
 }

@@ -10,11 +10,11 @@ import { fmtDate, type PostCard as PostCardData } from "@/lib/blog/queries";
 
 const fa = (n: number) => n.toLocaleString("fa-IR");
 
-export function PostCard({ post, categoryName, featured = false }: { post: PostCardData; categoryName?: string | null; featured?: boolean }) {
+export function PostCard({ post, categoryName, featured = false, className = "" }: { post: PostCardData; categoryName?: string | null; featured?: boolean; className?: string }) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className={`group flex flex-col overflow-hidden rounded-3xl border border-[color:var(--line)] bg-white transition hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(20,33,61,0.10)] ${featured ? "md:col-span-2 md:flex-row" : ""}`}
+      className={`group flex flex-col overflow-hidden rounded-3xl border border-[color:var(--line)] bg-white transition hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(20,33,61,0.10)] ${featured ? "md:col-span-2 md:flex-row" : ""} ${className}`}
     >
       <div className={`relative overflow-hidden bg-[color:var(--bg)] ${featured ? "aspect-[16/9] md:aspect-auto md:w-1/2" : "aspect-[16/9]"}`}>
         {post.cover_url ? (

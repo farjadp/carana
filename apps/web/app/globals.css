@@ -2279,7 +2279,11 @@ section {
 .header-nav {
   display: none;
   align-items: center;
-  gap: 1.35rem;
+  /* Fluid, not fixed: the bar carries five links plus three menu triggers, and
+     at a flat 1.35rem that row overflowed the brand/actions on the narrowest
+     desktop width (900px) once «مقالات» joined it. It relaxes back to 1.35rem
+     from ~1180px up, so nothing changes on a normal screen. */
+  gap: clamp(0.85rem, 1.35vw, 1.35rem);
   flex: 1;
 }
 
@@ -2432,7 +2436,12 @@ section {
   font-weight: 700;
 }
 
-@media (min-width: 900px) {
+/* The desktop bar takes over at 960px, not 900px. Measured at 900px with the
+   five links plus three menu triggers, the row needs 568px inside 567px and
+   the header itself overflows by ~9px — it was already borderline before
+   «مقالات» joined the bar. Between 900 and 960 the burger menu carries the
+   same links, so nothing is lost. */
+@media (min-width: 960px) {
   .header-nav { display: flex; }
   .header-actions { display: flex; }
   .header-burger,
@@ -2737,3 +2746,14 @@ section {
 .job-md ul li::marker { color: var(--annabi); }
 .job-md ol li::marker { color: var(--annabi); font-weight: 800; }
 .job-md blockquote { border-right: 3px solid var(--gold); padding: 0.3em 0.9em; color: var(--muted-text); }
+
+/* Horizontal rails (blog strip on the home page). The scrollbar is noise on a
+   snap rail — arrows and touch do the work — but scrolling must stay possible,
+   so only the bar is hidden, never the overflow. */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

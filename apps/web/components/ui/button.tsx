@@ -44,10 +44,19 @@ function Button({
   }) {
   const Comp = asChild ? Slot : "button";
 
+  // The solid variant's red gradient is a background-IMAGE, so tailwind-merge
+  // never lets a caller's bg-white / bg-[color:…] (background-COLOR) beat it —
+  // some twenty call sites were passing a background and silently rendering
+  // the gradient instead (the home CTA showed lajvard text ON the gradient,
+  // which is how the bug was found). When the caller sets a resting
+  // background, drop the gradient so the override means what it says.
+  // `hover:bg-…` alone deliberately does not trigger this.
+  const callerSetsBackground = /(?:^|\s)bg-(?!none\b)/.test(className ?? "");
+
   return (
     <Comp
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), callerSetsBackground && "bg-none", className)}
       {...props}
     />
   );
