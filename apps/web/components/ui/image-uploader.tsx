@@ -1,7 +1,21 @@
 // ============================================================================
 // Source: components/ui/image-uploader.tsx
-// Version: 1.0.0 — 2026-08-13
+// Version: 1.1.0 — 2026-08-24 (upload under the uploader's own uid)
 // Why: Component to handle file selection and direct upload to Supabase Storage.
+//
+//      THE PATH IS PART OF THE SECURITY POLICY. The 20 Aug hardening
+//      (20260820_security_hardening.sql) replaced the "any authenticated user
+//      may insert" rule with one that also requires
+//      `(storage.foldername(name))[1] = auth.uid()::text` — the first folder
+//      of the object name must be the uploader's user id. This component was
+//      still writing `logos/<file>` and `covers/<file>`, so from that day
+//      every logo and cover upload failed with "new row violates row-level
+//      security policy", which reads like a permissions outage and not like a
+//      path convention. Found 24 Aug when a 30 KB PNG was rejected.
+//
+//      Paths are now `<uid>/<folder>/<file>`. Do not "fix" a future RLS error
+//      here by loosening the policy: the policy is what stops one owner
+//      writing into another owner's folder.
 // Env / Identity: Client Component
 // ============================================================================
 "use client";
@@ -52,9 +66,19 @@ export function ImageUploader({
     setIsUploading(true);
 
     try {
+      // The bucket policy checks the FIRST folder against auth.uid(), so the
+      // upload cannot be built without knowing who is uploading.
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) {
+        setError("برای آپلود تصویر باید وارد حساب خود شوید.");
+        setIsUploading(false);
+        return;
+      }
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
-      const filePath = `${folderPath}/${fileName}`;
+      const filePath = `${uid}/${folderPath}/${fileName}`;
 
       const { data, error: uploadError } = await supabase.storage
         .from(bucketName)
@@ -76,6 +100,10 @@ export function ImageUploader({
       console.error("Upload Error:", err);
       if (err?.message?.includes("Bucket not found") || err?.error === "Bucket not found") {
         setError("باکت Supabase Storage یافت نشد. لطفاً اسکریپت 20260813_storage_buckets.sql را در Supabase اجرا کنید یا آدرس مستقیم (URL) را وارد نمایید.");
+      } else if (/row-level security/i.test(err?.message ?? "")) {
+        // Say what it means. The raw Postgres wording sends people looking for
+        // a broken permission when the cause is almost always a stale session.
+        setError("اجازه‌ی آپلود صادر نشد. معمولاً یعنی نشست شما منقضی شده — یک بار خارج و دوباره وارد شوید.");
       } else {
         setError(err.message || "خطا در آپلود تصویر. لطفاً مجدداً تلاش کنید.");
       }

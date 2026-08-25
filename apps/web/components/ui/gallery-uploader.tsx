@@ -17,14 +17,24 @@ import { Loader2, Trash2, UploadCloud, Video, X } from "lucide-react";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
+/**
+ * The bucket policy checks the FIRST folder of the object name against
+ * auth.uid() (20260820_security_hardening.sql), so every path has to start
+ * with the uploader's id. Writing `gallery/<file>` fails RLS — see the note in
+ * components/ui/image-uploader.tsx, which had the same bug.
+ */
 async function uploadToStorage(
   supabase: ReturnType<typeof createSupabaseBrowserClient>,
   file: File,
   folderPath: string
 ) {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) throw new Error("برای آپلود باید وارد حساب خود شوید.");
+
   const fileExt = file.name.split(".").pop();
   const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${fileExt}`;
-  const filePath = `${folderPath}/${fileName}`;
+  const filePath = `${uid}/${folderPath}/${fileName}`;
   const { error } = await supabase.storage.from("businesses").upload(filePath, file, {
     cacheControl: "3600",
     upsert: false,
