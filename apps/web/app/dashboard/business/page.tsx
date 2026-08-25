@@ -6,7 +6,7 @@
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PlusCircle, Building2, Calendar, Clock, BarChart3, CreditCard, Megaphone, Briefcase } from "lucide-react";
+import { BarChart3, Briefcase, Building2, Calendar, Clock, CreditCard, Link2, Megaphone, PlusCircle } from "lucide-react";
 
 import { entitlementsFor, planLabel } from "@goplaza/core";
 import { PageShell } from "@/components/page-shell";
@@ -172,6 +172,12 @@ export default async function BusinessDashboardPage() {
                       className="flex-1 min-w-[45%] inline-flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-[color:var(--text)] bg-[color:var(--bg)] hover:bg-[color:var(--line)] rounded-lg transition"
                     >
                       <Briefcase className="h-4 w-4" /> استخدام
+                    </Link>
+                    <Link
+                      href={`/dashboard/business/${b.id}/link`}
+                      className="flex-1 min-w-[45%] inline-flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-[color:var(--text)] bg-[color:var(--bg)] hover:bg-[color:var(--line)] rounded-lg transition"
+                    >
+                      <Link2 className="h-4 w-4" /> صفحه‌ی لینک
                     </Link>
                     <Link
                       href={`/dashboard/business/${b.id}/billing`}
