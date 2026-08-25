@@ -11,13 +11,17 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { OG_FALLBACK } from "@/lib/seo/entity";
+import { listingOgImage } from "@/lib/seo/entity";
 import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { PageShell } from "@/components/page-shell";
 import BusinessProfileClient from "./business-profile-client";
 import { JsonLd } from "@/components/json-ld";
 import { breadcrumbLd, localBusinessLd } from "@/lib/seo/local";
+import { getCategoryDetail } from "@/lib/data/category-details";
+import { cityNameFa, getGeoIndex } from "@/lib/seo/geo-index";
+import { businessDescription, businessTitle } from "@/lib/seo/titles";
 import { getVerificationStatus, isTrusted } from "@/lib/verification/status";
+import { BusinessPosts } from "@/components/blog/business-posts";
 import { ownerProfileId, ownerSectionVisible, type PublicOwner } from "@goplaza/core";
 
 export const revalidate = 60; // ISR cache 1 minute
@@ -92,17 +96,45 @@ export async function generateMetadata({
     };
   }
 
+  // The category word and «ایرانی» are what people actually type; the old
+  // title carried neither, and put the city in Latin against a Persian query.
+  // Formulas live in lib/seo/titles.ts (docs/12-seo-architecture.md §6).
+  const cityFa = cityNameFa(await getGeoIndex(), business.city);
+  const categoryName = business.category ? getCategoryDetail(business.category)?.name ?? null : null;
+
+  const title = businessTitle({
+    name: business.name,
+    categorySlug: business.category,
+    categoryName,
+    cityFa,
+  });
+  const description = businessDescription({
+    name: business.name,
+    categorySlug: business.category,
+    categoryName,
+    cityFa,
+    shortDescription: business.short_description,
+    hasPhone: Boolean(business.phone),
+    hasAddress: Boolean(business.address) && business.is_address_public !== false,
+  });
+
   return {
-    title: `${business.name} (${business.city || "کانادا"})`,
-    description: business.short_description || `اطلاعات تماس و مشخصات ${business.name} در دایرکتوری ایرانیان کانادا`,
+    // The layout template appends "| GOPLAZA"; these titles carry their own
+    // Persian brand suffix and a budget that assumes nothing else is added.
+    title: { absolute: title },
+    description,
     // The vanity URL /b/[slug] 301s here, so this is the only citable URL.
     alternates: { canonical: `/businesses/${encodeURIComponent(business.slug ?? rawSlug)}` },
     openGraph: {
-      title: `${business.name} | دایرکتوری مشاغل ایرانیان کانادا`,
-      description: business.short_description || business.name,
-      // An empty array here used to leave every shared listing with no image.
-      // Next replaces (not merges) openGraph, so the fallback must be named.
-      images: [business.cover_url || OG_FALLBACK],
+      locale: "fa_CA",
+      type: "profile",
+      title,
+      description,
+      // Was `cover_url || OG_FALLBACK`, and cover_url is empty on every
+      // imported row — one shared image for the whole directory. listingOgImage
+      // uses a real upload when there is one and keeps the fallback otherwise;
+      // see why logo_url cannot be trusted on its own.
+      images: [listingOgImage(business)],
     },
   };
 }
@@ -267,13 +299,13 @@ export default async function BusinessProfilePage({
   const [{ data: sameCategory }, { data: sameCity }] = await Promise.all([
     supabase
       .from("businesses")
-      .select("id, slug, name, category, city, province, cover_url")
+      .select("id, slug, name, category, city, province, cover_url, logo_url")
       .eq("category", business.category)
       .neq("id", business.id)
       .limit(4),
     supabase
       .from("businesses")
-      .select("id, slug, name, category, city, province, cover_url")
+      .select("id, slug, name, category, city, province, cover_url, logo_url")
       .eq("city", business.city)
       .neq("id", business.id)
       .limit(4),
@@ -286,14 +318,22 @@ export default async function BusinessProfilePage({
     .eq("slug", business.category)
     .maybeSingle();
 
+  // The Persian name of the city, for the copy the reader sees. The page was
+  // already computing this for its <title> and printing the raw Latin value
+  // ("کسب‌وکارهای مشابه در Toronto") in the body.
+  const cityFa = cityNameFa(await getGeoIndex(), business.city);
+
   const seen = new Set<string>();
+  const geo = await getGeoIndex();
   const similarBusinesses = [...(sameCategory ?? []), ...(sameCity ?? [])]
     .filter((b) => {
       if (seen.has(b.id)) return false;
       seen.add(b.id);
       return true;
     })
-    .slice(0, 4);
+    .slice(0, 4)
+    // Each card prints its own city, so each needs its own Persian name.
+    .map((b) => ({ ...b, city_fa: cityNameFa(geo, b.city) }));
 
   return (
     <PageShell currentPath={`/businesses/${rawSlug}`} currentSection="business">
@@ -316,8 +356,20 @@ export default async function BusinessProfilePage({
         announcements={announcements ?? []}
         jobs={jobs ?? []}
         similarBusinesses={similarBusinesses || []}
+        cityFa={cityFa}
         isOwnerOrAdmin={isOwnerOrAdmin}
         publicOwner={showOwner ? publicOwner : null}
+      />
+      {/* Three articles chosen for THIS business — a different trio per
+          profile, seeded by its id. Absent when nothing is published, and
+          headed «مقالات مرتبط» only when something actually matched; the
+          component decides, not this page. */}
+      <BusinessPosts
+        businessId={business.id}
+        city={business.city}
+        cityFa={cityFa}
+        categorySlug={business.category}
+        categoryName={(categoryRow?.name as string) ?? null}
       />
     </PageShell>
   );

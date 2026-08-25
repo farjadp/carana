@@ -59,6 +59,8 @@ interface Props {
     requires_persian: boolean; requires_english: boolean;
   }[];
   similarBusinesses: any[];
+  /** The city's Persian name. The row stores it in Latin, and this is Persian copy. */
+  cityFa?: string | null;
   isOwnerOrAdmin: boolean;
   /**
    * The person behind a verified listing, or null. Already gated server-side
@@ -119,7 +121,7 @@ function useOpenNow(hours: Record<string, { open?: string; close?: string; close
 }
 
 export default function BusinessProfileClient({
-  business, category, user, initialInteraction, approvedReviews, announcements, jobs, similarBusinesses, isOwnerOrAdmin,
+  business, category, user, initialInteraction, approvedReviews, announcements, jobs, similarBusinesses, cityFa, isOwnerOrAdmin,
   publicOwner,
 }: Props) {
   const [copied, setCopied] = useState(false);
@@ -142,6 +144,10 @@ export default function BusinessProfileClient({
   const website = business.website ? (business.website.startsWith("http") ? business.website : `https://${business.website}`) : null;
   const wa = business.whatsapp ? `https://wa.me/${String(business.whatsapp).replace(/[^0-9]/g, "")}` : null;
   const mapsQuery = encodeURIComponent(`${business.name} ${business.address || ""}, ${business.city || ""}, ${business.province || ""}, Canada`);
+  // Every city the reader sees is Persian; the row stores Latin, and the whole
+  // page is Persian prose. The Latin value still drives the /cities/ link and
+  // the Maps query, which are addresses, not copy.
+  const cityLabel = cityFa || business.city;
   const directions = business.google_maps_url || `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
   const avgRating = approvedReviews.length
     ? approvedReviews.reduce((s, r) => s + (r.rating || 0), 0) / approvedReviews.length
@@ -199,7 +205,7 @@ export default function BusinessProfileClient({
           <Link href="/" className="hover:text-white flex items-center gap-1.5"><BrandMark size={16} color="#f6f1e8" simple /> گوپلازا</Link>
           <ChevronLeft size={12} />
           {category ? <Link href={`/categories/${category.slug}`} className="hover:text-white">{category.name}</Link> : null}
-          {business.city ? (<><ChevronLeft size={12} /><Link href={`/cities/${encodeURIComponent(business.city)}`} className="hover:text-white">{business.city}</Link></>) : null}
+          {business.city ? (<><ChevronLeft size={12} /><Link href={`/cities/${encodeURIComponent(business.city)}`} className="hover:text-white">{cityLabel}</Link></>) : null}
         </div>
       </div>
 
@@ -247,7 +253,7 @@ export default function BusinessProfileClient({
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 text-xs md:text-sm text-[color:var(--muted-text)]">
                 {business.city ? (
-                  <span className="inline-flex items-center gap-1.5"><MapPin size={15} className="text-[color:var(--annabi)]" />{business.city}{provinceName ? `، ${provinceName}` : ""}</span>
+                  <span className="inline-flex items-center gap-1.5"><MapPin size={15} className="text-[color:var(--annabi)]" />{cityLabel}{provinceName ? `، ${provinceName}` : ""}</span>
                 ) : null}
                 {openNow?.known ? (
                   <span className={`inline-flex items-center gap-1.5 font-bold ${openNow.open ? "text-emerald-700" : "text-[color:var(--muted-text)]"}`}>
@@ -497,7 +503,7 @@ export default function BusinessProfileClient({
                   <p className="text-sm font-bold text-[color:var(--text)] leading-relaxed" dir="ltr" style={{ textAlign: "right" }}>{business.address}</p>
                 ) : null}
                 <p className="text-xs text-[color:var(--muted-text)] mt-1">
-                  {business.city}{provinceName ? `، ${provinceName}` : ""}{business.is_address_public && business.postal_code ? <span dir="ltr" className="[font-family:var(--font-latin)]"> · {business.postal_code}</span> : null}
+                  {cityLabel}{provinceName ? `، ${provinceName}` : ""}{business.is_address_public && business.postal_code ? <span dir="ltr" className="[font-family:var(--font-latin)]"> · {business.postal_code}</span> : null}
                 </p>
                 {/* Embedded map intentionally omitted until the Maps Embed API is
                     enabled on the key — a grey iframe reads as broken. Tracked in Notion. */}
@@ -624,17 +630,15 @@ export default function BusinessProfileClient({
           <section className="mt-14">
             <div className="flex items-center gap-2 mb-5">
               <span className="inline-block w-3 h-3" aria-hidden><svg viewBox="0 0 18 18" className="w-full h-full"><path fill="#c9a24b" d="M0,18 V12 H6 V6 H12 V0 H18 V18 Z" /></svg></span>
-              <h2 className="text-lg md:text-xl font-black text-[color:var(--text)]">کسب‌وکارهای مشابه{business.city ? ` در ${business.city}` : ""}</h2>
+              <h2 className="text-lg md:text-xl font-black text-[color:var(--text)]">کسب‌وکارهای مشابه{cityLabel ? ` در ${cityLabel}` : ""}</h2>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {similarBusinesses.map((sim) => (
-                <Link key={sim.id} href={`/businesses/${sim.slug || sim.id}`} className="group bg-white rounded-2xl overflow-hidden border border-[color:var(--line)] hover:shadow-[0_14px_36px_rgba(20,33,61,0.10)] transition">
-                  <div className="h-24 bg-[color:var(--bg)] relative overflow-hidden">
-                    {sim.cover_url ? <img src={sim.cover_url} alt="" className="w-full h-full object-cover group-hover:scale-[1.03] transition" /> : <div className="w-full h-full bg-gradient-to-br from-[color:var(--annabi)]/10 to-[color:var(--lajvard)]/10 flex items-center justify-center"><Building2 size={22} className="text-[color:var(--annabi)]/50" /></div>}
-                  </div>
+                <Link key={sim.id} href={`/businesses/${sim.slug || sim.id}`} className="group bg-white rounded-2xl overflow-hidden border border-[color:var(--line)] hover:-translate-y-0.5 hover:border-[color:var(--annabi)]/30 hover:shadow-[0_14px_36px_rgba(20,33,61,0.10)] transition">
+                  <SimilarThumb name={sim.name} coverUrl={sim.cover_url} logoUrl={sim.logo_url} />
                   <div className="p-3">
                     <div className="font-bold text-sm text-[color:var(--text)] truncate">{sim.name}</div>
-                    <div className="text-[11px] text-[color:var(--muted-text)] mt-0.5 truncate">{sim.city || "کانادا"}</div>
+                    <div className="text-[11px] text-[color:var(--muted-text)] mt-0.5 truncate">{sim.city_fa || sim.city || "کانادا"}</div>
                   </div>
                 </Link>
               ))}
@@ -642,6 +646,41 @@ export default function BusinessProfileClient({
           </section>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+
+/**
+ * The thumbnail on a "similar business" card.
+ *
+ * `cover_url` is empty on every imported row and `logo_url` is the shared
+ * `business-placeholder.svg` on roughly two thirds of them, so the old card
+ * fell through to one grey building icon — four identical empty boxes in a
+ * row, which reads as a page that failed to load rather than as a business
+ * without a photo. A real upload wins; otherwise the card shows the
+ * business's own initial on a tinted ground, which is at least particular to
+ * it. The same placeholder test as lib/seo/entity.ts, for the same reason.
+ */
+function SimilarThumb({ name, coverUrl, logoUrl }: { name: string; coverUrl?: string | null; logoUrl?: string | null }) {
+  const real = [coverUrl, logoUrl]
+    .map((u) => u?.trim())
+    .find((u) => u && !/placeholder|\/default[-.]/i.test(u));
+
+  if (real) {
+    return (
+      <div className="h-24 bg-[color:var(--bg)] relative overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={real} alt="" loading="lazy" className="w-full h-full object-cover group-hover:scale-[1.03] transition" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-24 relative overflow-hidden bg-[linear-gradient(135deg,rgba(122,24,49,0.10),rgba(0,71,171,0.10))] flex items-center justify-center">
+      <span aria-hidden className="text-2xl font-black text-[color:var(--annabi)]/45">
+        {name.trim().charAt(0) || "؟"}
+      </span>
     </div>
   );
 }

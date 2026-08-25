@@ -85,3 +85,131 @@ export async function latestPosts(
   const { data } = await q;
   return (data ?? []) as PostCard[];
 }
+
+// ───────────────────────── suggestions for a business ─────────────────────────
+
+/**
+ * Words that, when a post uses them, make it genuinely about a business
+ * category. Persian first because the posts are Persian; the English terms
+ * catch the titles and tags that are written in Latin.
+ *
+ * This is a claim about relevance, so it stays narrow: «رستوران» is about
+ * restaurants, «غذا» on its own is not. A word that would match half the blog
+ * is worse than no match, because the section then promises a connection the
+ * reader cannot see.
+ */
+const CATEGORY_WORDS: Record<string, string[]> = {
+  "restaurant-cafe": ["رستوران", "کافه", "کبابی", "قنادی", "شیرینی", "restaurant", "cafe", "catering"],
+  "medical-clinic": ["پزشک", "کلینیک", "دندانپزشک", "دارو", "سلامت", "روانشناس", "clinic", "dental", "health"],
+  "legal-immigration": ["وکیل", "مهاجرت", "اقامت", "ویزا", "immigration", "lawyer", "visa"],
+  "real-estate-mortgage": ["املاک", "مسکن", "خانه", "وام", "اجاره", "real estate", "mortgage", "realtor"],
+  "accounting-tax": ["حسابدار", "مالیات", "صرافی", "بیمه", "accounting", "tax", "exchange", "insurance"],
+  "beauty-wellness": ["آرایشگاه", "زیبایی", "اسپا", "آرایش", "باشگاه", "salon", "beauty", "spa"],
+  "iranian-grocery": ["سوپرمارکت", "خواربار", "بقالی", "خوراکی", "ترشی", "grocery", "supermarket"],
+  education: ["آموزش", "مدرسه", "کلاس", "دانشگاه", "زبان", "school", "education", "tutor"],
+  "skilled-trades": ["تعمیر", "نقاشی", "برق", "لوله", "ساختمان", "اسباب‌کشی", "renovation", "plumbing"],
+  events: ["رویداد", "جشن", "مراسم", "کنسرت", "عروسی", "event", "wedding"],
+  automotive: ["خودرو", "اتومبیل", "ماشین", "مکانیک", "auto", "car"],
+  "digital-it": ["دیجیتال", "وب‌سایت", "وبسایت", "نرم‌افزار", "هوش مصنوعی", "digital", "software", "marketing"],
+};
+
+/** The blog category a business category most often belongs to. Weakest signal. */
+const CATEGORY_TO_BLOG: Record<string, string> = {
+  "legal-immigration": "newcomers",
+  "real-estate-mortgage": "guides",
+  "accounting-tax": "business",
+  "digital-it": "business",
+  "iranian-grocery": "culture",
+  "restaurant-cafe": "culture",
+  education: "guides",
+  "medical-clinic": "city-life",
+};
+
+/** Stable 32-bit hash — same input, same order, every render and every host. */
+function hash(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i += 1) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+export type SuggestedPosts = {
+  posts: PostCard[];
+  /** How many of `posts` matched this business on something real. */
+  matched: number;
+  /** What the match was, for the subtitle. Null when nothing matched. */
+  reason: { city: string | null; topic: boolean } | null;
+};
+
+/**
+ * Posts to put under one business profile.
+ *
+ * "Random" in the sense Farjad asked for — every profile shows a different
+ * set — but NOT random per request: the order is seeded by the business id, so
+ * the page renders the same thing on the server and the client, caches, and
+ * does not reshuffle under the reader on a soft navigation.
+ *
+ * Relevance is scored from what the post itself says (its title, excerpt and
+ * tags), never from a guess: the city the business is in, then the words of
+ * its category, then the blog category that usually covers it. `matched` comes
+ * back with the posts so the caller can title the section for what it actually
+ * has — calling three unrelated posts «مقالات مرتبط» is the same broken
+ * promise as a badge nothing backs.
+ */
+export async function suggestedPostsFor(
+  supabase: SupabaseClient,
+  opts: { seed: string; city?: string | null; cityFa?: string | null; categorySlug?: string | null; n?: number },
+): Promise<SuggestedPosts> {
+  const n = opts.n ?? 3;
+  // The blog is small and stays small; 60 is far more than we need to rank and
+  // costs one query. Ordered so the pool is the newest writing, not a slice
+  // Postgres happened to return.
+  const { data } = await supabase
+    .from("blog_posts")
+    .select(POST_COLUMNS)
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .limit(60);
+  const pool = (data ?? []) as PostCard[];
+  if (pool.length === 0) return { posts: [], matched: 0, reason: null };
+
+  const cityTerms = [opts.cityFa, opts.city].filter((c): c is string => Boolean(c && c.trim()));
+  const words = opts.categorySlug ? (CATEGORY_WORDS[opts.categorySlug] ?? []) : [];
+  const blogCat = opts.categorySlug ? CATEGORY_TO_BLOG[opts.categorySlug] : undefined;
+
+  let cityHit: string | null = null;
+  let topicHit = false;
+
+  const scored = pool.map((p) => {
+    const hay = `${p.title} ${p.title_en ?? ""} ${p.excerpt ?? ""} ${(p.tags ?? []).join(" ")}`.toLowerCase();
+    let score = 0;
+    const city = cityTerms.find((c) => hay.includes(c.toLowerCase()));
+    if (city) {
+      score += 3;
+      cityHit = city;
+    }
+    if (words.some((w) => hay.includes(w.toLowerCase()))) {
+      score += 2;
+      topicHit = true;
+    }
+    if (blogCat && p.category_slug === blogCat) score += 1;
+    return { post: p, score };
+  });
+
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    // Equal relevance → seeded order, so two businesses in the same city and
+    // category do not show an identical trio.
+    return hash(opts.seed + a.post.id) - hash(opts.seed + b.post.id);
+  });
+
+  const picked = scored.slice(0, n);
+  const matched = picked.filter((s) => s.score > 0).length;
+  return {
+    posts: picked.map((s) => s.post),
+    matched,
+    reason: matched > 0 ? { city: cityHit, topic: topicHit } : null,
+  };
+}
