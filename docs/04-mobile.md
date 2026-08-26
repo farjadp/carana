@@ -12,6 +12,50 @@ has already lapsed.** Since `4f04073` ("Mobile catches up with the web",
 whole products shipped on the web in that window and none of them exists on
 native.
 
+### Confirmed by running the app, 26 Aug
+
+The table below was first built by reading routes and grepping. It was then
+**checked against the running app** on the iOS simulator (iPhone 17 Pro, live
+production Supabase), because on this project running it keeps finding what
+reading misses. Seen on screen: five tabs and no channels tab · no channels
+band anywhere on the home page · a business profile with the owner-identity
+section and «گزارش مشکل» but **no standing badge and no correction control** ·
+the blog article read counter incrementing live («۱ بازدید») · the jobs rail ·
+the suggestion box and the Tehran footer.
+
+Two things the reading pass got wrong, both corrected here:
+
+1. **The home hero's «۹٬۶۸۹ کسب‌وکار» is right, not a repeat of the 1,000-row
+   bug.** Mobile sums per-category counts while the web takes an exact
+   server-side count, so the two *could* disagree — they do not. An exact count
+   over `PUBLIC_STATUSES` returns 9,689, the same number. The 10,680 in
+   `00-START-HERE` is the whole table including non-public rows, which is a
+   different question. Checked before it was written down as a defect.
+2. **Review writing is genuinely absent, and something was selling it anyway.**
+   See below.
+
+### The honesty bug running it found
+
+The signed-out «حساب من» tab sold a free account with three benefits, and the
+third was **«ثبت نظر — به بقیه کمک کنید کسب‌وکار درست را پیدا کنند»**. The app
+cannot post a review. `submitReview()` and `getMyReview()` sit in
+`src/lib/interactions.ts` with **zero call sites**; the only rating in the app
+is `personal_rating`, written inside the private-note sheet and visible to
+nobody else. The subtitle above the cards made the same promise — «تجربه‌تان را
+با بقیه به اشتراک بگذارید».
+
+So the app asked people to open an account for a feature that is not in the
+binary. That is the exact class the house rule names, and it survived the
+24 Aug audit because that audit read the parity list rather than the signed-out
+screen. Fixed in the same session: the card is now «باخبرم کن», which is real
+and sits in the interaction bar on every business, and the subtitle now
+describes saving, private notes and ratings, and announcement mail. Verified on
+screen after the change.
+
+**The dead code is still there on purpose** — `submitReview()` is the write
+path a future review screen will use, and deleting it would only hide that the
+screen is missing. What was wrong was the promise, not the function.
+
 ### Still true from the 24 Aug pass
 
 | Web feature | Mobile |

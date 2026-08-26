@@ -1856,3 +1856,32 @@ for `imports@charana.ca` before asking what it returns for a person.
 
 Found 26 Aug 2026 while adding four columns to `/admin/users`, by running the
 query against the database instead of reading it.
+
+## A parity list is not a screen: the app sold a feature it did not have
+
+**Symptom.** The signed-out «حساب من» tab in the mobile app offered a free
+account for three reasons, the third being «ثبت نظر — به بقیه کمک کنید
+کسب‌وکار درست را پیدا کنند». There is no way to post a review in the app.
+
+**Cause.** `submitReview()` and `getMyReview()` were written into
+`apps/mobile/src/lib/interactions.ts` and never called from anywhere. The
+screen that would call them was not built. The only rating the app writes is
+`personal_rating`, which lives on the user's own interaction row and is shown
+only inside the private-note sheet — private by design, and not a review.
+Meanwhile the sales copy on the account tab had been written against the
+*intended* feature set.
+
+**Fix.** The card is now «باخبرم کن» (announcement mail), which the interaction
+bar really does on every business, and the subtitle above it lists saving,
+private notes and ratings, and announcement mail. The unused functions stay:
+they are the write path a future review screen needs, and removing them would
+hide that the screen is missing rather than record it.
+
+**Lesson.** The 24 Aug parity audit had «Reviews» on the "mobile has it" side
+and was not wrong — mobile *reads* reviews. Read and write are separate claims
+and a parity table with one row for a feature will hide the missing half. And
+the audit never opened the signed-out account screen, because a parity list
+directs you to features, not to screens. **When auditing parity, open the
+screens a signed-out visitor sees first** — that is where the promises live,
+and promises are the thing the house rule is about. Grepping for a function's
+definition proves nothing; grep for its *call sites*.
