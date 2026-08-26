@@ -462,6 +462,50 @@ decisions.** 5 / 10 / 15% at 12 / 24 / 36 months, every one a green knob at
 `/admin/loyalty`. Nothing is offered, rendered or applied until a person turns
 it on.
 
+### Phases 2 and 3 — shipped 26 Aug, and what phase 2 turned out to require
+
+**Phase 2 was not buildable as written.** The spec says "a معتمد's low-risk
+edits publish without the queue". Two things found by reading the code first:
+
+1. **There was no contributor edit path at all.** A stranger could report a
+   listing as `wrong_info` in prose; an admin read it and retyped the value.
+   `business_edit` had a rule in `standing_rules` and no emitter anywhere.
+2. **For the owner, hours already publish instantly** —
+   `lib/moderation/change-review.ts` treats them as operational. So
+   "auto-publish hours" granted a معتمد nothing that did not already exist.
+
+The unlock is therefore real **only for non-owners**, and phase 2 had to build
+the thing it acts on: `business_corrections` (migration `20260830460000`) plus
+a dialog on the profile that asks for the correct **value** rather than a
+complaint — which is also what makes the contribution checkable, and
+checkable is the entire basis of the ledger.
+
+`LOW_RISK_FIELDS` was also wrong: it said `"hours"`, the column is
+`working_hours`, so the string it shipped with could never have matched
+anything. It now sits beside `CORRECTABLE_FIELDS` — a wider allow-list of what
+may be *proposed* (contact fields included, since a human still looks) while
+only the low-risk two publish unreviewed.
+
+`/admin/corrections` leads with the audit phase 2 owes: every correction the
+ladder published without a human. Handing publication rights to an algorithm's
+verdict about a person is only safe if what it let through stays readable
+afterwards.
+
+**Phase 3** put `badgesFor()` in core as a pure function over the ledger — no
+badge table, because a stored badge is a second copy of the truth that can
+disagree with it, and badges unlock nothing. `/profile/standing` shows level,
+badges and the ledger **including reversals**, and 404s unless both switches
+are on.
+
+**Two emitters that had rules and no code** were also wired: `report_upheld`
+(settled when an admin resolves a report; a *rejected* report is deliberately
+**not** reversed — a wrong guess is not a betrayal, and punishing guesses is
+how a directory stops being told about its own bad data) and `business_submit`
+(settled at publication, not submission, because most listings here were
+imported under the `imports@` system profile).
+
+**All six seeded kinds now have emitters.**
+
 ---
 
 ## What this design deliberately does not include

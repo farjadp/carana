@@ -21,6 +21,35 @@ both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
+## Standing phases 2 and 3 — BUILT 26 Aug, one migration outstanding
+
+Design and the phase-2 surprise: `docs/16`, section "Phases 2 and 3". Phase 2
+turned out to require building the contributor correction flow first, because
+`business_edit` had a rule and no emitter and «معتمد» had nothing to unlock.
+
+**Farjad, one thing:** apply `20260830460000_business_corrections.sql` in the
+SQL Editor. Until then `/admin/corrections` renders a red probe, the
+correction dialog on every business profile returns an error, and the
+phase-2 round-trip is unverified.
+
+**Verified by running** (a disposable user, real functions, real database):
+level 0 → auto-publish refused `level_too_low`; three confirmed
+contributions across three kinds → معتمد and the low-risk grant went
+through; `phone` still refused as `field_not_low_risk`; one reversal took
+accuracy to 0.75 and the privilege vanished on the next read while
+`peak_level` stayed 2; programme off → `programme_disabled`. Badges counted
+the reversed contribution as zero. 13 more boundaries on `badgesFor` and the
+field gates with a throwaway script.
+
+**Not verified:** anything needing `business_corrections` — proposing a
+correction, the auto-publish write, the admin queue, the audit list. And no
+page from phases 2 or 3 has been *seen* in a browser (an admin session could
+not be established, see the loyalty entry).
+
+**Note:** `user_standing` holds one all-zero row for `farjad@ashavid.ca`,
+almost certainly from your own "force recompute" in `/admin/standing`. It is
+correct output for a user with no events, not stray data; left alone.
+
 ## Owner loyalty (phase 4) — BUILT 26 Aug, switched off
 
 «وفاداری مالک». Design + the four build-time decisions:
