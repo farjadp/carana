@@ -15,9 +15,10 @@ below. Everything from 24 Aug follows unchanged.
 
 **Updated:** 2026-08-24 — gooyalisting.ca is **imported**; the directory
 nearly doubled (5,802 → 10,680) and the three follow-ups it left are the
-first section below. The mobile gap is **closed**, including one bug the audit
-did not predict. What is still open on mobile is owner controls and push,
-both long-standing.
+first section below. The mobile gap was **closed** on that date, including one
+bug the audit did not predict — but it **reopened by 26 Aug**; see the
+reopened section below. What has been open on mobile throughout is owner
+controls and push, both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
@@ -548,7 +549,15 @@ Open questions worth a decision, not blockers:
   If real runs start getting skipped for overlap, the reason is in the ledger —
   raise it on evidence, not on impatience.
 
-## ~~Mobile is behind the web~~ — closed 24 Aug
+## Mobile is behind the web — closed 24 Aug, **reopened 26 Aug**
+
+**Reopened 26 Aug.** The close below was true for two days. Since then the
+channels directory, standing & loyalty and GPLZ Link all shipped on the web
+with nothing on native, and 59 web commits landed against 2 mobile ones. See
+the parity table in `04-mobile` (rewritten 26 Aug) for the full list. The
+lesson is the one already in `charana-mobile-lags-web`: this gap reopens by
+default every time the web ships, so "mobile is caught up" is a statement
+with an expiry date and needs a date attached whenever it is written.
 
 Everything below was the audit as written before the work. All five code gaps
 are fixed and APK **1.3.0** is built and linked (EAS `7efff12a`), with

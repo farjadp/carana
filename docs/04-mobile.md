@@ -2,9 +2,17 @@
 
 Expo SDK 57, Expo Router, TypeScript. Lives in `apps/mobile`.
 
-## Parity with the website (24 Aug)
+## Parity with the website (26 Aug)
 
-Checked commit by commit, then by running the app. What mobile has:
+Re-checked 26 Aug by enumerating `apps/mobile/src/app` against the web routes
+and grepping the mobile source for each new subsystem. **The 24 Aug catch-up
+has already lapsed.** Since `4f04073` ("Mobile catches up with the web",
+24 Aug) there have been **59 commits touching `apps/web` and 2 touching
+`apps/mobile`** — one of those two only made the lint gate green again. Three
+whole products shipped on the web in that window and none of them exists on
+native.
+
+### Still true from the 24 Aug pass
 
 | Web feature | Mobile |
 |---|---|
@@ -14,34 +22,79 @@ Checked commit by commit, then by running the app. What mobile has:
 | Random default listing order + 89% featured boost | yes, 24 Aug — shared `weightedRandomOrder` |
 | «ویژه» chip | yes, 24 Aug — shipped in the same change as the boost, deliberately |
 | Four listing sorts (views / saved / new / verified) | yes, 24 Aug |
-| Four plan tiers incl. **پلاتینیوم** + live prices | yes, 24 Aug — generated from `PAID_PLANS` |
-| Owner controls (edit, insights, billing, announcement + job writing) | **no — the single biggest remaining gap** |
+| Four plan tiers incl. **پلاتینیوم** + live prices | yes, 24 Aug — `PAID_PLANS` drives the tier list and the prices. Platinum's *prose* rows are deliberately absent on both surfaces: its exclusive list is not decided, so the screen shows only its confirmed bullets from the plan table |
+| Jobs board — read side (board, detail, home rail, profile section) | yes — posting stays on web by decision |
+| Blog article read count | yes, 26 Aug (`cd4ac3a`) — both surfaces call the same `increment_blog_post_view` RPC |
+| Owner controls (edit, insights, billing, announcement + job writing) | **no — still the single biggest gap** |
 | Push notifications | no infrastructure at all |
 | Admin | web-only by decision |
 
-**Shipped versions are a separate question from source.** The rebrand sat in
-`app.json` at 1.3.0 for six days without a build, so every installed app said
-čārana while the site said GOPLAZA. Whenever `app.json` moves, either build
-it or record why not — `releases.ts` is a download promise, not a statement
-of intent.
+### Opened since 24 Aug — nothing on native
+
+Verified absent: grepping `apps/mobile/src` for `channel` / `standing` /
+`loyalty` / `link_page` / `correction` returns no hits from these features.
+(The `ChannelCard` in `register/verify.tsx` is the contact-channel picker for
+verification — a different concept, not the channels directory.)
+
+| Web feature | Shipped | Mobile | Shared logic already in `@goplaza/core`? |
+|---|---|---|---|
+| **Channels directory** — `/channels`, `/channels/[slug]`, `/channels/category/[slug]`, `/channels/submit`, the home band that replaced the «چرا گوپلازا؟» grid | 26 Aug | **no** — no screen, no card, no route | yes — `channels.ts` (activity thresholds, `memberLineFa()`) is app-agnostic |
+| **Standing & loyalty** — `/standing`, `/profile/standing`, the standing badge on the public `/businesses/[slug]`, the loyalty card in owner billing, the Stripe discount | 26 Aug | **no** — including the reader-facing badge, which is not an owner control and has no reason to be web-only | yes — `standing.ts`, `loyalty.ts` |
+| **GPLZ Link** — `/link/[handle]` on `gplz.link` + the owner editor | 25 Aug | **no** | yes — `link.ts` |
+| **Correction dialog** on the business profile | 26 Aug | **no** — the app has `report-sheet.tsx` only, so a reader can report a listing but not fix one | n/a (UI + `/api/corrections`) |
+| **Header rebuilt** — eight top-level triggers → five, nav order is data | 26 Aug | n/a — native uses a five-tab bar, not the web nav |
+| **`/profile` redesign** (stat strip of five counted queries, writable `bio`) | 26 Aug | **no** — the mobile profile tab is the pre-redesign shape |
+| **`/auth/signup-success`** welcome page reading the account's own facts | 26 Aug | **no** — native signup ends at `auth/confirmed.tsx` |
+
+Three of these — channels, standing, GPLZ Link — already have their rules in
+`@goplaza/core`, so the gap is screens, not logic. That is the whole point of
+the package: see `charana-mobile-lags-web`. A fix that lives in `apps/web` is
+a fix in one app.
+
+**Shipped versions are a separate question from source, and today they agree.**
+`app.json` is `1.4.0`, the APK `/download` serves is `1.4.0` (EAS build
+`6f8b7259`, 24 Aug, 110 MB), and `APP_VERSION` in `lib/data/releases.ts` is
+`1.4.0`. That is the state the 1.3.0 lesson asked for — the rebrand once sat in
+`app.json` for six days without a build, so every installed app said čārana
+while the site said GOPLAZA. Whenever `app.json` moves, either build it or
+record why not — `releases.ts` is a download promise, not a statement of
+intent. **But matching version numbers are not parity:** someone running
+1.4.0 today is missing two days of product.
 
 ## What works
 
-Runs on the **iOS simulator** with live data from production Supabase.
+Runs on the **iOS simulator** with live data from production Supabase, and as
+a sideloaded **Android APK** (1.4.0, EAS `6f8b7259`).
+
+Screen list enumerated from `apps/mobile/src/app`, 26 Aug — not from memory.
 
 | Screen | State |
 |---|---|
-| Home — hero, counter, categories, newest, cities | done |
+| Home — hero, counter, categories, newest, cities, jobs rail | done |
 | Categories — full list with counts | done |
 | Location — provinces with cities nested | done |
-| Search — name, English name, description + category filter | done |
+| Search — name, English name, description + category filter, smart search | done |
 | Category listing `/categories/[slug]` | done |
 | City listing `/cities/[city]` | done |
 | Province listing `/provinces/[slug]` | done |
 | Business profile — call, WhatsApp, directions, services, hours, branches | done |
+| Auth — login, signup, forgot password, confirmed | done |
+| Profile tab — saved businesses, private notes, jobs section, account row | done |
+| Account edit | done |
+| Save / notify / private note on a business (`interaction-bar.tsx`) | done — signed-out users see the controls and are sent to sign in, rather than the controls being hidden |
+| Published reviews on a business profile (read + average) | done |
+| Blog — index and article, with the shared read counter | done |
+| Jobs — board and detail (read side) | done |
+| Features screen | done |
+| Register a business — start, form, import, verify | done |
+| Suggestion box (text + voice), report sheet | done |
 
-Not built: auth, saving, private notes, reviews, user profile. Owner dashboard
-and admin are deliberately web-only.
+**Correcting the previous version of this table:** it said "Not built: auth,
+saving, private notes, reviews, user profile." All five have been built —
+`auth/`, `interaction-bar.tsx`, `listPublishedReviews` and the profile tab are
+in the tree. The line was stale from before the 24 Aug catch-up and had been
+read as current since. Owner dashboard and admin remain deliberately web-only;
+review *writing* is still web-only, only reading is native.
 
 ## The blocker: Expo Go is stuck on SDK 54
 
