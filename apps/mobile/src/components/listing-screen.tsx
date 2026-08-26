@@ -51,8 +51,11 @@ export function ListingScreen({
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     (async () => {
+      // Inside the async closure rather than the effect body: a synchronous
+      // setState in an effect can cascade renders (react-hooks lint), and
+      // nothing here needs the spinner before the microtask anyway.
+      setLoading(true);
       try {
         const [page, cats] = await Promise.all([
           listBusinesses({ ...filter, sort: sort ?? undefined, limit: PAGE }),

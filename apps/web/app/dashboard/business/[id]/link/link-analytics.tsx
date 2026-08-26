@@ -105,6 +105,10 @@ function Breakdown({
   );
 }
 
+/** YYYY-MM-DD for n days ago. Module scope: Date.now() in the component body
+ *  trips the react-compiler impure-render lint. */
+const isoDayAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
+
 export function LinkAnalytics({
   windowDays,
   totals,
@@ -133,13 +137,13 @@ export function LinkAnalytics({
 
   // Data older than the window this owner may read. One date decides it; the
   // rows themselves are never fetched.
-  const windowStart = new Date(Date.now() - windowDays * 86_400_000).toISOString().slice(0, 10);
+  const windowStart = isoDayAgo(windowDays);
   const hasLockedHistory = !pro && !!oldestDay && oldestDay < windowStart;
 
   const dayMap = new Map(views.map((r) => [r.day, r.n]));
   const days: { day: string; n: number }[] = [];
   for (let i = windowDays - 1; i >= 0; i--) {
-    const d = new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10);
+    const d = isoDayAgo(i);
     days.push({ day: d, n: dayMap.get(d) ?? 0 });
   }
   const peak = Math.max(1, ...days.map((d) => d.n));

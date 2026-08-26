@@ -54,6 +54,7 @@ const ALLOW = [
   { re: /^scripts\/(reassign-imports|import-listings|import-businesses)\.mts$/, why: "imports@charana.ca system profile" },
   { re: /^scripts\/seed-stripe-plans\.mts$/, why: "Stripe metadata lookup keys" },
   { re: /^scripts\/check-brand\.mjs$/, why: "this file" },
+  { re: /^scripts\/fix-blog-brand\.mts$/, why: "its find/replace patterns ARE the old tokens — a brand fixer with no old brand in it fixes nothing" },
   { re: /^scripts\/generate-brand-assets\.mjs$/, why: "rebrand comment" },
   { re: /^scripts\/generate-category-(art|images)\.py$/, why: "output dir names of the archive" },
   // Mailboxes stay on the old domain until goplaza.ca is verified in Resend
