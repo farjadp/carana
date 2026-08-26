@@ -102,6 +102,23 @@ their logos are SVG, which `rehost-logos.mts` refuses on purpose because an
 SVG can carry script. They keep their original URLs and still render; convert
 them to PNG and re-run if you want them off your own domains too.
 
+## Blog view counts (24 Aug) — done, one follow-up
+
+`blog_posts.view_count` plus `increment_blog_post_view`, the same shape as
+`increment_business_view`. Web and app call the SAME function, so the number on
+an article is the total across both surfaces. Migration
+`20260830330000_blog_view_count.sql` is applied.
+
+**Follow-up:** run `pnpm gen:types`. The two entries this needed (`view_count`,
+the RPC) were added to `database.types.ts` by hand so the tree would compile
+before the migration ran; a regen makes the file authoritative again.
+
+**Note for the next migration that adds a column to a SELECT list:** the
+column has to exist in the database *before* the code that selects it
+deploys, or PostgREST errors and every page reading that table 404s. This
+change touched `POST_COLUMNS` (web) and `CARD_COLUMNS` (mobile), so deploying
+it early would have taken the whole blog down on both surfaces.
+
 ## Blog sources — what a human still has to do (24 Aug)
 
 The source-driven writer is code-complete and type-clean, and its two model

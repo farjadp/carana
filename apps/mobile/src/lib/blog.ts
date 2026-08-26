@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: apps/mobile/src/lib/blog.ts
-// Version: 1.0.0 — 2026-08-16
+// Version: 1.1.0 — 2026-08-24
 // Why: The app reads the same blog tables as the website, straight from
 //      Supabase. RLS returns published rows only, so a draft in the admin
 //      review queue can never appear here — verified, not assumed.
@@ -9,7 +9,7 @@
 import { supabase } from "./supabase";
 
 const CARD_COLUMNS =
-  "id, slug, title, title_en, excerpt, cover_url, cover_alt, category_slug, tags, published_at, reading_minutes";
+  "id, slug, title, title_en, excerpt, cover_url, cover_alt, category_slug, tags, published_at, reading_minutes, view_count";
 
 export type PostCard = {
   id: string;
@@ -23,6 +23,7 @@ export type PostCard = {
   tags: string[];
   published_at: string | null;
   reading_minutes: number | null;
+  view_count: number;
 };
 
 export type Post = PostCard & {
@@ -76,6 +77,21 @@ export async function relatedPosts(post: PostCard, n = 3): Promise<PostCard[]> {
     .order("published_at", { ascending: false })
     .limit(n);
   return (data ?? []) as unknown as PostCard[];
+}
+
+/**
+ * Count a read. The app and the website call the SAME function, so the number
+ * on an article is the total across both surfaces rather than one platform's
+ * slice — which is the only honest reading of "بازدید".
+ *
+ * Fire and forget, and deliberately swallowing: a metric that cannot be
+ * recorded must never reach the reader as an error. `increment_blog_post_view`
+ * is SECURITY DEFINER and ignores unpublished rows, so this cannot do anything
+ * beyond adding one to a counter.
+ */
+export async function incrementPostView(postId: string): Promise<void> {
+  const { error } = await supabase.rpc("increment_blog_post_view", { target_id: postId });
+  if (error) console.warn("blog view count failed:", error.message);
 }
 
 export const faDate = (iso: string | null) =>
