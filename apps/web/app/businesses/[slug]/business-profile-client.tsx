@@ -154,6 +154,11 @@ export default function BusinessProfileClient({
   // review_replies is a Starter+ feature — entitlementsFor recomputes it
   // from plan/plan_until every render, same expiry rule as the server
   // action that actually writes the reply.
+  // Ownership alone, unlike isOwnerOrAdmin: staff are not owners.
+  const isOwner =
+    !!user &&
+    ((business as { owner_user_id?: string | null }).owner_user_id === user.id ||
+      (business as { created_by?: string | null }).created_by === user.id);
   const canReplyToReviews = isOwnerOrAdmin && entitlementsFor(business).has("review_replies");
   const ownerSeesUpsell = isOwnerOrAdmin && !canReplyToReviews;
   const busyStatus = activeBusyStatus(business);
@@ -635,10 +640,14 @@ export default function BusinessProfileClient({
                   {/* Propose a VALUE, not a complaint. The report dialog below
                       takes prose an admin has to retype; this takes the correct
                       value, which is what makes the contribution checkable —
-                      and checkable is the whole basis of «اعتبار مشارکت». The
-                      owner is refused by the API (they have an edit page), so
-                      it is not offered to them here either. */}
-                  {!isOwnerOrAdmin ? (
+                      and checkable is the whole basis of «اعتبار مشارکت».
+                      Hidden from the OWNER only, not from staff: the API
+                      refuses owners and nobody else, and an admin viewing a
+                      listing they do not own is an ordinary contributor there.
+                      Gating this on isOwnerOrAdmin (as it first did) made the
+                      UI and the API disagree — and hid the whole feature from
+                      the one person most likely to look for it. */}
+                  {!isOwner ? (
                     <CorrectionDialog businessId={business.id} signedIn={!!user} />
                   ) : null}
                   <ReportDialog subject={{ kind: "business", id: business.id, name: business.name }} />
