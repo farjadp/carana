@@ -1757,3 +1757,29 @@ information will eventually delete a true one, and the failure looks like
 integrity from the inside — which is why it survived a design doc, a
 migration and a review. The test that catches it: for each thing the UI
 declines to say, ask whether anyone in the building knows the answer.
+
+
+## An RLS read that returns nothing is a zero, not an error
+
+**Symptom.** Every channel's view count read zero for every visitor, forever.
+The rollup was writing rows and the query was correct.
+
+**Cause.** `analytics_daily` grants anon no SELECT — correct for the rows it
+was built for, since a bio page's traffic is part of what the paid tier sells.
+Channel counts are published on a public page, and nobody had said so in a
+policy. PostgREST returns `[]`, not a 403. `channel_view_count()` failed the
+same way: it is a plain SQL function, so it runs with the caller's privileges
+and returned 0 to every anonymous visitor.
+
+**Fix.** A policy scoped twice — to `subject_kind = 'channel'` and to channels
+the public can open — so it cannot become a door onto link_page rows.
+
+**Lesson.** RLS does not fail loudly; it filters. A missing policy on a count
+does not produce an error to notice, it produces a plausible number. And a
+SECURITY INVOKER function over an RLS-protected table inherits the same
+silence. Anywhere a public page prints an aggregate, check the policy by
+querying with the anon key — the service key will always tell you it works.
+
+Found 26 Aug 2026 while adding a view figure to a list; the same defect had
+been in the channel page's own view tile from the first commit, and only the
+view floor kept it from showing.

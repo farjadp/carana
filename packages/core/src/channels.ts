@@ -173,18 +173,28 @@ export function hasMeasuredMembers(channel: MetricJudgeableChannel): boolean {
 }
 
 /**
- * How a view count is allowed to be rendered.
+ * How a view count is allowed to be rendered, in the two places it appears.
  *
- * Below the floor it is not shown at all. On launch day every entry has four
- * views, and printing that makes the whole section read dead — the same trap
- * as showing «۰ نظر» under a business nobody has reviewed yet. This is not
- * hiding a bad number; it is declining to publish a number that is too small
- * to mean anything.
+ * AS A HEADLINE, on the channel's own page, it needs the floor. A tile that
+ * says «۴ بازدید» and nothing else is a claim about how much this channel
+ * matters, and four is too small a number to make one with — the same trap as
+ * «۰ نظر» under a business nobody has reviewed. Below the floor the tile is
+ * simply absent.
+ *
+ * IN A LIST, beside four other channels, it is a comparison rather than a
+ * claim, and «۳ بازدید» is a fact that costs nothing to read. So the strip
+ * uses `hasAnyViews` and shows anything above zero. What both rules agree on
+ * is that a zero is never printed: absence of traffic is not a number worth
+ * publishing about somebody else's channel.
  */
 export const CHANNEL_VIEW_FLOOR = 50;
 
 export function showsViewCount(views: number | null | undefined): boolean {
   return typeof views === "number" && views >= CHANNEL_VIEW_FLOOR;
+}
+
+export function hasAnyViews(views: number | null | undefined): boolean {
+  return typeof views === "number" && views > 0;
 }
 
 // ---------------------------------------------------------------------------

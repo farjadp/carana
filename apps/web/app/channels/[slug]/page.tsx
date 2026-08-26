@@ -67,6 +67,8 @@ import { PageShell } from "@/components/page-shell";
 import { breadcrumbLd } from "@/lib/seo/local";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+import { RelatedChannels } from "@/components/channels/related-channels";
+
 import { JoinButton } from "./join-button";
 
 export const revalidate = 3600;
@@ -307,7 +309,11 @@ export default async function ChannelPage({ params }: { params: Promise<{ slug: 
             <ReportDialog subject={{ kind: "channel", id: channel.id, name: channel.title }} />
           </section>
 
-          <p className="mt-6 text-center text-xs text-[color:var(--muted-text)]">
+          {/* Five others, shuffled. Renders nothing when this is the only
+              published channel. */}
+          <RelatedChannels excludeId={channel.id} />
+
+          <p className="mt-8 text-center text-xs text-[color:var(--muted-text)]">
             <Link href="/channels" className="font-bold text-[color:var(--lajvard)]">
               بازگشت به همه کانال‌ها و گروه‌ها
             </Link>

@@ -82,6 +82,19 @@ letter failed its insert as a generic «ثبت کانال ناموفق بود».
 the database both ways before and after the fix. The link field also asks for
 an **id** now rather than a URL. See `06-gotchas`.
 
+**FARJAD — one more SQL paste, and this one is NOT ordering-sensitive:**
+
+Run **`supabase/migrations/20260830440000_channel_views_are_public.sql`**.
+`analytics_daily` has no anon SELECT policy — right for bio pages, wrong for
+channels, whose view counts are published on their own public page. Until it
+runs, every channel view count reads **zero** to every visitor: not an error,
+not a log, an empty result that renders as zero and is indistinguishable from
+a channel nobody opened. `channel_view_count()` was affected the same way; it
+is a plain SQL function and runs with the caller's privileges.
+
+Safe to merge before or after — without it the strip shows no numbers, which
+is exactly what it shows for an unvisited channel.
+
 **Us, in order:**
 
 1. **Seed it — this is the whole remaining job.** Everything is built and
@@ -118,13 +131,17 @@ an **id** now rather than a URL. See `06-gotchas`.
    The baseline is refreshed even on a run that flags one, so a rename is
    reported once rather than every day until a human clears it.
 
-**FARJAD — ONE SQL PASTE, AND NOTHING ABOVE WORKS WITHOUT IT:**
+**~~Run the ownership migration~~ — applied and merged 26 Aug (`d105c8f`).**
+`20260830430000_channel_ownership.sql` was verified against the database before
+the merge: the columns read, and a half claim is refused with 23514. The cron
+re-ran afterwards — `tg_title` is populated, `requeued: 0`, and the channel
+that the old check unpublished stayed published.
 
-Run **`supabase/migrations/20260830430000_channel_ownership.sql`** in the
-Supabase SQL Editor. It adds `tg_title` and the five ownership columns. **This
-branch must not be merged before it is applied** — every channel page selects
-those columns, so a deploy that lands first would 400 on all of them. Ask for
-the merge once it is run.
+**Ownership on GOPLAZA's own channel was set** through the same columns the
+admin button writes (`owner_verified_method: 'admin'`, 182-day window,
+attributed to Farjad's admin account on his instruction). One click at
+`/admin/channels` revokes it if he would rather the record came from the
+button itself.
 
 3. **Then look at a populated page.** The card, the detail page's four metric
    tiles, the growth block (which needs two snapshots a month apart, so it will

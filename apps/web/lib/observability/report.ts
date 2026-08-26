@@ -37,6 +37,10 @@ export type QuietFailure =
   // missing a day months later with nothing to explain it.
   | "link_rollup_day"
   | "link_rollup_backlog"
+  // The channel rollup, on the same cron and for the same reason: a view
+  // count that quietly stays at zero looks identical to a channel nobody
+  // opened.
+  | "channel_rollup_day"
   | "link_prune";
 
 /**
