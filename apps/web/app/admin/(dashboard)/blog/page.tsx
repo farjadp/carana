@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/admin/(dashboard)/blog/page.tsx
-// Version: 1.1.0 — 2026-08-24
+// Version: 1.2.0 — 2026-08-24
 // Why: The blog desk — what is in review, what is live, run log, the source
 //      registry with how much unused material each one still holds, and the
 //      two "write now" buttons.
@@ -14,7 +14,7 @@ import { redirect } from "next/navigation";
 import { ADMIN_PAGE_SIZE, AdminPagination } from "@/components/admin/pagination";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { AUTO_SYNDICATE, configuredChannels } from "@/lib/blog/syndicate";
+import { AUTO_SYNDICATE, backlogCounts, configuredChannels } from "@/lib/blog/syndicate";
 import { createSupabaseActionClient } from "@/lib/supabase/server";
 import { BlogDesk, type DeskPost, type DeskRun, type DeskShare } from "./blog-desk";
 
@@ -61,6 +61,11 @@ export default async function AdminBlogPage({
     }),
   );
 
+  // Only computed for channels that are actually wired up; an unconfigured
+  // channel has no backlog to report, only an unset variable.
+  const channels = configuredChannels();
+  const backlog = channels.length ? await backlogCounts() : ({} as Record<string, number>);
+
   return (
     <>
     <BlogDesk
@@ -68,7 +73,8 @@ export default async function AdminBlogPage({
       runs={(runs ?? []) as DeskRun[]}
       categories={(cats ?? []) as { slug: string; name: string }[]}
       shares={(shares ?? []) as DeskShare[]}
-      channels={configuredChannels()}
+      channels={channels}
+      backlog={backlog}
       autoPublish={process.env.BLOG_AUTO_PUBLISH === "true"}
       autoSyndicate={AUTO_SYNDICATE}
       perDay={Number(process.env.BLOG_POSTS_PER_DAY ?? 5)}

@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/admin/(dashboard)/blog/blog-desk.tsx
-// Version: 1.1.0 — 2026-08-24
+// Version: 1.2.0 — 2026-08-24
 // Why: Interactive desk: filter by status, publish / archive / delete, open
 //      the editor, run either generator with a count, and share a published
 //      post to the channels that are actually configured.
@@ -20,7 +20,7 @@ import Link from "next/link";
 import { Archive, Check, ExternalLink, Newspaper, Pencil, Send, Share2, Sparkles, Trash2, Undo2 } from "lucide-react";
 
 import type { Channel } from "@/lib/blog/syndicate";
-import { deletePost, runGenerator, runSourceGenerator, setPostStatus, sharePost } from "./actions";
+import { deletePost, runBacklog, runGenerator, runSourceGenerator, setPostStatus, sharePost } from "./actions";
 
 export type DeskPost = {
   id: string; slug: string; title: string; title_en: string | null; status: "draft" | "review" | "published" | "archived";
@@ -36,9 +36,9 @@ const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString("fa-IR"
 
 const CHANNEL_LABEL: Record<Channel, string> = { telegram: "تلگرام", linkedin: "لینکدین" };
 
-export function BlogDesk({ posts, runs, categories, shares, channels, autoPublish, autoSyndicate, perDay, model, sources }: {
+export function BlogDesk({ posts, runs, categories, shares, channels, backlog, autoPublish, autoSyndicate, perDay, model, sources }: {
   posts: DeskPost[]; runs: DeskRun[]; categories: { slug: string; name: string }[];
-  shares: DeskShare[]; channels: Channel[]; autoPublish: boolean; autoSyndicate: boolean; perDay: number; model: string;
+  shares: DeskShare[]; channels: Channel[]; backlog: Record<string, number>; autoPublish: boolean; autoSyndicate: boolean; perDay: number; model: string;
   sources: { slug: string; name: string; home_url: string; enabled: boolean; unused: number }[];
 }) {
   const [filter, setFilter] = useState<"review" | "published" | "all" | "archived">("review");
@@ -46,6 +46,7 @@ export function BlogDesk({ posts, runs, categories, shares, channels, autoPublis
   const [n, setN] = useState(perDay);
   const [publishNow, setPublishNow] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [batch, setBatch] = useState(5);
   const catName = new Map(categories.map((c) => [c.slug, c.name]));
   const shareState = new Map(shares.map((s) => [`${s.post_id}:${s.channel}`, s]));
 
@@ -56,6 +57,7 @@ export function BlogDesk({ posts, runs, categories, shares, channels, autoPublis
     success?: boolean; error?: string;
     created?: unknown[]; errors?: unknown[]; skipped?: { title: string; reason: string }[]; notes?: string[];
     outcomes?: { channel: Channel; status: string; error?: string }[];
+    backlog?: { channel: Channel; sent: number; failed: number; remaining: number; stoppedBecause?: string };
   };
   const act = (fn: () => Promise<unknown>) =>
     start(async () => {
@@ -63,6 +65,11 @@ export function BlogDesk({ posts, runs, categories, shares, channels, autoPublis
       const r = (await fn()) as ActResult | undefined;
       if (!r) return;
       if (r.success === false) { setMsg(r.error ?? "خطا"); return; }
+      if (r.backlog) {
+        const b = r.backlog;
+        setMsg(`${CHANNEL_LABEL[b.channel]}: ${fa(b.sent)} فرستاده شد، ${fa(b.remaining)} باقی مانده${b.stoppedBecause ? ` — متوقف شد: ${b.stoppedBecause}` : ""}.`);
+        return;
+      }
       if (r.outcomes) {
         setMsg(r.outcomes.map((o) => `${CHANNEL_LABEL[o.channel]}: ${o.status === "sent" ? "ارسال شد" : o.status === "skipped" ? `رد شد (${o.error ?? "تنظیم نشده"})` : `خطا (${o.error ?? ""})`}`).join(" · "));
         return;
@@ -164,6 +171,30 @@ export function BlogDesk({ posts, runs, categories, shares, channels, autoPublis
           ))}
         </ul>
       )}
+
+      {channels.length ? (
+        <section>
+          <h2 className="mb-2 text-lg font-black text-[color:var(--text)]">هم‌رسانی</h2>
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[color:var(--line)] bg-white p-4">
+            <label className="flex items-center gap-2 text-xs font-bold">
+              هر بار
+              <input type="number" min={1} max={40} value={batch} onChange={(e) => setBatch(Number(e.target.value))} className="h-9 w-16 rounded-lg border border-[color:var(--line)] px-2 text-center text-sm" />
+              نوشته
+            </label>
+            {channels.map((ch) => {
+              const left = backlog[ch] ?? 0;
+              return (
+                <button key={ch} type="button" disabled={pending || left === 0} onClick={() => act(() => runBacklog(ch, batch))}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[color:var(--line)] bg-white px-4 text-sm font-bold text-[color:var(--text)] disabled:opacity-40">
+                  {ch === "telegram" ? <Send size={14} /> : <Share2 size={14} />}
+                  {CHANNEL_LABEL[ch]} — {left === 0 ? "چیزی باقی نمانده" : `${fa(left)} منتشرنشده`}
+                </button>
+              );
+            })}
+            <p className="w-full text-xs text-[color:var(--muted-text)]">بین هر ارسال ۳٫۵ ثانیه فاصله می‌افتد، پس یک دستهٔ ده‌تایی حدود نیم دقیقه طول می‌کشد. با اولین خطا متوقف می‌شود.</p>
+          </div>
+        </section>
+      ) : null}
 
       <section>
         <h2 className="mb-2 text-lg font-black text-[color:var(--text)]">منابع موضوع</h2>
