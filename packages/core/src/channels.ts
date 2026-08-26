@@ -192,31 +192,80 @@ export function showsViewCount(views: number | null | undefined): boolean {
 // ---------------------------------------------------------------------------
 
 /**
- * Ownership state. **Phase 1 has exactly one, and it is the honest one.**
+ * Ownership state.
  *
- * Nobody can prove they administer a Telegram channel here yet — that needs
- * the bot, and it is the whole of phase 2. So every entry is `unverified`,
- * and the page says so in words rather than leaving a reader to assume the
- * listing came from the channel itself.
+ * `unverified` — nobody has claimed to administer this channel, or the claim
+ *                has lapsed. The ordinary case: most entries are submitted by
+ *                people who simply know the channel exists.
+ * `verified`   — somebody proved it, by a method the row records, and the
+ *                proof has not expired.
  *
- * `verified` is declared now ONLY so the second state has a name when the bot
- * arrives. Nothing returns it, and no badge may render it until something
- * actually proves ownership. A badge that is easier to add than the proof
- * behind it is how this project got unconditional «تایید شده» chips before.
+ * The first version of this section had only the first state, on the grounds
+ * that nobody can prove they administer a Telegram channel until the phase-2
+ * bot exists. That was the honesty rule pointed the wrong way: GOPLAZA's own
+ * channel, submitted by a GOPLAZA admin who does administer it, read
+ * «مالکیت تأیید نشده». **Refusing to record a fact we have is as wrong as
+ * printing one we do not.**
  */
 export type ChannelOwnership = "unverified" | "verified";
+
+/**
+ * HOW ownership was established. There is no such thing as verified-somehow —
+ * "verified" without a method is exactly the badge this project has had to
+ * remove before.
+ *
+ * `admin` — a GOPLAZA admin confirmed it. Available today; it is a human
+ *           attestation, the same thing `businesses.verification_method`
+ *           records, and it carries the same 182-day life.
+ * `bot`   — our bot is an administrator of the channel. Phase 2. The column
+ *           accepts it so that arriving is a behaviour change rather than a
+ *           migration, and NOTHING writes it yet.
+ */
+export type ChannelOwnerMethod = "admin" | "bot";
+
+/** Same window as `verified_until` on a listing. An attestation is about a moment. */
+export const CHANNEL_OWNER_WINDOW_DAYS = 182;
+
+export interface OwnershipJudgeableChannel {
+  owner_user_id?: string | null;
+  owner_verified_at?: string | null;
+  owner_verified_until?: string | null;
+  owner_verified_method?: string | null;
+}
+
+/**
+ * The one rule for "is this channel's ownership proven right now".
+ *
+ * Read-time, against now() — the same shape as verified_until, plan_until and
+ * every other expiry in this schema. No cron keeps it honest, and a lapsed
+ * attestation reads as unverified rather than as a badge nobody refreshed.
+ */
+export function channelOwnership(
+  channel: OwnershipJudgeableChannel,
+  now = new Date(),
+): ChannelOwnership {
+  if (!channel.owner_verified_at || !channel.owner_verified_until) return "unverified";
+  if (!channel.owner_user_id || !channel.owner_verified_method) return "unverified";
+  return new Date(channel.owner_verified_until) > now ? "verified" : "unverified";
+}
 
 export const CHANNEL_OWNERSHIP_LABEL_FA: Record<ChannelOwnership, string> = {
   unverified: "مالکیت تأیید نشده",
   verified: "مالکیت تأییدشده",
 };
 
+/** What the badge means, per method. Never «تأیید شده» on its own. */
+export const CHANNEL_OWNER_METHOD_FA: Record<ChannelOwnerMethod, string> = {
+  admin: "اداره‌کننده‌ی این کانال نزد تیم گوپلازا تأیید شده است.",
+  bot: "ربات گوپلازا ادمین این کانال است، پس اداره‌کننده‌اش مالکیت را خودش اثبات کرده.",
+};
+
 /**
- * Why it says that. Deliberately not «به‌زودی» — a date we have not committed
- * to is a promise, and the page states what is true today instead.
+ * Why an unverified entry says so. Deliberately not «به‌زودی» — a date we have
+ * not committed to is a promise, and the line states what is true today.
  */
 export const CHANNEL_OWNERSHIP_HINT_FA =
-  "این کانال را یکی از کاربران گوپلازا معرفی کرده، و ممکن است اداره‌کننده‌اش نباشد. راهی برای اثبات اداره‌ی یک کانال هنوز وجود ندارد، پس روی هیچ کانالی نشان تأیید نمی‌بینی — نه این یکی.";
+  "این کانال را یکی از کاربران گوپلازا معرفی کرده و کسی اداره‌ی آن را اثبات نکرده است. اگر اداره‌کننده‌اش هستی، به پشتیبانی بنویس.";
 
 /** The submitter is named to nobody. Same rule the owner-identity gates use. */
 export const CHANNEL_SUBMITTER_FA = "معرفی‌شده توسط یکی از کاربران گوپلازا";

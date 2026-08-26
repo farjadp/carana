@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: components/channels/channel-card.tsx
-// Version: 1.1.0 — 2026-08-26 (three metric states, not two)
+// Version: 1.2.0 — 2026-08-26 (the verified mark, when there is one)
 // Why: One card for «کانال‌ها و گروه‌ها», used by the index, the category
 //      pages and the home band. Design: docs/15-channels-directory.md.
 //
@@ -15,7 +15,7 @@
 // Env / Identity: Server component. No IO.
 // ============================================================================
 import Link from "next/link";
-import { MessageCircle, Send } from "lucide-react";
+import { BadgeCheck, MessageCircle, Send } from "lucide-react";
 
 import {
   CHANNEL_ACTIVITY_HINTS_FA,
@@ -25,6 +25,7 @@ import {
   CHANNEL_UNMEASURED_FA,
   channelActivity,
   channelMetricsState,
+  channelOwnership,
   memberLineFa,
   relativeDayFa,
   type ChannelActivity,
@@ -44,6 +45,10 @@ export type ChannelCardRow = {
   member_count: number | null;
   last_post_at: string | null;
   metrics_checked_at: string | null;
+  owner_user_id: string | null;
+  owner_verified_at: string | null;
+  owner_verified_until: string | null;
+  owner_verified_method: string | null;
 };
 
 /** Muted for everything except the two states a reader acts on. */
@@ -57,6 +62,7 @@ const ACTIVITY_CLASS: Record<ChannelActivity, string> = {
 export function ChannelCard({ channel }: { channel: ChannelCardRow }) {
   const platform = channel.platform as ChannelPlatform;
   const state = channelMetricsState(channel);
+  const verified = channelOwnership(channel) === "verified";
   const activity = channelActivity(channel);
   const members = memberLineFa(channel);
   const lastPost = relativeDayFa(channel.last_post_at);
@@ -73,7 +79,14 @@ export function ChannelCard({ channel }: { channel: ChannelCardRow }) {
             <Icon size={18} className="text-[color:var(--muted-text)]" />
           </span>
           <div className="min-w-0">
-            <h3 className="text-base font-bold text-[color:var(--text)]">{channel.title}</h3>
+            <h3 className="flex items-center gap-1.5 text-base font-bold text-[color:var(--text)]">
+              {channel.title}
+              {/* Only when channelOwnership() says so — which needs a subject,
+                  a method, a time and an unexpired window, all four. */}
+              {verified ? (
+                <BadgeCheck size={15} className="shrink-0 text-emerald-600" aria-label="مالکیت تأییدشده" />
+              ) : null}
+            </h3>
             <p className="mt-0.5 line-clamp-2 text-sm leading-7 text-[color:var(--muted-text)]">
               {channel.description}
             </p>
@@ -110,4 +123,4 @@ export function ChannelCard({ channel }: { channel: ChannelCardRow }) {
 
 /** The columns the card needs, so every caller selects the same set. */
 export const CHANNEL_CARD_COLUMNS =
-  "id, slug, title, description, platform, kind, city, metrics_source, member_count, last_post_at, metrics_checked_at";
+  "id, slug, title, description, platform, kind, city, metrics_source, member_count, last_post_at, metrics_checked_at, owner_user_id, owner_verified_at, owner_verified_until, owner_verified_method";

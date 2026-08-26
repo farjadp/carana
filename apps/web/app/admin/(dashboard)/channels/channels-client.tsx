@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/admin/(dashboard)/channels/channels-client.tsx
-// Version: 1.0.0 — 2026-08-26
+// Version: 1.1.0 — 2026-08-26 (ownership attestation)
 // Why: The two decisions a moderator can make on a queued entry, and enough of
 //      it on screen to make them — including the join link itself, opened in a
 //      new tab, because the only real check is looking.
@@ -14,14 +14,16 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle, ExternalLink, XCircle } from "lucide-react";
+import { CheckCircle, ExternalLink, ShieldCheck, ShieldOff, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   CHANNEL_KIND_LABELS_FA,
   CHANNEL_PLATFORM_LABELS_FA,
   CHANNEL_STATUS_LABELS_FA,
+  CHANNEL_OWNERSHIP_LABEL_FA,
   CHANNEL_UNMEASURED_FA,
+  channelOwnership,
   memberLineFa,
   relativeDayFa,
   type ChannelKind,
@@ -31,7 +33,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { moderateChannel } from "@/lib/actions/channels";
+import { moderateChannel, verifyChannelOwner } from "@/lib/actions/channels";
 
 export type AdminChannelRow = {
   id: string;
@@ -56,6 +58,12 @@ export type AdminChannelRow = {
   confirm_by: string | null;
   created_at: string;
   reviewed_at: string | null;
+  tg_title: string | null;
+  submitted_by: string | null;
+  owner_user_id: string | null;
+  owner_verified_at: string | null;
+  owner_verified_until: string | null;
+  owner_verified_method: string | null;
 };
 
 const date = (iso: string) => new Date(iso).toLocaleDateString("fa-IR", { dateStyle: "medium" });
@@ -83,6 +91,18 @@ export default function AdminChannelsClient({
         router.refresh();
       } else {
         toast.error(res.error ?? "ثبت تصمیم ناموفق بود");
+      }
+    });
+  };
+
+  const setOwner = (id: string, decision: "verify" | "revoke") => {
+    startTransition(async () => {
+      const res = await verifyChannelOwner(id, decision);
+      if (res.success) {
+        toast.success(decision === "verify" ? "مالکیت تأیید شد" : "تأیید مالکیت لغو شد");
+        router.refresh();
+      } else {
+        toast.error(res.error ?? "ثبت ناموفق بود");
       }
     });
   };
@@ -145,6 +165,12 @@ export default function AdminChannelsClient({
                     <span className="text-amber-700">{c.check_failures.toLocaleString("fa-IR")} بررسی ناموفق</span>
                   ) : null}
                   <span>ثبت: {date(c.created_at)}</span>
+                  {/* Which claim this row carries about who runs it. The
+                      moderator is the person who can settle it, so it belongs
+                      in the queue rather than only on the public page. */}
+                  <span className={channelOwnership(c) === "verified" ? "text-emerald-700" : ""}>
+                    {CHANNEL_OWNERSHIP_LABEL_FA[channelOwnership(c)]}
+                  </span>
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -168,16 +194,39 @@ export default function AdminChannelsClient({
                   <p className="mt-3 rounded-lg bg-gray-50 p-3 text-xs text-gray-600">{c.moderation_reason}</p>
                 ) : null}
 
-                {c.status === "pending_moderation" ? (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Button size="sm" disabled={busy} onClick={() => decide(c.id, "published")}>
-                      <CheckCircle size={15} /> انتشار
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {c.status === "pending_moderation" ? (
+                    <>
+                      <Button size="sm" disabled={busy} onClick={() => decide(c.id, "published")}>
+                        <CheckCircle size={15} /> انتشار
+                      </Button>
+                      <Button size="sm" variant="muted" disabled={busy} onClick={() => setRejecting(c)}>
+                        <XCircle size={15} /> رد
+                      </Button>
+                    </>
+                  ) : null}
+
+                  {/* An attestation, not a guess: it says a named admin
+                      confirmed it, at a recorded time, by a recorded method,
+                      and it lapses in 182 days like a listing's badge. Only
+                      press it for a channel you actually know is run by
+                      whoever submitted it. */}
+                  {channelOwnership(c) === "verified" ? (
+                    <Button size="sm" variant="muted" disabled={busy} onClick={() => setOwner(c.id, "revoke")}>
+                      <ShieldOff size={15} /> لغو تأیید مالکیت
                     </Button>
-                    <Button size="sm" variant="muted" disabled={busy} onClick={() => setRejecting(c)}>
-                      <XCircle size={15} /> رد
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="muted"
+                      disabled={busy || !c.submitted_by}
+                      title={c.submitted_by ? undefined : "این کانال ثبت‌کننده‌ای ندارد"}
+                      onClick={() => setOwner(c.id, "verify")}
+                    >
+                      <ShieldCheck size={15} /> تأیید مالکیتِ ثبت‌کننده
                     </Button>
-                  </div>
-                ) : null}
+                  )}
+                </div>
 
                 {rejecting?.id === c.id ? (
                   <div className="mt-3 rounded-xl border border-gray-200 p-3">

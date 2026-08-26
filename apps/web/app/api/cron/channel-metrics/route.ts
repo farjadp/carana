@@ -28,7 +28,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { CHANNEL_CHECK_FAILURES_MAX } from "@goplaza/core";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { readTelegramMetrics } from "@/lib/channels/metrics";
+import { readTelegramMetrics, titleChangedMaterially } from "@/lib/channels/metrics";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
   // has never actually been read, whatever its timestamp says.
   const { data: due } = await admin
     .from("channels")
-    .select("id, slug, title, tg_username, metrics_source, member_count, check_failures")
+    .select("id, slug, title, tg_title, tg_username, metrics_source, member_count, check_failures")
     .eq("status", "published")
     .not("tg_username", "is", null)
     .order("member_count", { ascending: true, nullsFirst: true })
@@ -89,6 +89,7 @@ export async function GET(req: NextRequest) {
   let checked = 0;
   let failed = 0;
   let demoted = 0;
+  let requeued = 0;
   let snapshots = 0;
 
   for (const row of rows) {
@@ -123,21 +124,20 @@ export async function GET(req: NextRequest) {
 
     checked += 1;
 
-    // THE RENAME CHECK IS OFF, and the reason is a real false positive.
+    // THE RENAME CHECK, COMPARING A READING AGAINST A READING.
     //
-    // It compared Telegram's title against `channels.title` — which is what a
-    // SUBMITTER typed, not what we last read. On the very first check of
-    // «کانال رسمی پلازا» (Telegram title: "GoPlaza") it fired, pushed a
-    // healthy channel back to pending_moderation and pulled it off the public
-    // list. A Persian directory naming a channel in Persian is normal, not
-    // suspicious.
+    // Its first version compared Telegram's title against `channels.title` —
+    // what a SUBMITTER typed — and pushed a healthy live channel off the
+    // public list because a Persian directory had given it a Persian name.
+    // A change detector needs both sides from the same source; the other way
+    // round it is a spelling contest.
     //
-    // Detecting a rename needs a baseline of what WE last read, which is a
-    // `tg_title` column we do not have yet. Until that migration exists this
-    // stays off: a check that unpublishes live entries on a mismatch that is
-    // not a rename is worse than no check, and a queue full of false alarms is
-    // a queue that gets ignored. titleChangedMaterially() is kept for that
-    // follow-up. See docs/05-open-tasks.md.
+    // `tg_title` is that source: the title WE last read. It is null until the
+    // first successful read, and a first read can never be a rename, so the
+    // check is skipped then and simply records the baseline.
+    const renamed =
+      !!row.tg_title && !!metrics.title && titleChangedMaterially(row.tg_title as string, metrics.title);
+    if (renamed) requeued += 1;
 
     await admin
       .from("channels")
@@ -153,6 +153,16 @@ export async function GET(req: NextRequest) {
         // Promotion out of 'declared' has to drop the expiry with it, or the
         // channels_declared_expires pair goes inconsistent.
         confirm_by: null,
+        // The baseline for the next run, always refreshed — including on a
+        // run that flagged a rename, so one rename is reported once rather
+        // than every day until a human clears it.
+        tg_title: metrics.title,
+        ...(renamed
+          ? {
+              status: "pending_moderation",
+              moderation_reason: `نام کانال در تلگرام از «${row.tg_title}» به «${metrics.title}» تغییر کرده — دوباره بررسی شود.`,
+            }
+          : {}),
       })
       .eq("id", row.id);
 
@@ -174,6 +184,7 @@ export async function GET(req: NextRequest) {
     checked,
     failed,
     demoted,
+    requeued,
     snapshots,
   });
 }

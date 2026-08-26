@@ -310,7 +310,15 @@ has to redefine a column that is already being read in four places.
 
 - **No channel content, ever, in any form.** No embeds, no post archive, no
   preview text. This is what keeps someone else's scam post off `goplaza.ca`.
-- No verified badge in phase 1.
+- ~~No verified badge in phase 1.~~ **Reversed 26 Aug.** That rule confused
+  "we have no automated proof" with "we have no proof". A GOPLAZA admin
+  confirming a channel they know is a human attestation — the same thing
+  `businesses.verification_method` has always recorded — and refusing to store
+  it made the site's own channel read «مالکیت تأیید نشده». There is a badge,
+  it names its method (`admin` today, `bot` in phase 2), and it lapses in 182
+  days like a listing's. What stays true: nothing renders `bot` until the bot
+  writes it, and no badge appears without a subject, a method, a time and an
+  unexpired window.
 - No paid placement, no promotion, no plan gate.
 - No member-count leaderboard. Bought members are undetectable and ranking on
   them rewards exactly the wrong channels.

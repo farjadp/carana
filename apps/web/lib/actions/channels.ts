@@ -2,7 +2,7 @@
 
 // ============================================================================
 // Source: lib/actions/channels.ts
-// Version: 1.1.0 — 2026-08-26 (the join URL is normalised, not merely checked)
+// Version: 1.2.0 — 2026-08-26 (an admin can record an ownership attestation)
 // Why: Every write to `channels`. No RLS policy grants a regular user insert,
 //      update or delete on that table (see 20260830410000_channels.sql) —
 //      three of the decisions that govern an entry cannot be expressed in a
@@ -30,6 +30,7 @@ import {
   CHANNEL_DESCRIPTION_MAX,
   CHANNEL_DESCRIPTION_MIN,
   CHANNEL_KINDS,
+  CHANNEL_OWNER_WINDOW_DAYS,
   CHANNEL_LANGUAGES,
   CHANNEL_PLATFORMS,
   CHANNEL_TITLE_MAX,
@@ -339,5 +340,94 @@ export async function reconfirmChannel(channelId: string) {
   } catch (e) {
     console.error("channels: reconfirm failed", e);
     return { success: false, error: "تأیید ناموفق بود." };
+  }
+}
+
+
+/**
+ * Record — or withdraw — an attestation that someone administers this channel.
+ *
+ * WHY AN ADMIN CAN DO THIS AT ALL. The section shipped with ownership deferred
+ * entirely to the phase-2 bot, so every entry read «مالکیت تأیید نشده» —
+ * including GOPLAZA's own channel, submitted by a GOPLAZA admin who does
+ * administer it. Refusing to record a fact we have is as wrong as printing one
+ * we do not. This is a human attestation, the same thing
+ * `businesses.verification_method` records, and it says so: the method is
+ * stored and the page prints the method, never a bare "verified".
+ *
+ * It carries the same 182-day life as a listing's badge, judged at read time.
+ * A channel changes hands; a badge that cannot go stale eventually lies.
+ *
+ * `subject` defaults to whoever submitted the entry, because that is who the
+ * admin is vouching for in practice. It is never inferred from the admin.
+ */
+export async function verifyChannelOwner(
+  channelId: string,
+  decision: "verify" | "revoke",
+  subjectUserId?: string,
+) {
+  try {
+    const supabase = await createSupabaseActionClient();
+    const adminUser = await requireAdmin(supabase);
+    const db = createSupabaseAdminClient();
+
+    const { data: channel } = await db
+      .from("channels")
+      .select("id, slug, submitted_by")
+      .eq("id", channelId)
+      .maybeSingle();
+    if (!channel) return { success: false, error: "کانال پیدا نشد." };
+
+    if (decision === "revoke") {
+      // All four fields together, or none — channels_ownership_is_whole makes
+      // a half-cleared claim unrepresentable, and a half-cleared claim is
+      // exactly what a partial UPDATE would leave.
+      const { error } = await db
+        .from("channels")
+        .update({
+          owner_user_id: null,
+          owner_verified_at: null,
+          owner_verified_until: null,
+          owner_verified_method: null,
+          owner_verified_by: null,
+        })
+        .eq("id", channelId);
+      if (error) return { success: false, error: "لغو تأیید ناموفق بود." };
+    } else {
+      const subject = subjectUserId ?? (channel.submitted_by as string | null);
+      if (!subject) {
+        return {
+          success: false,
+          error: "این کانال ثبت‌کننده‌ای ندارد که مالکیتش را به او نسبت بدهیم.",
+        };
+      }
+      const now = new Date();
+      const { error } = await db
+        .from("channels")
+        .update({
+          owner_user_id: subject,
+          owner_verified_at: now.toISOString(),
+          owner_verified_until: new Date(
+            now.getTime() + CHANNEL_OWNER_WINDOW_DAYS * 86_400_000,
+          ).toISOString(),
+          // 'admin' and not 'bot': a person confirmed this. Nothing may write
+          // 'bot' until the bot itself does.
+          owner_verified_method: "admin",
+          owner_verified_by: adminUser.id,
+        })
+        .eq("id", channelId);
+      if (error) {
+        console.error("channels: ownership write failed", error);
+        return { success: false, error: "ثبت تأیید مالکیت ناموفق بود." };
+      }
+    }
+
+    revalidatePath("/admin/channels");
+    revalidatePath("/channels");
+    revalidatePath(`/channels/${channel.slug}`);
+    return { success: true };
+  } catch (e) {
+    console.error("channels: ownership action failed", e);
+    return { success: false, error: "ثبت تأیید مالکیت ناموفق بود." };
   }
 }

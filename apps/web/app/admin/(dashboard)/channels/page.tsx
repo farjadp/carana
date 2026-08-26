@@ -21,7 +21,7 @@ export const metadata = { title: "کانال‌ها و گروه‌ها | پنل 
 export const dynamic = "force-dynamic";
 
 const SELECT =
-  "id, slug, title, description, platform, kind, language, city, province, category_slug, join_url, tg_username, metrics_source, member_count, last_post_at, metrics_checked_at, check_failures, status, moderation_reason, confirm_by, created_at, reviewed_at";
+  "id, slug, title, description, platform, kind, language, city, province, category_slug, join_url, tg_username, tg_title, metrics_source, member_count, last_post_at, metrics_checked_at, check_failures, status, moderation_reason, confirm_by, created_at, reviewed_at, submitted_by, owner_user_id, owner_verified_at, owner_verified_until, owner_verified_method";
 
 export default async function AdminChannelsPage({
   searchParams,

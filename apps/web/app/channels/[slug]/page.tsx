@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/channels/[slug]/page.tsx
-// Version: 1.1.0 — 2026-08-26 (three metric states, and who stands behind it)
+// Version: 1.2.0 — 2026-08-26 (ownership can be proven, so it can be shown)
 // Why: One channel entry. Design: docs/15-channels-directory.md.
 //
 //      THIS PAGE SHOWS NO CHANNEL CONTENT. No posts, no embed, no preview
@@ -19,13 +19,21 @@
 //      stood behind the entry, so a reader could reasonably assume the channel
 //      itself had listed it. Nobody can prove they administer a channel here
 //      yet, and the page now says that out loud rather than staying silent.
+//
+//      v1.2: it can be proven now, by a GOPLAZA admin recording an
+//      attestation. v1.1 refused to show ownership at all on the grounds that
+//      only the phase-2 bot could establish it — and GOPLAZA's own channel,
+//      submitted by a GOPLAZA admin who administers it, read «مالکیت تأیید
+//      نشده». Refusing to record a fact we have is as wrong as printing one we
+//      do not. The badge names the METHOD, never a bare "verified", and it
+//      lapses in 182 days like a listing's.
 // Env / Identity: Reads through the request-scoped (anon) client. The RLS
 //      policy decides visibility; isChannelPublic() decides what renders.
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarClock, MessageCircle, Send, TrendingUp, UserRoundCheck, Users } from "lucide-react";
+import { BadgeCheck, CalendarClock, MessageCircle, Send, TrendingUp, UserRoundCheck, Users } from "lucide-react";
 
 import {
   CHANNEL_ACTIVITY_HINTS_FA,
@@ -35,17 +43,20 @@ import {
   CHANNEL_PLATFORM_LABELS_FA,
   CHANNEL_OWNERSHIP_HINT_FA,
   CHANNEL_OWNERSHIP_LABEL_FA,
+  CHANNEL_OWNER_METHOD_FA,
   CHANNEL_PENDING_FA,
   CHANNEL_PENDING_HINT_FA,
   CHANNEL_SUBMITTER_FA,
   CHANNEL_UNMEASURED_FA,
   channelActivity,
   channelMetricsState,
+  channelOwnership,
   memberLineFa,
   relativeDayFa,
   showsViewCount,
   unmeasurableReasonFa,
   type ChannelKind,
+  type ChannelOwnerMethod,
   type ChannelLanguage,
   type ChannelPlatform,
 } from "@goplaza/core";
@@ -63,7 +74,7 @@ export const revalidate = 3600;
 const fa = (n: number) => n.toLocaleString("fa-IR");
 
 const SELECT =
-  "id, slug, title, description, platform, kind, language, city, province, category_slug, join_url, metrics_source, member_count, last_post_at, posts_last_30d, metrics_checked_at, confirm_by, status, created_at";
+  "id, slug, title, description, platform, kind, language, city, province, category_slug, join_url, metrics_source, member_count, last_post_at, posts_last_30d, metrics_checked_at, confirm_by, status, created_at, owner_user_id, owner_verified_at, owner_verified_until, owner_verified_method";
 
 async function loadChannel(slug: string) {
   const supabase = await createSupabaseServerClient();
@@ -106,6 +117,7 @@ export default async function ChannelPage({ params }: { params: Promise<{ slug: 
 
   const platform = channel.platform as ChannelPlatform;
   const state = channelMetricsState(channel);
+  const ownership = channelOwnership(channel);
   const activity = channelActivity(channel);
   const members = memberLineFa(channel);
   const lastPost = relativeDayFa(channel.last_post_at);
@@ -238,22 +250,41 @@ export default async function ChannelPage({ params }: { params: Promise<{ slug: 
             </p>
           ) : null}
 
-          {/* Who stands behind this entry. Phase 1 has one honest answer, and
-              staying silent about it is what lets a reader assume the channel
-              itself listed here. The submitter is not named: nothing has
-              verified they are anyone in particular, and the owner-identity
-              rules on listings put a name on screen only behind proof. */}
-          <section className="mt-4 rounded-2xl border border-[color:var(--line)] bg-white p-5">
+          {/* Who stands behind this entry. Staying silent about it is what lets
+              a reader assume the channel itself listed here — so it is said
+              either way, and the verified case names the method rather than
+              showing a bare "تأیید شده". */}
+          <section
+            className={`mt-4 rounded-2xl border p-5 ${
+              ownership === "verified"
+                ? "border-emerald-200 bg-emerald-50/40"
+                : "border-[color:var(--line)] bg-white"
+            }`}
+          >
             <p className="mb-1 inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--muted-text)]">
-              <UserRoundCheck size={13} /> اداره‌کننده
+              {ownership === "verified" ? <BadgeCheck size={13} /> : <UserRoundCheck size={13} />} اداره‌کننده
             </p>
-            <p className="text-sm font-bold text-[color:var(--text)]">
-              {CHANNEL_OWNERSHIP_LABEL_FA.unverified}
+            <p
+              className={`text-sm font-bold ${
+                ownership === "verified" ? "text-emerald-700" : "text-[color:var(--text)]"
+              }`}
+            >
+              {CHANNEL_OWNERSHIP_LABEL_FA[ownership]}
             </p>
-            <p className="mt-1 text-xs leading-7 text-[color:var(--muted-text)]">{CHANNEL_OWNERSHIP_HINT_FA}</p>
+            <p className="mt-1 text-xs leading-7 text-[color:var(--muted-text)]">
+              {ownership === "verified"
+                ? CHANNEL_OWNER_METHOD_FA[channel.owner_verified_method as ChannelOwnerMethod]
+                : CHANNEL_OWNERSHIP_HINT_FA}
+            </p>
             <p className="mt-2 text-xs text-[color:var(--muted-text)]">
-              {CHANNEL_SUBMITTER_FA}
-              {channel.created_at ? ` · ${relativeDayFa(channel.created_at)}` : null}
+              {ownership === "verified" && channel.owner_verified_at ? (
+                <>تأیید شده {relativeDayFa(channel.owner_verified_at)}</>
+              ) : (
+                <>
+                  {CHANNEL_SUBMITTER_FA}
+                  {channel.created_at ? ` · ${relativeDayFa(channel.created_at)}` : null}
+                </>
+              )}
             </p>
           </section>
 

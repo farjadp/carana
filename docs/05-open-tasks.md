@@ -111,15 +111,20 @@ an **id** now rather than a URL. See `06-gotchas`.
    readable channels unreadable, and the rename check fired on a name nobody
    renamed.
 
-3. **Re-enable the rename check, with a real baseline.** It is off. It compared
-   Telegram's title against what a submitter typed and unpublished a live
-   channel on its first run. It needs a `tg_title` column holding the title
-   **we** last fetched, and then compares reading against reading. Small
-   migration; `titleChangedMaterially()` is already written and already ignores
-   emoji, punctuation and one title containing the other.
+3. **~~Re-enable the rename check~~ — done, behind a `tg_title` baseline.** It
+   compares the title we last read against the title we read today, so a
+   Persian directory naming a channel in Persian is no longer a rename. A first
+   read can never be a rename, so it records the baseline and skips the check.
+   The baseline is refreshed even on a run that flags one, so a rename is
+   reported once rather than every day until a human clears it.
 
-   Until then the abuse route it covered — a group renamed into something else
-   after approval — is covered only by the report button and by a human noticing.
+**FARJAD — ONE SQL PASTE, AND NOTHING ABOVE WORKS WITHOUT IT:**
+
+Run **`supabase/migrations/20260830430000_channel_ownership.sql`** in the
+Supabase SQL Editor. It adds `tg_title` and the five ownership columns. **This
+branch must not be merged before it is applied** — every channel page selects
+those columns, so a deploy that lands first would 400 on all of them. Ask for
+the merge once it is run.
 
 3. **Then look at a populated page.** The card, the detail page's four metric
    tiles, the growth block (which needs two snapshots a month apart, so it will
