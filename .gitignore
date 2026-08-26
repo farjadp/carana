@@ -48,6 +48,12 @@ iranbusiness.json
 # git history is not where a 700KB snapshot belongs.
 /data/imports/
 
+# Data pulled OUT of the database for a one-off — mailing-list exports and the
+# like. THIS REPOSITORY IS PUBLIC. A spreadsheet of 6,000 real business email
+# addresses is the single worst thing that could be committed to it, and git
+# history does not forget. Regenerate an export when it is needed instead.
+/data/exports/
+
 # macOS folder metadata and Word's lock files. Never intentional.
 .DS_Store
 ~$*.doc*
