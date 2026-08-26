@@ -21,6 +21,42 @@ both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
+## Owner loyalty (phase 4) — BUILT 26 Aug, switched off
+
+«وفاداری مالک». Design + the four build-time decisions:
+`docs/16-standing-and-loyalty.md`, section "Built out of order". Built ahead
+of phases 2–3 on Farjad's call, because those are the contributor half and
+the ask was loyalty.
+
+**Farjad, two things:**
+
+1. **Apply `20260830450000_platinum_waitlist.sql`** — the table already
+   answers on the live project, which this session did not do and cannot
+   explain; run the file anyway (it is `on conflict do nothing` throughout)
+   so the migration history and the database agree.
+2. **Decide the percentages, then flip the switch.** `/admin/loyalty`. The
+   ladder ships at 5/10/15% for 12/24/36 months as a *default*, and the
+   programme is off — nothing is offered or charged differently until you
+   turn it on. This is the only switch in the admin that moves real money.
+
+**Verified by running** the real functions against the real database with a
+disposable Starter business and 26 months of paid invoices: off → tenure
+computed but no tier and no bonus; on → 10%, gallery 5→10, announcements
+3→5; upkeep broken → bonus zero, discount unchanged; plan lapsed → tenure
+survives as a fact, tier does not; waitlist ordered by tenure. All test rows
+deleted, both switches confirmed off.
+
+**Not verified:** the two admin pages and the owner's billing card have never
+been *seen*. A browser admin session could not be established (the magic-link
+fragment does not survive the server render, and injecting the session cookie
+was blocked), so the data paths were exercised directly instead. Worth a look
+next time you are signed in.
+
+**Never exercised against Stripe:** `ensureLoyaltyCoupon` and
+`syncSubscriptionDiscount` have not run once — there are zero subscriptions
+and zero invoices on this project. The first real checkout with an earned
+tier is their first execution.
+
 ## Standing phase 1 — CODE COMPLETE 26 Aug; blocked on one SQL Editor paste
 
 «اعتبار مشارکت». Spec: `docs/16-standing-and-loyalty.md` · plan:
