@@ -23,6 +23,27 @@ one *was* stale dev cache: a hard reload showed 9,689. Both of those cost
 about a minute each to disprove, and both would have been plausible bug
 reports written from a single screenshot.
 
+**The first real submission failed, and it was our fault twice over**
+(`20ec2b0`). Farjad tried to add the project's own channel — `t.me/GoPlaza` —
+and got «ثبت کانال ناموفق بود» and nothing else. `channels.tg_username` carries
+a lower-case-only CHECK; `telegramUsername()` returned whatever casing the URL
+had. So **no handle with a capital letter could ever be submitted**, which is
+most of them. Both halves were written the same afternoon by the same person,
+which is exactly when this is easiest to miss — the same shape as the `citext`
+trap one entry above it in `06-gotchas`. Proven against the real table both
+ways before touching anything: the raw casing returns 23514, the lower-cased
+value inserts.
+
+It broke a second thing quietly. The duplicate check compared `tg_username`
+case-sensitively, so one channel could have been stored twice under two
+spellings with the unique index none the wiser.
+
+The form also stopped asking for a URL, which is what Farjad asked for and
+would have prevented nothing here — but is the reason the id now has exactly
+one canonical form on the way in. A CHECK that narrows a value's shape is only
+safe when something canonicalises the value first; otherwise it is a landmine
+laid at write time and stepped on by a user.
+
 **`/profile` was redesigned, and it paid for itself twice** (`a0685c3`,
 `3c4f491`). The redesign is one column and four zones instead of a settings
 form under four identical cards — two of which restated what the page already

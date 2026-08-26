@@ -60,7 +60,7 @@ is gone and the channels band correctly renders nothing while the table is
 empty. Console is clean apart from the pre-existing `exchange_rates_shape`
 warning (Navasan).
 
-**Fixed 26 Aug after the first real submission (`FIXCOMMIT`):** `t.me/GoPlaza`
+**Fixed 26 Aug after the first real submission (`20ec2b0`):** `t.me/GoPlaza`
 could not be submitted at all. `tg_username` has a lower-case-only CHECK and
 `telegramUsername()` returned the raw casing, so every handle with a capital
 letter failed its insert as a generic «ثبت کانال ناموفق بود». Proven against
