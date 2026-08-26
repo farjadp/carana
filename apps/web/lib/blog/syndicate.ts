@@ -197,3 +197,76 @@ export function configuredChannels(): Channel[] {
 }
 
 export const AUTO_SYNDICATE = process.env.BLOG_SYNDICATE_ON_PUBLISH === "true";
+
+// ---------------------------------------------------------------------------
+// Backlog
+// ---------------------------------------------------------------------------
+
+/**
+ * Telegram throttles a channel at roughly twenty messages a minute and answers
+ * 429 with a `retry_after` past that. 3.5 s between sends keeps us under it
+ * with room to spare, and — more importantly — it is the difference between a
+ * channel that looks published and one that looks dumped.
+ */
+const DEFAULT_GAP_MS = 3_500;
+
+/** Published posts with no successful send on this channel, oldest first. */
+export async function backlogFor(channel: Channel, limit = 500): Promise<{ id: string; slug: string; title: string; published_at: string | null }[]> {
+  const admin = createSupabaseAdminClient();
+  const [{ data: posts }, { data: sent }] = await Promise.all([
+    admin
+      .from("blog_posts")
+      .select("id, slug, title, published_at")
+      .eq("status", "published")
+      .order("published_at", { ascending: true })
+      .limit(limit),
+    admin.from("blog_syndications").select("post_id").eq("channel", channel).eq("status", "sent"),
+  ]);
+  const done = new Set((sent ?? []).map((r) => r.post_id as string));
+  return (posts ?? []).filter((p) => !done.has(p.id));
+}
+
+/** How many posts each channel still owes, for the admin desk. */
+export async function backlogCounts(): Promise<Record<Channel, number>> {
+  const entries = await Promise.all(CHANNELS.map(async (c) => [c, (await backlogFor(c)).length] as const));
+  return Object.fromEntries(entries) as Record<Channel, number>;
+}
+
+export type BacklogResult = { channel: Channel; sent: number; failed: number; remaining: number; stoppedBecause?: string };
+
+/**
+ * Work through the backlog oldest-first, pacing the sends.
+ *
+ * Oldest first so the channel reads in the order the blog was written rather
+ * than backwards. Stops on the first failure instead of grinding through the
+ * rest: a failure here is almost always one of two configuration problems —
+ * the bot is not an admin of the channel, or the token is wrong — and both
+ * would produce the same failure seventy-four times in a row.
+ */
+export async function syndicateBacklog(channel: Channel, opts?: { limit?: number; gapMs?: number }): Promise<BacklogResult> {
+  const limit = Math.max(1, opts?.limit ?? 5);
+  const gap = opts?.gapMs ?? DEFAULT_GAP_MS;
+
+  if (!configuredChannels().includes(channel)) {
+    return { channel, sent: 0, failed: 0, remaining: (await backlogFor(channel)).length, stoppedBecause: `${channel} is not configured` };
+  }
+
+  const queue = await backlogFor(channel);
+  const batch = queue.slice(0, limit);
+  let sent = 0;
+  let failed = 0;
+  let stoppedBecause: string | undefined;
+
+  for (const [i, post] of batch.entries()) {
+    const [outcome] = await syndicate(post.id, { channels: [channel] });
+    if (outcome.status === "sent") sent++;
+    else {
+      failed++;
+      stoppedBecause = `${post.slug}: ${outcome.error ?? outcome.status}`;
+      break;
+    }
+    if (i < batch.length - 1) await new Promise((r) => setTimeout(r, gap));
+  }
+
+  return { channel, sent, failed, remaining: queue.length - sent, stoppedBecause };
+}

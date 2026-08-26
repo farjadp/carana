@@ -121,6 +121,45 @@ Wiring them up:
 `BLOG_SYNDICATE_ON_PUBLISH=true` shares automatically the moment a post is
 published. Off by default: with it off, an admin presses the button.
 
+### The GOPLAZA Telegram channel
+
+`@GoPlaza` (peer id 4473764647). Connecting it needs two variables and one
+step that is not a variable:
+
+```
+TELEGRAM_BOT_TOKEN=<from @BotFather>
+TELEGRAM_CHANNEL_ID=@GoPlaza
+```
+
+**The bot must be an administrator of the channel with "post messages".**
+Without that every send fails with `CHAT_ADMIN_REQUIRED`, and the token being
+correct makes no difference. This is the single most likely reason a
+freshly-connected channel sends nothing.
+
+### The backlog
+
+Telegram was connected when the blog already had 74 published posts.
+`syndicateBacklog()` works through "published but never successfully sent on
+this channel", **oldest first**, so the channel reads in the order the blog was
+written rather than backwards.
+
+Two decisions worth keeping:
+
+- **It is paced, 3.5 s between sends.** Telegram throttles a channel at about
+  twenty messages a minute, but the real reason is editorial: 74 back-to-back
+  notifications to a channel with one subscriber reads as a bot dumping, not a
+  publication publishing. `BLOG_SYNDICATE_PER_RUN` (default 3) is the daily
+  drip; the admin desk can send a larger batch by hand.
+- **It stops on the first failure.** A failure here is nearly always one of the
+  two configuration problems above, and both would otherwise repeat 74 times.
+
+| | |
+|---|---|
+| Cron | `/api/cron/blog-syndicate`, 15:00 UTC daily |
+| Check without sending | `/api/cron/blog-syndicate?dry=1` — reports the backlog per channel |
+| Send more, one channel | `/api/cron/blog-syndicate?channel=telegram&n=20` |
+| Admin | Blog desk → «هم‌رسانی», which shows how many each channel still owes |
+
 ## What the first live runs proved
 
 Run against the real site on 24 Aug, after the migration landed:

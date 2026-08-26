@@ -13,7 +13,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { generatePosts } from "@/lib/blog/generate";
 import { generateFromSources } from "@/lib/blog/source-writer";
-import { AUTO_SYNDICATE, syndicate, type Channel } from "@/lib/blog/syndicate";
+import { AUTO_SYNDICATE, syndicate, syndicateBacklog, type Channel } from "@/lib/blog/syndicate";
 import { createSupabaseActionClient } from "@/lib/supabase/server";
 
 async function admin() {
@@ -95,6 +95,20 @@ export async function runSourceGenerator(n: number, publish: boolean) {
   const result = await generateFromSources(Math.min(10, Math.max(1, n)), { publish });
   revalidateBlog();
   return result;
+}
+
+/**
+ * Work through a channel's backlog of published-but-never-shared posts.
+ *
+ * Paced inside syndicateBacklog(), so this action is slow by design — a
+ * batch of ten takes about half a minute. It stops on the first failure
+ * rather than repeating a configuration error dozens of times.
+ */
+export async function runBacklog(channel: Channel, n: number) {
+  await admin();
+  const result = await syndicateBacklog(channel, { limit: Math.min(40, Math.max(1, n)) });
+  revalidateBlog();
+  return { success: true, backlog: result };
 }
 
 /** Share a published post. Returns one outcome per channel, including skips. */
