@@ -364,6 +364,13 @@ export function HeaderNav({
               <Link href="/dashboard/business" className="mobile-menu-link">
                 کسب‌وکار من
               </Link>
+              {/* Reachable from the profile page too. Until 26 Aug this page
+                  had one door — the screen shown immediately after submitting
+                  — so a rejection reason or a lapsing entry could not be
+                  found again the next day. */}
+              <Link href="/dashboard/channels" className="mobile-menu-link">
+                کانال‌های من
+              </Link>
               <form action="/auth/logout" method="post">
                 <button type="submit" className="mobile-menu-link is-plain">
                   خروج از حساب

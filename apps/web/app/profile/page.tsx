@@ -63,7 +63,7 @@ export default async function ProfilePage() {
         <section className="space-y-4">
           <h2 className="text-xl font-bold mb-4">دسترسی سریع</h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="hover:shadow-md transition">
               <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
                 <h3 className="font-bold mb-2">تعاملات من</h3>
@@ -80,6 +80,22 @@ export default async function ProfilePage() {
                 <p className="text-sm text-gray-500 mb-4">ثبت و مدیریت اطلاعات کسب‌وکار</p>
                 <Button asChild className="w-full bg-[color:var(--lajvard)] hover:bg-[color:var(--primary)] text-white">
                   <Link href="/dashboard/business">پنل کسب‌وکار</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* «کانال‌های من» was reachable from exactly one place until 26 Aug:
+                the success screen shown right after submitting. Anyone who
+                submitted a channel yesterday had no way back to it — to read a
+                rejection reason, or to press «هنوز فعال است» before a declared
+                entry lapsed at 90 days. A page only its author can see needs a
+                door on the page its author starts from. */}
+            <Card className="hover:shadow-md transition">
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
+                <h3 className="font-bold mb-2">کانال‌های من</h3>
+                <p className="text-sm text-gray-500 mb-4">کانال‌ها و گروه‌هایی که ثبت کرده‌ای</p>
+                <Button asChild variant="muted" className="w-full">
+                  <Link href="/dashboard/channels">کانال‌های من</Link>
                 </Button>
               </CardContent>
             </Card>
