@@ -22,6 +22,7 @@ import { Database, Download, Settings, Wand2 } from "lucide-react";
 
 import { BACKUP_TABLES } from "@/lib/admin/backup-tables";
 import { APP_VERSION } from "@/lib/data/releases";
+import { tableExists } from "@/lib/admin/table-exists";
 import { SETTING_KEYS, getSetting } from "@/lib/settings";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { BackupManager } from "./backup-manager";
@@ -48,16 +49,19 @@ async function loadStatus() {
   // Probe, don't assume: which pieces of infrastructure actually exist.
   // storage.list() succeeds (empty) on a missing bucket — getBucket is the
   // honest probe.
-  const { error: settingsErr } = await admin.from("site_settings").select("key", { head: true, count: "exact" });
+  // Not a HEAD select: PostgREST answers a HEAD for a missing table with
+  // 204/null/no-error, so `!error` was rendering this probe GREEN whether or
+  // not the migration had run — the opposite of what a probe is for.
+  const settingsOk = await tableExists(admin, "site_settings");
   const { data: backupsBucket } = await admin.storage.getBucket("backups");
-  return { newToday, expErr, cachedTotal, aiToday, settingsErr, backupsBucket };
+  return { newToday, expErr, cachedTotal, aiToday, settingsOk, backupsBucket };
 }
 
 export default async function SettingsPage() {
   const cfg = await getSetting(SETTING_KEYS.smartSearch, { enabled: true, daily_cap: 300 });
-  const { newToday, expErr, cachedTotal, aiToday, settingsErr, backupsBucket } = await loadStatus();
+  const { newToday, expErr, cachedTotal, aiToday, settingsOk, backupsBucket } = await loadStatus();
   const probes = [
-    { name: "جدول site_settings (مایگریشن 20260830310000)", ok: !settingsErr },
+    { name: "جدول site_settings (مایگریشن 20260830310000)", ok: settingsOk },
     { name: "باکت backups (همان مایگریشن)", ok: !!backupsBucket },
     { name: "جدول search_ai_expansions (مایگریشن 20260830300000)", ok: !expErr },
   ];
