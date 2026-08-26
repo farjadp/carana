@@ -23,6 +23,7 @@ import InteractionBar from "@/components/business/interaction-bar";
 import { PrivateNoteCard } from "@/components/business/private-note-card";
 import { VerificationBadge, VerificationDetail, faNumber } from "@/components/verification-badge";
 import { ViewCounter } from "@/components/business/view-counter";
+import { CorrectionDialog } from "@/components/business/correction-dialog";
 import { ReportDialog } from "@/components/business/report-dialog";
 import { StandingBadge } from "@/components/standing/standing-badge";
 import { ShortLinkBox } from "@/components/business/short-link-box";
@@ -630,7 +631,16 @@ export default function BusinessProfileClient({
                 {business.ref_no ? <p className="text-[11px] text-[color:var(--muted-text)]">در تماس با پشتیبانی یا احراز مالکیت، این شماره را بگویید.</p> : null}
                 {/* A real report: posts to /api/reports and lands in the admin
                     queue. The old button raised a toast and wrote nothing. */}
-                <div className="pt-3 mt-1 border-t border-[color:var(--line)]">
+                <div className="pt-3 mt-1 border-t border-[color:var(--line)] space-y-3">
+                  {/* Propose a VALUE, not a complaint. The report dialog below
+                      takes prose an admin has to retype; this takes the correct
+                      value, which is what makes the contribution checkable —
+                      and checkable is the whole basis of «اعتبار مشارکت». The
+                      owner is refused by the API (they have an edit page), so
+                      it is not offered to them here either. */}
+                  {!isOwnerOrAdmin ? (
+                    <CorrectionDialog businessId={business.id} signedIn={!!user} />
+                  ) : null}
                   <ReportDialog subject={{ kind: "business", id: business.id, name: business.name }} />
                 </div>
               </div>

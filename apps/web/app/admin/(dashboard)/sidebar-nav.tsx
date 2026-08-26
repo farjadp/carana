@@ -8,7 +8,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gift, Award,
+import { PencilLine, Gift, Award,
   LayoutDashboard,
   Building2,
   Users,
@@ -58,6 +58,7 @@ export function AdminSidebarNav({ counts }: { counts: AdminCounts }) {
     { href: "/admin/users", label: "مدیریت کاربران", icon: Users },
     { href: "/admin/logs", label: "گزارش فعالیت‌ها", icon: Activity },
     { href: "/admin/reports", label: "گزارش تخلفات", icon: ShieldAlert, badge: badge(counts.reports), badgeDanger: true },
+    { href: "/admin/corrections", label: "اصلاح اطلاعات", icon: PencilLine },
     { href: "/admin/standing", label: "اعتبار مشارکت", icon: Award },
     { href: "/admin/loyalty", label: "وفاداری مالک", icon: Gift },
     { href: "/admin/settings", label: "تنظیمات سیستم", icon: Settings },
