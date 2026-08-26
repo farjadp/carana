@@ -27,10 +27,24 @@ Design and the phase-2 surprise: `docs/16`, section "Phases 2 and 3". Phase 2
 turned out to require building the contributor correction flow first, because
 `business_edit` had a rule and no emitter and «معتمد» had nothing to unlock.
 
-**Farjad, one thing:** apply `20260830460000_business_corrections.sql` in the
-SQL Editor. Until then `/admin/corrections` renders a red probe, the
-correction dialog on every business profile returns an error, and the
-phase-2 round-trip is unverified.
+**The migration is applied** (Farjad, 26 Aug) and the full round-trip ran the
+same night against the real database with two disposable users and a
+disposable listing:
+
+- تازه‌وارد proposes → refused auto-publish (`level_too_low`), queued
+- admin applies → the listing's `working_hours` actually changed, ledger settled
+- three confirmed kinds → **معتمد, and the low-risk grant went through**: a
+  second correction wrote to the listing with `decided_by = null`
+- the audit list contains exactly that one row and no other
+- `phone` still refused as `field_not_low_risk`
+- rejection with an empty reason refused; a real rejection left the phone
+  unchanged and reversed the ledger (accuracy 0.8, one reversed)
+- a second open proposal on the same field refused by the partial unique index
+
+**All three admin pages have now been seen**, signed in as an admin:
+`/admin/corrections` (empty queue + the audit section), `/admin/standing`
+(**both probes green**, counts, switches off) and `/admin/loyalty` (amber
+money warning, the three-rung ladder, programme off).
 
 **Verified by running** (a disposable user, real functions, real database):
 level 0 → auto-publish refused `level_too_low`; three confirmed
@@ -41,14 +55,20 @@ accuracy to 0.75 and the privilege vanished on the next read while
 the reversed contribution as zero. 13 more boundaries on `badgesFor` and the
 field gates with a throwaway script.
 
-**Not verified:** anything needing `business_corrections` — proposing a
-correction, the auto-publish write, the admin queue, the audit list. And no
-page from phases 2 or 3 has been *seen* in a browser (an admin session could
-not be established, see the loyalty entry).
+**One bug found by seeing it:** the correction dialog was gated on
+`isOwnerOrAdmin` while the API refuses owners and nobody else — the UI and
+the API disagreed, and the feature was invisible to staff, who are the people
+most likely to go looking for it. Now gated on ownership alone (`fe2efea`).
 
-**Note:** `user_standing` holds one all-zero row for `farjad@ashavid.ca`,
-almost certainly from your own "force recompute" in `/admin/standing`. It is
-correct output for a user with no events, not stray data; left alone.
+**Still not seen:** `/profile/standing`. It 404s unless both switches are on,
+and turning `public_display` on is a product decision, not a test.
+
+**Live state worth knowing:** `user_standing` holds one row for
+`farjad@ashavid.ca` with `level_grant = 3` and the note «خودمم دیگه» — you
+granted yourself نگهبان from `/admin/standing`. Its `user_activity_logs`
+row exists, which incidentally verifies the amber path in the real app. With
+the programme off the grant unlocks nothing; `/admin/standing` still counts
+it under «نگهبان ۱», which is the true computed level.
 
 ## Owner loyalty (phase 4) — BUILT 26 Aug, switched off
 
