@@ -1,5 +1,10 @@
 # Open tasks
 
+**Updated:** 2026-08-26 — the **channels directory** (Telegram + WhatsApp) is
+designed and not built; the design is `docs/15-channels-directory.md` and the
+build tasks are the first section below. Everything from 25 Aug follows
+unchanged.
+
 **Updated:** 2026-08-25 — **GPLZ Link** is built end to end and waiting on two
 dashboard steps from Farjad; its remaining engineering is the first section
 below. Everything from 24 Aug follows unchanged.
@@ -11,6 +16,86 @@ did not predict. What is still open on mobile is owner controls and push,
 both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
+
+## Channels directory — DESIGNED 26 Aug, not built
+
+Telegram channels/groups and WhatsApp groups, any subject, free. Design and
+the reasoning behind every fork: `docs/15-channels-directory.md`. Read it
+first — three of the tasks below only make sense with the `metrics_source`
+axis in mind.
+
+**Farjad, one decision that blocks nothing but shapes the copy:**
+
+0. **Name the section in Persian.** «کانال‌ها و گروه‌ها» is the working title
+   and it is what the routes and nav will say unless you pick otherwise. The
+   English route is `/channels` either way, per the URL policy.
+
+**Us, in dependency order:**
+
+1. **Migration `channels` + `channel_categories` + `channel_member_snapshots`.**
+   The full table is in the design doc. The two CHECK constraints that carry
+   the honesty rule (`channels_measured_has_a_date`,
+   `channels_declared_expires`) are not optional decoration — they are what
+   makes an unbacked number unrepresentable rather than merely discouraged.
+   Seed `channel_categories` with the taxonomy the community actually uses
+   (اخبار، مهاجرت، خرید و فروش، کاریابی، شهر، سرگرمی، آموزش), **not** the
+   business categories.
+
+2. **`@goplaza/core/channels.ts`** — `channelActivity()` returning
+   active / quiet / dormant / unknown, computed from `last_post_at` at read
+   time. No stored status column, no cron that writes one; the `job_posts`
+   rule. It goes in core and not in `apps/web` so mobile cannot disagree
+   about what «فعال» means.
+
+3. **Analytics wiring.** Extend the `subject_kind` check on `event_types` and
+   `analytics_daily` to include `'channel'`, insert `channel_view` and
+   `channel_join_click` with `min_feature` null, add the `channel_events` raw
+   table on the 90-day prune, and share the rollup. Do not bend
+   `link_events` around it — `page_id` is NOT NULL there for a reason.
+
+4. **`/api/cron/channel-metrics` + the snapshot write.** Daily, `CRON_SECRET`
+   bearer, entry in `apps/web/vercel.json` — pick a slot that is not already
+   taken (05:20 and 11:00–17:30 are busy). Metadata only: title, member
+   count, last post time, 30-day post count. **No post text is fetched into
+   storage or into the page.** Failures increment `check_failures` and never
+   blank an existing number; after N consecutive failures the row flips to
+   `declared`. A materially changed title pushes the row back to
+   `pending_moderation`.
+
+   **Ship the `channel_member_snapshots` insert in this same commit.** Every
+   day it is missing is a day of growth history that cannot be backfilled —
+   the only genuinely irreversible item on this list.
+
+5. **Public surfaces** — `/channels`, `/channels/[slug]`,
+   `/channels/category/[slug]`, sitemap entries. Default sort is activity
+   then join clicks, **not** member count. No `/channels/[city]` route: it
+   collides with `[slug]` exactly the way `/jobs/[city]` did. Every measured
+   number renders with its `metrics_checked_at`; every unmeasured one renders
+   as words, not as a zero or a dash.
+
+6. **Submit + owner + admin** — `/channels/submit` (auth required, 24h rate
+   limit counted in SQL, not in `lib/utils/rate-limit.ts`),
+   `/dashboard/channels`, `/admin/channels` with a live sidebar badge that is
+   read from the queue and not hard-coded.
+
+7. **Reports.** Extend `business_reports` with `channel_id` the way
+   `20260830400000_link_page_reports.sql` extended it for bio pages, and wire
+   the existing admin queue. **The button must actually file a report** — in
+   a section where most rows are unverifiable claims this is the only quality
+   control, and a report button that only raised a toast has already shipped
+   here once.
+
+8. **The 90-day reconfirm loop for declared rows.** Mail the submitter before
+   `confirm_by`, reusing the reminder-stage pattern in
+   `verification-status.ts`. Unconfirmed rows leave the index; they are not
+   deleted.
+
+9. **Mobile read side.** List + detail. Same feature, same core rules.
+
+**Phase 2, not started, not designed:** the Telegram bot — ownership proof by
+making our bot a channel admin, live `last_post_at`, an owner stats panel,
+private channels. The only thing phase 1 owes it is keeping `verified` a
+separate concept from `measured`.
 
 ## GPLZ Link — BUILT 25 Aug; two on Farjad, three on us
 

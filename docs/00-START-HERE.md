@@ -1,6 +1,6 @@
 # GOPLAZA — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-25 (GPLZ Link shipped end to end — link-in-bio on `gplz.link`) · **Docs version:** 3.13
+**Written:** 2026-08-24 · **Updated:** 2026-08-26 (channels directory designed — Telegram + WhatsApp, `15-channels-directory.md`) · **Docs version:** 3.14
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://goplaza.ca (**rebranded from čārana on 2026-08-18** — branch `rebrand/goplaza`; the domain, Supabase URLs, Resend and Stripe still need the dashboard steps in `REBRAND_EXTERNAL_ACTIONS.md` before this is true in production. Until then charana.ca is what resolves.)
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -60,6 +60,7 @@ D-U-N-S.
 | Features page | `/features` on web + a native mobile screen. Plan quantities read from `@goplaza/core`; both carry an explicit "what we don't have yet" list |
 | GPLZ Link (25 Aug) | **Built end to end, not yet reachable.** A Linktree-class bio page per business on the second domain `gplz.link`, served by this same app — `proxy.ts` rewrites `gplz.link/<handle>` to `/link/[handle]`, so there is no second repo, database or deploy. Owner flow at `/dashboard/business/[id]/link`: one button creates the page and **seeds its items from the listing**, so it arrives finished; publish, copy the address, and (paid) choose a custom handle. Traffic is recorded by `/api/link/event` with every dimension derived server-side, rolled into `analytics_daily` by a self-healing daily cron, and shown back to the owner with the window always on screen. Two packages, encoded once in `LINK_LIMITS`: free (7-day stats, 5 custom links, auto `g-####` handle, locked footer) and **لینک حرفه‌ای $13/mo** (90 days, breakdowns, custom handle, footer off) — a **second entitlement axis**, `hasLinkPro`, granted free by every paid directory plan so Starter dominates it. `businesses.vanity_slug` was retired into `link_pages.handle`: one namespace, one place to ask (`handle_available()`), with a reserved list and a 90-day cooldown. **Not built:** editor, themes, QR, scheduling, lead capture. **Not open:** the individual free tier — its abuse defenses are a launch blocker. **Blocked on Farjad:** the Vercel domain and the Stripe product |
 | GPLZ Link SEO | The whole short host is `Disallow: /`, answered in `proxy.ts` rather than by making the static `robots.ts`/`sitemap.ts` dynamic; `sitemap.xml` 404s there; every bio page is `noindex, follow` with a canonical to the profile. The fence went up **before** the domain is connected, which was the point of the ordering |
+| Channels directory (26 Aug) | **Designed, not built.** A directory of Telegram channels/groups and WhatsApp groups serving the community — any subject, free, no plan gate. The product is not the link (links are everywhere) but the answer to *is it still alive*: last post, member count, and the date we checked. **We never display channel content** — no embeds, no post archive — which is what keeps someone else's scam post off goplaza.ca. The schema keys on `metrics_source` (`measured` / `declared`), **not** on platform: plenty of Telegram entries are unmeasurable too, and every WhatsApp row is `declared` forever because there is no API. A metric we did not measure renders as words, never as zero. Ownership proof waits for the phase-2 bot, so there is no verified badge in phase 1. See `15-channels-directory.md` |
 | App Store / Play | Blocked on D-U-N-S for Ashavid Inc. |
 
 ## What to do first when you wake up
@@ -84,6 +85,7 @@ people (and models) read three of them and miss the rest.
 | `07-session-log.md` | How we got here, session by session, including what was said wrongly |
 | `08-competitors.md` | The seven Iranian-Canadian directories, and where the gaps are |
 | `09-jobs-board.md` | **Design only, not built.** Jobs board spec with the four decisions Farjad took on 18 Aug |
+| `15-channels-directory.md` | **Design only, not built.** Telegram/WhatsApp channels directory — the `metrics_source` axis, the no-content rule, and what phase 1 owes the phase-2 bot |
 
 ## Working style (learned, do not relearn)
 
