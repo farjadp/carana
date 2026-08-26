@@ -9,6 +9,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { recordEvent, reverseSubject, settleSubject } from "@/lib/standing/ledger";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { entitlementsFor } from "@/lib/billing/entitlements";
 import { sendEmail } from "@/lib/email/send";
@@ -154,6 +155,7 @@ export async function submitPublicReview(businessId: string, data: PublicReviewD
       .not("status", "eq", "deleted_by_user")
       .maybeSingle();
 
+    let newReviewId: string | null = null;
     if (existingReview) {
       // اگر نظری دارد فقط آپدیت می‌کنیم و به صف بررسی برمی‌گردانیم
       const { error } = await supabase
@@ -195,7 +197,7 @@ export async function submitPublicReview(businessId: string, data: PublicReviewD
         .eq("business_id", businessId)
         .maybeSingle();
 
-      const { error } = await supabase
+      const { data: inserted, error } = await supabase
         .from("public_reviews")
         .insert({
           user_id: user.id,
@@ -203,9 +205,26 @@ export async function submitPublicReview(businessId: string, data: PublicReviewD
           source_interaction_id: interaction?.id || null,
           status: "pending_moderation",
           ...data,
-        });
+        })
+        .select("id")
+        .single();
 
       if (error) throw error;
+      newReviewId = inserted?.id ?? null;
+    }
+
+    // Standing ledger: one pending event per (user, review) — the unique
+    // constraint makes the edit-and-requeue path a no-op, so an edited
+    // review cannot earn twice. Fire-and-forget: a ledger failure must
+    // never fail the review.
+    const ledgerReviewId = newReviewId ?? existingReview?.id ?? null;
+    if (ledgerReviewId) {
+      recordEvent({
+        userId: user.id,
+        kind: "review_publish",
+        subjectType: "review",
+        subjectId: ledgerReviewId,
+      }).catch((e) => console.error("standing: record review_publish failed", e));
     }
 
     revalidatePath(`/profile/interactions`);
@@ -251,6 +270,20 @@ export async function moderateReview(reviewId: string, status: string, reason?: 
     // Best-effort and never awaited to completion: a mail failure must not
     // make a moderation decision that already landed look like it failed.
     void notifyAboutModeration(reviewId, status);
+
+    // Standing ledger. Published settles; rejected or hidden reverses — an
+    // unpublished review is a contribution that did not hold up, and belongs
+    // in the accuracy denominator. needs_changes does neither: the event
+    // stays pending until the review's story ends one way or the other.
+    if (status === "published") {
+      settleSubject("review_publish", "review", reviewId, user.id).catch((e) =>
+        console.error("standing: settle review_publish failed", e)
+      );
+    } else if (status === "rejected" || status === "hidden") {
+      reverseSubject("review", reviewId, user.id, reason || status).catch((e) =>
+        console.error("standing: reverse review failed", e)
+      );
+    }
 
     revalidatePath("/admin/reviews");
     return { success: true };
