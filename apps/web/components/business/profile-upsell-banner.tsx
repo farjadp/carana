@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: components/business/profile-upsell-banner.tsx
-// Version: 1.0.0 — 2026-08-24
+// Version: 1.1.0 — 2026-08-25
 // Why: What a paid profile shows in the space where the free ones list rival
 //      businesses. Two jobs at once, and the second is the point: it tells the
 //      visitor *why* the space is empty, so the absence reads as something the
@@ -18,6 +18,17 @@
 //      The owner of the listing sees a different version with no "buy" button
 //      — selling Premium to the person who already bought it is the same
 //      unbacked sentence in the other direction.
+//
+//      v1.1 (25 Aug): the copy was rewritten. It had been written in an
+//      infomercial voice — «و اینجا هیچ‌کس دیگری نیست»، «کسب‌وکار من هم همین
+//      را می‌خواهد» — and it was addressed to the wrong person: a visitor does
+//      not care what this business bought. What a visitor needs is one plain
+//      sentence explaining why the "similar businesses" list is missing, so
+//      the gap does not read as a page that failed to load. That is the whole
+//      job. The second button also went: both led to /pricing, and two calls
+//      to action for one destination is noise dressed as choice. `businessName`
+//      went with it — the name is already this page's own <h1>, and repeating
+//      it in a banner underneath was the sentence's theatre, not its meaning.
 // Env / Identity: Pure presentational Server Component. No IO.
 // ============================================================================
 import Link from "next/link";
@@ -29,21 +40,19 @@ const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export function ProfileUpsellBanner({
   plan,
-  businessName,
   isOwnerOrAdmin = false,
 }: {
   /** The plan actually in force — from `entitlementsFor`, not the raw column. */
   plan: Extract<PlanId, "featured" | "platinum">;
-  businessName: string;
   isOwnerOrAdmin?: boolean;
 }) {
   const isPlatinum = plan === "platinum";
   const planName = PLANS[plan].name;
 
-  // What is actually missing from this page, said plainly.
+  // What is actually missing from this page, said plainly and once.
   const whatIsHidden = isPlatinum
-    ? "به همین دلیل پایین این صفحه نه کسب‌وکار دیگری می‌بینید، نه مقاله‌ای. تا انتهای صفحه فقط همین کسب‌وکار است."
-    : "به همین دلیل پایین این صفحه فهرست کسب‌وکارهای مشابه نشان داده نمی‌شود — بازدیدکننده از این پروفایل به رقیب نمی‌رسد.";
+    ? "در پایین این صفحه نه کسب‌وکار مشابهی نشان داده می‌شود، نه مقاله‌ای."
+    : "در پایین این صفحه فهرست کسب‌وکارهای مشابه نشان داده نمی‌شود.";
 
   if (isOwnerOrAdmin) {
     return (
@@ -53,10 +62,10 @@ export function ProfileUpsellBanner({
             {isPlatinum ? <Crown className="h-3 w-3" /> : <ShieldCheck className="h-3 w-3" />} {planName}
           </span>
           <h2 className="text-lg font-black text-[color:var(--text)] md:text-xl">
-            این بخش برای بازدیدکننده‌ها خالی است — عمداً
+            این بخش برای بازدیدکننده‌ها خالی است
           </h2>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-7 text-[color:var(--muted-text)]">
-            {whatIsHidden} این چیزی است که با {planName} خریدید؛ جای این بخش، دعوت به {planName} شدن دیده می‌شود.
+            {whatIsHidden} این بخشی از پلن {planName} شماست. بازدیدکننده به‌جای آن یک یادداشت کوتاه می‌بیند.
           </p>
         </div>
       </section>
@@ -71,41 +80,39 @@ export function ProfileUpsellBanner({
         <div className="relative text-center">
           <span className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1.5 text-xs font-black">
             {isPlatinum ? <Crown className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5" />}
-            این کسب‌وکار {planName} است
+            {planName}
           </span>
 
           <h2 className="text-xl font-black leading-snug md:text-2xl">
-            «{businessName}» {planName} شده — و اینجا هیچ‌کس دیگری نیست.
+            صاحب این کسب‌وکار پلن {planName} دارد
           </h2>
 
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-white/85 md:text-base">
-            {whatIsHidden}
+            {whatIsHidden} این یکی از امکانات همان پلن است.
           </p>
 
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-6 flex justify-center">
             <Link
               href="/pricing"
               className="inline-flex h-12 items-center gap-2 rounded-full bg-white px-7 text-sm font-black text-[color:var(--lajvard)] transition hover:-translate-y-0.5 hover:bg-gray-100"
             >
-              کسب‌وکار من هم همین را می‌خواهد <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/pricing#plans"
-              className="inline-flex h-12 items-center rounded-full border border-white/35 px-6 text-sm font-bold text-white transition hover:bg-white/10"
-            >
-              مقایسه‌ی پلن‌ها
+              پلن‌ها و قیمت‌ها <ArrowLeft className="h-4 w-4" />
             </Link>
           </div>
 
           {/*
-            The only scarcity claim on this page, and it is Platinum's alone.
-            Premium is sold without a cap; saying "limited" under a Premium
-            listing would be a number nothing backs.
+            The only scarcity claim on this page, and it is Platinum's alone —
+            Premium is sold without a cap. It is also stated as a fact and left
+            there: "یکی از آن‌ها همین کسب‌وکار است" was a nudge, not
+            information, and under a Premium listing the old line volunteered
+            that Premium has no cap, which is a strange thing to tell a visitor
+            who never asked.
           */}
-          <p className="mt-5 text-xs text-white/70">
-            پلاتینیوم فقط {fa(PLATINUM_SEAT_CAP)} جایگاه در کل کانادا دارد
-            {isPlatinum ? " — یکی از آن‌ها همین کسب‌وکار است." : "؛ پریمیوم سقف تعداد ندارد."}
-          </p>
+          {isPlatinum ? (
+            <p className="mt-5 text-xs text-white/70">
+              پلاتینیوم در کل کانادا {fa(PLATINUM_SEAT_CAP)} جایگاه دارد.
+            </p>
+          ) : null}
         </div>
       </div>
     </section>

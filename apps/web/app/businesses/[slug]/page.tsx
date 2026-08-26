@@ -406,7 +406,6 @@ export default async function BusinessProfilePage({
       {hideRivals ? (
         <ProfileUpsellBanner
           plan={ent.plan as Extract<PlanId, "featured" | "platinum">}
-          businessName={business.name}
           isOwnerOrAdmin={isOwnerOrAdmin}
         />
       ) : null}
