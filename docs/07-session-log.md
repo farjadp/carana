@@ -45,6 +45,16 @@ and deleted through the admin API) renders unchanged and hides the contacts
 panel, which is the intended degrade while the table is missing. Typecheck and
 lint clean across all three packages; `check:brand` clean.
 
+**Same evening, Google went live.** Farjad created the OAuth client and
+published the consent screen; the provider is on. Verified without signing in:
+`external.google` flipped to true, the button appeared on `/auth/login` ~20s
+later (the probe caches five minutes), and following
+`/auth/v1/authorize?provider=google` end to end lands on Google's real sign-in
+page — HTTP 200, `/v3/signin/identifier`, "goplaza" named on it, no
+`redirect_uri_mismatch` and no `invalid_client`. The token exchange itself is
+unproven; it needs a real Google account and nobody signed in. The client
+secret passed through a chat transcript on the way, so it wants rotating.
+
 **Blocked on a human:** the migration. `pnpm db:push` refuses on this project
 (`LegacyDbPushMissingRemoteError` from the duplicate `20260830330000`/`340000`
 pair), and reading the CLI's own access token from the keychain was refused by

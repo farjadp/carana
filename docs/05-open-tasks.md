@@ -1,11 +1,12 @@
 # Open tasks
 
 **Updated:** 2026-08-26 (later still) — **sign-in work**: magic-link login and
-«راه‌های تماس بیشتر» are built, and the Google button is now honest. Three
-things need a human and are listed in the next section. Everything below it is
+«راه‌های تماس بیشتر» are built, and the Google button is now honest — **and
+Google is live**, enabled by Farjad the same evening. Two things still need a
+human and are listed in the next section. Everything below it is
 unchanged.
 
-## Sign-in: Google, magic link, extra contacts — built 26 Aug, three human steps
+## Sign-in: Google, magic link, extra contacts — built 26 Aug; Google is live, two steps left
 
 Built this session (`components/auth-form.tsx`, `lib/auth/providers.ts`,
 `app/profile/contacts-*.tsx`, `packages/core/src/contacts.ts`, migration
@@ -26,7 +27,7 @@ Built this session (`components/auth-form.tsx`, `lib/auth/providers.ts`,
   each. Contact details only: they cannot sign anyone in (Supabase Auth holds
   one email per user) and nothing verifies them. The panel says both.
 
-**What Farjad has to do — nothing works end to end without these:**
+**What Farjad has to do — item 2 is done; 1 and 3 are outstanding:**
 
 1. **Run `supabase/migrations/20260830470000_profile_contacts.sql`** in the
    Supabase SQL Editor. `pnpm db:push` still refuses on this project
@@ -36,11 +37,18 @@ Built this session (`components/auth-form.tsx`, `lib/auth/providers.ts`,
    not show the panel — the page reads the table separately and hides the
    section when it is missing, which was verified against the live database
    with a disposable signed-in user.
-2. **Enable Google** — Google Cloud console: OAuth client (Web), authorised
-   redirect URI `https://flrpuzmqsqgrfutzoyop.supabase.co/auth/v1/callback`;
-   then Supabase → Authentication → Providers → Google, client id + secret,
-   enable. Nothing in the repo changes; the button appears within five
-   minutes of the settings endpoint flipping.
+2. ~~**Enable Google**~~ — **done, 26 Aug (Farjad).** OAuth client created in
+   the `Charana` Google Cloud project, consent screen published to
+   production, provider enabled in Supabase. Verified without signing in:
+   `external.google` is now `true`; the button appeared on `/auth/login`
+   about 20s later (the probe caches 5 min); and following
+   `/auth/v1/authorize?provider=google` all the way through lands on Google's
+   real sign-in page (HTTP 200, `/v3/signin/identifier`, "goplaza" named on
+   it) — no `redirect_uri_mismatch`, no `invalid_client`. The final token
+   exchange is the one step still unproven, because it needs a real Google
+   account. **One follow-up:** the client secret was pasted into a chat
+   transcript while setting this up — rotate it in Clients → Add secret,
+   swap it in Supabase, delete the old one.
 3. **The magic-link email template and redirect URLs.** Auth → Email
    Templates → Magic Link: the Persian shell is already written in
    `docs/02-engineering.md` («ورود به گوپلازا» / «ورود»). Auth → URL
