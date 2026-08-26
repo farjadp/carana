@@ -336,6 +336,18 @@ export default async function BusinessProfilePage({
   // ("کسب‌وکارهای مشابه در Toronto") in the body.
   const cityFa = cityNameFa(await getGeoIndex(), business.city);
 
+  // The bio page's handle, but only while that page is actually live — the
+  // short-link box offers it as a destination, and offering a draft page
+  // would be offering a link that 404s for everyone but its owner.
+  const { data: linkPage } = await supabase
+    .from("link_pages")
+    .select("handle")
+    .eq("business_id", business.id)
+    .eq("status", "live")
+    .limit(1)
+    .maybeSingle();
+  const liveHandle = (linkPage?.handle as string | undefined) ?? null;
+
   const seen = new Set<string>();
   const geo = await getGeoIndex();
   const similarBusinesses = [...(sameCategory ?? []), ...(sameCity ?? [])]
@@ -361,6 +373,7 @@ export default async function BusinessProfilePage({
         ]}
       />
       <BusinessProfileClient
+        liveHandle={liveHandle}
         business={business}
         category={categoryRow ?? null}
         user={user}

@@ -15,12 +15,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  MapPin, Globe, Phone, Mail, Clock, ShieldCheck, Sparkles, MessageCircle,
-  ExternalLink, CalendarDays, ChevronLeft, Star, Share2, Send, AtSign,
-  Briefcase, Languages, Navigation, Edit3, Building2, CheckCircle2, BadgeCheck,
-  Check, Bookmark, Hash, Copy, Flame, Moon, Megaphone, UserRound,
-} from "lucide-react";
+import { AtSign, BadgeCheck, Bookmark, Briefcase, Building2, CalendarDays, Check, CheckCircle2, ChevronLeft, Clock, Copy, Edit3, ExternalLink, Flame, Globe, Hash, Languages, Link2, Mail, MapPin, Megaphone, MessageCircle, Moon, Navigation, Phone, Send, Share2, ShieldCheck, Sparkles, Star, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -29,6 +24,7 @@ import { PrivateNoteCard } from "@/components/business/private-note-card";
 import { VerificationBadge, VerificationDetail, faNumber } from "@/components/verification-badge";
 import { ViewCounter } from "@/components/business/view-counter";
 import { ReportDialog } from "@/components/business/report-dialog";
+import { ShortLinkBox } from "@/components/business/short-link-box";
 import { trackEvent } from "@/lib/analytics/track";
 import { BrandMark } from "@/components/brand-mark";
 import { getVerificationStatus } from "@/lib/verification/status";
@@ -122,8 +118,8 @@ function useOpenNow(hours: Record<string, { open?: string; close?: string; close
 
 export default function BusinessProfileClient({
   business, category, user, initialInteraction, approvedReviews, announcements, jobs, similarBusinesses, cityFa, isOwnerOrAdmin,
-  publicOwner,
-}: Props) {
+  publicOwner, liveHandle,
+}: Props & { liveHandle?: string | null }) {
   const [copied, setCopied] = useState(false);
   const [refCopied, setRefCopied] = useState(false);
   const copyRef = async () => {
@@ -591,6 +587,15 @@ export default function BusinessProfileClient({
                     {OWNER_SECTION_NOTE[verification.method]}
                   </p>
                 ) : null}
+              </Section>
+            ) : null}
+
+            {/* Short link. Every business has a reference number, so this
+                box is never empty and never shows a link that does not
+                resolve — /b/[slug] takes a handle or a ref number. */}
+            {business.ref_no ? (
+              <Section title="لینک کوتاه" icon={<Link2 size={16} />} compact>
+                <ShortLinkBox refNo={Number(business.ref_no)} liveHandle={liveHandle} />
               </Section>
             ) : null}
 
