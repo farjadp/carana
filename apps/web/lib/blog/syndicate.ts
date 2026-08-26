@@ -56,9 +56,15 @@ const postUrl = (slug: string) => `${env.baseUrl}/blog/${slug}`;
 function caption(post: PostForShare, limit: number): { text: string; url: string } {
   const url = postUrl(post.slug);
   const lead = (post.excerpt ?? post.key_takeaway ?? "").trim();
+  // The blog's `tags` are SEO phrases — "پیدا کردن رستوران ایرانی" — and a
+  // phrase does not survive being turned into a hashtag: it reads as noise and
+  // nobody ever taps it. Keep the ones short enough to work as a label, cap at
+  // three, and print none rather than pad with the long ones.
   const tags = post.tags
-    .slice(0, 4)
-    .map((t) => `#${t.trim().replace(/\s+/g, "_")}`)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0 && t.length <= 24 && t.split(/\s+/).length <= 3)
+    .slice(0, 3)
+    .map((t) => `#${t.replace(/\s+/g, "_")}`)
     .join(" ");
   const tail = `\n\n${url}${tags ? `\n\n${tags}` : ""}`;
   const room = Math.max(0, limit - tail.length - post.title.length - 2);
