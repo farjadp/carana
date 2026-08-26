@@ -2,7 +2,7 @@
 
 // ============================================================================
 // Source: lib/actions/channels.ts
-// Version: 1.0.0 — 2026-08-26
+// Version: 1.1.0 — 2026-08-26 (the join URL is normalised, not merely checked)
 // Why: Every write to `channels`. No RLS policy grants a regular user insert,
 //      update or delete on that table (see 20260830410000_channels.sql) —
 //      three of the decisions that govern an entry cannot be expressed in a
@@ -33,8 +33,8 @@ import {
   CHANNEL_LANGUAGES,
   CHANNEL_PLATFORMS,
   CHANNEL_TITLE_MAX,
-  isValidJoinUrl,
   latinSlug,
+  normalizeJoinUrl,
   metricsSourceFor,
   telegramUsername,
   type ChannelKind,
@@ -43,6 +43,7 @@ import {
 } from "@goplaza/core";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { recordEvent, reverseSubject, settleSubject } from "@/lib/standing/ledger";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export type ChannelInput = {
@@ -75,11 +76,6 @@ async function uniqueSlug(admin: Admin, title: string) {
   let n = 2;
   while (used.has(`${base}-${n}`)) n += 1;
   return `${base}-${n}`;
-}
-
-/** Trailing slash and casing removed, so two spellings of one link are one link. */
-function canonicalJoinUrl(url: string): string {
-  return url.trim().replace(/\/+$/, "");
 }
 
 export async function submitChannel(input: ChannelInput) {
@@ -117,14 +113,20 @@ export async function submitChannel(input: ChannelInput) {
       return { success: false, error: `توضیح نباید بیشتر از ${CHANNEL_DESCRIPTION_MAX} کاراکتر باشد.` };
     }
 
-    const joinUrl = canonicalJoinUrl(input.joinUrl);
-    if (!isValidJoinUrl(platform, joinUrl)) {
+    // NORMALISED, not merely validated. Whatever the person typed — `@GoPlaza`,
+    // `GoPlaza`, `t.me/GoPlaza`, the full URL with a query on the end — becomes
+    // the one canonical form, with the username lower-cased. The lower-casing
+    // is why: `tg_username` carries a lower-case-only CHECK, and the first real
+    // submission (`t.me/GoPlaza`) failed its insert with nothing but a generic
+    // "ثبت کانال ناموفق بود".
+    const joinUrl = normalizeJoinUrl(platform, input.joinUrl);
+    if (!joinUrl) {
       return {
         success: false,
         error:
           platform === "telegram"
-            ? "لینک تلگرام معتبر نیست. چیزی مثل https://t.me/example یا لینک دعوت t.me/+… بگذار."
-            : "لینک واتس‌اپ معتبر نیست. لینک دعوت گروه (chat.whatsapp.com/…) یا کانال واتس‌اپ را بگذار.",
+            ? "آیدی تلگرام معتبر نیست. فقط آیدی کانال را بنویس — مثل GoPlaza — یا لینک دعوت را بگذار."
+            : "لینک واتس‌اپ معتبر نیست. لینک دعوت گروه (chat.whatsapp.com/…) یا لینک کانال واتس‌اپ را کامل بگذار.",
       };
     }
 
@@ -164,7 +166,9 @@ export async function submitChannel(input: ChannelInput) {
 
     const slug = await uniqueSlug(admin, title);
 
-    const { error } = await admin.from("channels").insert({
+    const { data: inserted, error } = await admin
+      .from("channels")
+      .insert({
       submitted_by: user.id,
       slug,
       platform,
@@ -193,10 +197,34 @@ export async function submitChannel(input: ChannelInput) {
       // the way there is for jobs: a job ad is attached to a listing we have
       // already checked, and a channel is attached to nothing at all.
       status: "pending_moderation",
-    });
+      })
+      .select("id")
+      .single();
     if (error) {
       console.error("channels: insert failed", error);
+      // A unique violation here means the duplicate check above raced or the
+      // two rows differ only in a way that check could not see. Say which it
+      // is: "ثبت ناموفق بود" on a duplicate sends someone to look for a
+      // problem in their own input that is not there.
+      const code = (error as { code?: string }).code;
+      if (code === "23505") return { success: false, error: "این کانال قبلاً ثبت شده است." };
+      if (code === "23514") {
+        return { success: false, error: "یکی از فیلدها با قوانین ثبت جور نیست. لینک و نام را دوباره ببین." };
+      }
       return { success: false, error: "ثبت کانال ناموفق بود." };
+    }
+
+    // Standing ledger: the submission enters as pending and settles only if
+    // moderation later approves it. Fire-and-forget with its own catch — a
+    // ledger failure must never fail the submission; the contribution is the
+    // product, the points are bookkeeping.
+    if (inserted?.id) {
+      recordEvent({
+        userId: user.id,
+        kind: "channel_submit",
+        subjectType: "channel",
+        subjectId: inserted.id,
+      }).catch((e) => console.error("standing: record channel_submit failed", e));
     }
 
     revalidatePath("/dashboard/channels");
@@ -242,6 +270,23 @@ export async function moderateChannel(channelId: string, decision: "published" |
     if (error) {
       console.error("channels: moderation failed", error);
       return { success: false, error: "ثبت تصمیم ناموفق بود." };
+    }
+
+    // Standing ledger. Approval settles the submitter's pending event;
+    // rejection reverses it (pending included — a rejected submission is a
+    // wrong one and belongs in the accuracy denominator). NOTE the asymmetry
+    // with the metrics cron: a rename pushed back to pending_moderation is
+    // NOT a reversal — the submitter did nothing wrong; only this explicit
+    // decision reverses. If `suspended` ever gains a writer, it must call
+    // reverseSubject the same way rejection does here.
+    if (decision === "published") {
+      settleSubject("channel_submit", "channel", channelId, adminUser.id).catch((e) =>
+        console.error("standing: settle channel_submit failed", e)
+      );
+    } else {
+      reverseSubject("channel", channelId, adminUser.id, note || "rejected").catch((e) =>
+        console.error("standing: reverse channel failed", e)
+      );
     }
 
     revalidatePath("/admin/channels");
