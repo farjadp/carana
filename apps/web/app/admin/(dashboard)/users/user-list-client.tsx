@@ -68,6 +68,21 @@ const roleLabels: Record<string, string> = {
   admin: "مدیر کل",
 };
 
+/** Module scope: Date.now() inside a component body trips the
+ *  react-compiler impure-render rule (see docs/06-gotchas). */
+/** «۳ روز پیش» — an admin scanning for dormant accounts wants the distance, not the date. */
+const relative = (iso: string | null) => {
+  if (!iso) return null;
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (days < 0) return "همین حالا";
+  if (days === 0) return "امروز";
+  if (days === 1) return "دیروز";
+  if (days < 30) return `${days.toLocaleString("fa-IR")} روز پیش`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months.toLocaleString("fa-IR")} ماه پیش`;
+  return `${Math.floor(months / 12).toLocaleString("fa-IR")} سال پیش`;
+};
+
 export function UserListClient({ initialUsers, currentUserId }: UserListClientProps) {
   const [users, setUsers] = useState<ProfileUser[]>(initialUsers);
   const [search, setSearch] = useState("");
@@ -89,18 +104,7 @@ export function UserListClient({ initialUsers, currentUserId }: UserListClientPr
     return (nameMatch || emailMatch) && roleMatch;
   });
 
-  /** «۳ روز پیش» — an admin scanning for dormant accounts wants the distance, not the date. */
-  const relative = (iso: string | null) => {
-    if (!iso) return null;
-    const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-    if (days < 0) return "همین حالا";
-    if (days === 0) return "امروز";
-    if (days === 1) return "دیروز";
-    if (days < 30) return `${days.toLocaleString("fa-IR")} روز پیش`;
-    const months = Math.floor(days / 30);
-    if (months < 12) return `${months.toLocaleString("fa-IR")} ماه پیش`;
-    return `${Math.floor(months / 12).toLocaleString("fa-IR")} سال پیش`;
-  };
+
 
   const money = (cents: number, currency: string) =>
     `${(cents / 100).toLocaleString("fa-IR", { maximumFractionDigits: 2 })} ${currency.toUpperCase()}`;
