@@ -1783,3 +1783,76 @@ querying with the anon key — the service key will always tell you it works.
 Found 26 Aug 2026 while adding a view figure to a list; the same defect had
 been in the channel page's own view tile from the first commit, and only the
 view floor kept it from showing.
+
+## A HEAD select cannot tell "table missing" from "table empty"
+
+**Symptom:** every "is the migration applied?" probe in the admin was green,
+including on the settings page, whose probe predates all of this. Measured
+against the live project on 26 Aug 2026:
+
+```
+HEAD  /rest/v1/platinum_waitlist   → 200, count 0,    error null   (exists)
+HEAD  /rest/v1/nope_xyz            → 204, count null, error null   (does NOT exist)
+GET   /rest/v1/nope_xyz?limit=1    → 404, "Could not find the table ... in the schema cache"
+```
+
+**Cause:** the probes were written as
+`const { error } = await admin.from(t).select("x", { head: true, count: "exact" }); ok = !error`.
+PostgREST answers a HEAD for an unknown table with **204 and no error**, so
+`!error` is true and the probe renders green for a table that is not there.
+The one thing the probe existed to catch was the one thing it could not see.
+
+**Fix:** `lib/admin/table-exists.ts` — a real (non-HEAD) select limited to one
+row, any error reading as false. Used by the settings, standing and loyalty
+admin pages.
+
+**Lesson:** a probe that cannot fail has not been tested. When adding one,
+first point it at a name that definitely does not exist and confirm it goes
+red.
+
+## setSetting silently fails when updated_by is not a real user
+
+**Symptom:** a verification harness turned the loyalty master switch on,
+turned it off again in its `finally`, reported success — and left it **on** in
+the database. A money-moving switch, left live by a test that believed it had
+cleaned up.
+
+**Cause:** `site_settings.updated_by` is a foreign key to `auth.users`. The
+harness passed a placeholder uuid (`00000000-…`), so the upsert failed the
+constraint. `setSetting` returns `{ ok: false, error }` rather than throwing,
+and the `finally` block ignored the return value.
+
+**Fix:** the switch was forced off with `updated_by: null`, which the column
+accepts. Any cleanup that must actually have happened has to CHECK the result
+— `void setSetting(...)` in a finally block is a wish, not a rollback.
+
+**Lesson:** two rules. Cleanup code needs its own assertion, and the assertion
+belongs in the same run: this was caught only because the post-run probe
+printed the setting back and a human read it. Verify the world, not the return
+value of the thing you just called.
+
+
+## `created_by` is not ownership, and widening a filter to it returns the table
+
+**Symptom.** An admin-page query meant to find "businesses belonging to these
+fifty users" returned **10,683** rows — the whole directory — and would then
+have hit PostgREST's silent 1,000-row cap and computed a money column from an
+arbitrary thousand of them.
+
+**Cause.** The filter was `owner_user_id.in.(…) OR created_by.in.(…)`. The
+imports account is `created_by` on 10,600+ scraped listings, and its profile
+was on page one. So the OR was not broken — it was correct, and correctness was
+the problem. `owner_user_id` alone returns 6.
+
+**Fix.** Payment follows `owner_user_id` only. Nobody paid for a listing they
+never claimed.
+
+**Lesson.** `06-gotchas` and the ownership model already say created_by ≠
+owner. What is new is the failure *shape* at scale: an over-wide filter on a
+lookup account does not error and does not look empty — it looks like a busy
+account, and then the row cap turns the number into an arbitrary sample with
+no error anywhere. Whenever a filter includes `created_by`, ask what it returns
+for `imports@charana.ca` before asking what it returns for a person.
+
+Found 26 Aug 2026 while adding four columns to `/admin/users`, by running the
+query against the database instead of reading it.

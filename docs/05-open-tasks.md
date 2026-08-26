@@ -170,6 +170,33 @@ making our bot a channel admin, live `last_post_at`, an owner stats panel,
 private channels. The only thing phase 1 owes it is that `verified` stayed a
 separate concept from `measured`; no `verified` column was added.
 
+## /admin/users gained four columns (26 Aug)
+
+Last activity, standing, UID and money — all aggregated for the fifty rows on
+the page in four bounded queries, not per row.
+
+**Two of the labels are deliberately not the words that were asked for, and
+this is the honest half of the task:**
+
+- **«آخرین فعالیت», not «آخرین ورود».** A login is one of several actions in
+  `user_activity_logs`; the column shows which action it was, so it cannot
+  claim to be a login column while displaying a profile edit.
+- **«پرداخت‌شده», not «اعتبار مالی».** **There is no wallet, no credit ledger
+  and no stored balance anywhere in this schema**, and `invoices` and
+  `subscriptions` are both empty today because nobody has paid anything. The
+  number is the sum of PAID invoices against businesses the person owns.
+  If a real credit balance is wanted — top-ups, spend, refunds — that is a
+  ledger table and a product decision, not a column; ask before building it.
+
+**Standing shows `user_standing.xp` and the level `levelFor()` computes.** The
+table exists and is empty, so every user reads ۰/تازه‌وارد, which is their real
+state rather than a placeholder.
+
+**One bug this found:** the money query originally matched businesses by
+`owner_user_id OR created_by` and returned 10,683 rows — the whole directory —
+because the imports account is `created_by` on 10,600+ scraped listings. See
+`06-gotchas`.
+
 ## /profile redesigned (26 Aug, `a0685c3`) — and two bugs it uncovered
 
 One column, four zones: who you are, what you have done, what you can change,
