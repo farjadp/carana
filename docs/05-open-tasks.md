@@ -89,6 +89,26 @@ making our bot a channel admin, live `last_post_at`, an owner stats panel,
 private channels. The only thing phase 1 owes it is that `verified` stayed a
 separate concept from `measured`; no `verified` column was added.
 
+## Signup success page rebuilt (26 Aug, `b23e505`)
+
+`/auth/signup-success` was three lines of implementation notes shown to a
+human. It now carries a welcome band with the account's own facts, three
+next-step cards, a shortcut grid, six FAQs and a support card.
+
+Everything on it is read, not assumed: name, email, `email_confirmed_at`,
+whether the account already owns a listing, whether it has already submitted a
+channel, and the live directory counts. The cards change to match — somebody
+who registered a business last week is offered their dashboard, not a
+registration form.
+
+**Not verified visually.** Build and typecheck pass and the auth gate still
+holds for a signed-out request, but nobody has seen it signed in. Getting a
+session was not possible in that session: an admin-generated magic link comes
+back in the **implicit** flow (`#access_token=…`) and `/auth/callback` only
+accepts a PKCE `code`, so the link lands on `/auth/error`. The app's own magic
+links are unaffected — those are PKCE — but it means an admin cannot hand
+anyone a working sign-in link today, and that is worth fixing on its own.
+
 ## Home page: «چرا گوپلازا؟» replaced by the channels band (26 Aug)
 
 Farjad's call. The four-card grid asserted the site was trustworthy; the band

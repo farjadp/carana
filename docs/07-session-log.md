@@ -23,6 +23,17 @@ one *was* stale dev cache: a hard reload showed 9,689. Both of those cost
 about a minute each to disprove, and both would have been plausible bug
 reports written from a single screenshot.
 
+**The signup-success page was rebuilt too** (`b23e505`). It had been three
+lines of implementation notes shown to a human — «سشن کاربر هم فعال شده» — on
+the first page a new account ever sees. It now answers what just happened,
+what you can do here, and what to do when stuck, with every line read from
+real state: the cards change for somebody who already owns a listing, and the
+«ایمیلت تأیید شده» chip appears only when `email_confirmed_at` is set. Trying
+to render it signed in turned up a real defect that had nothing to do with the
+page: an **admin-generated magic link cannot sign anyone in**, because it comes
+back in the implicit flow and `/auth/callback` only accepts a PKCE `code`. Now
+in `06-gotchas`.
+
 **«چرا گوپلازا؟» is gone from the home page** (Farjad's call). The four-card
 grid asserted the site was trustworthy; the channels band that replaced it
 shows six real channels with the date each last posted and the date we checked.
