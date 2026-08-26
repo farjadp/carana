@@ -79,3 +79,7 @@ export * from "./channels";
 // aggregates); this judges — levelFor() is the only definition of the levels
 // and privilegesFor() the only map from level to capability.
 export * from "./standing";
+
+// «وفاداری مالک»: tenure derived from paid periods, the discount ladder, and
+// the capacity bump — which is zero on plans that are already unlimited.
+export * from "./loyalty";
