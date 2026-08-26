@@ -48,6 +48,7 @@ const STATIC_PATHS = [
   "/pricing",
   "/features",
   "/jobs",
+  "/channels",
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -139,6 +140,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: job.updated_at ? new Date(job.updated_at) : undefined,
       changeFrequency: "daily",
       priority: 0.7,
+    });
+  }
+
+  // Channels. Only what the public can actually open: published, and not past
+  // its confirmation date — the same read-time rule the page itself applies.
+  // An entry for a lapsed row would be a soft 404.
+  const { data: channelCats } = await supabase.from("channel_categories").select("slug");
+  for (const c of channelCats ?? []) {
+    entries.push({ url: `${base}/channels/category/${c.slug}`, changeFrequency: "weekly", priority: 0.5 });
+  }
+  const { data: channels } = await supabase
+    .from("channels")
+    .select("slug, updated_at")
+    .eq("status", "published")
+    .or(`confirm_by.is.null,confirm_by.gt.${new Date().toISOString()}`);
+
+  for (const c of channels ?? []) {
+    entries.push({
+      url: `${base}/channels/${c.slug}`,
+      lastModified: c.updated_at ? new Date(c.updated_at) : undefined,
+      changeFrequency: "weekly",
+      priority: 0.6,
     });
   }
 

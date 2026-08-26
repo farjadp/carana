@@ -1,9 +1,14 @@
 // ============================================================================
 // Source: components/business/report-dialog.tsx
-// Version: 1.0.0 — 2026-08-16
+// Version: 1.1.0 — 2026-08-26
 // Why: "این اطلاعات درست نیست" — a real report, posted to /api/reports and
 //      queued for an admin. The previous button raised a toast and wrote
 //      nothing; nothing here claims more than happened.
+//      v1.1 (26 Aug): also reports a channel entry. Same endpoint, same
+//      queue — a second queue is the one nobody opens. It matters more in
+//      that section than anywhere else on the site: almost every number
+//      there is a claim nobody can verify, so a report is the only quality
+//      control that exists.
 // Env / Identity: Client component. No sign-in required.
 // ============================================================================
 "use client";
@@ -11,7 +16,9 @@
 import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Flag, X } from "lucide-react";
 
-const REASONS: { value: string; label: string; hint?: string }[] = [
+type Reason = { value: string; label: string; hint?: string };
+
+const BUSINESS_REASONS: Reason[] = [
   { value: "closed", label: "این کسب‌وکار تعطیل شده است" },
   { value: "wrong_info", label: "اطلاعات اشتباه است", hint: "شماره، آدرس، ساعت کاری یا دسته" },
   { value: "duplicate", label: "تکراری است", hint: "همین کسب‌وکار دو بار ثبت شده" },
@@ -22,7 +29,29 @@ const REASONS: { value: string; label: string; hint?: string }[] = [
   { value: "other", label: "مورد دیگر" },
 ];
 
-export function ReportDialog({ businessId, businessName }: { businessId: string; businessName: string }) {
+// The same stored `reason` values, worded for a channel. A separate vocabulary
+// would mean a second set of labels in the admin queue for no gain — «تعطیل
+// شده» and «دیگر وجود ندارد» are the same fact about two kinds of thing.
+const CHANNEL_REASONS: Reason[] = [
+  { value: "closed", label: "لینک کار نمی‌کند یا کانال دیگر وجود ندارد" },
+  { value: "wrong_info", label: "اطلاعاتش اشتباه است", hint: "موضوع، شهر یا توضیحش با واقعیت نمی‌خواند" },
+  { value: "duplicate", label: "تکراری است", hint: "همین کانال دو بار ثبت شده" },
+  { value: "spam", label: "تبلیغ یا اسپم است" },
+  { value: "offensive", label: "محتوای نامناسب دارد" },
+  { value: "impersonation", label: "جعل هویت است", hint: "خودش را جای کانال دیگری جا زده" },
+  { value: "other", label: "مورد دیگر" },
+];
+
+/**
+ * Exactly one subject. The endpoint enforces it too — this is the shape that
+ * makes passing both impossible to write rather than merely wrong.
+ */
+export type ReportSubject =
+  | { kind: "business"; id: string; name: string }
+  | { kind: "channel"; id: string; name: string };
+
+export function ReportDialog({ subject }: { subject: ReportSubject }) {
+  const REASONS = subject.kind === "channel" ? CHANNEL_REASONS : BUSINESS_REASONS;
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState("");
@@ -51,7 +80,13 @@ export function ReportDialog({ businessId, businessName }: { businessId: string;
       const res = await fetch("/api/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ businessId, reason, details, contact, source: "web" }),
+        body: JSON.stringify({
+          ...(subject.kind === "business" ? { businessId: subject.id } : { channelId: subject.id }),
+          reason,
+          details,
+          contact,
+          source: "web",
+        }),
       });
       const json = (await res.json().catch(() => ({}))) as { success?: boolean; error?: string };
       if (!res.ok || !json.success) throw new Error(json.error || "ثبت گزارش ناموفق بود.");
@@ -101,8 +136,10 @@ export function ReportDialog({ businessId, businessName }: { businessId: string;
               <>
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-lg font-black text-[color:var(--text)]">مشکلی در این آگهی هست؟</h2>
-                    <p className="mt-1 text-xs text-[color:var(--muted-text)]">{businessName}</p>
+                    <h2 className="text-lg font-black text-[color:var(--text)]">
+                      {subject.kind === "channel" ? "مشکلی در این کانال هست؟" : "مشکلی در این آگهی هست؟"}
+                    </h2>
+                    <p className="mt-1 text-xs text-[color:var(--muted-text)]">{subject.name}</p>
                   </div>
                   <button type="button" onClick={close} aria-label="بستن" className="rounded-lg p-1 text-[color:var(--muted-text)] hover:bg-[color:var(--bg)]"><X size={18} /></button>
                 </div>
@@ -127,7 +164,11 @@ export function ReportDialog({ businessId, businessName }: { businessId: string;
                     onChange={(e) => setDetails(e.target.value)}
                     rows={3}
                     maxLength={2000}
-                    placeholder="مثلاً: شماره‌ی تماس عوض شده، شماره‌ی درست ۴۱۶-۵۵۵-۰۱۲۳ است."
+                    placeholder={
+                      subject.kind === "channel"
+                        ? "مثلاً: لینک دعوت منقضی شده و دیگر باز نمی‌شود."
+                        : "مثلاً: شماره‌ی تماس عوض شده، شماره‌ی درست ۴۱۶-۵۵۵-۰۱۲۳ است."
+                    }
                     className="w-full rounded-xl border border-[color:var(--line)] bg-[color:var(--bg)] px-3 py-2 text-sm leading-7 outline-none focus:border-[color:var(--annabi)]/40 focus:bg-white"
                   />
                 </label>

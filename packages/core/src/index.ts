@@ -70,3 +70,7 @@ export * from "./link";
 // "Is it open right now?" — read against the listing's own provincial clock,
 // so a Vancouver shop is not judged on Toronto time.
 export * from "./hours";
+
+// «کانال‌ها و گروه‌ها»: what a channel entry is, when it counts as alive, and
+// which of its numbers we are allowed to print as fact.
+export * from "./channels";

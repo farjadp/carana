@@ -1,12 +1,15 @@
 // ============================================================================
 // Source: app/api/reports/route.ts
-// Version: 1.1.0 — 2026-08-25
+// Version: 1.2.0 — 2026-08-26
 // Why: The profile's "report a problem" button used to show a toast and write
 //      nothing — it told the user a falsehood. It posts here now, the row
 //      lands in /admin/reports, and the response only claims what happened.
 //      v1.1 (25 Aug): also accepts a GPLZ Link bio page. Deliberately the
 //      same endpoint and the same queue — a second one would be the one
 //      nobody opens.
+//      v1.2 (26 Aug): also accepts a channel entry. In that section this is
+//      not one control among many — almost every number there is a claim
+//      nobody can verify, so reports are the only quality control it has.
 // Env / Identity: Server only. Anonymous allowed (someone reporting a
 //      fraudulent listing should not have to register first); rate-limited,
 //      attributed when a session exists.
@@ -46,6 +49,7 @@ export async function POST(req: NextRequest) {
   let body: {
     businessId?: string;
     linkPageId?: string;
+    channelId?: string;
     reason?: string;
     details?: string;
     contact?: string;
@@ -59,14 +63,16 @@ export async function POST(req: NextRequest) {
 
   const businessId = String(body.businessId ?? "");
   const linkPageId = String(body.linkPageId ?? "");
+  const channelId = String(body.channelId ?? "");
   const reason = String(body.reason ?? "");
 
-  // Exactly one subject. Accepting both would produce a row the admin queue
+  // Exactly one subject. Accepting two would produce a row the admin queue
   // cannot render under one heading, and the check constraint only requires
   // at least one.
   const aboutBusiness = UUID.test(businessId);
   const aboutLinkPage = UUID.test(linkPageId);
-  if (aboutBusiness === aboutLinkPage) {
+  const aboutChannel = UUID.test(channelId);
+  if ([aboutBusiness, aboutLinkPage, aboutChannel].filter(Boolean).length !== 1) {
     return NextResponse.json({ success: false, error: "موضوع گزارش نامعتبر است." }, { status: 400 });
   }
   if (!REASONS.has(reason)) return NextResponse.json({ success: false, error: "دلیل گزارش را انتخاب کنید." }, { status: 400 });
@@ -79,10 +85,15 @@ export async function POST(req: NextRequest) {
   const admin = createSupabaseAdminClient();
   const { data: exists } = aboutBusiness
     ? await admin.from("businesses").select("id").eq("id", businessId).maybeSingle()
-    : await admin.from("link_pages").select("id").eq("id", linkPageId).maybeSingle();
+    : aboutLinkPage
+      ? await admin.from("link_pages").select("id").eq("id", linkPageId).maybeSingle()
+      : await admin.from("channels").select("id").eq("id", channelId).maybeSingle();
   if (!exists) {
     return NextResponse.json(
-      { success: false, error: aboutBusiness ? "کسب‌وکار پیدا نشد." : "صفحه پیدا نشد." },
+      {
+        success: false,
+        error: aboutBusiness ? "کسب‌وکار پیدا نشد." : aboutLinkPage ? "صفحه پیدا نشد." : "کانال پیدا نشد.",
+      },
       { status: 404 },
     );
   }
@@ -90,6 +101,7 @@ export async function POST(req: NextRequest) {
   const { error } = await admin.from("business_reports").insert({
     business_id: aboutBusiness ? businessId : null,
     link_page_id: aboutLinkPage ? linkPageId : null,
+    channel_id: aboutChannel ? channelId : null,
     reporter_id: userId,
     reason,
     details: details || null,

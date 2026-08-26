@@ -1561,3 +1561,27 @@ down. When a rule is about *content* — a brand, a claim, a disclaimer — ask
 where the content actually lives before believing the check that says it is
 clean. Generated content is the worst case: it was written under a prompt
 that has since changed, and it never gets re-read.
+
+
+## An admin-generated magic link cannot sign anyone in here
+
+**Symptom.** `POST /auth/v1/admin/generate_link` returns a working
+`action_link`. Following it lands on `/auth/error` instead of a session.
+
+**Cause.** The generated link redirects with the tokens in the URL **fragment**
+— `…/auth/callback?next=/x#access_token=…&refresh_token=…` — which is the
+implicit flow. `app/auth/callback/route.ts` reads `?code=` and redirects to
+`/auth/error` when it is absent, and a fragment never reaches the server
+anyway.
+
+**Fix.** None applied yet. The app's own magic links are unaffected: they come
+from `signInWithOtp()` in the browser, which uses PKCE and does return a
+`code`. What does not work is the admin path — so today nobody can hand a user
+a working sign-in link out of band, and no automated check can drive a signed-in
+page without a typed password.
+
+**Lesson.** "We support magic links" is true of one code path and false of
+another that produces the identical-looking URL. When a flow is verified only
+through the UI that generates it, the other generator is untested by
+construction. Found 26 Aug 2026 while trying to render `/auth/signup-success`
+as a signed-in user.
