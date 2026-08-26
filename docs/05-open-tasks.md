@@ -30,21 +30,26 @@ the ledger with its six named settle guards, both emitters (channels,
 reviews), `/admin/standing` (green knobs + amber actions with server-enforced
 reasons), and the 08:10 UTC recompute cron. Both switches seed **off**.
 
-**Farjad, the one blocker:** paste `20260830420000_standing.sql` into the
-Supabase SQL Editor and run it, then tell a session so it can `pnpm
-gen:types` and run the deferred verification. A session tried to apply it
-via the Management API with the CLI keychain token; the permission
-classifier blocked reading the token, so the paste is genuinely yours.
+**The migration is applied** (Farjad, 26 Aug, SQL Editor) and the deferred
+verification ran the same night with a disposable test user through a
+temporary CRON-gated route calling the real functions in the real runtime
+(deleted after; tables confirmed back to zero):
 
-**Still unverified, honestly:** everything that needs the tables — recording
-a real event, the settle/reverse round-trip, the admin page with green
-probes, the cron writing aggregates. What WAS verified by running:
-`/admin/standing` renders red probes without crashing, both API routes
-refuse unauthenticated calls, and an empty reason is rejected by the amber
-route's schema. One real find from running: the page's HTML streamed to an
-unauthenticated curl before the layout redirect landed (App Router renders
-page and layout in parallel; fail-fast queries made the page quick) — the
-page now re-checks requireAdmin itself. `06-gotchas` has the entry.
+- record → pending; duplicate → skipped by the unique constraint
+- settle blocked by name: `program_disabled` while off, `not_verified`
+  before the profile verifies, then settles exactly once (25 pts, v1 frozen
+  into the row); re-settle → `no_pending_event`
+- reverse with an empty reason refused; real reverse drops xp 25→0 and
+  accuracy 1→0 while the row keeps its frozen points — history re-read,
+  never edited
+- `/api/cron/standing-recompute` ran by hand: `{recomputed:0, backlog:0}`
+  on the empty ledger, and its cron_runs row landed
+- `pnpm gen:types` regenerated with the three tables
+
+Not yet seen: the admin page with *green* probes needs an admin login in a
+browser — the same queries the probes make were verified directly instead.
+Earlier find, still true: the page re-checks requireAdmin itself because
+its HTML could stream before the layout redirect (`06-gotchas`).
 
 **Pre-existing failures, not from this work:** `pnpm lint` — one error in
 `apps/web/app/channels/page.tsx:112` (impure call during render) and one in
@@ -106,15 +111,20 @@ an **id** now rather than a URL. See `06-gotchas`.
    readable channels unreadable, and the rename check fired on a name nobody
    renamed.
 
-3. **Re-enable the rename check, with a real baseline.** It is off. It compared
-   Telegram's title against what a submitter typed and unpublished a live
-   channel on its first run. It needs a `tg_title` column holding the title
-   **we** last fetched, and then compares reading against reading. Small
-   migration; `titleChangedMaterially()` is already written and already ignores
-   emoji, punctuation and one title containing the other.
+3. **~~Re-enable the rename check~~ — done, behind a `tg_title` baseline.** It
+   compares the title we last read against the title we read today, so a
+   Persian directory naming a channel in Persian is no longer a rename. A first
+   read can never be a rename, so it records the baseline and skips the check.
+   The baseline is refreshed even on a run that flags one, so a rename is
+   reported once rather than every day until a human clears it.
 
-   Until then the abuse route it covered — a group renamed into something else
-   after approval — is covered only by the report button and by a human noticing.
+**FARJAD — ONE SQL PASTE, AND NOTHING ABOVE WORKS WITHOUT IT:**
+
+Run **`supabase/migrations/20260830430000_channel_ownership.sql`** in the
+Supabase SQL Editor. It adds `tg_title` and the five ownership columns. **This
+branch must not be merged before it is applied** — every channel page selects
+those columns, so a deploy that lands first would 400 on all of them. Ask for
+the merge once it is run.
 
 3. **Then look at a populated page.** The card, the detail page's four metric
    tiles, the growth block (which needs two snapshots a month apart, so it will

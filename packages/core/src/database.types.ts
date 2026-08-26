@@ -249,6 +249,65 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_snippets: {
+        Row: {
+          ai_model: string | null
+          body: string
+          channel: string
+          created_at: string
+          error: string | null
+          external_id: string | null
+          hook: string
+          id: string
+          kind: string
+          sent_at: string | null
+          source_post_id: string
+          status: string
+          tags: string[]
+          url: string | null
+        }
+        Insert: {
+          ai_model?: string | null
+          body: string
+          channel?: string
+          created_at?: string
+          error?: string | null
+          external_id?: string | null
+          hook: string
+          id?: string
+          kind: string
+          sent_at?: string | null
+          source_post_id: string
+          status?: string
+          tags?: string[]
+          url?: string | null
+        }
+        Update: {
+          ai_model?: string | null
+          body?: string
+          channel?: string
+          created_at?: string
+          error?: string | null
+          external_id?: string | null
+          hook?: string
+          id?: string
+          kind?: string
+          sent_at?: string | null
+          source_post_id?: string
+          status?: string
+          tags?: string[]
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_snippets_source_post_id_fkey"
+            columns: ["source_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_source_articles: {
         Row: {
           excerpt: string | null
@@ -696,17 +755,17 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "business_reports_link_page_id_fkey"
-            columns: ["link_page_id"]
-            isOneToOne: false
-            referencedRelation: "link_pages"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "business_reports_channel_id_fkey"
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_reports_link_page_id_fkey"
+            columns: ["link_page_id"]
+            isOneToOne: false
+            referencedRelation: "link_pages"
             referencedColumns: ["id"]
           },
         ]
@@ -1957,6 +2016,90 @@ export type Database = {
         }
         Relationships: []
       }
+      standing_events: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          meta: Json
+          points: number
+          reason: string | null
+          rule_version: number | null
+          settled_at: string | null
+          settled_by: string | null
+          state: string
+          subject_id: string | null
+          subject_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          meta?: Json
+          points?: number
+          reason?: string | null
+          rule_version?: number | null
+          settled_at?: string | null
+          settled_by?: string | null
+          state?: string
+          subject_id?: string | null
+          subject_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          meta?: Json
+          points?: number
+          reason?: string | null
+          rule_version?: number | null
+          settled_at?: string | null
+          settled_by?: string | null
+          state?: string
+          subject_id?: string | null
+          subject_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      standing_rules: {
+        Row: {
+          daily_cap: number
+          enabled: boolean
+          kind: string
+          label_fa: string
+          points: number
+          subject_type: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          daily_cap?: number
+          enabled?: boolean
+          kind: string
+          label_fa: string
+          points?: number
+          subject_type: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          daily_cap?: number
+          enabled?: boolean
+          kind?: string
+          label_fa?: string
+          points?: number
+          subject_type?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
       stripe_events: {
         Row: {
           id: string
@@ -2221,6 +2364,54 @@ export type Database = {
           },
         ]
       }
+      user_standing: {
+        Row: {
+          accuracy: number | null
+          admin_note: string | null
+          confirmed_count: number
+          distinct_kinds: number
+          frozen: boolean
+          last_confirmed_at: string | null
+          level_grant: number | null
+          peak_level: number
+          peak_level_at: string | null
+          recomputed_at: string | null
+          reversed_count: number
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          accuracy?: number | null
+          admin_note?: string | null
+          confirmed_count?: number
+          distinct_kinds?: number
+          frozen?: boolean
+          last_confirmed_at?: string | null
+          level_grant?: number | null
+          peak_level?: number
+          peak_level_at?: string | null
+          recomputed_at?: string | null
+          reversed_count?: number
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          accuracy?: number | null
+          admin_note?: string | null
+          confirmed_count?: number
+          distinct_kinds?: number
+          frozen?: boolean
+          last_confirmed_at?: string | null
+          level_grant?: number | null
+          peak_level?: number
+          peak_level_at?: string | null
+          recomputed_at?: string | null
+          reversed_count?: number
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
       verification_codes: {
         Row: {
           attempts: number
@@ -2319,7 +2510,6 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       fa_normalize: { Args: { t: string }; Returns: string }
-      roll_up_channel_day: { Args: { p_day: string }; Returns: number }
       handle_available: { Args: { p_handle: string }; Returns: boolean }
       has_business_access: {
         Args: { target_business_id: string; target_user_id: string }
@@ -2355,11 +2545,13 @@ export type Database = {
       }
       live_job_count: { Args: { p_business_id: string }; Returns: number }
       prune_link_events: { Args: { p_keep_days?: number }; Returns: number }
+      recompute_standing: { Args: { p_user: string }; Returns: undefined }
       restore_link_page: { Args: { p_page_id: string }; Returns: undefined }
       review_current_status: {
         Args: { target_review_id: string }
         Returns: Database["public"]["Enums"]["public_review_status"]
       }
+      roll_up_channel_day: { Args: { p_day: string }; Returns: number }
       roll_up_link_day: { Args: { p_day: string }; Returns: number }
       search_announcements: {
         Args: { p_limit?: number; q: string }
@@ -2432,6 +2624,7 @@ export type Database = {
         | "ROLE_UPDATE"
         | "PROFILE_UPDATE"
         | "SECURITY_ALERT"
+        | "STANDING_ADMIN"
       app_role: "user" | "business_owner" | "moderator" | "admin"
       business_status:
         | "DRAFT"
@@ -2598,6 +2791,7 @@ export const Constants = {
         "ROLE_UPDATE",
         "PROFILE_UPDATE",
         "SECURITY_ALERT",
+        "STANDING_ADMIN",
       ],
       app_role: ["user", "business_owner", "moderator", "admin"],
       business_status: [

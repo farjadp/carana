@@ -1733,3 +1733,27 @@ detection; it is a spelling contest. Found 26 Aug 2026 on the first real cron
 run, and it had been written the same day as a defence against a real abuse
 route — which is worth keeping in mind: the defence was sound and the baseline
 was wrong.
+
+
+## The honesty rule pointed the wrong way
+
+**Symptom.** GOPLAZA's own Telegram channel — submitted through the admin
+panel by a GOPLAZA admin who does administer it — displayed
+«مالکیت تأیید نشده», with copy explaining that proving ownership is impossible
+here.
+
+**Cause.** The design deferred *all* ownership proof to a phase-2 bot and gave
+the schema no way to record one. So the page was not reporting an unknown; it
+was reporting a fact we had and could not store.
+
+**Fix.** `owner_verified_at / _until / _method / _by` plus `owner_user_id`,
+mirroring `businesses.verification_method` rather than inventing a second
+vocabulary. An admin records the attestation, the badge names the method, and
+it lapses in 182 days.
+
+**Lesson.** "Never show what you cannot back" has a twin that is easy to miss:
+**never refuse to record what you can back.** A rule that only ever removes
+information will eventually delete a true one, and the failure looks like
+integrity from the inside — which is why it survived a design doc, a
+migration and a review. The test that catches it: for each thing the UI
+declines to say, ask whether anyone in the building knows the answer.
