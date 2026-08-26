@@ -1,7 +1,33 @@
 # Channels directory — design
 
-**Written:** 2026-08-26 · **Status:** DESIGNED, not built · **Owner:** Claude
+**Written:** 2026-08-26 · **Status:** **BUILT on web, 26 Aug** (`1c18c35`) —
+the migration still has to be run · **Owner:** Claude
 **Decisions by Farjad:** 26 Aug (brainstorm, recorded below with what each rules out)
+**Name:** «کانال‌ها و گروه‌ها» (Farjad, 26 Aug)
+
+## What shipped, and what did not
+
+Built: `20260830410000_channels.sql`, `@goplaza/core/channels.ts`, the public
+`/channels`, `/channels/[slug]` and `/channels/category/[slug]`,
+`/channels/submit`, `/dashboard/channels` with the reconfirm button,
+`/admin/channels` with a live sidebar badge, `/api/channels/event`,
+`/api/cron/channel-metrics` **including the daily member snapshot**, the
+`channel_view` / `channel_join_click` metrics on the existing analytics
+tables, reports through the existing queue, sitemap entries, the home-page
+band, and the header rebuild the new section forced (eight triggers → five).
+
+Not built: mobile, the reconfirm reminder email, and any owner-facing stats
+panel. All three follow patterns already in the repo.
+
+**The migration has not been run.** Until it is, every read of the table
+errors and every surface falls back to its empty state — `/channels` renders
+its "nothing yet" panel, the home band returns null, the admin badge reads
+zero. Reachable and empty, not broken. Run it in the Supabase SQL Editor;
+`pnpm db:push` still hits the CLI's interactive password prompt.
+
+**Not verified by running.** `next build` passes and typecheck is clean, but
+the dev server could not be started in this session, so no page in this
+section has ever been rendered. See `05-open-tasks`.
 
 A directory of Telegram channels/groups and WhatsApp groups serving the
 Iranian community in Canada. Any subject: a Toronto news channel, a Vancouver

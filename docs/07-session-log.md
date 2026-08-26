@@ -1,3 +1,128 @@
+# 2026-08-26 (later) — «کانال‌ها و گروه‌ها», and a header that had run out of room
+
+A directory of Telegram channels/groups and WhatsApp groups. Designed in the
+morning as one doc, built in the afternoon as one commit. `8dcdbfc` (design),
+`1c18c35` (build).
+
+## The decision the whole thing rests on
+
+The obvious axis was Telegram vs WhatsApp. It is the wrong one.
+
+What actually differs between two rows is whether **we** read a number or
+somebody **typed** it. A Telegram channel with its preview switched off is as
+unreadable as a WhatsApp group; an invite-link channel exposes nothing at all.
+Meanwhile every WhatsApp row is unreadable forever, because there is no API and
+there is not going to be one.
+
+If the schema had keyed on `platform`, every read site would have re-derived
+"can I trust this number" and one of them would eventually have printed a
+claimed member count as a measured one. So `metrics_source` is the column, and
+`platform` decides an icon.
+
+Two CHECK constraints make the rule structural rather than cultural: a measured
+row cannot exist without `metrics_checked_at`, and a declared row cannot exist
+without `confirm_by`. `memberLineFa()` in core then returns **null** rather
+than a zero for anything unmeasured, and the card is obliged to print words —
+«بررسی خودکار برای این مورد ممکن نیست» — instead of an empty space where a
+number was expected.
+
+## What the section will never do
+
+It shows no channel content. No embed, no post archive, no preview text, and
+no column to hold one. Three reasons, in the order they mattered: republishing
+a stranger's post puts their scam on our domain; the Telegram widget's iframe
+is unindexable so it would buy nothing back; and the alternative — scraping
+post bodies — would need a moderation layer we do not have.
+
+The cron reads title, member count, last-post time and a 30-day post count from
+`t.me/s/<name>` and throws the page away.
+
+## The one irreversible thing, shipped on day one
+
+`channel_member_snapshots` is two columns and one row per channel per day. It
+went in the same commit as the cron, not a later one, because a day it does not
+run is a day of growth history that cannot be backfilled from anywhere. Every
+other item on the backlog can wait; that one cannot, and noticing which is
+which is the only reason it is there.
+
+## Things kept honest by refusing to build them
+
+- **No verified badge.** Ownership proof needs the phase-2 bot. "We can read
+  this channel's public page" and "this person proved they own it" are
+  different claims, and no `verified` column was added — conflating them now
+  would mean redefining a column four read sites already read.
+- **View counts hidden below fifty.** On launch day every entry has four views.
+  Printing that makes the section read dead. Same trap as «۰ نظر».
+- **Freshness, not members, is the sort.** We cannot detect a bought member, so
+  ranking on member count would put the biggest bought-member channel on top.
+- **`posts_last_30d` is null when we can only see a floor.** The preview page
+  renders a fixed window; if every message on it is newer than 30 days, the
+  real answer is "at least this many" and we publish nothing instead.
+- **A failed check does not advance `metrics_checked_at`.** The date on a
+  number has to be the date that number was read. Three failures in a row
+  demote the row to `declared` rather than going on printing a stale figure
+  under a fresh date.
+
+## The header had already run out of room, and this proved it
+
+Eight top-level triggers, and `06-gotchas` already records the day the bar
+overflowed at its own 900px breakpoint. «کانال‌ها و گروه‌ها» is the longest
+label it has ever carried, so the answer could not be another gap tweak.
+
+«خانه» went first — the logo beside it goes home on every site anyone has used.
+Then the four separate ways to ask "show me businesses" became one menu whose
+own label is the destination. Then «راهنما» and «درباره ما» — two flat menus of
+six links each, distinguishable only by which one you happened to open —
+became one menu with two labelled sections. Five triggers, twelve destinations
+still reachable, and the grouping now visible instead of implied.
+
+One structural fix came with it: nav order is data. v2 rendered `NAV_ITEMS`
+then `NAV_GROUPS`, which meant a menu could never be first in the bar. There is
+one `NAV` array now.
+
+## What was said wrongly, or left unproven
+
+**Two errors in the design doc, both caught while writing the migration.**
+
+The doc specified `unique nulls not distinct (platform, tg_username)`. That is
+wrong twice: it would let one channel be submitted under two spellings, and —
+worse — `nulls not distinct` would have collapsed every WhatsApp row, all of
+which have a null username, into a single permitted row across the whole table.
+The migration uses two partial unique indexes instead.
+
+The doc also proposed `citext` for the username, copying the `link_pages.handle`
+decision. `06-gotchas` records that `citext` silently makes a regex CHECK
+case-insensitive too. The column is lower-cased on write and carries a plain
+lower-case regex.
+
+**Nothing in this section has been rendered.** `next build` passes and
+typecheck is clean, and on this project that is the weakest kind of evidence
+there is — the mobile hero that read «۱٬۰۰۰ کسب‌وکار» for a 5,251-listing
+directory type-checked perfectly too. `pnpm --filter @goplaza/web dev` hung
+before printing a line, twice, so no page here has ever been on a screen. The
+same goes for the new two-column menu panel, which is CSS nobody has looked at.
+It is the first item in `05-open-tasks`.
+
+**The cron's parser has never parsed anything.** `readTelegramMetrics` reads
+markup Telegram owes us nothing about. Failures are absorbed and never thrown,
+which means a broken parser would look exactly like a set of channels that
+stopped being reachable — quiet, and wrong. It has to be run against one real
+channel before it is trusted.
+
+**`pnpm check:brand` fails on this branch, and did before it too.** Eight
+matches, all in `scripts/fix-blog-brand.mts`, which contains the old brand as
+search patterns by design. Verified by stashing: the failure is not from this
+work. It should be allow-listed or the script exempted, and neither was done
+here.
+
+## Still open
+
+The migration has not been run — `pnpm db:push` still hits the CLI's
+interactive password prompt, so it needs the Supabase SQL Editor. Until then
+every read errors and every surface falls back to its empty state: reachable
+and empty, not broken. After that: seed the section with real channels, verify
+the parser, and the mobile read side.
+
 # 2026-08-26 — The blog reads the news, publishes itself, and counts its readers
 
 Four things shipped, and one thing that had been broken for eight days got
