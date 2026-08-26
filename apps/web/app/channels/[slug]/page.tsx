@@ -183,8 +183,12 @@ export default async function ChannelPage({ params }: { params: Promise<{ slug: 
                 joinUrl={channel.join_url}
                 label={`عضویت در ${CHANNEL_KIND_LABELS_FA[channel.kind as ChannelKind]}`}
               />
+              {/* «ما اداره‌کننده‌اش نیستیم» is false on GOPLAZA's own channel,
+                  which is now a verified entry. The point of the line is who
+                  answers for what is posted there, and that sentence is true
+                  either way. */}
               <p className="mt-2 text-[11px] leading-6 text-[color:var(--muted-text)]">
-                این لینک به بیرون از گوپلازا می‌رود. ما اداره‌کننده‌ی این {CHANNEL_KIND_LABELS_FA[channel.kind as ChannelKind]} نیستیم.
+                این لینک به بیرون از گوپلازا می‌رود و مسئولیت محتوای آن با اداره‌کننده‌اش است.
               </p>
             </div>
           </div>
