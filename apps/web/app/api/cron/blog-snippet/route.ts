@@ -18,7 +18,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { generateSnippets } from "@/lib/blog/snippets";
+import { generateSnippets, sendSnippet } from "@/lib/blog/snippets";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createSupabaseActionClient } from "@/lib/supabase/server";
 
@@ -50,6 +50,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   const url = new URL(req.url);
+
+  // `?id=` publishes one card that is already in the queue, rather than
+  // writing a new one. The desk button does the same thing through a server
+  // action; this makes it reachable from a script, which is how a card that
+  // was queued for review gets sent once someone has read it.
+  const id = url.searchParams.get("id");
+  if (id) {
+    const outcome = await sendSnippet(id);
+    return NextResponse.json({ ok: outcome.status === "sent", ...outcome });
+  }
+
   const n = Math.min(MAX_PER_RUN, Math.max(1, Number(url.searchParams.get("n") ?? DEFAULT_PER_RUN) || DEFAULT_PER_RUN));
   const dryRun = url.searchParams.get("dry") === "1";
   const send = url.searchParams.get("send") !== "0" && !dryRun;
