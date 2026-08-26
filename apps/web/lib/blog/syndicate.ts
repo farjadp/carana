@@ -75,31 +75,83 @@ function caption(post: PostForShare, limit: number): { text: string; url: string
 // ---------------------------------------------------------------------------
 // Telegram
 // ---------------------------------------------------------------------------
+type TgReply = { ok?: boolean; description?: string; result?: { message_id?: number } };
+
+const tgResult = (chat: string, json: TgReply): SyndicationOutcome => {
+  const id = json.result?.message_id ? String(json.result.message_id) : undefined;
+  const handle = chat.startsWith("@") ? chat.slice(1) : null;
+  return { channel: "telegram", status: "sent", externalId: id, url: handle && id ? `https://t.me/${handle}/${id}` : undefined };
+};
+
+/** Photos by URL cap at 5 MB on Telegram's side; ours run ~0.5 MB. */
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Send the cover as bytes rather than as a URL.
+ *
+ * `sendPhoto` accepts a URL and Telegram fetches it, which is one line of code
+ * and one dependency too many: during the first backfill Telegram answered
+ * "Bad Request: failed to get HTTP URL content" for a cover that was a
+ * perfectly ordinary 1024×576 JPEG of 447 KB, served 200 from the same bucket
+ * as the seven covers it had just accepted, and it did so twice in a row. We
+ * never learned why, and that is the point — their fetcher is not something we
+ * can debug or rely on. Uploading the bytes removes the whole class.
+ */
+async function sendPhotoBytes(token: string, chat: string, url: string, text: string): Promise<TgReply> {
+  const img = await fetch(url);
+  if (!img.ok) throw new Error(`cover fetch ${img.status}`);
+  const buf = await img.arrayBuffer();
+  if (buf.byteLength > MAX_PHOTO_BYTES) throw new Error(`cover too large (${buf.byteLength} bytes)`);
+
+  const form = new FormData();
+  form.append("chat_id", chat);
+  form.append("caption", text);
+  form.append("parse_mode", "HTML");
+  form.append("photo", new Blob([buf], { type: img.headers.get("content-type") ?? "image/jpeg" }), "cover.jpg");
+
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: "POST", body: form });
+  return (await res.json()) as TgReply;
+}
+
+async function sendText(token: string, chat: string, text: string): Promise<TgReply> {
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chat, text, parse_mode: "HTML", link_preview_options: { prefer_large_media: true } }),
+  });
+  return (await res.json()) as TgReply;
+}
+
 async function toTelegram(post: PostForShare): Promise<SyndicationOutcome> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chat = process.env.TELEGRAM_CHANNEL_ID;
   if (!token || !chat) return { channel: "telegram", status: "skipped", error: "TELEGRAM_BOT_TOKEN / TELEGRAM_CHANNEL_ID not set" };
 
-  // sendPhoto caps the caption at 1024; sendMessage allows 4096. Pick the
-  // method by whether we actually have an image, and size the text to match.
+  // sendPhoto caps the caption at 1024; sendMessage allows 4096. Size the text
+  // for the method we intend to use.
   const withPhoto = Boolean(post.cover_url);
   const { text } = caption(post, withPhoto ? 1000 : 3800);
-  const method = withPhoto ? "sendPhoto" : "sendMessage";
-  const payload = withPhoto
-    ? { chat_id: chat, photo: post.cover_url, caption: text, parse_mode: "HTML" }
-    : { chat_id: chat, text, parse_mode: "HTML", link_preview_options: { prefer_large_media: true } };
 
   try {
-    const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const json = (await res.json()) as { ok?: boolean; description?: string; result?: { message_id?: number } };
-    if (!res.ok || !json.ok) return { channel: "telegram", status: "failed", error: json.description ?? `HTTP ${res.status}` };
-    const id = json.result?.message_id ? String(json.result.message_id) : undefined;
-    const handle = chat.startsWith("@") ? chat.slice(1) : null;
-    return { channel: "telegram", status: "sent", externalId: id, url: handle && id ? `https://t.me/${handle}/${id}` : undefined };
+    if (withPhoto) {
+      try {
+        const json = await sendPhotoBytes(token, chat, post.cover_url!, text);
+        if (json.ok) return tgResult(chat, json);
+        console.warn("blog/telegram: sendPhoto failed, falling back to text —", json.description);
+      } catch (e) {
+        console.warn("blog/telegram: cover unusable, falling back to text —", e instanceof Error ? e.message : e);
+      }
+      // An image problem must not cost us the post. Re-caption for the longer
+      // limit and send it as a link, which Telegram will preview by itself.
+      const { text: longer } = caption(post, 3800);
+      const json = await sendText(token, chat, longer);
+      if (!json.ok) return { channel: "telegram", status: "failed", error: json.description ?? "sendMessage failed" };
+      return tgResult(chat, json);
+    }
+
+    const json = await sendText(token, chat, text);
+    if (!json.ok) return { channel: "telegram", status: "failed", error: json.description ?? "sendMessage failed" };
+    return tgResult(chat, json);
   } catch (e) {
     return { channel: "telegram", status: "failed", error: e instanceof Error ? e.message : String(e) };
   }
