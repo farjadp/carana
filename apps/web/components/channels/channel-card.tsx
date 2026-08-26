@@ -1,11 +1,13 @@
 // ============================================================================
 // Source: components/channels/channel-card.tsx
-// Version: 1.0.0 — 2026-08-26
+// Version: 1.1.0 — 2026-08-26 (three metric states, not two)
 // Why: One card for «کانال‌ها و گروه‌ها», used by the index, the category
 //      pages and the home band. Design: docs/15-channels-directory.md.
 //
 //      The card exists to make one distinction visible at a glance: which of
-//      these numbers we measured and which somebody told us. Everything it
+//      these numbers we measured and which somebody told us — and, since the
+//      first three real submissions, which we simply have not got to yet.
+//      «نمی‌توانیم» and «هنوز نکرده‌ایم» are different sentences. Everything it
 //      prints goes through @goplaza/core — memberLineFa() returns null rather
 //      than a zero for a row we never checked, and channelActivity() decides
 //      «فعال» from last_post_at at read time. No branch here reads `platform`
@@ -19,8 +21,10 @@ import {
   CHANNEL_ACTIVITY_HINTS_FA,
   CHANNEL_ACTIVITY_LABELS_FA,
   CHANNEL_KIND_LABELS_FA,
+  CHANNEL_PENDING_FA,
   CHANNEL_UNMEASURED_FA,
   channelActivity,
+  channelMetricsState,
   memberLineFa,
   relativeDayFa,
   type ChannelActivity,
@@ -52,6 +56,7 @@ const ACTIVITY_CLASS: Record<ChannelActivity, string> = {
 
 export function ChannelCard({ channel }: { channel: ChannelCardRow }) {
   const platform = channel.platform as ChannelPlatform;
+  const state = channelMetricsState(channel);
   const activity = channelActivity(channel);
   const members = memberLineFa(channel);
   const lastPost = relativeDayFa(channel.last_post_at);
@@ -74,11 +79,13 @@ export function ChannelCard({ channel }: { channel: ChannelCardRow }) {
             </p>
           </div>
         </div>
+        {/* A channel we can read but have not read yet is not «نامشخص» — that
+            word belongs to the ones nothing can read. */}
         <span
           className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-bold ${ACTIVITY_CLASS[activity]}`}
-          title={CHANNEL_ACTIVITY_HINTS_FA[activity]}
+          title={state === "pending" ? undefined : CHANNEL_ACTIVITY_HINTS_FA[activity]}
         >
-          {CHANNEL_ACTIVITY_LABELS_FA[activity]}
+          {state === "pending" ? CHANNEL_PENDING_FA : CHANNEL_ACTIVITY_LABELS_FA[activity]}
         </span>
       </div>
 
@@ -86,8 +93,15 @@ export function ChannelCard({ channel }: { channel: ChannelCardRow }) {
         <span>{CHANNEL_KIND_LABELS_FA[channel.kind as ChannelKind]}</span>
         {channel.city ? <span>{channel.city}</span> : null}
         {/* Measured: the number and the day it was taken, together. Never one
-            without the other. Unmeasured: words, not a zero and not a dash. */}
-        {members ? <span>{members}</span> : <span className="italic">{CHANNEL_UNMEASURED_FA}</span>}
+            without the other. Otherwise: words — and the right words for which
+            of the two reasons there is no number. */}
+        {members ? (
+          <span>{members}</span>
+        ) : state === "pending" ? (
+          <span className="italic">در نوبت اولین بررسی</span>
+        ) : (
+          <span className="italic">{CHANNEL_UNMEASURED_FA}</span>
+        )}
         {lastPost ? <span>آخرین پست: {lastPost}</span> : null}
       </div>
     </Link>
