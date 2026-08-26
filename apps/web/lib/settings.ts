@@ -17,6 +17,9 @@ export const SETTING_KEYS = {
   smartSearch: "smart_search",
   /** { enabled?, public_display?, thresholds?, maintenance_window_days? } — lib/standing/rules.ts */
   standing: "standing",
+  /** { enabled?, tiers?, graceDays? } — lib/loyalty/settings.ts. Off means no
+   *  discount is ever offered or applied; it ships off on purpose. */
+  loyalty: "loyalty",
 } as const;
 
 export async function getSetting<T extends Record<string, unknown>>(

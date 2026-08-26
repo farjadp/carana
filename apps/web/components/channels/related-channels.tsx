@@ -45,6 +45,20 @@ const POOL = 60;
 
 const fa = (n: number) => n.toLocaleString("fa-IR");
 
+/**
+ * Fisher–Yates. Module scope because Math.random() in a component body is an
+ * impure call during render as far as the react compiler is concerned — the
+ * same rule that moved every Date.now() out of a body (docs/06-gotchas).
+ */
+function shuffle<T>(pool: readonly T[]): T[] {
+  const out = [...pool];
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 export async function RelatedChannels({ excludeId }: { excludeId: string }) {
   const supabase = await createSupabaseServerClient();
   const live = `confirm_by.is.null,confirm_by.gt.${new Date().toISOString()}`;
@@ -63,13 +77,7 @@ export async function RelatedChannels({ excludeId }: { excludeId: string }) {
   const pool = data ?? [];
   if (pool.length === 0) return null;
 
-  // Fisher–Yates over the pool, then take five.
-  const shuffled = [...pool];
-  for (let i = shuffled.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  const picks = shuffled.slice(0, HOW_MANY);
+  const picks = shuffle(pool).slice(0, HOW_MANY);
 
   // One query for all five view counts rather than five RPC round trips.
   // analytics_daily is the permanent rollup, so this is the lifetime figure.

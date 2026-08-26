@@ -57,21 +57,51 @@ export type BillingRow = {
   link_pro_until?: string | null;
 };
 
-/** Pure: given a row, what is actually unlocked right now. */
-export function entitlementsFor(row: BillingRow | null | undefined, now = new Date()): Entitlements {
+/**
+ * Pure: given a row, what is actually unlocked right now.
+ *
+ * `bonus` is the «وفاداری مالک» capacity bump (see loyalty.ts) and is passed
+ * IN rather than applied by callers afterwards. That is deliberate: this
+ * function must stay the single answer to "may this listing do X", so a
+ * loyalty bump is an argument to it, never a second code path that can
+ * disagree with it. Callers that do not know or care about loyalty omit it
+ * and get exactly the old behaviour.
+ *
+ * A bonus never turns a limit into unlimited and never applies to a plan that
+ * is already unlimited — `capacityBonusFor` returns zero there, and the guard
+ * below holds even if a caller hand-builds a bonus.
+ */
+export function entitlementsFor(
+  row: BillingRow | null | undefined,
+  now = new Date(),
+  bonus?: { photos: number; announcements: number } | null
+): Entitlements {
   const storedPlan = (row?.plan as PlanId) ?? "free";
   const until = row?.plan_until ?? null;
   const expired = storedPlan !== "free" && !!until && new Date(until) < now;
   const plan: PlanId = expired ? "free" : storedPlan;
   const features = new Set(PLANS[plan]?.features ?? PLANS.free.features);
+
+  const baseGallery = GALLERY_LIMITS[plan] ?? GALLERY_LIMITS.free;
+  const baseAnnouncements = ANNOUNCEMENT_LIMITS[plan] ?? ANNOUNCEMENT_LIMITS.free;
+  // An expired plan is a free plan, and a free plan has earned no loyalty:
+  // continuity is what tenure means, so a lapsed listing keeps no bump.
+  const bump = expired || plan === "free" ? null : bonus;
+
   return {
     plan,
     storedPlan,
     expired,
     until,
     has: (feature) => features.has(feature),
-    galleryLimit: GALLERY_LIMITS[plan] ?? GALLERY_LIMITS.free,
-    announcementLimit: ANNOUNCEMENT_LIMITS[plan] ?? ANNOUNCEMENT_LIMITS.free,
+    galleryLimit:
+      bump && bump.photos > 0 && baseGallery.photos != null
+        ? { ...baseGallery, photos: baseGallery.photos + bump.photos }
+        : baseGallery,
+    announcementLimit:
+      bump && bump.announcements > 0 && baseAnnouncements != null
+        ? baseAnnouncements + bump.announcements
+        : baseAnnouncements,
   };
 }
 

@@ -21,6 +21,42 @@ both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
+## Owner loyalty (phase 4) — BUILT 26 Aug, switched off
+
+«وفاداری مالک». Design + the four build-time decisions:
+`docs/16-standing-and-loyalty.md`, section "Built out of order". Built ahead
+of phases 2–3 on Farjad's call, because those are the contributor half and
+the ask was loyalty.
+
+**Farjad, two things:**
+
+1. **Apply `20260830450000_platinum_waitlist.sql`** — the table already
+   answers on the live project, which this session did not do and cannot
+   explain; run the file anyway (it is `on conflict do nothing` throughout)
+   so the migration history and the database agree.
+2. **Decide the percentages, then flip the switch.** `/admin/loyalty`. The
+   ladder ships at 5/10/15% for 12/24/36 months as a *default*, and the
+   programme is off — nothing is offered or charged differently until you
+   turn it on. This is the only switch in the admin that moves real money.
+
+**Verified by running** the real functions against the real database with a
+disposable Starter business and 26 months of paid invoices: off → tenure
+computed but no tier and no bonus; on → 10%, gallery 5→10, announcements
+3→5; upkeep broken → bonus zero, discount unchanged; plan lapsed → tenure
+survives as a fact, tier does not; waitlist ordered by tenure. All test rows
+deleted, both switches confirmed off.
+
+**Not verified:** the two admin pages and the owner's billing card have never
+been *seen*. A browser admin session could not be established (the magic-link
+fragment does not survive the server render, and injecting the session cookie
+was blocked), so the data paths were exercised directly instead. Worth a look
+next time you are signed in.
+
+**Never exercised against Stripe:** `ensureLoyaltyCoupon` and
+`syncSubscriptionDiscount` have not run once — there are zero subscriptions
+and zero invoices on this project. The first real checkout with an earned
+tier is their first execution.
+
 ## Standing phase 1 — CODE COMPLETE 26 Aug; blocked on one SQL Editor paste
 
 «اعتبار مشارکت». Spec: `docs/16-standing-and-loyalty.md` · plan:
@@ -169,6 +205,61 @@ the `CRON_SECRET` that is already set.
 making our bot a channel admin, live `last_post_at`, an owner stats panel,
 private channels. The only thing phase 1 owes it is that `verified` stayed a
 separate concept from `measured`; no `verified` column was added.
+
+## Standing badges are visible (26 Aug)
+
+`showsContributions` — the privilege `docs/16` said would "gain a consumer
+inside phase 1" — has one now.
+
+- **Public:** on a business page, beside a review's author. `StandingBadge`
+  renders **nothing below level 1**, so most reviews carry no badge. That is
+  the design, not a gap: «تازه‌وارد» is not an achievement, and a badge on
+  every account would advertise a ranking system to visitors before anyone can
+  be ranked. Anonymous reviewers always get level 0 — attaching a level to
+  «کاربر ناشناس» would narrow the anonymity they chose to a set of one.
+- **Own profile:** the block shows level 0 too, with what the next rung needs.
+  A ladder you cannot see the next rung of is not a ladder. The thresholds are
+  quoted as «حدوداً» because `docs/16` is explicit that they are guesses which
+  have never met real data.
+
+**Neither surface has been seen rendered.** `user_standing` is empty and there
+are **no published reviews at all**, so the public badge has no surface today;
+the profile block needs a session. The branching logic was checked instead —
+nine cases through `levelFor` + `privilegesFor`, including the ones that must
+suppress the badge: frozen, idle past the maintenance window, and null accuracy
+with high XP.
+
+`getStandingMany()` was added beside `getStanding()` so a review list resolves
+every author in two reads rather than two per author — and it reads the same
+settings override, because a bulk path on `DEFAULT_THRESHOLDS` would silently
+disagree the first time anyone tuned the numbers in the admin page.
+
+## /admin/users gained four columns (26 Aug)
+
+Last activity, standing, UID and money — all aggregated for the fifty rows on
+the page in four bounded queries, not per row.
+
+**Two of the labels are deliberately not the words that were asked for, and
+this is the honest half of the task:**
+
+- **«آخرین فعالیت», not «آخرین ورود».** A login is one of several actions in
+  `user_activity_logs`; the column shows which action it was, so it cannot
+  claim to be a login column while displaying a profile edit.
+- **«پرداخت‌شده», not «اعتبار مالی».** **There is no wallet, no credit ledger
+  and no stored balance anywhere in this schema**, and `invoices` and
+  `subscriptions` are both empty today because nobody has paid anything. The
+  number is the sum of PAID invoices against businesses the person owns.
+  If a real credit balance is wanted — top-ups, spend, refunds — that is a
+  ledger table and a product decision, not a column; ask before building it.
+
+**Standing shows `user_standing.xp` and the level `levelFor()` computes.** The
+table exists and is empty, so every user reads ۰/تازه‌وارد, which is their real
+state rather than a placeholder.
+
+**One bug this found:** the money query originally matched businesses by
+`owner_user_id OR created_by` and returned 10,683 rows — the whole directory —
+because the imports account is `created_by` on 10,600+ scraped listings. See
+`06-gotchas`.
 
 ## /profile redesigned (26 Aug, `a0685c3`) — and two bugs it uncovered
 

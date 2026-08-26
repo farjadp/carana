@@ -429,6 +429,39 @@ the public-facing half is deliberately last.
 Nothing in step 1 is visible to a visitor, which means step 1 cannot ship an
 unbacked claim. That is the intended property, not a scheduling accident.
 
+### Built out of order — step 4 shipped 26 Aug, before 2 and 3
+
+Farjad's call: what steps 1–3 build is the *contributor* half, and the ask was
+a loyalty system. Step 4 also turned out to be the smaller build, because it
+stores nothing.
+
+**What phase 4 shipped:** `@goplaza/core/loyalty.ts` (tenure walked from paid
+invoice periods, the tier ladder, the capacity bonus), `lib/loyalty/*`
+(status, settings, Stripe coupons, waitlist), the discount applied at checkout
+and by an owner-triggered `/api/loyalty/apply` for live subscriptions, a
+loyalty card on the billing page, `/admin/loyalty`, and
+`20260830450000_platinum_waitlist.sql`.
+
+**Four decisions taken during the build, none of them in the spec above:**
+
+| Decision | Why |
+|---|---|
+| **Upkeep gates the capacity bonus only, never the discount** | Room is reversible; money must be predictable. A renewal price that changes because a review went unanswered is a surprise, not a feature. |
+| **The capacity bonus is zero on Premium and Platinum** | Both are already `photos: null` / `announcements: null`. "+5 photos" on an unlimited gallery is not a small reward, it is a false one. Only Starter has a ceiling to raise. |
+| **The bonus is an argument to `entitlementsFor`, not a layer over it** | One answer to "may this listing do X". A second code path is how a gate and a page start disagreeing. |
+| **Owner-triggered apply, not a cron** | A nightly job silently changing subscription prices is a lot of unattended authority over real money for a benefit nobody waits on by the minute. |
+
+**Two Stripe facts the code bends around** rather than discovering in
+production: Checkout refuses `discounts` and `allow_promotion_codes` together
+(so an earned discount and a typed promo code cannot coexist — the earned one
+wins), and in the pinned API version a `Discount` carries its coupon at
+`source.coupon`, unexpanded to a bare id.
+
+**The master switch ships OFF and the percentages are defaults, not
+decisions.** 5 / 10 / 15% at 12 / 24 / 36 months, every one a green knob at
+`/admin/loyalty`. Nothing is offered, rendered or applied until a person turns
+it on.
+
 ---
 
 ## What this design deliberately does not include

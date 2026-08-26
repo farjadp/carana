@@ -23,6 +23,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { PAID_PLANS, PLATINUM_SEAT_CAP, intervalsFor, priceIdFor, type BillingInterval, type PlanId } from "@/lib/billing/plans";
+import { ensureLoyaltyCoupon } from "@/lib/loyalty/coupon";
+import { loyaltyStatusFor } from "@/lib/loyalty/status";
 import { requireUser } from "@/lib/auth/session";
 import { stripe } from "@/lib/stripe/client";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
@@ -88,7 +90,24 @@ export async function POST(req: NextRequest) {
       .eq("plan", "platinum")
       .or(`plan_until.is.null,plan_until.gte.${nowIso}`);
     if ((count ?? 0) >= PLATINUM_SEAT_CAP) {
-      return NextResponse.json({ error: `ظرفیت پلن پلاتینیوم تکمیل شده است (${PLATINUM_SEAT_CAP} از ${PLATINUM_SEAT_CAP}).` }, { status: 409 });
+      // Record the interest instead of losing it. Until now this 409 was the
+      // end of the story, so when a seat freed there was no way to honour
+      // "longest tenure is offered it first" — there was nobody to offer it
+      // to. Idempotent by primary key; a failure here must not change the
+      // answer the owner gets, which is still "full".
+      await createSupabaseAdminClient()
+        .from("platinum_waitlist")
+        .upsert(
+          { business_id: business.id as string, user_id: user.id },
+          { onConflict: "business_id", ignoreDuplicates: true }
+        );
+      return NextResponse.json(
+        {
+          error: `ظرفیت پلن پلاتینیوم تکمیل شده است (${PLATINUM_SEAT_CAP} از ${PLATINUM_SEAT_CAP}). نامت در فهرست انتظار ثبت شد؛ این رزرو نیست و ترتیب بر اساس سابقه‌ی اشتراک پیوسته است.`,
+          waitlisted: true,
+        },
+        { status: 409 }
+      );
     }
   }
 
@@ -106,6 +125,15 @@ export async function POST(req: NextRequest) {
     await admin.from("businesses").update({ stripe_customer_id: customerId }).eq("id", business.id);
   }
 
+  // «وفاداری مالک»: what continuous paid tenure has earned, recomputed here
+  // from invoices rather than taken from anything the client sent. Returns a
+  // null tier whenever the programme is switched off, so an off switch means
+  // no discount can be applied by this route at all.
+  const loyalty = await loyaltyStatusFor(supabase, business.id as string);
+  const loyaltyCoupon = loyalty.enabled && loyalty.tier
+    ? await ensureLoyaltyCoupon(loyalty.tier.percentOff)
+    : null;
+
   const base = env.baseUrl;
   const session = await s.checkout.sessions.create({
     mode: "subscription",
@@ -116,10 +144,28 @@ export async function POST(req: NextRequest) {
     automatic_tax: { enabled: true },
     customer_update: { address: "auto", name: "auto" },
     billing_address_collection: "required",
-    allow_promotion_codes: true,
+    // Stripe refuses `discounts` and `allow_promotion_codes` together, so the
+    // two are exclusive by necessity: an owner who has earned a loyalty
+    // discount gets it applied automatically and cannot also type a promo
+    // code in the same session. That is the right way round — the earned
+    // discount is the one we owe them — but it is a real trade, not an
+    // oversight, and removing the condition below breaks checkout outright.
+    ...(loyaltyCoupon
+      ? { discounts: [{ coupon: loyaltyCoupon }] }
+      : { allow_promotion_codes: true }),
     locale: "auto",
     // Both ids ride on the subscription so the webhook never has to guess.
-    subscription_data: { metadata: { business_id: business.id as string, plan, user_id: user.id } },
+    subscription_data: {
+      metadata: {
+        business_id: business.id as string,
+        plan,
+        user_id: user.id,
+        // Recorded so an invoice can be explained a year later without
+        // re-deriving tenure from whatever the tables say by then.
+        loyalty_percent_off: String(loyalty.tier?.percentOff ?? 0),
+        loyalty_tenure_months: String(loyalty.tenure.months),
+      },
+    },
     metadata: { business_id: business.id as string, plan, user_id: user.id },
     success_url: `${base}/dashboard/business/${business.id}/billing?checkout=success`,
     cancel_url: `${base}/dashboard/business/${business.id}/billing?checkout=cancelled`,

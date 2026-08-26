@@ -1,14 +1,29 @@
 // ============================================================================
 // Source: app/admin/(dashboard)/users/user-list-client.tsx
-// Version: 1.0.0 — 2026-08-12
+// Version: 2.0.0 — 2026-08-26 (four counted columns)
 // Why: Interactive users list client panel with search, role filters, and online edit/delete.
+//      v2 adds last activity, standing, the raw UID and money paid — all
+//      aggregated on the server (see page.tsx) so a row renders what it was
+//      handed rather than fetching per row.
+//
+//      Two labels are deliberately not what was asked for, because the data
+//      does not support the shorter words:
+//        · «آخرین فعالیت», not «آخرین ورود». A login is one of the actions in
+//          user_activity_logs and not the only one, so the column names what
+//          it actually holds and shows which action it was.
+//        · «پرداخت‌شده», not «اعتبار». There is no wallet, no ledger and no
+//          balance in this schema; the number is the sum of PAID invoices
+//          against businesses this person owns. Calling that a credit balance
+//          would be a badge with nothing behind it.
 // Env / Identity: Client-side rendering, executes secure Server Actions.
 // ============================================================================
 "use client";
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { Search, Trash2, ShieldAlert, CheckCircle2, Loader2, User as UserIcon, Activity } from "lucide-react";
+import { Search, Trash2, ShieldAlert, CheckCircle2, Loader2, User as UserIcon, Activity, Copy } from "lucide-react";
+
+import { LEVEL_LABELS_FA, type StandingLevel } from "@goplaza/core";
 
 import { updateUserRole, deleteUser } from "./actions";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +35,25 @@ export type ProfileUser = {
   role: string | null;
   created_at?: string;
   updated_at?: string;
+  /** Newest user_activity_logs row. Null when the account has never done anything logged. */
+  lastActivityAt: string | null;
+  lastActivityAction: string | null;
+  xp: number;
+  level: StandingLevel;
+  standingFrozen: boolean;
+  /** Sum of PAID invoices, in the smallest currency unit. Not a balance. */
+  paidCents: number;
+  paidCurrency: string;
+};
+
+/** The actions user_activity_logs records, in Persian. Unknown ones show raw. */
+const ACTION_FA: Record<string, string> = {
+  LOGIN: "ورود",
+  LOGOUT: "خروج",
+  PROFILE_UPDATE: "ویرایش پروفایل",
+  BUSINESS_CREATE: "ثبت کسب‌وکار",
+  BUSINESS_UPDATE: "ویرایش کسب‌وکار",
+  ROLE_CHANGE: "تغییر نقش",
 };
 
 type UserListClientProps = {
@@ -32,6 +66,21 @@ const roleLabels: Record<string, string> = {
   business_owner: "صاحب کسب‌وکار",
   moderator: "ناظر سیستم",
   admin: "مدیر کل",
+};
+
+/** Module scope: Date.now() inside a component body trips the
+ *  react-compiler impure-render rule (see docs/06-gotchas). */
+/** «۳ روز پیش» — an admin scanning for dormant accounts wants the distance, not the date. */
+const relative = (iso: string | null) => {
+  if (!iso) return null;
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (days < 0) return "همین حالا";
+  if (days === 0) return "امروز";
+  if (days === 1) return "دیروز";
+  if (days < 30) return `${days.toLocaleString("fa-IR")} روز پیش`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months.toLocaleString("fa-IR")} ماه پیش`;
+  return `${Math.floor(months / 12).toLocaleString("fa-IR")} سال پیش`;
 };
 
 export function UserListClient({ initialUsers, currentUserId }: UserListClientProps) {
@@ -54,6 +103,11 @@ export function UserListClient({ initialUsers, currentUserId }: UserListClientPr
     
     return (nameMatch || emailMatch) && roleMatch;
   });
+
+
+
+  const money = (cents: number, currency: string) =>
+    `${(cents / 100).toLocaleString("fa-IR", { maximumFractionDigits: 2 })} ${currency.toUpperCase()}`;
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "نامشخص";
@@ -195,7 +249,11 @@ export function UserListClient({ initialUsers, currentUserId }: UserListClientPr
                   <th>کاربر</th>
                   <th>ایمیل</th>
                   <th>نقش سیستم</th>
+                  <th>آخرین فعالیت</th>
+                  <th>امتیاز</th>
+                  <th>پرداخت‌شده</th>
                   <th>تاریخ عضویت</th>
+                  <th>UID</th>
                   <th className="text-left pl-6">عملیات مدیریت</th>
                 </tr>
               </thead>
@@ -249,8 +307,65 @@ export function UserListClient({ initialUsers, currentUserId }: UserListClientPr
                           </div>
                         </td>
 
+                        {/* Last activity. Names the action, because this is
+                            not a login column — see the header note. */}
+                        <td>
+                          {user.lastActivityAt ? (
+                            <span title={formatDate(user.lastActivityAt)}>
+                              <span className="block text-[color:var(--text)]">{relative(user.lastActivityAt)}</span>
+                              <span className="block text-[11px] text-[color:var(--muted-text)]">
+                                {user.lastActivityAction
+                                  ? (ACTION_FA[user.lastActivityAction] ?? user.lastActivityAction)
+                                  : null}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-[color:var(--muted-text)]">فعالیتی ثبت نشده</span>
+                          )}
+                        </td>
+
+                        {/* Standing. Zero and تازه‌وارد are a real state, not a
+                            placeholder — a new account has no standing. */}
+                        <td>
+                          <span className="block font-bold text-[color:var(--text)]">
+                            {user.xp.toLocaleString("fa-IR")}
+                          </span>
+                          <span className="block text-[11px] text-[color:var(--muted-text)]">
+                            {LEVEL_LABELS_FA[user.level]}
+                            {user.standingFrozen ? " · مسدود" : ""}
+                          </span>
+                        </td>
+
+                        {/* Money received, not a balance. */}
+                        <td>
+                          {user.paidCents > 0 ? (
+                            <span className="font-bold text-[color:var(--text)]">
+                              {money(user.paidCents, user.paidCurrency)}
+                            </span>
+                          ) : (
+                            <span className="text-[color:var(--muted-text)]">بدون پرداخت</span>
+                          )}
+                        </td>
+
                         {/* Joined Date */}
                         <td>{formatDate(user.created_at)}</td>
+
+                        {/* UID. Truncated to stay readable, copied whole. */}
+                        <td>
+                          <button
+                            type="button"
+                            dir="ltr"
+                            onClick={() => {
+                              void navigator.clipboard?.writeText(user.id);
+                              setActionSuccess(`UID کپی شد: ${user.id}`);
+                            }}
+                            title={user.id}
+                            className="inline-flex items-center gap-1 rounded-lg border border-[color:var(--line)] bg-gray-50 px-2 py-1 font-mono text-[11px] text-[color:var(--muted-text)] transition hover:bg-gray-100"
+                          >
+                            <Copy size={11} />
+                            {user.id.slice(0, 8)}
+                          </button>
+                        </td>
 
                         {/* Actions (Delete User) */}
                         <td className="text-left pl-6">
@@ -282,7 +397,7 @@ export function UserListClient({ initialUsers, currentUserId }: UserListClientPr
                   })
                 ) : (
                   <tr>
-                    <td colSpan={5} className="text-center py-8 text-[color:var(--muted-text)]">
+                    <td colSpan={9} className="text-center py-8 text-[color:var(--muted-text)]">
                       هیچ کاربری با مشخصات جستجو شده یافت نشد.
                     </td>
                   </tr>

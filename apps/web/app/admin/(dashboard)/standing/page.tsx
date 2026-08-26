@@ -26,6 +26,7 @@ import { Award, ListChecks, Scale, Users } from "lucide-react";
 import { LEVEL_LABELS_FA, levelFor, type StandingAggregates, type StandingLevel } from "@goplaza/core";
 
 import { NotAuthenticatedError, requireAdmin } from "@/lib/auth/require-admin";
+import { tableExists } from "@/lib/admin/table-exists";
 import { getRules, getStandingSettings } from "@/lib/standing/rules";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { RulesEditor } from "./rules-editor";
@@ -44,12 +45,14 @@ async function loadStatus() {
   const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
   const monthAgo = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
 
-  const [events, rules, standing] = await Promise.all([
-    admin.from("standing_events").select("id", { head: true, count: "exact" }),
-    admin.from("standing_rules").select("kind", { head: true, count: "exact" }),
-    admin.from("user_standing").select("user_id", { head: true, count: "exact" }),
-  ]);
-  const applied = !events.error && !rules.error && !standing.error;
+  // tableExists, not a HEAD probe: a HEAD request for a missing table returns
+  // 204/null/no-error, so `!error` renders GREEN for a table that is not
+  // there. See lib/admin/table-exists.ts — this was live here until 26 Aug.
+  const applied = (
+    await Promise.all(
+      ["standing_events", "standing_rules", "user_standing"].map((t) => tableExists(admin, t))
+    )
+  ).every(Boolean);
 
   if (!applied) {
     return { applied, pending: 0, settledToday: 0, reversed30: 0, settled30: 0, levels: [0, 0, 0, 0] };
