@@ -82,6 +82,19 @@ letter failed its insert as a generic «ثبت کانال ناموفق بود».
 the database both ways before and after the fix. The link field also asks for
 an **id** now rather than a URL. See `06-gotchas`.
 
+**FARJAD — one more SQL paste, and this one is NOT ordering-sensitive:**
+
+Run **`supabase/migrations/20260830440000_channel_views_are_public.sql`**.
+`analytics_daily` has no anon SELECT policy — right for bio pages, wrong for
+channels, whose view counts are published on their own public page. Until it
+runs, every channel view count reads **zero** to every visitor: not an error,
+not a log, an empty result that renders as zero and is indistinguishable from
+a channel nobody opened. `channel_view_count()` was affected the same way; it
+is a plain SQL function and runs with the caller's privileges.
+
+Safe to merge before or after — without it the strip shows no numbers, which
+is exactly what it shows for an unvisited channel.
+
 **Us, in order:**
 
 1. **Seed it — this is the whole remaining job.** Everything is built and

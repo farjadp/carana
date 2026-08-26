@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/api/cron/link-analytics/route.ts
-// Version: 1.0.0 — 2026-08-25
+// Version: 1.1.0 — 2026-08-26 (it rolls up channels too)
 // Why: Raw events were being recorded and never becoming analytics. Nothing
 //      called roll_up_link_day, so `analytics_daily` stayed empty while
 //      `link_events` filled up — and raw rows expire at 90 days, which meant
@@ -21,6 +21,18 @@
 //      failed rollup would destroy the only copy of data that never made it
 //      into a summary — the one ordering mistake here that cannot be undone.
 //
+//      v1.1 (26 Aug): channels were in the same position link pages had been.
+//      `channel_events` was filling up and `roll_up_channel_day` existed, and
+//      nothing ever called it — so every channel's view count read zero
+//      forever, including on the page that displays it. Nothing failed and
+//      nothing logged; the number was simply always the same number.
+//
+//      Channel days are rolled by date rather than by asking the database
+//      which days need it: there is no channel_days_needing_rollup function,
+//      and there does not need to be while `channel_events` is never pruned —
+//      any day can be recomputed at any time, and roll_up_channel_day is
+//      idempotent. If a prune is ever added, this must become a query first.
+//
 // Env / Identity: Public URL, so it authenticates. Vercel Cron sends
 //      `Authorization: Bearer $CRON_SECRET`. Without CRON_SECRET set it
 //      refuses rather than defaulting to open — same shape as the other cron
@@ -36,6 +48,13 @@ export const dynamic = "force-dynamic";
 
 /** Raw events live this long; their rollups live forever. */
 const KEEP_DAYS = 90;
+
+/**
+ * How many recent days of channel events to recompute on every run. Three
+ * covers a cron that missed a night, and re-rolling is free — the function
+ * upserts on its own primary key.
+ */
+const CHANNEL_DAYS_PER_RUN = 3;
 
 /**
  * Safety valve. A backlog this long means something was wrong for a quarter,
@@ -100,6 +119,20 @@ async function run() {
     }
   }
 
+  // ---- channels, on the same schedule and the same secret.
+  let channelRowsWritten = 0;
+  const channelDaysFailed: string[] = [];
+  for (let back = 0; back < CHANNEL_DAYS_PER_RUN; back += 1) {
+    const day = new Date(Date.now() - back * 86_400_000).toISOString().slice(0, 10);
+    const { data, error } = await admin.rpc("roll_up_channel_day", { p_day: day });
+    if (error) {
+      channelDaysFailed.push(day);
+      reportQuietFailure("channel_rollup_day", { day, message: error.message });
+      continue;
+    }
+    channelRowsWritten += Number(data ?? 0);
+  }
+
   if (skipped > 0) {
     // Never let a cap look like completion.
     reportQuietFailure("link_rollup_backlog", { skipped, cap: MAX_DAYS_PER_RUN });
@@ -112,5 +145,8 @@ async function run() {
     daysSkipped: skipped,
     rowsWritten,
     rawEventsPruned: pruned,
+    channelDaysRolled: CHANNEL_DAYS_PER_RUN - channelDaysFailed.length,
+    channelDaysFailed,
+    channelRowsWritten,
   };
 }
