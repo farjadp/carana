@@ -41,6 +41,16 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { WRITER_MODEL, inventedNumbers } from "./pipeline";
 import { postTelegramText, type SyndicationOutcome } from "./syndicate";
 
+/**
+ * Words a card may not introduce on its own.
+ *
+ * Each one turns a directory measurement into a claim about the world or about
+ * officialdom, and each has already been shipped once somewhere on this site.
+ * If the source article uses the word, the card may too; if not, the card is
+ * reaching past its evidence.
+ */
+const LOADED_WORDS = ["تأیید رسمی", "تایید رسمی", "مجوز", "رسمی", "قانونی", "تنها", "فقط", "بهترین", "معتبرترین", "بزرگ‌ترین", "تضمین"];
+
 export const SNIPPET_KINDS = ["stat", "fun_fact", "tip", "comparison", "mistake", "question", "news"] as const;
 export type SnippetKind = (typeof SNIPPET_KINDS)[number];
 
@@ -121,7 +131,7 @@ type SourcePost = {
  * across the whole channel. Both rules push toward variety rather than toward
  * whatever the model finds easiest.
  */
-async function pick(): Promise<{ post: SourcePost; kind: SnippetKind } | null> {
+async function pick(alsoTaken: { postId: string; kind: SnippetKind }[] = []): Promise<{ post: SourcePost; kind: SnippetKind } | null> {
   const admin = createSupabaseAdminClient();
 
   const [{ data: posts }, { data: used }] = await Promise.all([
@@ -136,7 +146,7 @@ async function pick(): Promise<{ post: SourcePost; kind: SnippetKind } | null> {
   if (!posts?.length) return null;
 
   const takenByPost = new Map<string, Set<string>>();
-  for (const r of used ?? []) {
+  for (const r of [...(used ?? []), ...alsoTaken.map((p) => ({ source_post_id: p.postId, kind: p.kind }))]) {
     const set = takenByPost.get(r.source_post_id as string) ?? new Set<string>();
     set.add(r.kind as string);
     takenByPost.set(r.source_post_id as string, set);
@@ -200,6 +210,12 @@ Write ONE short card, in Persian, of this kind:
 ${spec.fa} — ${spec.brief}
 
 It is lifted from the article below. Everything in the card must already be in that article: every number, name, place, date and claim. You are choosing and sharpening, never adding. If the article does not contain something worth a card of this kind, set usable: false and say why in one sentence — a weak card is worse than no card, and there are 74 other articles.
+
+SCOPE — the rule that matters most, and the one the first draft of this feature broke:
+- A number from GOPLAZA's directory is a fact about OUR LISTINGS, never about Canada. "۳ کسب‌وکار تأییدشده در گوپلازا" is true; "تنها ۳ کسب‌وکار ایرانی کانادا تأیید رسمی دارند" is a different and false claim. Always carry the scope in the sentence: «در گوپلازا ثبت شده», «از کسب‌وکارهایی که در گوپلازا فهرست شده‌اند», «در تورنتو، در فهرست ما».
+- Never turn "we have not listed many of X" into "there are not many X".
+- The words تأییدشده / verified describe our verification badge only. Never use them as a synonym for "listed", and never imply an official or governmental approval — we are a directory, not a regulator.
+- A count of listings is not a count of businesses, a search count is not a demand figure, and a city figure is never a country figure.
 
 How it has to read:
 - The first line earns the second. Telegram is read in a scroll; a card that opens with a throat-clear is a card nobody finishes.
@@ -272,10 +288,11 @@ export type SnippetResult = {
 export async function generateSnippets(n: number, opts?: { send?: boolean; dryRun?: boolean }): Promise<SnippetResult> {
   const admin = createSupabaseAdminClient();
   const result: SnippetResult = { created: [], sent: [], skipped: [], errors: [] };
+  const dryPicks: { postId: string; kind: SnippetKind }[] = [];
 
   for (let i = 0; i < n; i++) {
     try {
-      const choice = await pick();
+      const choice = await pick(dryPicks);
       if (!choice) {
         result.errors.push("nothing left to write from — every published post has been used for every kind");
         break;
@@ -299,7 +316,8 @@ export async function generateSnippets(n: number, opts?: { send?: boolean; dryRu
       // the article it came from — this is what makes auto-publishing one
       // defensible without a human reading it first.
       const source = `${post.title}\n${post.body_md}\n${post.key_takeaway ?? ""}\n${post.excerpt ?? ""}\n${(post.faq ?? []).map((f) => `${f.q} ${f.a}`).join("\n")}`;
-      const invented = inventedNumbers(source, `${card.hook}\n${card.body}`);
+      const text = `${card.hook}\n${card.body}`;
+      const invented = inventedNumbers(source, text);
       if (invented.length) {
         const reason = `invented numbers: ${invented.join(", ")}`;
         result.skipped.push({ slug: post.slug, kind, reason });
@@ -309,8 +327,27 @@ export async function generateSnippets(n: number, opts?: { send?: boolean; dryRu
         continue;
       }
 
+      // A card may only use a loaded word if its article already used it. The
+      // first sample this feature produced said "تأیید رسمی" about businesses
+      // whose article says only that three carry OUR verification badge —
+      // a directory metric restated as an official approval. The prompt now
+      // forbids it; this makes the forbidding checkable.
+      const borrowed = LOADED_WORDS.filter((w) => text.includes(w) && !source.includes(w));
+      if (borrowed.length) {
+        const reason = `words not in the source article: ${borrowed.join("، ")}`;
+        result.skipped.push({ slug: post.slug, kind, reason });
+        if (!opts?.dryRun) {
+          await admin.from("blog_snippets").insert({ source_post_id: post.id, kind, hook: card.hook, body: card.body, status: "skipped", error: reason, ai_model: WRITER_MODEL });
+        }
+        continue;
+      }
+
       if (opts?.dryRun) {
         result.created.push({ id: "dry-run", kind, hook: card.hook, slug: post.slug });
+        // A dry run writes nothing, so pick() has no memory of what it just
+        // chose; without this the second card of a two-card dry run is the
+        // same angle on the same article.
+        dryPicks.push({ postId: post.id, kind });
         continue;
       }
 
