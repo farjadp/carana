@@ -18,6 +18,7 @@
 //      door to one.
 // ============================================================================
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Award, RotateCcw } from "lucide-react";
 
@@ -72,7 +73,11 @@ export default async function MyStandingPage() {
         </h1>
         <p className="mt-2 text-sm text-[color:var(--muted-text)]">
           امتیاز وقتی شمرده می‌شود که مشارکتت تأیید شود — نه وقتی ثبتش می‌کنی.
-          اگر بعداً معلوم شود اشتباه بوده، پس گرفته می‌شود.
+          اگر بعداً معلوم شود اشتباه بوده، پس گرفته می‌شود.{" "}
+          <Link href="/standing" className="underline">
+            توضیح کامل
+          </Link>
+          .
         </p>
 
         <section className="mt-6 grid gap-3 sm:grid-cols-4">

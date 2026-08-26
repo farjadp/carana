@@ -103,6 +103,7 @@ export const NAV: NavEntry[] = [
           { href: "/pricing", label: "تعرفه‌ها" },
           { href: "/how-it-works", label: "چطور کار می‌کند" },
           { href: "/trust", label: "اعتماد و بررسی" },
+          { href: "/standing", label: "اعتبار مشارکت" },
           { href: "/support", label: "پشتیبانی" },
           { href: "/contact", label: "تماس با ما" },
         ],

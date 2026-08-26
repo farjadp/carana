@@ -37,6 +37,7 @@ const STATIC_PATHS = [
   "/how-it-works",
   "/story",
   "/trust",
+  "/standing",
   "/contact",
   "/categories",
   "/cities",
