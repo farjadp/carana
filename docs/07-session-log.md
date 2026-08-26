@@ -1,3 +1,75 @@
+# 2026-08-26 — The blog reads the news, publishes itself, and counts its readers
+
+Four things shipped, and one thing that had been broken for eight days got
+found by accident.
+
+**Source-driven writing.** The generator could only find topics in our own
+data. It now also reads atash.ca — WordPress, 15,438 posts, discovered through
+the REST collection rather than the sitemap. We take the subject and the facts
+and never the prose: a fact sheet with attributions, then a second model call
+that no longer has the original drafts our own article, then an originality
+gate that throws away anything sharing more than six ten-word runs with the
+source (a verbatim copy scores 386; real drafts score two to four). A ledger of
+seen articles is what makes "ten NEW ones" mean something across daily runs and
+what makes the archive fallback possible. `commit 8ca34a4`, merged `923ff3b`.
+
+**View counts.** `blog_posts.view_count` plus a SECURITY DEFINER increment, the
+same shape as the business counter. Web counts in the browser (the page is ISR
+-cached for ten minutes) and the app calls the same function, so the figure is
+the total across both surfaces. Web and mobile shipped together on purpose.
+`commit cd4ac3a`, merged `0e458fb`.
+
+**Telegram.** `@GoPlaza` is connected and all 74 published articles are in it.
+`commit 361710c`, merged `972060a`.
+
+**Twenty-three articles were still called چارانا.** `pnpm check:brand` had been
+passing since the rebrand because it walks the working tree, and the blog is
+not in the working tree — it is rows written by a generator whose prompt said
+čārana before 18 August. Nobody would have noticed if the Telegram channel had
+not broadcast one of the excerpts verbatim. Fixed with
+`scripts/fix-blog-brand.mts` (23 posts, 62 fields), written up in `06-gotchas`.
+`commit 832daee`.
+
+## What was said wrongly, or built wrongly, along the way
+
+- **The originality gate started at zero tolerance** and would have rejected
+  the first real article for two shared runs that were just a restated
+  statistic. Calibrated to six on measurements, not taste.
+- **A refusal could not satisfy the schema.** A model correctly rejecting an
+  article had to invent a full brief to say no; `.default()` did not save it
+  either, because a rejecting model sends `null` rather than omitting the
+  field. Refusals must be the cheapest answer to give.
+- **The link gate only understood hrefs starting with `/`.** The writer emits
+  `[/search](search)` about as often as the correct form, and those passed
+  through untouched — shipping a link that resolves to `/blog/search`. The
+  gate existed precisely to stop the blog 404ing inside itself and had a hole
+  in the middle of it.
+- **The humanising pass invented facts** — "۱۵ درصد صرفه‌جویی در مدارس
+  ریچموندهیل", "تابستان ۲۰۲۳" from before GOPLAZA existed — because the style
+  rules lived only in the draft prompt and did not survive the rewrite. Now
+  guarded by comparing digits before and after every creative pass.
+- **The brand-fix script's own URL guard would have corrupted content.** It
+  stashed protected URLs as ` ${i} ` and restored on `/ (\d+) /`, which would
+  have written a stashed URL over any bare " 5 " in an article. Caught by
+  reading the dry run instead of trusting it.
+- **PostgREST answers 204 for an RLS-filtered UPDATE**, same as for a
+  successful one. For a moment that looked like anon could rewrite blog posts.
+  `return=representation` is what tells them apart, and it said `[]`.
+- **Telegram's fetcher refused a valid cover** — 1024x576, 447 KB, HTTP 200,
+  same bucket as the seven it had just accepted — twice. We never learned why.
+  Covers are uploaded as bytes now, with a text fallback so an image problem
+  can never cost us the article.
+- **Screenshots of the article page came back blank below the fold.** The table
+  was verified through computed styles and rendered HTML instead; that is what
+  was reported, rather than a claim to have seen it.
+
+## Still open
+
+- The app has this code but no build carries it; mobile remains behind.
+- LinkedIn is written and inert — 74 posts of backlog waiting on credentials.
+- `pnpm gen:types` should be run to make `database.types.ts` authoritative
+  again; two entries were added by hand so the tree would compile.
+
 # 2026-08-25 — GPLZ Link: a link-in-bio product, built end to end
 
 Farjad bought `gplz.link` and asked for a Linktree-class page per business,
