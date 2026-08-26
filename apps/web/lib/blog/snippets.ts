@@ -55,6 +55,26 @@ import { postTelegramText, type SyndicationOutcome } from "./syndicate";
  */
 const LOADED_WORDS = ["تأیید رسمی", "تایید رسمی", "مجوز", "گواهی", "تضمین", "قانوناً", "موظف"];
 
+/**
+ * Words that name a product capability. A card may only use one if its source
+ * article did — otherwise it is describing a feature of GOPLAZA that nobody
+ * built. A card written today offered readers "فیلتر محصولات" in our search;
+ * there is no such filter, and a reader who goes looking for it finds we lied.
+ */
+const FEATURE_WORDS = ["فیلتر", "ابزار", "قابلیت", "اپلیکیشن", "اپ ", "نقشه", "اعلان", "پنل", "داشبورد", "دسته‌بندی محصولات"];
+
+/**
+ * First-person-plural observation claims.
+ *
+ * The blog allows one "ما در گوپلازا دیده‌ایم…" aside per article, tied to a
+ * number from the directory. In a three-sentence card there is no room to tie
+ * it to anything, and the model fills the gap with invented customer
+ * behaviour — "برخی مشتریان تنها نزدیک‌ترین فروشگاه را انتخاب می‌کنند" is not
+ * something a listings table can know. So the card may not claim to have
+ * observed anything at all.
+ */
+const OBSERVATION_CLAIMS = ["دیده‌ایم", "دیده ایم", "مشاهده کرده‌ایم", "متوجه شده‌ایم", "می‌بینیم که"];
+
 export const SNIPPET_KINDS = ["stat", "fun_fact", "tip", "comparison", "mistake", "question", "news"] as const;
 export type SnippetKind = (typeof SNIPPET_KINDS)[number];
 
@@ -230,7 +250,8 @@ How it has to read:
 - Vary sentence length. One short sentence somewhere.
 - Written register, plain and direct: می‌رسد not می‌رسه, است not ـه, را not رو. Second-person singular where you address the reader.
 - نیم‌فاصله and Persian digits. English proper nouns (Toronto, CRA, RRSP) stay in Latin.
-- Never first-person singular. "ما در گوپلازا" only about our own directory data, at most once.
+- Never first-person singular. And in a card, never claim to have OBSERVED anything — no "ما در گوپلازا دیده‌ایم", no "متوجه شده‌ایم". A directory of listings knows how many listings it has; it does not know what customers do, prefer or choose. Say what the article says.
+- Never describe a GOPLAZA feature the article does not describe. We have search; we do not have product filters, maps, alerts or anything else you might assume a directory has. Offering a reader a feature that does not exist is the worst thing this card can do, because they will go looking for it.
 - No hashtags in the text; put them in the tags field.
 
 ARTICLE — ${post.title}
@@ -339,6 +360,13 @@ export async function generateSnippets(n: number, opts?: { send?: boolean; dryRu
       // without saying whose verification it is. "۳ کسب‌وکار تأیید شده‌اند" is
       // a claim about Canada; "۳ کسب‌وکار در گوپلازا نشان تأیید دارند" is a
       // claim about us. A number plus تأیید therefore requires the scope word.
+      // Product capabilities the article never mentioned.
+      borrowed.push(...FEATURE_WORDS.filter((w) => text.includes(w) && !source.includes(w)).map((w) => `قابلیت «${w.trim()}» در مقاله نیست`));
+
+      // Claims to have observed something. Nothing in a listings table
+      // observes customer behaviour, and a card has no room to justify one.
+      borrowed.push(...OBSERVATION_CLAIMS.filter((w) => text.includes(w)).map((w) => `ادعای مشاهده («${w}») در کارت مجاز نیست`));
+
       const claimsVerification = /تأیید|تایید|verified/i.test(text);
       const hasDigits = /[۰-۹0-9]/.test(text);
       const hasScope = /گوپلازا|فهرست ما|در فهرست/.test(text);
