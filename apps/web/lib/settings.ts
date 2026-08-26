@@ -15,6 +15,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 export const SETTING_KEYS = {
   /** { enabled?: boolean; daily_cap?: number } — lib/search/smart.ts */
   smartSearch: "smart_search",
+  /** { enabled?, public_display?, thresholds?, maintenance_window_days? } — lib/standing/rules.ts */
+  standing: "standing",
 } as const;
 
 export async function getSetting<T extends Record<string, unknown>>(
