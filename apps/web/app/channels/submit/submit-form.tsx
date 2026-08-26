@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/channels/submit/submit-form.tsx
-// Version: 1.0.0 — 2026-08-26
+// Version: 1.1.0 — 2026-08-26 (the link field asks for an id, not a URL)
 // Why: The submission form.
 //
 //      It asks for NO numbers. Not member count, not last-post date, not
@@ -13,6 +13,13 @@
 //      which of the two they are about to create. metricsSourceFor() is the
 //      same function the server action uses to decide it, so the preview
 //      cannot promise something the write then contradicts.
+//
+//      v1.1: THE FIELD ASKS FOR AN ID, NOT A URL. Nobody types `https://`.
+//      For Telegram the input carries a `t.me/` prefix and takes `GoPlaza`,
+//      `@GoPlaza`, or a whole pasted URL — normalizeJoinUrl() collapses all of
+//      them, and the resolved address is shown underneath so nothing is
+//      guessed silently. The same function runs again in the server action,
+//      which is the boundary.
 // Env / Identity: Client component. The action re-derives everything.
 // ============================================================================
 "use client";
@@ -31,8 +38,8 @@ import {
   CHANNEL_PLATFORMS,
   CHANNEL_PLATFORM_LABELS_FA,
   CHANNEL_TITLE_MAX,
-  isValidJoinUrl,
   metricsSourceFor,
+  normalizeJoinUrl,
   type ChannelKind,
   type ChannelLanguage,
   type ChannelPlatform,
@@ -58,14 +65,17 @@ export function SubmitChannelForm({ categories }: { categories: { slug: string; 
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
-  const urlLooksRight = joinUrl.trim() ? isValidJoinUrl(platform, joinUrl.trim()) : null;
+  // One resolved value drives everything below: the validity hint, the
+  // measured/declared preview, and what gets submitted.
+  const resolvedUrl = useMemo(() => normalizeJoinUrl(platform, joinUrl), [platform, joinUrl]);
+  const urlLooksRight = joinUrl.trim() ? resolvedUrl !== null : null;
 
   // Said before the submission, not after. Somebody who wants their numbers
   // measured can go and switch their channel's preview on and come back.
-  const preview = useMemo(() => {
-    if (!urlLooksRight) return null;
-    return metricsSourceFor(platform, joinUrl.trim());
-  }, [platform, joinUrl, urlLooksRight]);
+  const preview = useMemo(
+    () => (resolvedUrl ? metricsSourceFor(platform, resolvedUrl) : null),
+    [platform, resolvedUrl],
+  );
 
   const submit = async () => {
     if (sending) return;
@@ -154,29 +164,62 @@ export function SubmitChannelForm({ categories }: { categories: { slug: string; 
       </label>
 
       <label className="block">
-        <span className={label}>لینک</span>
-        <input
-          value={joinUrl}
-          onChange={(e) => setJoinUrl(e.target.value)}
-          dir="ltr"
-          placeholder={platform === "telegram" ? "https://t.me/example" : "https://chat.whatsapp.com/…"}
-          className={field}
-        />
+        <span className={label}>{platform === "telegram" ? "آیدی کانال یا گروه" : "لینک دعوت"}</span>
+        {platform === "telegram" ? (
+          // The prefix is the whole point: it makes the shape of the answer
+          // obvious without making anyone type it. A pasted full URL still
+          // works — normalizeJoinUrl strips the host back off.
+          <span className="flex h-11 w-full items-center overflow-hidden rounded-xl border border-[color:var(--line)] bg-[color:var(--bg)] focus-within:border-[color:var(--lajvard)]/40 focus-within:bg-white">
+            <span
+              dir="ltr"
+              className="shrink-0 border-e border-[color:var(--line)] px-3 text-sm text-[color:var(--muted-text)]"
+              style={{ fontFamily: "var(--font-latin)" }}
+            >
+              t.me/
+            </span>
+            <input
+              value={joinUrl}
+              onChange={(e) => setJoinUrl(e.target.value)}
+              dir="ltr"
+              placeholder="GoPlaza"
+              className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm outline-none"
+            />
+          </span>
+        ) : (
+          <input
+            value={joinUrl}
+            onChange={(e) => setJoinUrl(e.target.value)}
+            dir="ltr"
+            placeholder="chat.whatsapp.com/…"
+            className={field}
+          />
+        )}
+
         {urlLooksRight === false ? (
           <span className="mt-1 block text-xs font-bold text-[color:var(--annabi)]">
-            این لینک برای {CHANNEL_PLATFORM_LABELS_FA[platform]} درست به نظر نمی‌رسد.
+            {platform === "telegram"
+              ? "آیدی معتبر نیست. فقط آیدی کانال را بنویس — مثل GoPlaza — یا لینک دعوت +… را بگذار."
+              : "لینک واتس‌اپ معتبر نیست. لینک دعوت گروه یا لینک کانال را کامل بگذار."}
           </span>
         ) : null}
+
+        {/* What will actually be stored, shown before it is. Nothing about a
+            link should be guessed on somebody's behalf without saying so. */}
+        {resolvedUrl ? (
+          <span dir="ltr" className="mt-1 block text-xs text-[color:var(--muted-text)]" style={{ fontFamily: "var(--font-latin)" }}>
+            {resolvedUrl}
+          </span>
+        ) : null}
+
         {preview === "measured" ? (
           <span className="mt-1 block text-xs leading-6 text-[color:var(--muted-text)]">
-            این نام کاربری عمومی است، پس تعداد اعضا و آخرین فعالیتش را هر روز خودمان بررسی می‌کنیم.
+            این آیدی عمومی است، پس تعداد اعضا و آخرین فعالیتش را هر روز خودمان بررسی می‌کنیم.
           </span>
         ) : null}
         {preview === "declared" ? (
           <span className="mt-1 block text-xs leading-6 text-[color:var(--muted-text)]">
-            این لینک نام کاربری عمومی ندارد، پس هیچ عددی برایش نمایش نمی‌دهیم و هر ۹۰ روز باید خودت
-            تأیید کنی که هنوز هست. اگر کانال عمومی داری، لینک <span dir="ltr">t.me/نام‌کاربری</span> را
-            بگذار.
+            این لینک آیدی عمومی ندارد، پس هیچ عددی برایش نمایش نمی‌دهیم و هر ۹۰ روز باید خودت تأیید
+            کنی که هنوز هست. اگر کانال عمومی داری، آیدی‌اش را بگذار.
           </span>
         ) : null}
       </label>

@@ -1629,3 +1629,39 @@ column was never fetched" into "this field is empty", which is a plausible
 state. The bug then looks like the user never filled the field in. Any time a
 row crosses a boundary as `any`, the column list on the other side is
 unverified by construction.
+
+
+## A lower-case CHECK and a case-preserving parser: the first real submission failed
+
+**Symptom.** Submitting `https://t.me/GoPlaza` — the project's own channel —
+returned «ثبت کانال ناموفق بود» and nothing else. Every field was valid.
+
+**Cause.** `channels.tg_username` carries
+`CHECK (tg_username ~ '^[a-z][a-z0-9_]{3,31}$')`, and `telegramUsername()`
+returned the username with whatever casing the URL had. `'GoPlaza'` fails that
+regex, Postgres raises `23514`, and the server action's catch-all turned it
+into a generic failure. **Any handle with a capital letter could never be
+submitted**, which is most of them.
+
+Two other things it broke quietly: the duplicate check
+(`.eq("tg_username", username)`) was case-sensitive, so the same channel could
+have been stored twice under two spellings, and the unique index would not
+have stopped it.
+
+**Fix.** `telegramUsername()` lower-cases what it returns — Telegram usernames
+are case-insensitive, so a canonical form is correct anyway, not merely
+convenient. Invite codes (`t.me/+abc`) are left alone: those ARE
+case-sensitive and lower-casing one produces a dead link.
+
+**Lesson.** A CHECK constraint that narrows a value's shape is only safe if
+something canonicalises the value on the way in; otherwise it is a landmine
+laid at write time and stepped on by a user, with the error surfacing as a
+generic failure message. Both were written the same afternoon by the same
+person, which is exactly when this is easiest to get wrong — the same shape as
+`citext` making a regex CHECK case-insensitive, one entry above. Found 26 Aug
+2026 on the very first real submission.
+
+**Also fixed in the same commit:** the form asked for a URL. It asks for an id
+now — `normalizeJoinUrl()` accepts `GoPlaza`, `@GoPlaza`, `t.me/GoPlaza`, a
+`telegram.me` link and a pasted URL with a query on it, and shows the resolved
+address before it is stored.
