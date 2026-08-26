@@ -25,6 +25,10 @@ export const dynamic = "force-dynamic";
 
 const THIRTY_DAYS_MS = 30 * 24 * 3600_000;
 
+/** Module scope: Date.now() inside the component body trips the
+ *  react-compiler impure-render lint. */
+const windowStartIso = () => new Date(Date.now() - THIRTY_DAYS_MS).toISOString();
+
 export default async function AnnouncementsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await requireUser(`/dashboard/business/${id}/announcements`);
@@ -41,7 +45,7 @@ export default async function AnnouncementsPage({ params }: { params: Promise<{ 
     if (profile?.role !== "admin" && profile?.role !== "moderator") redirect("/dashboard/business");
   }
 
-  const since = new Date(Date.now() - THIRTY_DAYS_MS).toISOString();
+  const since = windowStartIso();
   const { data: announcements } = await supabase
     .from("business_announcements")
     .select("id, title, body, expires_at, created_at")

@@ -39,6 +39,20 @@ export function useVideoRecorder(maxDurationSeconds = 60) {
     }
   }, []);
 
+  // Declared before startRecording, which closes over it: the react
+  // compiler refuses a callback that reads a binding declared later (TDZ),
+  // and skips memoizing the whole hook when it does.
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setIsRecording(false);
+  }, []);
+
   const startRecording = useCallback(() => {
     if (!streamRef.current) {
       setError("دوربین هنوز فعال نشده است.");
@@ -83,16 +97,6 @@ export function useVideoRecorder(maxDurationSeconds = 60) {
     }
   }, [maxDurationSeconds, stopCamera]);
 
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
-    }
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    setIsRecording(false);
-  }, []);
 
   const resetRecording = useCallback(() => {
     setVideoBlob(null);

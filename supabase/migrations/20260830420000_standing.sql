@@ -231,3 +231,11 @@ on conflict (kind) do nothing;
 insert into public.site_settings (key, value)
 values ('standing', '{"enabled": false, "public_display": false}'::jsonb)
 on conflict (key) do nothing;
+
+-- -------------------------------------------------------------- 7. audit tag
+-- The amber admin actions (manual settle/reverse, نگهبان grant, freeze,
+-- forced recompute) log into user_activity_logs; the enum needs a value for
+-- them. add value cannot run inside a transaction block on older Postgres,
+-- but the SQL Editor runs statements individually, which is how this file is
+-- applied.
+alter type public.activity_action add value if not exists 'STANDING_ADMIN';

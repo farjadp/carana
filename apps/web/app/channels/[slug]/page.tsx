@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/channels/[slug]/page.tsx
-// Version: 1.0.0 — 2026-08-26
+// Version: 1.1.0 — 2026-08-26 (three metric states, and who stands behind it)
 // Why: One channel entry. Design: docs/15-channels-directory.md.
 //
 //      THIS PAGE SHOWS NO CHANNEL CONTENT. No posts, no embed, no preview
@@ -8,17 +8,24 @@
 //      somebody else's scam post off goplaza.ca, and it is why this section
 //      can exist without a content-moderation layer we do not have.
 //
-//      What it does show is the four facts a link on its own never carries:
-//      when the channel last posted, how many members it has, WHEN WE CHECKED,
-//      and — when we could not check — that we could not, in words. Every one
+//      What it does show is the facts a link on its own never carries: when
+//      the channel last posted, how many members it has, WHEN WE CHECKED, and
+//      — when there is no number — which of the two reasons applies. Every one
 //      of those decisions is made by @goplaza/core, not here.
+//
+//      v1.1 adds the two things the first real submissions exposed. A channel
+//      we can read but have not read yet said «بررسی خودکار ممکن نیست», which
+//      is false; it is «هنوز بررسی نشده». And nothing on the page said who
+//      stood behind the entry, so a reader could reasonably assume the channel
+//      itself had listed it. Nobody can prove they administer a channel here
+//      yet, and the page now says that out loud rather than staying silent.
 // Env / Identity: Reads through the request-scoped (anon) client. The RLS
 //      policy decides visibility; isChannelPublic() decides what renders.
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarClock, MessageCircle, Send, TrendingUp, Users } from "lucide-react";
+import { CalendarClock, MessageCircle, Send, TrendingUp, UserRoundCheck, Users } from "lucide-react";
 
 import {
   CHANNEL_ACTIVITY_HINTS_FA,
@@ -26,8 +33,14 @@ import {
   CHANNEL_KIND_LABELS_FA,
   CHANNEL_LANGUAGE_LABELS_FA,
   CHANNEL_PLATFORM_LABELS_FA,
+  CHANNEL_OWNERSHIP_HINT_FA,
+  CHANNEL_OWNERSHIP_LABEL_FA,
+  CHANNEL_PENDING_FA,
+  CHANNEL_PENDING_HINT_FA,
+  CHANNEL_SUBMITTER_FA,
   CHANNEL_UNMEASURED_FA,
   channelActivity,
+  channelMetricsState,
   memberLineFa,
   relativeDayFa,
   showsViewCount,
@@ -92,6 +105,7 @@ export default async function ChannelPage({ params }: { params: Promise<{ slug: 
   ]);
 
   const platform = channel.platform as ChannelPlatform;
+  const state = channelMetricsState(channel);
   const activity = channelActivity(channel);
   const members = memberLineFa(channel);
   const lastPost = relativeDayFa(channel.last_post_at);
@@ -143,9 +157,9 @@ export default async function ChannelPage({ params }: { params: Promise<{ slug: 
               </div>
               <span
                 className="shrink-0 rounded-full border border-[color:var(--line)] bg-[color:var(--bg)] px-3 py-1.5 text-xs font-bold text-[color:var(--text)]"
-                title={CHANNEL_ACTIVITY_HINTS_FA[activity]}
+                title={state === "pending" ? CHANNEL_PENDING_HINT_FA : CHANNEL_ACTIVITY_HINTS_FA[activity]}
               >
-                {CHANNEL_ACTIVITY_LABELS_FA[activity]}
+                {state === "pending" ? CHANNEL_PENDING_FA : CHANNEL_ACTIVITY_LABELS_FA[activity]}
               </span>
             </div>
 
@@ -173,7 +187,9 @@ export default async function ChannelPage({ params }: { params: Promise<{ slug: 
               {members ? (
                 <p className="text-sm leading-7 text-[color:var(--text)]">{members}</p>
               ) : (
-                <p className="text-sm italic leading-7 text-[color:var(--muted-text)]">{CHANNEL_UNMEASURED_FA}</p>
+                <p className="text-sm italic leading-7 text-[color:var(--muted-text)]">
+                  {state === "pending" ? "در نوبت اولین بررسی" : CHANNEL_UNMEASURED_FA}
+                </p>
               )}
             </div>
 
@@ -182,7 +198,7 @@ export default async function ChannelPage({ params }: { params: Promise<{ slug: 
                 <CalendarClock size={13} /> آخرین فعالیت
               </p>
               <p className={`text-sm leading-7 ${lastPost ? "text-[color:var(--text)]" : "italic text-[color:var(--muted-text)]"}`}>
-                {lastPost ?? CHANNEL_UNMEASURED_FA}
+                {lastPost ?? (state === "pending" ? "در نوبت اولین بررسی" : CHANNEL_UNMEASURED_FA)}
               </p>
               {typeof channel.posts_last_30d === "number" ? (
                 <p className="mt-1 text-xs text-[color:var(--muted-text)]">
@@ -213,14 +229,33 @@ export default async function ChannelPage({ params }: { params: Promise<{ slug: 
             ) : null}
           </section>
 
-          {/* Said once, plainly, on every row we could not measure. Without it
-              the two empty cards above look like a bug in our page rather than
-              a limit of the platform. */}
-          {channel.metrics_source === "declared" ? (
+          {/* Said once, plainly. Without it the two empty cards above look like
+              a bug in our page rather than a limit of the platform — or, in the
+              pending case, like a channel nobody can read. */}
+          {state !== "measured" ? (
             <p className="mt-4 rounded-2xl border border-dashed border-[color:var(--line)] bg-[color:var(--bg)] p-5 text-xs leading-7 text-[color:var(--muted-text)]">
-              {unmeasurableReasonFa(platform)}
+              {state === "pending" ? CHANNEL_PENDING_HINT_FA : unmeasurableReasonFa(platform)}
             </p>
           ) : null}
+
+          {/* Who stands behind this entry. Phase 1 has one honest answer, and
+              staying silent about it is what lets a reader assume the channel
+              itself listed here. The submitter is not named: nothing has
+              verified they are anyone in particular, and the owner-identity
+              rules on listings put a name on screen only behind proof. */}
+          <section className="mt-4 rounded-2xl border border-[color:var(--line)] bg-white p-5">
+            <p className="mb-1 inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--muted-text)]">
+              <UserRoundCheck size={13} /> اداره‌کننده
+            </p>
+            <p className="text-sm font-bold text-[color:var(--text)]">
+              {CHANNEL_OWNERSHIP_LABEL_FA.unverified}
+            </p>
+            <p className="mt-1 text-xs leading-7 text-[color:var(--muted-text)]">{CHANNEL_OWNERSHIP_HINT_FA}</p>
+            <p className="mt-2 text-xs text-[color:var(--muted-text)]">
+              {CHANNEL_SUBMITTER_FA}
+              {channel.created_at ? ` · ${relativeDayFa(channel.created_at)}` : null}
+            </p>
+          </section>
 
           <section className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[color:var(--line)] bg-white p-5 text-xs text-[color:var(--muted-text)]">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">

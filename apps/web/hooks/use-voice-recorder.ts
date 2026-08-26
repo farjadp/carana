@@ -11,6 +11,20 @@ export function useVoiceRecorder(maxDurationSeconds = 180) {
   const chunksRef = useRef<BlobPart[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Declared before startRecording, which closes over it: the react
+  // compiler refuses a callback that reads a binding declared later (TDZ),
+  // and skips memoizing the whole hook when it does.
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setIsRecording(false);
+  }, []);
+
   const startRecording = useCallback(async () => {
     try {
       setError(null);
@@ -55,16 +69,6 @@ export function useVoiceRecorder(maxDurationSeconds = 180) {
     }
   }, [maxDurationSeconds]);
 
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
-    }
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    setIsRecording(false);
-  }, []);
 
   const resetRecording = useCallback(() => {
     setAudioBlob(null);

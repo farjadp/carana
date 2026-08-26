@@ -22,6 +22,9 @@ import { JobsClient, type JobRow } from "./jobs-client";
 export const metadata: Metadata = { title: "آگهی‌های استخدام" };
 export const dynamic = "force-dynamic";
 
+/** Module scope — see the impure-render lint note in channels/page.tsx. */
+const dayAgoMs = () => Date.now() - 24 * 3600_000;
+
 export default async function BusinessJobsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await requireUser(`/dashboard/business/${id}/jobs`);
@@ -50,7 +53,7 @@ export default async function BusinessJobsPage({ params }: { params: Promise<{ i
   // buying the fast path. The server action makes the same call independently.
   const trusted = isTrusted(getVerificationStatus(business));
 
-  const since = Date.now() - 24 * 3600_000;
+  const since = dayAgoMs();
   const usedToday = (jobs ?? []).filter((j) => new Date(j.created_at).getTime() > since).length;
   const listingIsPublic = business.status === "PUBLISHED" || business.status === "APPROVED";
 

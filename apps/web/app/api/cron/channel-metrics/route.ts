@@ -28,7 +28,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { CHANNEL_CHECK_FAILURES_MAX } from "@goplaza/core";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { readTelegramMetrics, titleChangedMaterially } from "@/lib/channels/metrics";
+import { readTelegramMetrics } from "@/lib/channels/metrics";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -66,13 +66,19 @@ export async function GET(req: NextRequest) {
 
   const admin = createSupabaseAdminClient();
 
-  // Oldest check first, nulls first — a channel that has never been read is
-  // the most out of date thing on the list.
+  // NEVER-READ ROWS FIRST, then oldest check. The first ordering key is
+  // member_count, not metrics_checked_at, and that is deliberate:
+  // metrics_checked_at is stamped at INSERT to satisfy the
+  // measured-rows-carry-a-date CHECK, so a brand-new channel looks
+  // freshly-checked to any ordering that trusts it — and would wait a whole
+  // cycle behind rows that already have numbers. A row with no member_count
+  // has never actually been read, whatever its timestamp says.
   const { data: due } = await admin
     .from("channels")
     .select("id, slug, title, tg_username, metrics_source, member_count, check_failures")
     .eq("status", "published")
     .not("tg_username", "is", null)
+    .order("member_count", { ascending: true, nullsFirst: true })
     .order("metrics_checked_at", { ascending: true, nullsFirst: true })
     .limit(perRun);
 
@@ -83,7 +89,6 @@ export async function GET(req: NextRequest) {
   let checked = 0;
   let failed = 0;
   let demoted = 0;
-  let requeued = 0;
   let snapshots = 0;
 
   for (const row of rows) {
@@ -118,11 +123,21 @@ export async function GET(req: NextRequest) {
 
     checked += 1;
 
-    // A group renamed after approval goes back to a human. The entry stops
-    // being public in the same statement: the description a moderator approved
-    // no longer describes the destination.
-    const renamed = metrics.title ? titleChangedMaterially(row.title as string, metrics.title) : false;
-    if (renamed) requeued += 1;
+    // THE RENAME CHECK IS OFF, and the reason is a real false positive.
+    //
+    // It compared Telegram's title against `channels.title` — which is what a
+    // SUBMITTER typed, not what we last read. On the very first check of
+    // «کانال رسمی پلازا» (Telegram title: "GoPlaza") it fired, pushed a
+    // healthy channel back to pending_moderation and pulled it off the public
+    // list. A Persian directory naming a channel in Persian is normal, not
+    // suspicious.
+    //
+    // Detecting a rename needs a baseline of what WE last read, which is a
+    // `tg_title` column we do not have yet. Until that migration exists this
+    // stays off: a check that unpublishes live entries on a mismatch that is
+    // not a rename is worse than no check, and a queue full of false alarms is
+    // a queue that gets ignored. titleChangedMaterially() is kept for that
+    // follow-up. See docs/05-open-tasks.md.
 
     await admin
       .from("channels")
@@ -138,12 +153,6 @@ export async function GET(req: NextRequest) {
         // Promotion out of 'declared' has to drop the expiry with it, or the
         // channels_declared_expires pair goes inconsistent.
         confirm_by: null,
-        ...(renamed
-          ? {
-              status: "pending_moderation",
-              moderation_reason: `نام کانال از «${row.title}» به «${metrics.title}» تغییر کرده — دوباره بررسی شود.`,
-            }
-          : {}),
       })
       .eq("id", row.id);
 
@@ -165,7 +174,6 @@ export async function GET(req: NextRequest) {
     checked,
     failed,
     demoted,
-    requeued,
     snapshots,
   });
 }

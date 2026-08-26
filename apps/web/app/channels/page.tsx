@@ -83,6 +83,10 @@ type Search = {
   page?: string;
 };
 
+/** ISO timestamp d days ago. Module scope: the react-compiler lint treats a
+ *  Date.now() inside the component body as an impure call during render. */
+const daysAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString();
+
 export default async function ChannelsPage({ searchParams }: { searchParams: Promise<Search> }) {
   const params = await searchParams;
   const { platform, category, city, activity } = params;
@@ -109,7 +113,6 @@ export default async function ChannelsPage({ searchParams }: { searchParams: Pro
   // means filtering on the timestamp, with the SAME thresholds the labels use
   // — imported from core rather than retyped, so the chip and the badge can
   // never disagree about where «فعال» ends.
-  const daysAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString();
   if (activity === "active") query = query.gte("last_post_at", daysAgo(CHANNEL_ACTIVE_DAYS));
   else if (activity === "quiet") {
     query = query.gte("last_post_at", daysAgo(CHANNEL_QUIET_DAYS)).lt("last_post_at", daysAgo(CHANNEL_ACTIVE_DAYS));

@@ -16,6 +16,10 @@ import { relativeDayFa } from "@goplaza/core";
 
 import { reconfirmChannel } from "@/lib/actions/channels";
 
+/** Module scope: Date.now() in the component body trips the react-compiler
+ *  impure-render lint. */
+const daysUntil = (iso: string) => Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
+
 export function ReconfirmButton({
   channelId,
   lapsed,
@@ -29,9 +33,7 @@ export function ReconfirmButton({
   const [busy, start] = useTransition();
   const [done, setDone] = useState(false);
 
-  const daysLeft = confirmBy
-    ? Math.ceil((new Date(confirmBy).getTime() - Date.now()) / 86_400_000)
-    : null;
+  const daysLeft = confirmBy ? daysUntil(confirmBy) : null;
 
   if (done) return <p className="text-xs font-bold text-[color:var(--success,#0f7b4f)]">تأیید شد.</p>;
 

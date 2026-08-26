@@ -21,25 +21,35 @@ both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
-## Standing & loyalty — designed 26 Aug, nothing built
+## Standing phase 1 — CODE COMPLETE 26 Aug; blocked on one SQL Editor paste
 
-«اعتبار مشارکت» (users) and «وفاداری مالک» (owners). Spec:
-`docs/16-standing-and-loyalty.md`. Plan: `docs/17-standing-phase-1-plan.md`,
-eight tasks. Read the spec before touching any of it — most of its content is
-what the design refuses to do and why.
+«اعتبار مشارکت». Spec: `docs/16-standing-and-loyalty.md` · plan:
+`docs/17-standing-phase-1-plan.md`. All eight tasks are written: the
+migration, `@goplaza/core/standing.ts` (levelFor exercised at 14 boundaries),
+the ledger with its six named settle guards, both emitters (channels,
+reviews), `/admin/standing` (green knobs + amber actions with server-enforced
+reasons), and the 08:10 UTC recompute cron. Both switches seed **off**.
 
-**Nothing exists.** No migration, no core module, no route. The Notion board
-carries the eight tasks as Standing T1–T8.
+**Farjad, the one blocker:** paste `20260830420000_standing.sql` into the
+Supabase SQL Editor and run it, then tell a session so it can `pnpm
+gen:types` and run the deferred verification. A session tried to apply it
+via the Management API with the CLI keychain token; the permission
+classifier blocked reading the token, so the paste is genuinely yours.
 
-**Us:** T2 through T8 in order. T4 (the channels emitter) cannot be *run*
-until the channels table has rows, which is the section above.
+**Still unverified, honestly:** everything that needs the tables — recording
+a real event, the settle/reverse round-trip, the admin page with green
+probes, the cron writing aggregates. What WAS verified by running:
+`/admin/standing` renders red probes without crashing, both API routes
+refuse unauthenticated calls, and an empty reason is rejected by the amber
+route's schema. One real find from running: the page's HTML streamed to an
+unauthenticated curl before the layout redirect landed (App Router renders
+page and layout in parallel; fail-fast queries made the page quick) — the
+page now re-checks requireAdmin itself. `06-gotchas` has the entry.
 
-**Farjad:** T1 ends with pasting `20260830420000_standing.sql` into the
-Supabase SQL Editor — `pnpm db:push` is still blocked by the CLI password
-prompt. Nothing else in phase 1 needs you.
-
-**Not urgent.** Phase 1 is invisible to visitors by design (`public_display`
-defaults off), so it competes with seeding channels rather than blocking it.
+**Pre-existing failures, not from this work:** `pnpm lint` — one error in
+`apps/web/app/channels/page.tsx:112` (impure call during render) and one in
+mobile; `pnpm check:brand` — 8 old-brand hits in `docs/15` and
+`scripts/fix-blog-brand.mts`. A background-task chip exists for these.
 
 ## Channels directory — LIVE 26 Aug; it needs rows, not code
 
@@ -83,11 +93,28 @@ an **id** now rather than a URL. See `06-gotchas`.
    «بررسی خودکار برای این مورد ممکن نیست» on every card and look like the
    feature does not work.
 
-2. **The cron's parser is unverified against a live page.** `readTelegramMetrics`
-   parses `t.me/s/<name>` HTML that nobody has fetched yet. Once there is one
-   measurable row, call `/api/cron/channel-metrics?n=1` as an admin and check
-   the four numbers it writes. Failures are absorbed by design, so a broken
-   parser looks exactly like a set of unreachable channels — quiet, and wrong.
+2. **~~The cron's parser is unverified~~ — verified 26 Aug against the real
+   table.** One channel read (`goplaza`: 2 members, last post today, one
+   snapshot written); two correctly failed. `t.me/s/` answers **302** for
+   `get_verixa` and `heros_journey`, so those have no readable preview and will
+   demote themselves to `declared` after three tries, exactly as designed.
+   `posts_last_30d` stayed null on the successful one, which is also correct —
+   the preview renders twenty messages and all twenty are inside the window, so
+   the honest answer is "at least twenty" and we publish nothing.
+
+   **What the run turned up is in `06-gotchas`:** the two-state UI called
+   readable channels unreadable, and the rename check fired on a name nobody
+   renamed.
+
+3. **Re-enable the rename check, with a real baseline.** It is off. It compared
+   Telegram's title against what a submitter typed and unpublished a live
+   channel on its first run. It needs a `tg_title` column holding the title
+   **we** last fetched, and then compares reading against reading. Small
+   migration; `titleChangedMaterially()` is already written and already ignores
+   emoji, punctuation and one title containing the other.
+
+   Until then the abuse route it covered — a group renamed into something else
+   after approval — is covered only by the report button and by a human noticing.
 
 3. **Then look at a populated page.** The card, the detail page's four metric
    tiles, the growth block (which needs two snapshots a month apart, so it will

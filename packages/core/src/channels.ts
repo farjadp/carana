@@ -120,6 +120,41 @@ export interface MetricJudgeableChannel {
 }
 
 /**
+ * Which of three states this row's numbers are in.
+ *
+ * `measured` — we have read them, and metrics_checked_at says when.
+ * `pending`  — we CAN read them and have not yet. A row lives here from the
+ *              moment it is submitted until the daily cron first reaches it.
+ * `declared` — there is nothing to read: no public username, or WhatsApp.
+ *
+ * The middle one exists because the first three real submissions all said
+ * «بررسی خودکار برای این مورد ممکن نیست» — three public Telegram channels the
+ * cron simply had not run against yet. "We cannot" and "we have not yet" are
+ * different sentences, and printing the first when the second is true tells a
+ * channel owner their channel is unreadable when it is not.
+ *
+ * Note what decides it: whether a NUMBER is present, not whether
+ * metrics_checked_at is. That column is stamped at insert to satisfy the
+ * measured-rows-carry-a-date CHECK, so it cannot distinguish a row that has
+ * been read from one that has only been queued. The numbers can.
+ */
+export type ChannelMetricsState = "measured" | "pending" | "declared";
+
+export function channelMetricsState(
+  channel: MetricJudgeableChannel & ActivityJudgeableChannel,
+): ChannelMetricsState {
+  if (channel.metrics_source !== "measured") return "declared";
+  const hasNumbers =
+    (typeof channel.member_count === "number" && channel.member_count >= 0) || !!channel.last_post_at;
+  return hasNumbers ? "measured" : "pending";
+}
+
+/** What we say while the first automatic check has not happened yet. */
+export const CHANNEL_PENDING_FA = "هنوز بررسی نشده";
+export const CHANNEL_PENDING_HINT_FA =
+  "این کانال آیدی عمومی دارد، پس تعداد اعضا و آخرین فعالیتش قابل بررسی است — اولین بررسی خودکار در روزهای آینده انجام می‌شود و همین‌جا نشان داده خواهد شد.";
+
+/**
  * May this row's member count be shown as a fact?
  *
  * Both halves are required. A measured row with no `metrics_checked_at` cannot
@@ -151,6 +186,40 @@ export const CHANNEL_VIEW_FLOOR = 50;
 export function showsViewCount(views: number | null | undefined): boolean {
   return typeof views === "number" && views >= CHANNEL_VIEW_FLOOR;
 }
+
+// ---------------------------------------------------------------------------
+// Who stands behind an entry
+// ---------------------------------------------------------------------------
+
+/**
+ * Ownership state. **Phase 1 has exactly one, and it is the honest one.**
+ *
+ * Nobody can prove they administer a Telegram channel here yet — that needs
+ * the bot, and it is the whole of phase 2. So every entry is `unverified`,
+ * and the page says so in words rather than leaving a reader to assume the
+ * listing came from the channel itself.
+ *
+ * `verified` is declared now ONLY so the second state has a name when the bot
+ * arrives. Nothing returns it, and no badge may render it until something
+ * actually proves ownership. A badge that is easier to add than the proof
+ * behind it is how this project got unconditional «تایید شده» chips before.
+ */
+export type ChannelOwnership = "unverified" | "verified";
+
+export const CHANNEL_OWNERSHIP_LABEL_FA: Record<ChannelOwnership, string> = {
+  unverified: "مالکیت تأیید نشده",
+  verified: "مالکیت تأییدشده",
+};
+
+/**
+ * Why it says that. Deliberately not «به‌زودی» — a date we have not committed
+ * to is a promise, and the page states what is true today instead.
+ */
+export const CHANNEL_OWNERSHIP_HINT_FA =
+  "این کانال را یکی از کاربران گوپلازا معرفی کرده، و ممکن است اداره‌کننده‌اش نباشد. راهی برای اثبات اداره‌ی یک کانال هنوز وجود ندارد، پس روی هیچ کانالی نشان تأیید نمی‌بینی — نه این یکی.";
+
+/** The submitter is named to nobody. Same rule the owner-identity gates use. */
+export const CHANNEL_SUBMITTER_FA = "معرفی‌شده توسط یکی از کاربران گوپلازا";
 
 // ---------------------------------------------------------------------------
 // Links

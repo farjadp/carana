@@ -1665,3 +1665,71 @@ person, which is exactly when this is easiest to get wrong — the same shape as
 now — `normalizeJoinUrl()` accepts `GoPlaza`, `@GoPlaza`, `t.me/GoPlaza`, a
 `telegram.me` link and a pasted URL with a query on it, and shows the resolved
 address before it is stored.
+
+## A layout's redirect does not stop the page from streaming
+
+**Symptom:** `curl` with no cookies read the content of a brand-new
+`/admin/standing` page — probe names, headings — despite
+`app/admin/(dashboard)/layout.tsx` calling `redirect("/admin/login")` for
+anonymous users. Sibling admin pages did not visibly leak (54KB of
+`/admin/users` contained zero user emails), which is why nobody had noticed.
+
+**Cause:** App Router renders a layout and its page in parallel. The
+redirect aborts the stream when the layout settles — but a page whose
+awaits resolve fast can finish rendering first and its HTML is already in
+the response. The new page's queries failed fast (its tables were not
+applied yet), which made it the first page quick enough to lose the race.
+The older admin pages were merely slow enough to win it, every time so far.
+
+**Fix:** the page re-checks `requireAdmin` itself and redirects on failure
+(`admin/(dashboard)/standing/page.tsx`). Layout gating is a convenience,
+not the gate.
+
+**Lesson:** any admin page whose data can be empty/fast must carry its own
+auth check. "The layout gates the section" is a race, not a guarantee —
+and it is won by exactly the pages that look too boring to leak.
+
+
+## "We cannot" and "we have not yet" are different sentences
+
+**Symptom.** The first three channels went live and every one said
+«بررسی خودکار برای این مورد ممکن نیست». All three were public Telegram
+channels the cron could read perfectly well. It had not run against them yet.
+
+**Cause.** The UI had two states — `measured` and `declared` — and a row that
+*can* be measured but has no numbers yet falls through to the second one,
+because `memberLineFa()` returns null without a `member_count`. So a channel
+owner was told their channel is unreadable when it is simply new.
+
+**Fix.** Three states: `measured`, `pending`, `declared`, decided by whether a
+NUMBER is present. Not by `metrics_checked_at` — that column is stamped at
+insert to satisfy the measured-rows-carry-a-date CHECK, so it cannot
+distinguish a row that has been read from one that has only been queued. The
+same stamp made the cron order new channels LAST, because they looked
+freshly checked; it orders on `member_count nulls first` now.
+
+**Lesson.** An honesty rule expressed as a binary will eventually meet a third
+state, and the fallback branch is where it lands. "Not yet" is the state that
+gets swallowed, and it is usually the one a new user is in.
+
+## A rename check that fires on a name nobody renamed
+
+**Symptom.** The first cron run pushed a healthy, live channel back to
+`pending_moderation` and off the public list, with «نام کانال از «کانال رسمی
+پلازا» به «GoPlaza» تغییر کرده».
+
+**Cause.** The check compared Telegram's title against `channels.title` — what
+a **submitter typed**, not what we last read. A Persian directory naming a
+channel in Persian is normal; the two were never going to match.
+
+**Fix.** Turned off. Detecting a rename needs a baseline of the title WE last
+fetched, which is a `tg_title` column that does not exist yet. Until it does, a
+check that unpublishes live entries on a mismatch that is not a rename is worse
+than no check — and a queue full of false alarms is a queue that gets ignored.
+
+**Lesson.** A change detector needs both sides to come from the same source.
+Comparing a machine reading against a human's free text is not change
+detection; it is a spelling contest. Found 26 Aug 2026 on the first real cron
+run, and it had been written the same day as a defence against a real abuse
+route — which is worth keeping in mind: the defence was sound and the baseline
+was wrong.

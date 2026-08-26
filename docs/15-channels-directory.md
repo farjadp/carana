@@ -185,8 +185,8 @@ unknown  = last_post_at is null   (every declared row starts here)
 
 Lives in `@goplaza/core/channels.ts` next to `live-status.ts` and `jobs.ts`,
 so web and mobile cannot disagree about what "فعال" means. This is the whole
-point of `charana-mobile-lags-web`: a rule that lives in `apps/web` is a rule
-in one app.
+point of the mobile-lags-web memory: a rule that lives in `apps/web` is a
+rule in one app.
 
 A dormant channel is **labelled, not hidden.** Removing it destroys the one
 fact this section exists to publish.
