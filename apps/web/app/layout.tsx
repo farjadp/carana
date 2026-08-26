@@ -22,6 +22,7 @@ import { env } from "@/lib/env";
 import { organizationLd, webSiteLd } from "@/lib/seo/entity";
 
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const vazirmatn = Vazirmatn({
   subsets: ["arabic", "latin"],
@@ -111,6 +112,21 @@ export default function RootLayout({
             wall would be the first thing a visitor meets on a directory whose
             whole proposition is trust, and a meaningful share would decline
             and skew the numbers anyway. */}
+        {/* Sonner's renderer, mounted once. Twenty client components have
+            been calling toast() since the admin panel was built and nothing
+            was ever drawn — «منتشر شد», «ذخیره شد» and every failure message
+            in the owner dashboard and the moderation queues went to a
+            component that was not on the page. Found 26 Aug while adding the
+            first toast to the profile.
+            dir="rtl" because the app is RTL and sonner defaults to the
+            document direction only when told to. */}
+        <Toaster
+          position="top-center"
+          dir="rtl"
+          richColors
+          closeButton
+          toastOptions={{ style: { fontFamily: "var(--font-vazirmatn), sans-serif" } }}
+        />
         <Analytics />
       </body>
     </html>
