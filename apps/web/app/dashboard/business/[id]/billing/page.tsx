@@ -20,7 +20,9 @@ import { requireUser } from "@/lib/auth/session";
 import { entitlementsFor } from "@/lib/billing/entitlements";
 import { PLANS, PLATINUM_SEAT_CAP } from "@/lib/billing/plans";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { loyaltyStatusFor } from "@/lib/loyalty/status";
 import { BillingClient, type InvoiceRow, type SubscriptionRow } from "./billing-client";
+import { LoyaltyCard } from "./loyalty-card";
 
 export const metadata: Metadata = { title: "اشتراک و صورتحساب" };
 export const dynamic = "force-dynamic";
@@ -48,8 +50,16 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
     supabase.from("businesses").select("id", { count: "exact", head: true }).eq("plan", "platinum").or(`plan_until.is.null,plan_until.gte.${nowIso}`),
   ]);
 
-  const ent = entitlementsFor(business);
+  // Loyalty first: the capacity bonus is an argument INTO entitlementsFor, so
+  // the limits this page shows are the same ones the server enforces. Reading
+  // entitlements without it here would make the page understate what the
+  // owner may actually do.
+  const loyalty = await loyaltyStatusFor(supabase, business.id as string);
+  const ent = entitlementsFor(business, new Date(), loyalty.bonus);
   const platinumSeatsLeft = Math.max(0, PLATINUM_SEAT_CAP - (platinumTaken ?? 0));
+  const liveSub = (subs ?? []).find((sb) =>
+    ["active", "trialing", "past_due"].includes(String(sb.status))
+  );
 
   return (
     <PageShell currentPath={`/dashboard/business/${id}/billing`} currentSection="business">
@@ -70,6 +80,18 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
           platinumSeatsLeft={platinumSeatsLeft}
           subscription={(subs?.[0] ?? null) as SubscriptionRow | null}
           invoices={(invoices ?? []) as InvoiceRow[]}
+        />
+
+        <LoyaltyCard
+          businessId={business.id as string}
+          enabled={loyalty.enabled}
+          tenureMonths={loyalty.tenure.months}
+          since={loyalty.tenure.since}
+          tier={loyalty.tier}
+          next={loyalty.next}
+          upkeep={loyalty.upkeep}
+          bonus={loyalty.bonus}
+          hasLiveSubscription={!!liveSub}
         />
       </main>
     </PageShell>

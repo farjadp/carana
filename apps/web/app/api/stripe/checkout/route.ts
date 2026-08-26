@@ -90,7 +90,24 @@ export async function POST(req: NextRequest) {
       .eq("plan", "platinum")
       .or(`plan_until.is.null,plan_until.gte.${nowIso}`);
     if ((count ?? 0) >= PLATINUM_SEAT_CAP) {
-      return NextResponse.json({ error: `ظرفیت پلن پلاتینیوم تکمیل شده است (${PLATINUM_SEAT_CAP} از ${PLATINUM_SEAT_CAP}).` }, { status: 409 });
+      // Record the interest instead of losing it. Until now this 409 was the
+      // end of the story, so when a seat freed there was no way to honour
+      // "longest tenure is offered it first" — there was nobody to offer it
+      // to. Idempotent by primary key; a failure here must not change the
+      // answer the owner gets, which is still "full".
+      await createSupabaseAdminClient()
+        .from("platinum_waitlist")
+        .upsert(
+          { business_id: business.id as string, user_id: user.id },
+          { onConflict: "business_id", ignoreDuplicates: true }
+        );
+      return NextResponse.json(
+        {
+          error: `ظرفیت پلن پلاتینیوم تکمیل شده است (${PLATINUM_SEAT_CAP} از ${PLATINUM_SEAT_CAP}). نامت در فهرست انتظار ثبت شد؛ این رزرو نیست و ترتیب بر اساس سابقه‌ی اشتراک پیوسته است.`,
+          waitlisted: true,
+        },
+        { status: 409 }
+      );
     }
   }
 
