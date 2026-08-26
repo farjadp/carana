@@ -60,6 +60,20 @@ field gates with a throwaway script.
 the API disagreed, and the feature was invisible to staff, who are the people
 most likely to go looking for it. Now gated on ownership alone (`fe2efea`).
 
+**The public explainer is live at `/standing`** (`7466a12`) — in the header's
+راهنما menu and the sitemap. It reads the point values from `standing_rules`
+and the thresholds from `site_settings`, so it cannot drift from the admin.
+Seen rendered: the "not active yet" banner, the live rules table, the four
+levels, badges, and the refusals list. The "my ledger" button appears only
+once `public_display` is on.
+
+**Your test values are what the public page prints.** The rules table
+currently reads 8 / 89 / 3 / 34 / 55 / 13 and the levels 377 / 987 xp with a
+2,584-day (~7 year) maintenance window — Fibonacci numbers, evidently typed
+to prove the admin form saves. That is fine while the programme is off and
+the banner says so, but they are the numbers the page will show the day it is
+turned on. Seeded defaults were 25/30/10/15/20/5, 100/500 xp, 180 days.
+
 **Still not seen:** `/profile/standing`. It 404s unless both switches are on,
 and turning `public_display` on is a product decision, not a test.
 
