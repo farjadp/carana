@@ -321,3 +321,56 @@ export async function getStanding(
     return null;
   }
 }
+
+
+/**
+ * The same read, for many users at once.
+ *
+ * A review list resolves a standing per author, and a fifty-row admin table
+ * resolves fifty; going through getStanding() for each would be one round trip
+ * per user plus one settings read per user. This is two reads total, and it
+ * applies the thresholds override the same way — the reason getStanding()
+ * exists is that the override lives in ONE place, and a bulk path that read
+ * DEFAULT_THRESHOLDS instead would quietly disagree with it the first time
+ * anyone tuned the numbers in the admin page.
+ *
+ * A user with no row is absent from the map. That is a real level 0 rather
+ * than a missing value, and callers say so themselves — publicly, level 0
+ * renders nothing at all.
+ */
+export async function getStandingMany(
+  userIds: string[]
+): Promise<Map<string, { aggregates: StandingAggregates; level: StandingLevel }>> {
+  const out = new Map<string, { aggregates: StandingAggregates; level: StandingLevel }>();
+  const ids = [...new Set(userIds.filter(Boolean))];
+  if (ids.length === 0) return out;
+
+  try {
+    const admin = createSupabaseAdminClient();
+    const [{ data }, settings] = await Promise.all([
+      admin
+        .from("user_standing")
+        .select(
+          "user_id, xp, confirmed_count, reversed_count, distinct_kinds, accuracy, last_confirmed_at, peak_level, level_grant, frozen"
+        )
+        .in("user_id", ids),
+      getStandingSettings(),
+    ]);
+
+    const now = new Date();
+    for (const row of data ?? []) {
+      const { user_id, ...rest } = row as { user_id: string } & Record<string, unknown>;
+      const aggregates = {
+        ...rest,
+        accuracy: rest.accuracy == null ? null : Number(rest.accuracy),
+      } as StandingAggregates;
+      out.set(user_id, {
+        aggregates,
+        level: levelFor(aggregates, settings.thresholds, now, settings.maintenance_window_days),
+      });
+    }
+  } catch {
+    // A standing lookup that fails must never take a review list with it.
+  }
+  return out;
+}

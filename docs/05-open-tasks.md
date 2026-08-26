@@ -206,6 +206,34 @@ making our bot a channel admin, live `last_post_at`, an owner stats panel,
 private channels. The only thing phase 1 owes it is that `verified` stayed a
 separate concept from `measured`; no `verified` column was added.
 
+## Standing badges are visible (26 Aug)
+
+`showsContributions` — the privilege `docs/16` said would "gain a consumer
+inside phase 1" — has one now.
+
+- **Public:** on a business page, beside a review's author. `StandingBadge`
+  renders **nothing below level 1**, so most reviews carry no badge. That is
+  the design, not a gap: «تازه‌وارد» is not an achievement, and a badge on
+  every account would advertise a ranking system to visitors before anyone can
+  be ranked. Anonymous reviewers always get level 0 — attaching a level to
+  «کاربر ناشناس» would narrow the anonymity they chose to a set of one.
+- **Own profile:** the block shows level 0 too, with what the next rung needs.
+  A ladder you cannot see the next rung of is not a ladder. The thresholds are
+  quoted as «حدوداً» because `docs/16` is explicit that they are guesses which
+  have never met real data.
+
+**Neither surface has been seen rendered.** `user_standing` is empty and there
+are **no published reviews at all**, so the public badge has no surface today;
+the profile block needs a session. The branching logic was checked instead —
+nine cases through `levelFor` + `privilegesFor`, including the ones that must
+suppress the badge: frozen, idle past the maintenance window, and null accuracy
+with high XP.
+
+`getStandingMany()` was added beside `getStanding()` so a review list resolves
+every author in two reads rather than two per author — and it reads the same
+settings override, because a bulk path on `DEFAULT_THRESHOLDS` would silently
+disagree the first time anyone tuned the numbers in the admin page.
+
 ## /admin/users gained four columns (26 Aug)
 
 Last activity, standing, UID and money — all aggregated for the fifty rows on

@@ -13,6 +13,7 @@ import { notFound } from "next/navigation";
 
 import { listingOgImage } from "@/lib/seo/entity";
 import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
+import { getStandingMany } from "@/lib/standing/ledger";
 import { PageShell } from "@/components/page-shell";
 import BusinessProfileClient from "./business-profile-client";
 import { JsonLd } from "@/components/json-ld";
@@ -267,6 +268,11 @@ export default async function BusinessProfilePage({
     .filter((r) => r.display_identity !== "anonymous")
     .map((r) => r.user_id);
 
+  // Standing for the same set. Resolved here rather than per card, and only
+  // for reviewers who are not anonymous — attaching a level to «کاربر ناشناس»
+  // would narrow the anonymity the reviewer chose to a set of one.
+  const reviewerLevels = namedReviewerIds.length > 0 ? await getStandingMany(namedReviewerIds) : new Map();
+
   const reviewerNames = new Map<string, string>();
   if (namedReviewerIds.length > 0) {
     const adminClient = createSupabaseAdminClient();
@@ -290,6 +296,11 @@ export default async function BusinessProfilePage({
       r.display_identity === "anonymous"
         ? "کاربر ناشناس"
         : reviewerNames.get(r.user_id) ?? "کاربر گوپلازا",
+    // 0 for anonymous reviewers and for everyone who has not earned a level.
+    // StandingBadge renders nothing at 0, so most cards carry no badge — which
+    // is the point: the badge means something because it is not on everything.
+    user_level:
+      r.display_identity === "anonymous" ? 0 : (reviewerLevels.get(r.user_id)?.level ?? 0),
     owner_reply: r.owner_reply,
     owner_reply_at: r.owner_reply_at,
   }));

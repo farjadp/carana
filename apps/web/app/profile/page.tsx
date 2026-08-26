@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/profile/page.tsx
-// Version: 2.0.0 — 2026-08-26
+// Version: 2.1.0 — 2026-08-26 (standing)
 // Why: The signed-in home. v1 called itself «داشبورد کاربری» and was a
 //      settings form with four identical cards stacked under it — two of
 //      which restated things the page already showed (the email in a card of
@@ -36,6 +36,7 @@ import {
   NotebookPen,
   Radio,
   ShieldAlert,
+  Sparkles,
   Store,
   User as UserIcon,
 } from "lucide-react";
@@ -44,6 +45,10 @@ import { PageShell } from "@/components/page-shell";
 import { requireUser } from "@/lib/auth/session";
 import { ensureUserProfile } from "@/lib/profiles/ensure-profile";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+import { StandingBadge } from "@/components/standing/standing-badge";
+import { getStanding } from "@/lib/standing/ledger";
+import { DEFAULT_THRESHOLDS, LEVEL_LABELS_FA } from "@goplaza/core";
 
 import { AccountActions } from "./account-actions";
 import { ProfileForm } from "./profile-form";
@@ -86,6 +91,15 @@ export default async function ProfilePage() {
     ),
     n(supabase.from("channels").select("id", { count: "exact", head: true }).eq("submitted_by", user.id)),
   ]);
+
+  // Own page, so level 0 IS shown here with what is missing — that is the
+  // difference from the public badge, which renders nothing below level 1.
+  // A ladder you cannot see the next rung of is not a ladder.
+  const standing = await getStanding(user.id);
+  const level = standing?.level ?? 0;
+  const xp = standing?.aggregates.xp ?? 0;
+  const confirmed = standing?.aggregates.confirmed_count ?? 0;
+  const next = level === 0 ? DEFAULT_THRESHOLDS.level1 : level === 1 ? DEFAULT_THRESHOLDS.level2 : null;
 
   const isStaff = profile?.role === "admin" || profile?.role === "moderator";
   const displayName = profile?.full_name?.trim() || user.email?.split("@")[0] || "کاربر گوپلازا";
@@ -242,6 +256,43 @@ export default async function ProfilePage() {
                 />
               </Link>
             ))}
+          </section>
+
+          {/* 3.5 — «اعتبار مشارکت». Own page, so it shows level 0 and names
+              what the next rung needs. The thresholds come from
+              DEFAULT_THRESHOLDS, which docs/16 is explicit are GUESSES that
+              have never met real data and are overridable from the admin
+              page — so this says «حدوداً» rather than presenting them as a
+              contract. */}
+          <section className="mt-4 rounded-2xl border border-[color:var(--line)] bg-white p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="mb-1 inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--muted-text)]">
+                  <Sparkles size={13} /> اعتبار مشارکت
+                </p>
+                <p className="flex items-center gap-2 text-sm font-bold text-[color:var(--text)]">
+                  {LEVEL_LABELS_FA[level]}
+                  <StandingBadge level={level} size="md" />
+                </p>
+              </div>
+              <div className="text-left">
+                <p className="text-2xl font-black leading-none text-[color:var(--text)]">{fa(xp)}</p>
+                <p className="mt-1 text-[11px] text-[color:var(--muted-text)]">امتیاز</p>
+              </div>
+            </div>
+
+            <p className="mt-3 text-xs leading-7 text-[color:var(--muted-text)]">
+              {confirmed > 0
+                ? `${fa(confirmed)} مشارکت تأییدشده.`
+                : "هنوز مشارکت تأییدشده‌ای نداری."}{" "}
+              {next
+                ? `برای «${LEVEL_LABELS_FA[(level + 1) as 1 | 2]}» حدوداً ${fa(next.xp)} امتیاز و ${fa(next.confirmed)} مشارکت تأییدشده لازم است.`
+                : "بالاترین سطح را داری."}
+            </p>
+            <p className="mt-1 text-[11px] leading-6 text-[color:var(--muted-text)]">
+              امتیاز از مشارکت‌هایی می‌آید که بررسی و تأیید شده باشند — نه از سر زدن به سایت. سطحت
+              وقتی روی نظرهای عمومی‌ات دیده می‌شود که واقعاً به‌دستش آورده باشی.
+            </p>
           </section>
 
           {/* 4. What you can change. */}

@@ -24,6 +24,7 @@ import { PrivateNoteCard } from "@/components/business/private-note-card";
 import { VerificationBadge, VerificationDetail, faNumber } from "@/components/verification-badge";
 import { ViewCounter } from "@/components/business/view-counter";
 import { ReportDialog } from "@/components/business/report-dialog";
+import { StandingBadge } from "@/components/standing/standing-badge";
 import { ShortLinkBox } from "@/components/business/short-link-box";
 import { trackEvent } from "@/lib/analytics/track";
 import { BrandMark } from "@/components/brand-mark";
@@ -36,6 +37,7 @@ import {
   EMPLOYMENT_TYPE_LABELS_FA, OWNER_SECTION_NOTE, OWNER_SECTION_TITLE, PROVINCES,
   WORKPLACE_TYPE_LABELS_FA, formatSalaryFa,
   type EmploymentType, type PublicOwner, type SalaryPeriod, type WorkplaceType,
+  type StandingLevel,
 } from "@goplaza/core";
 
 interface Props {
@@ -453,6 +455,12 @@ export default function BusinessProfileClient({
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-full bg-[color:var(--annabi)]/10 text-[color:var(--annabi)] text-xs font-black flex items-center justify-center">{rev.user_name?.[0] || "ک"}</div>
                           <span className="font-bold text-xs text-[color:var(--text)]">{rev.user_name || "کاربر گوپلازا"}</span>
+                          {/* Renders nothing below level 1, which is most
+                              reviewers. A badge on everybody would say
+                              nothing; this one is only here when somebody
+                              earned it. Never on an anonymous review — the
+                              server sends 0 for those. */}
+                          <StandingBadge level={(rev.user_level ?? 0) as StandingLevel} />
                         </div>
                         <div className="flex items-center gap-0.5">
                           {[1, 2, 3, 4, 5].map((n) => <Star key={n} size={13} className={n <= (rev.rating || 0) ? "fill-[color:var(--gold)] text-[color:var(--gold)]" : "text-[color:var(--line)]"} />)}
