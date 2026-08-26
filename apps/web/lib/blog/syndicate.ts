@@ -246,6 +246,27 @@ export async function syndicate(postId: string, opts?: { channels?: Channel[]; f
   return out;
 }
 
+/**
+ * Post arbitrary text to the channel.
+ *
+ * Exported for the snippet writer, which posts cards that are not tied to a
+ * single article share and therefore have no row in `blog_syndications` — its
+ * ledger is `blog_snippets`. Everything else about the send is identical, so
+ * it goes through the same helpers rather than a second copy of them.
+ */
+export async function postTelegramText(text: string): Promise<SyndicationOutcome> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chat = process.env.TELEGRAM_CHANNEL_ID;
+  if (!token || !chat) return { channel: "telegram", status: "skipped", error: "TELEGRAM_BOT_TOKEN / TELEGRAM_CHANNEL_ID not set" };
+  try {
+    const json = await sendText(token, chat, text);
+    if (!json.ok) return { channel: "telegram", status: "failed", error: json.description ?? "sendMessage failed" };
+    return tgResult(chat, json);
+  } catch (e) {
+    return { channel: "telegram", status: "failed", error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 /** Which channels are actually wired up — used to keep the admin UI honest. */
 export function configuredChannels(): Channel[] {
   const on: Channel[] = [];
