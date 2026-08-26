@@ -21,6 +21,26 @@ both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
+## Standing & loyalty — designed 26 Aug, nothing built
+
+«اعتبار مشارکت» (users) and «وفاداری مالک» (owners). Spec:
+`docs/16-standing-and-loyalty.md`. Plan: `docs/17-standing-phase-1-plan.md`,
+eight tasks. Read the spec before touching any of it — most of its content is
+what the design refuses to do and why.
+
+**Nothing exists.** No migration, no core module, no route. The Notion board
+carries the eight tasks as Standing T1–T8.
+
+**Us:** T2 through T8 in order. T4 (the channels emitter) cannot be *run*
+until the channels table has rows, which is the section above.
+
+**Farjad:** T1 ends with pasting `20260830420000_standing.sql` into the
+Supabase SQL Editor — `pnpm db:push` is still blocked by the CLI password
+prompt. Nothing else in phase 1 needs you.
+
+**Not urgent.** Phase 1 is invisible to visitors by design (`public_display`
+defaults off), so it competes with seeding channels rather than blocking it.
+
 ## Channels directory — LIVE 26 Aug; it needs rows, not code
 
 «کانال‌ها و گروه‌ها» — Telegram channels/groups and WhatsApp groups, any
