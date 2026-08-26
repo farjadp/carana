@@ -88,6 +88,8 @@ people (and models) read three of them and miss the rest.
 | `08-competitors.md` | The seven Iranian-Canadian directories, and where the gaps are |
 | `09-jobs-board.md` | **Design only, not built.** Jobs board spec with the four decisions Farjad took on 18 Aug |
 | `15-channels-directory.md` | **Live 26 Aug.** Telegram/WhatsApp channels directory — the `metrics_source` axis, the no-content rule, and what phase 1 owes the phase-2 bot |
+| `16-standing-and-loyalty.md` | **Spec only, nothing built (26 Aug).** «اعتبار مشارکت» + «وفاداری مالک» — the settled-not-granted ledger, four functional levels, no coin, no streak, and the wall that keeps loyalty out of what a visitor reads as a business's credibility |
+| `17-standing-phase-1-plan.md` | **Plan, nothing built (26 Aug).** Phase 1 of the standing spec broken into 8 tasks — ledger, core `levelFor()`, write path, two emitters, admin page, cron. Note its verification standard: this repo has no test runner, so the gate is typecheck + lint + brand + **run it** |
 
 ## Working style (learned, do not relearn)
 
