@@ -13,6 +13,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { generatePosts } from "@/lib/blog/generate";
 import { generateFromSources } from "@/lib/blog/source-writer";
+import { generateSnippets, sendSnippet } from "@/lib/blog/snippets";
 import { AUTO_SYNDICATE, syndicate, syndicateBacklog, type Channel } from "@/lib/blog/syndicate";
 import { createSupabaseActionClient } from "@/lib/supabase/server";
 
@@ -117,4 +118,41 @@ export async function sharePost(id: string, channels?: Channel[]) {
   const outcomes = await syndicate(id, { channels });
   revalidateBlog();
   return { success: true, outcomes };
+}
+
+/** Write `n` daily cards. `send` false parks them in the queue to be read first. */
+export async function runSnippets(n: number, send: boolean) {
+  await admin();
+  const result = await generateSnippets(Math.min(5, Math.max(1, n)), { send });
+  revalidateBlog();
+  return { success: true, snippets: result };
+}
+
+/** Post one card that is sitting in the queue. */
+export async function sendSnippetNow(id: string) {
+  await admin();
+  const outcome = await sendSnippet(id);
+  revalidateBlog();
+  return { success: true, outcomes: [outcome] };
+}
+
+/** Edit a card before it goes out — the hook and the body are the whole post. */
+export async function saveSnippet(id: string, fields: { hook: string; body: string }) {
+  const supabase = await admin();
+  const { error } = await supabase
+    .from("blog_snippets")
+    .update({ hook: fields.hook.trim(), body: fields.body.trim() })
+    .eq("id", id)
+    .eq("status", "ready"); // a sent card cannot be un-sent; editing the row would only make the record lie
+  if (error) return { success: false, error: error.message };
+  revalidateBlog();
+  return { success: true };
+}
+
+export async function archiveSnippet(id: string) {
+  const supabase = await admin();
+  const { error } = await supabase.from("blog_snippets").update({ status: "archived" }).eq("id", id).eq("status", "ready");
+  if (error) return { success: false, error: error.message };
+  revalidateBlog();
+  return { success: true };
 }

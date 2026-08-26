@@ -178,6 +178,44 @@ Three defects were found and fixed by those runs, all written up in
 leading slash passed the link gate invisibly; and the expand guard abandoned
 the expansion on the first slip, leaving articles at ~520 words.
 
+## The daily card (Telegram snippets)
+
+A channel that only ever says "new article: <title>, <link>" is a feed, and
+nobody subscribes to a feed they could have bookmarked. Snippets are the other
+half: one interesting thing lifted out of an article we already published,
+written to stand alone. You should be able to read the card, learn the thing,
+and never click.
+
+`blog_snippets` + `lib/blog/snippets.ts`. Seven kinds — آمار جالب، دانستنی،
+نکتهٔ عملی، مقایسه، اشتباه رایج، پرسش و پاسخ، خبر — each briefed as a *test the
+card must pass* rather than a topic, because "write a fun fact" produces a fun
+fact about nothing.
+
+Three things keep it from becoming slop:
+
+- **Nothing is invented.** The writer gets one published article and must lift
+  something already in it; then `inventedNumbers()` — the same guard the
+  article pipeline uses — checks every digit in the card against that article,
+  and a card that introduced one is stored as `skipped` with the reason instead
+  of being sent. This is the whole reason a card can be auto-published without
+  a human reading it first.
+- **It cannot repeat itself.** `unique (source_post_id, kind)` in the database.
+  The picker prefers articles never drawn from, and among the free kinds takes
+  the one used least recently across the channel.
+- **The writer may refuse.** `usable: false` on an article with nothing worth
+  saying in that format. There are 74 others; a weak card is worse than none.
+
+Rejected cards are kept and shown in the admin queue. "The writer keeps making
+up figures about this post" should be readable, not inferred from silence.
+
+| | |
+|---|---|
+| Cron | `/api/cron/blog-snippet`, 17:30 and 22:30 UTC — two runs of one, not one run of two, because two cards in the same minute read as a batch |
+| Count | `BLOG_SNIPPETS_PER_RUN`, default 1, max 5 |
+| Sample the tone | `?dry=1` — writes nothing, sends nothing, returns what it would have said |
+| Queue without sending | `?send=0` |
+| Admin | Blog desk → «کارت‌های روزانهٔ تلگرام»: write, edit, publish, archive. A **sent** card is not editable — editing the row would not change the message in Telegram, only make the record disagree with what subscribers saw. |
+
 ## Running it
 
 | | |

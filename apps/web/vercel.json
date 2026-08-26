@@ -18,6 +18,14 @@
       "schedule": "0 15 * * *"
     },
     {
+      "path": "/api/cron/blog-snippet?slot=afternoon",
+      "schedule": "30 17 * * *"
+    },
+    {
+      "path": "/api/cron/blog-snippet?slot=evening",
+      "schedule": "30 22 * * *"
+    },
+    {
       "path": "/api/cron/job-expiry-reminders",
       "schedule": "30 13 * * *"
     },

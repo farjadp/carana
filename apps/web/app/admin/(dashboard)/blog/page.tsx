@@ -17,6 +17,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { AUTO_SYNDICATE, backlogCounts, configuredChannels } from "@/lib/blog/syndicate";
 import { createSupabaseActionClient } from "@/lib/supabase/server";
 import { BlogDesk, type DeskPost, type DeskRun, type DeskShare } from "./blog-desk";
+import { SnippetQueue, type DeskSnippet } from "./snippet-queue";
 
 export const metadata = { title: "وبلاگ | پنل مدیریت" };
 export const dynamic = "force-dynamic";
@@ -47,6 +48,12 @@ export default async function AdminBlogPage({
     supabase.from("blog_syndications").select("post_id, channel, status, url, error"),
     supabase.from("blog_sources").select("slug, name, home_url, enabled").order("weight", { ascending: false }),
   ]);
+
+  const { data: snippets } = await supabase
+    .from("blog_snippets")
+    .select("id, kind, hook, body, tags, status, url, error, created_at, sent_at, blog_posts(slug, title)")
+    .order("created_at", { ascending: false })
+    .limit(60);
 
   // "How much is left to write from" — the count of ledger rows we have seen
   // but not yet used. head+exact so we never pull 15,000 rows to count them.
@@ -81,6 +88,9 @@ export default async function AdminBlogPage({
       model={process.env.BLOG_MODEL ?? "gpt-4.1"}
       sources={sources}
     />
+    <div className="mt-8">
+      <SnippetQueue snippets={(snippets ?? []) as unknown as DeskSnippet[]} telegramOn={channels.includes("telegram")} />
+    </div>
     <div className="mt-4 rounded-2xl border border-[color:var(--line)] bg-white">
       <AdminPagination page={page} total={postCount ?? 0} basePath="/admin/blog" itemLabel="مقاله" />
     </div>
