@@ -1,118 +1,257 @@
 // ============================================================================
 // Source: app/profile/page.tsx
-// Version: 1.4.0 — 2026-08-11
-// Why: Provide the first protected landing page after login for each user.
-// Env / Identity: Requires an authenticated Supabase session and attempts profile creation.
+// Version: 2.0.0 — 2026-08-26
+// Why: The signed-in home. v1 called itself «داشبورد کاربری» and was a
+//      settings form with four identical cards stacked under it — two of
+//      which restated things the page already showed (the email in a card of
+//      its own, and «کاربر عادی», which is what everybody is).
+//
+//      v2 is one column and four zones: who you are, what you have done,
+//      what you can change, and where to go. Denser and shorter at the same
+//      time, because the density comes from real numbers rather than from
+//      more boxes.
+//
+//      THE NUMBERS ARE COUNTED, NOT DECORATED. Saves, private notes, followed
+//      businesses and reviews are five head-counts against this user's own
+//      rows. Zero is shown here on purpose — «۰ ذخیره‌شده» is true, it is
+//      about your own account, and it is the state that most needs a link out
+//      of it. That is the opposite of a public «۰ نظر», which advertises a
+//      business's emptiness to a stranger.
+//
+//      Two things v1 shipped are gone rather than restyled: `profileStatusCopy`
+//      was computed and never rendered, and the progress bar promised that
+//      completing your profile lets «کسب‌وکارها ارتباط مؤثرتری بگیرند» —
+//      businesses cannot contact users at all. That is a claim nothing backs.
+// Env / Identity: Requires an authenticated session; every count is scoped to
+//      the signed-in user by RLS as well as by the filter.
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
+import {
+  ArrowLeft,
+  BadgeCheck,
+  Bell,
+  Bookmark,
+  MessageSquare,
+  NotebookPen,
+  Radio,
+  ShieldAlert,
+  Store,
+  User as UserIcon,
+} from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth/session";
 import { ensureUserProfile } from "@/lib/profiles/ensure-profile";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+import { AccountActions } from "./account-actions";
 import { ProfileForm } from "./profile-form";
 
 export const metadata: Metadata = {
-  title: "پروفایل کاربری",
+  title: "پروفایل من",
+  robots: { index: false, follow: false },
 };
+
+export const dynamic = "force-dynamic";
+
+const fa = (n: number) => n.toLocaleString("fa-IR");
+const faDate = (iso: string) => new Date(iso).toLocaleDateString("fa-IR", { dateStyle: "long" });
 
 export default async function ProfilePage() {
   const user = await requireUser("/profile");
-  const { profile, status } = await ensureUserProfile(user);
+  const { profile } = await ensureUserProfile(user);
+  const supabase = await createSupabaseServerClient();
 
-  const profileStatusCopy =
-    status === "ready"
-      ? "پروفایل backend این کاربر ثبت شده و آماده توسعه بیشتر است."
-      : status === "missing_table"
-        ? "ورود موفق بود، اما جدول profiles هنوز روی Supabase apply نشده است."
-        : "ورود موفق بود، اما ساخت پروفایل backend با خطا مواجه شد و نیاز به بررسی دارد.";
+  const n = async (q: PromiseLike<{ count: number | null }>) => (await q).count ?? 0;
+  const interactions = () =>
+    supabase.from("user_business_interactions").select("business_id", { count: "exact", head: true }).eq("user_id", user.id);
+
+  const [saved, notes, following, reviews, businesses, channels] = await Promise.all([
+    n(interactions()),
+    n(interactions().not("private_note", "is", null)),
+    n(interactions().eq("notify_announcements", true)),
+    n(
+      supabase
+        .from("public_reviews")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .neq("status", "deleted_by_user"),
+    ),
+    n(
+      supabase
+        .from("businesses")
+        .select("id", { count: "exact", head: true })
+        .or(`created_by.eq.${user.id},owner_user_id.eq.${user.id}`),
+    ),
+    n(supabase.from("channels").select("id", { count: "exact", head: true }).eq("submitted_by", user.id)),
+  ]);
+
+  const isStaff = profile?.role === "admin" || profile?.role === "moderator";
+  const displayName = profile?.full_name?.trim() || user.email?.split("@")[0] || "کاربر گوپلازا";
+
+  const stats = [
+    { icon: Bookmark, label: "ذخیره‌شده", value: saved, href: "/profile/interactions" },
+    { icon: NotebookPen, label: "یادداشت خصوصی", value: notes, href: "/profile/interactions" },
+    { icon: Bell, label: "دنبال‌شده", value: following, href: "/profile/interactions" },
+    { icon: MessageSquare, label: "نظر ثبت‌شده", value: reviews, href: "/profile/interactions" },
+  ];
+
+  const destinations = [
+    {
+      icon: NotebookPen,
+      title: "دفترچه‌ی من",
+      hint: "ذخیره‌شده‌ها، یادداشت‌ها و نظرها",
+      href: "/profile/interactions",
+      badge: saved + reviews > 0 ? fa(saved + reviews) : null,
+    },
+    {
+      icon: Store,
+      title: businesses > 0 ? "کسب‌وکار من" : "ثبت کسب‌وکار",
+      hint: businesses > 0 ? "ویرایش، اعلان، آگهی و آمار" : "رایگان — از روی وب‌سایتت پر می‌شود",
+      href: businesses > 0 ? "/dashboard/business" : "/dashboard/business/new",
+      badge: businesses > 0 ? fa(businesses) : null,
+    },
+    {
+      icon: Radio,
+      title: channels > 0 ? "کانال‌های من" : "ثبت کانال یا گروه",
+      hint: channels > 0 ? "وضعیت بررسی و تأیید دوباره" : "کانال تلگرام یا گروه واتس‌اپ",
+      href: channels > 0 ? "/dashboard/channels" : "/channels/submit",
+      badge: channels > 0 ? fa(channels) : null,
+    },
+    ...(isStaff
+      ? [
+          {
+            icon: ShieldAlert,
+            title: "پنل مدیریت",
+            hint: "صف‌های بررسی و مدیریت پلتفرم",
+            href: "/admin",
+            badge: null as string | null,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <PageShell currentPath="/profile" currentSection="business">
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        <section className="mb-8">
-          <h1 className="text-3xl font-black text-[color:var(--text)] mb-2">داشبورد کاربری</h1>
-          <p className="text-[color:var(--muted-text)]">
-            به پنل کاربری گوپلازا خوش آمدید. از اینجا می‌توانید فعالیت‌ها و اطلاعات خود را مدیریت کنید.
-          </p>
-        </section>
+      <main className="page-main" dir="rtl">
+        <div className="mx-auto max-w-3xl">
+          {/* 1. Who you are. One row, not two cards — the email was its own
+              card in v1, and «نقش دسترسی: کاربر عادی» was a second one saying
+              what every account is. The role appears only when it means
+              something. */}
+          <section className="flex flex-wrap items-center gap-5 rounded-3xl border border-[color:var(--line)] bg-white p-6">
+            <span className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[color:var(--line)] bg-[color:var(--bg)]">
+              {profile?.avatar_url ? (
+                // Plain <img>: avatar hosts are not all in next.config
+                // remotePatterns, and next/image throws at request time there.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <UserIcon size={30} className="text-[color:var(--muted-text)]" />
+              )}
+            </span>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <Card className="shadow-sm">
-            <CardContent className="p-5">
-              <strong className="text-sm text-gray-500 block mb-1">حساب کاربری</strong>
-              <p className="font-medium text-lg">{user.email ?? "ایمیل ثبت نشده"}</p>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm">
-            <CardContent className="p-5">
-              <strong className="text-sm text-gray-500 block mb-1">نقش دسترسی</strong>
-              <p className="font-medium text-lg">
-                {profile?.role === "admin" ? "مدیر کل" : "کاربر عادی"}
-              </p>
-            </CardContent>
-          </Card>
-        </section>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl font-black leading-tight text-[color:var(--text)]">{displayName}</h1>
+              {user.email ? (
+                <p dir="ltr" className="mt-1 text-sm text-[color:var(--muted-text)]">
+                  {user.email}
+                </p>
+              ) : null}
 
-        <section className="mb-10">
-          <ProfileForm profile={profile} email={user.email || ""} />
-        </section>
+              <ul className="mt-3 flex flex-wrap gap-2 text-[11px]">
+                {/* Each chip is a fact with a column behind it. The unverified
+                    states are shown too — an account that quietly believes it
+                    is verified is how a password reset gets lost. */}
+                <li
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 ${
+                    user.email_confirmed_at
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-amber-50 text-amber-700"
+                  }`}
+                >
+                  <BadgeCheck size={12} />
+                  {user.email_confirmed_at ? "ایمیل تأیید شده" : "ایمیل تأیید نشده"}
+                </li>
+                <li
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 ${
+                    profile?.phone_verified_at
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-[color:var(--bg)] text-[color:var(--muted-text)]"
+                  }`}
+                >
+                  {profile?.phone_verified_at ? "موبایل تأیید شده" : "موبایل تأیید نشده"}
+                </li>
+                {profile?.created_at ? (
+                  <li className="inline-flex items-center rounded-full bg-[color:var(--bg)] px-2.5 py-1 text-[color:var(--muted-text)]">
+                    عضو از {faDate(profile.created_at)}
+                  </li>
+                ) : null}
+                {isStaff ? (
+                  <li className="inline-flex items-center rounded-full bg-[color:var(--text)] px-2.5 py-1 font-bold text-[#f6f1e8]">
+                    {profile?.role === "admin" ? "مدیر" : "ناظر"}
+                  </li>
+                ) : null}
+              </ul>
+            </div>
+          </section>
 
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold mb-4">دسترسی سریع</h2>
-          
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="hover:shadow-md transition">
-              <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
-                <h3 className="font-bold mb-2">تعاملات من</h3>
-                <p className="text-sm text-gray-500 mb-4">ذخیره‌شده‌ها، یادداشت‌ها و نظرات</p>
-                <Button asChild variant="muted" className="w-full">
-                  <Link href="/profile/interactions">مشاهده دفترچه</Link>
-                </Button>
-              </CardContent>
-            </Card>
+          {/* 2. What you have done. Five counted queries; every tile links to
+              where that number lives, so a zero is a way in rather than a
+              dead end. */}
+          <section className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {stats.map(({ icon: Icon, label, value, href }) => (
+              <Link
+                key={label}
+                href={href}
+                className="rounded-2xl border border-[color:var(--line)] bg-white p-4 transition hover:border-[color:var(--lajvard)]"
+              >
+                <span className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-bold text-[color:var(--muted-text)]">
+                  <Icon size={12} /> {label}
+                </span>
+                <p className="text-2xl font-black leading-none text-[color:var(--text)]">{fa(value)}</p>
+              </Link>
+            ))}
+          </section>
 
-            <Card className="hover:shadow-md transition border-[color:var(--lajvard)]">
-              <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
-                <h3 className="font-bold mb-2">کسب‌وکار من</h3>
-                <p className="text-sm text-gray-500 mb-4">ثبت و مدیریت اطلاعات کسب‌وکار</p>
-                <Button asChild className="w-full bg-[color:var(--lajvard)] hover:bg-[color:var(--primary)] text-white">
-                  <Link href="/dashboard/business">پنل کسب‌وکار</Link>
-                </Button>
-              </CardContent>
-            </Card>
+          {/* 3. Where to go. Slim rows, not four cards each carrying a
+              full-width button — the same shape as the /support tiles. */}
+          <section className="mt-4 grid gap-3 sm:grid-cols-2">
+            {destinations.map(({ icon: Icon, title, hint, href, badge }) => (
+              <Link
+                key={href}
+                href={href}
+                className="group flex items-center gap-3 rounded-2xl border border-[color:var(--line)] bg-white p-4 transition hover:shadow-[0_14px_36px_rgba(20,33,61,0.10)]"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--annabi)]/8 text-[color:var(--annabi)]">
+                  <Icon size={17} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-bold text-[color:var(--text)]">{title}</span>
+                  <span className="block truncate text-xs text-[color:var(--muted-text)]">{hint}</span>
+                </span>
+                {badge ? (
+                  <span className="rounded-full bg-[color:var(--bg)] px-2 py-0.5 text-[11px] font-bold text-[color:var(--text)]">
+                    {badge}
+                  </span>
+                ) : null}
+                <ArrowLeft
+                  size={14}
+                  className="shrink-0 text-[color:var(--muted-text)] transition group-hover:-translate-x-0.5"
+                />
+              </Link>
+            ))}
+          </section>
 
-            {/* «کانال‌های من» was reachable from exactly one place until 26 Aug:
-                the success screen shown right after submitting. Anyone who
-                submitted a channel yesterday had no way back to it — to read a
-                rejection reason, or to press «هنوز فعال است» before a declared
-                entry lapsed at 90 days. A page only its author can see needs a
-                door on the page its author starts from. */}
-            <Card className="hover:shadow-md transition">
-              <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
-                <h3 className="font-bold mb-2">کانال‌های من</h3>
-                <p className="text-sm text-gray-500 mb-4">کانال‌ها و گروه‌هایی که ثبت کرده‌ای</p>
-                <Button asChild variant="muted" className="w-full">
-                  <Link href="/dashboard/channels">کانال‌های من</Link>
-                </Button>
-              </CardContent>
-            </Card>
+          {/* 4. What you can change. */}
+          <section className="mt-8">
+            <ProfileForm profile={profile} email={user.email || ""} />
+          </section>
 
-            {profile?.role === "admin" && (
-              <Card className="hover:shadow-md transition border-gray-800">
-                <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
-                  <h3 className="font-bold mb-2">مدیریت پلتفرم</h3>
-                  <p className="text-sm text-gray-500 mb-4">بررسی نظرات و مدیریت سیستم</p>
-                  <Button asChild variant="solid" className="w-full bg-gray-900 hover:bg-gray-800">
-                    <Link href="/admin/reviews">پنل ادمین</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </section>
+          {/* 5. The account itself, kept quiet at the bottom where it belongs. */}
+          <AccountActions />
+        </div>
       </main>
     </PageShell>
   );
