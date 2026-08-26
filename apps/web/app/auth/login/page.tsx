@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/auth/login/page.tsx
-// Version: 1.3.2 — 2026-08-11
+// Version: 1.4.0 — 2026-08-26
 // Why: Provide the login entry point for users and business owners.
 // Env / Identity: Redirects authenticated users and strips unsafe auth query params.
 // ============================================================================
@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth-form";
 import { PageShell } from "@/components/page-shell";
 import { getDirectoryStats } from "@/lib/data/directory-stats";
+import { getEnabledAuthProviders } from "@/lib/auth/providers";
 import { redirectIfAuthenticated } from "@/lib/auth/session";
 import { sanitizeAuthSearchParams } from "@/lib/auth/sanitize";
 
@@ -27,7 +28,7 @@ export default async function LoginPage({
   const resolvedSearchParams = await searchParams;
   const resetSuccess = resolvedSearchParams.reset === "success";
 
-  const stats = await getDirectoryStats();
+  const [stats, providers] = await Promise.all([getDirectoryStats(), getEnabledAuthProviders()]);
 
   return (
     <PageShell currentPath="/auth/login" currentSection="business">
@@ -38,7 +39,7 @@ export default async function LoginPage({
             <span>حالا با رمز جدید وارد حساب کاربری شو.</span>
           </div>
         ) : null}
-        <AuthForm mode="login" stats={stats} />
+        <AuthForm mode="login" stats={stats} googleEnabled={providers.google} />
       </main>
     </PageShell>
   );

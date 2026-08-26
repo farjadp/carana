@@ -652,7 +652,7 @@ the SMTP settings. See `12-integrations.md` and the SMTP mission in Notion.
 
 ---
 
-### Magic link — only if magic-link login is ever enabled
+### Magic link — magic-link login is live since 26 Aug, so this one is due
 
 Same shell; headline «ورود به گوپلازا», button label «ورود», and the
 "ignore this" line: «اگر شما درخواست ورود نداده‌اید، این ایمیل را نادیده

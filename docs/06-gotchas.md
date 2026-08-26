@@ -4,6 +4,39 @@ Every one of these cost real time. Read before debugging anything similar.
 
 ---
 
+## A Google sign-in button shipped for a provider that was never enabled
+
+**Symptom.** «ادامه با حساب گوگل» sat on `/auth/login` and `/auth/signup` from
+18 August. Clicking it did nothing useful — `signInWithOAuth({provider:'google'})`
+returns "Unsupported provider: provider is not enabled" and the person is left
+on the same page.
+
+**Cause.** The button was written in the same commit as the layout, ahead of
+the dashboard work. Nobody enabled Google on the Supabase project, and nothing
+in the app ever asks whether a provider is on:
+
+```
+curl -s "$SUPABASE_URL/auth/v1/settings" -H "apikey: $PUBLISHABLE_KEY"
+→ "external": { ..., "google": false, ... }
+```
+
+That endpoint is public and unauthenticated. One request would have settled it
+at any point in the eight days.
+
+**Fix.** `lib/auth/providers.ts` reads `/auth/v1/settings` (cached 5 min, fails
+closed) and the auth pages pass `googleEnabled` into `AuthForm`. The button —
+and the «یا با ایمیل» divider under it, which is itself a claim that there is
+an alternative — render only when the project really has the provider. Turn it
+on in the dashboard and the button appears on its own within five minutes.
+
+**Lesson.** Auth providers are configuration, not code, so a button for one is
+a claim about a system this repo cannot see. Every other "honesty in the UI"
+case here was a claim about a *row*; this is the same class one level up, and
+the same answer applies — ask the system, do not assume. When the answer is
+one public GET, there is no excuse for a static button.
+
+---
+
 ## Turborepo strips environment variables it does not know about
 
 **Symptom:** Variables set correctly on Vercel never reach the build. A warning
@@ -1576,7 +1609,10 @@ anyway.
 
 **Fix.** None applied yet. The app's own magic links are unaffected: they come
 from `signInWithOtp()` in the browser, which uses PKCE and does return a
-`code`. What does not work is the admin path — so today nobody can hand a user
+`code`. (Written 26 Aug when **nothing** in the codebase called
+`signInWithOtp` — it described the path the login form would take if it had
+one. The login form got one the same day; the sentence is true now, and was
+not when it was written.) What does not work is the admin path — so today nobody can hand a user
 a working sign-in link out of band, and no automated check can drive a signed-in
 page without a typed password.
 

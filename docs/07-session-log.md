@@ -1,3 +1,59 @@
+# 2026-08-26 (later still) — sign-in: a magic link, extra contacts, and a Google button that had never worked
+
+Asked for three things: Gmail sign-up, two or three emails and phone numbers
+on the profile, and magic-link login next to the password.
+
+**The Google button was already there — and had never worked.** It shipped
+18 August with the split-panel auth layout, unconditionally. `GET
+/auth/v1/settings` on this project answers `external.google: false`, so every
+click since then returned "Unsupported provider". Adding a Google button was
+therefore not the task; making the existing one honest was. `lib/auth/providers.ts`
+probes that public endpoint (cached 5 min, fails closed) and the button plus
+its «یا با ایمیل» divider render only when the provider is really on. Enabling
+it is two dashboard steps, written up in `05-open-tasks`, and needs no further
+code.
+
+**Magic link.** `signInWithOtp()` from the browser, which is PKCE, so
+`/auth/callback` gets the `?code=` it reads — the admin-generated variety
+still cannot sign anyone in (the 26 Aug gotcha above stands, it is a different
+generator). `shouldCreateUser: false` on the login tab, so an unknown address
+is told it has no account instead of quietly getting one; that path was
+checked against the live API (422 `otp_disabled`) and the Persian mapping for
+it was added to `@goplaza/core/auth-errors`, ahead of the generic
+"signups are disabled" rule it would otherwise have hit.
+
+**Extra contacts.** `profile_contacts`, two more emails and two more numbers
+on top of the account email and `profiles.mobile_number`. Two decisions worth
+keeping: there is **no `verified_at` column**, because nothing would ever
+write to it and an always-NULL column is how a "verified" badge gets invented
+later; and the cap is a **trigger**, not just a check in the server action —
+RLS lets the browser insert these rows with its own token, so a cap that lives
+only in the action is a cap only for people who use the form. The panel says
+in as many words that these addresses cannot sign you in and are not verified.
+
+**What was said wrongly along the way:** nothing was claimed unverified, but
+`docs/02-engineering.md` still carries a section headed "Magic link — only if
+magic-link login is ever enabled", and `06-gotchas` said the app's own magic
+links "come from `signInWithOtp()` in the browser" — as of this morning
+**nothing in the codebase called `signInWithOtp`**. That sentence described a
+code path that did not exist; it does now.
+
+**Verified by running:** `/auth/login` served by the dev server shows the
+two-method switcher and **no** Google button (correct — the provider is off);
+`/profile` fetched with a real signed-in session (a disposable user created
+and deleted through the admin API) renders unchanged and hides the contacts
+panel, which is the intended degrade while the table is missing. Typecheck and
+lint clean across all three packages; `check:brand` clean.
+
+**Blocked on a human:** the migration. `pnpm db:push` refuses on this project
+(`LegacyDbPushMissingRemoteError` from the duplicate `20260830330000`/`340000`
+pair), and reading the CLI's own access token from the keychain was refused by
+the permission classifier — the same refusal as the 26 Aug session. So the
+contacts panel has never been seen with rows in it, and no magic link has
+actually been mailed.
+
+---
+
 # 2026-08-26 (night) — standing phase 1: the whole plan, minus one paste
 
 Brainstormed «سیستم وفاداری و اعتبار» from a ChatGPT sketch Farjad brought,

@@ -1,5 +1,65 @@
 # Open tasks
 
+**Updated:** 2026-08-26 (later still) — **sign-in work**: magic-link login and
+«راه‌های تماس بیشتر» are built, and the Google button is now honest. Three
+things need a human and are listed in the next section. Everything below it is
+unchanged.
+
+## Sign-in: Google, magic link, extra contacts — built 26 Aug, three human steps
+
+Built this session (`components/auth-form.tsx`, `lib/auth/providers.ts`,
+`app/profile/contacts-*.tsx`, `packages/core/src/contacts.ts`, migration
+`20260830470000_profile_contacts.sql`):
+
+- **Magic link.** `/auth/login` now has two methods — password, or a one-time
+  link mailed to the address. `signInWithOtp()` in the browser, so it is PKCE
+  and `/auth/callback` gets the `?code=` it reads. `shouldCreateUser: false`:
+  the login tab does not silently create accounts, and an address with no
+  account is told so. Resend is held 60 seconds.
+- **Google.** The button that had been rendering since 18 August was for a
+  provider that is **off** on this project — `/auth/v1/settings` answers
+  `external.google: false`, so every click returned "Unsupported provider".
+  It now renders only when the provider is really on. See the new
+  `06-gotchas` entry.
+- **Extra contacts.** Up to two more emails and two more phone numbers per
+  profile, next to the account email and `profiles.mobile_number` — three of
+  each. Contact details only: they cannot sign anyone in (Supabase Auth holds
+  one email per user) and nothing verifies them. The panel says both.
+
+**What Farjad has to do — nothing works end to end without these:**
+
+1. **Run `supabase/migrations/20260830470000_profile_contacts.sql`** in the
+   Supabase SQL Editor. `pnpm db:push` still refuses on this project
+   (`LegacyDbPushMissingRemoteError` — two `20260830330000`/`340000`
+   duplicates sit before the last remote migration), and the CLI's own token
+   is not readable from this session. Until it runs, `/profile` simply does
+   not show the panel — the page reads the table separately and hides the
+   section when it is missing, which was verified against the live database
+   with a disposable signed-in user.
+2. **Enable Google** — Google Cloud console: OAuth client (Web), authorised
+   redirect URI `https://flrpuzmqsqgrfutzoyop.supabase.co/auth/v1/callback`;
+   then Supabase → Authentication → Providers → Google, client id + secret,
+   enable. Nothing in the repo changes; the button appears within five
+   minutes of the settings endpoint flipping.
+3. **The magic-link email template and redirect URLs.** Auth → Email
+   Templates → Magic Link: the Persian shell is already written in
+   `docs/02-engineering.md` («ورود به گوپلازا» / «ورود»). Auth → URL
+   Configuration: `https://goplaza.ca/auth/callback` must be in Redirect
+   URLs. Without the template the mail goes out in Supabase's English
+   default; without the URL the link bounces to `/auth/error`.
+
+**Not verified, and honestly so:** no magic link has actually been sent. The
+unknown-address path was checked against the live auth API (422
+`otp_disabled`, mapped to a Persian sentence), but sending a real link needs a
+real inbox and would have meant mailing a working sign-in link to someone.
+The contacts panel has never rendered with rows, because the table does not
+exist yet.
+
+**Mobile has none of this.** `apps/mobile` still has password-only sign-in and
+no contacts panel. The validators and caps live in `@goplaza/core`
+(`contacts.ts`), so that gap is screens, not rules — the same shape as the
+three products already listed in the mobile section.
+
 **Updated:** 2026-08-26 (late) — the **channels directory** «کانال‌ها و
 گروه‌ها» is **built and live**; the migration turned out to be applied
 already. It now owns the home-page slot the «چرا گوپلازا؟» card grid held

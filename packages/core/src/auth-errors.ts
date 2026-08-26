@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: packages/core/src/auth-errors.ts
-// Version: 1.0.0 — 2026-08-15
+// Version: 1.1.0 — 2026-08-26
 // Why: Supabase Auth returns terse English messages ("email rate limit
 //      exceeded", "Invalid login credentials"). Persian users deserve a
 //      sentence that says what happened and what to do. One map, used by the
@@ -19,7 +19,17 @@ const RULES: [RegExp, string][] = [
   [/otp_expired|token has expired|link is invalid|invalid.*token|expired/i, "این لینک منقضی یا استفاده شده است. دوباره درخواست بازیابی بدهید."],
   [/user not found/i, "حسابی با این ایمیل پیدا نشد."],
   [/invalid email|unable to validate email|is invalid/i, "نشانی ایمیل معتبر نیست."],
+  // Before the generic signup rule below: this is what signInWithOtp() with
+  // shouldCreateUser:false returns for an address that has no account. It is
+  // not "signups are disabled" — signup is open, this email just is not one.
+  [/signups? not allowed for otp/i,
+    "حسابی با این ایمیل وجود ندارد. اول ثبت‌نام کن، بعد لینک ورود برایت فرستاده می‌شود."],
   [/signups? not allowed|signup is disabled/i, "ثبت‌نام در حال حاضر غیرفعال است."],
+  // The provider is off in the Supabase dashboard. The button is meant to be
+  // hidden in that case (lib/auth/providers.ts) — if this message is ever
+  // seen, the settings probe and the dashboard disagree.
+  [/unsupported provider|provider is not enabled/i,
+    "ورود با گوگل روی این حساب فعال نیست. با ایمیل و رمز وارد شو."],
   [/network|fetch failed|failed to fetch|timeout/i, "ارتباط با سرور برقرار نشد. اینترنت خود را بررسی کنید و دوباره تلاش کنید."],
 ];
 
