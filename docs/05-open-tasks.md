@@ -93,11 +93,28 @@ an **id** now rather than a URL. See `06-gotchas`.
    «بررسی خودکار برای این مورد ممکن نیست» on every card and look like the
    feature does not work.
 
-2. **The cron's parser is unverified against a live page.** `readTelegramMetrics`
-   parses `t.me/s/<name>` HTML that nobody has fetched yet. Once there is one
-   measurable row, call `/api/cron/channel-metrics?n=1` as an admin and check
-   the four numbers it writes. Failures are absorbed by design, so a broken
-   parser looks exactly like a set of unreachable channels — quiet, and wrong.
+2. **~~The cron's parser is unverified~~ — verified 26 Aug against the real
+   table.** One channel read (`goplaza`: 2 members, last post today, one
+   snapshot written); two correctly failed. `t.me/s/` answers **302** for
+   `get_verixa` and `heros_journey`, so those have no readable preview and will
+   demote themselves to `declared` after three tries, exactly as designed.
+   `posts_last_30d` stayed null on the successful one, which is also correct —
+   the preview renders twenty messages and all twenty are inside the window, so
+   the honest answer is "at least twenty" and we publish nothing.
+
+   **What the run turned up is in `06-gotchas`:** the two-state UI called
+   readable channels unreadable, and the rename check fired on a name nobody
+   renamed.
+
+3. **Re-enable the rename check, with a real baseline.** It is off. It compared
+   Telegram's title against what a submitter typed and unpublished a live
+   channel on its first run. It needs a `tg_title` column holding the title
+   **we** last fetched, and then compares reading against reading. Small
+   migration; `titleChangedMaterially()` is already written and already ignores
+   emoji, punctuation and one title containing the other.
+
+   Until then the abuse route it covered — a group renamed into something else
+   after approval — is covered only by the report button and by a human noticing.
 
 3. **Then look at a populated page.** The card, the detail page's four metric
    tiles, the growth block (which needs two snapshots a month apart, so it will
