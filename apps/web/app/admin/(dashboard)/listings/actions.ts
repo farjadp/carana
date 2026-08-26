@@ -7,6 +7,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { recordEvent, reverseSubject, settleSubject } from "@/lib/standing/ledger";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { logUserActivity } from "@/lib/actions/logs";
 import { requireAdmin } from "@/lib/auth/require-admin";
@@ -55,6 +56,30 @@ export async function updateBusinessStatus(businessId: string, newStatus: string
 
     if (updateError) {
       throw updateError;
+    }
+
+    // Standing ledger. Publishing settles the submitter's business_submit
+    // event; rejection reverses it. The event is recorded here rather than at
+    // submission time because most listings in this directory were IMPORTED
+    // (created_by is the imports@ system profile), and recording at submission
+    // would have to distinguish the two — settling at the moderation decision
+    // is where a human has already looked. The self-dealing guard in the
+    // ledger deliberately exempts business_submit: creating your own listing
+    // IS the contribution.
+    if (finalStatus === "PUBLISHED") {
+      await recordEvent({
+        userId: business.created_by as string,
+        kind: "business_submit",
+        subjectType: "business",
+        subjectId: businessId,
+      }).catch((e) => console.error("standing: record business_submit failed", e));
+      await settleSubject("business_submit", "business", businessId, adminUser.id).catch((e) =>
+        console.error("standing: settle business_submit failed", e)
+      );
+    } else if (newStatus === "REJECTED") {
+      await reverseSubject("business", businessId, adminUser.id, "listing rejected").catch((e) =>
+        console.error("standing: reverse business_submit failed", e)
+      );
     }
 
     // Tell the owner what happened. A moderation decision the owner never

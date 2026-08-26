@@ -231,3 +231,80 @@ export const CORRECTABLE_LABELS_FA: Record<CorrectableField, string> = {
   google_maps_url: "گوگل مپ",
   postal_code: "کد پستی",
 };
+
+// ---------------------------------------------------------------- badges
+
+/**
+ * Badges — phase 3.
+ *
+ * A badge is a VIEW OF HISTORY, not a record. `badgesFor` is a pure function
+ * over counts the ledger already holds, and there is deliberately no badge
+ * table: a stored badge is a second copy of the truth that can disagree with
+ * the ledger, and re-tiering a family would then need a data migration
+ * instead of a code change.
+ *
+ * BADGES UNLOCK NOTHING. Levels are permissions, badges are memory. The
+ * moment a badge grants something it becomes a second permission system with
+ * its own farming incentive — which is the whole reason the ladder was kept
+ * to four rungs.
+ */
+export interface BadgeFamily {
+  key: string;
+  labelFa: string;
+  emoji: string;
+  /** Which confirmed `kind` counts toward it. */
+  kind: string;
+  /** Thresholds for tiers I..V. */
+  tiers: readonly number[];
+}
+
+export const BADGE_FAMILIES: readonly BadgeFamily[] = [
+  { key: "explorer", labelFa: "کاشف", emoji: "🧭", kind: "channel_submit", tiers: [1, 3, 10, 25, 100] },
+  { key: "editor", labelFa: "اصلاح‌گر", emoji: "✏️", kind: "business_edit", tiers: [1, 5, 20, 50, 200] },
+  { key: "reviewer", labelFa: "نظردهنده", emoji: "⭐", kind: "review_publish", tiers: [1, 3, 10, 25, 100] },
+  { key: "guardian", labelFa: "دیده‌بان", emoji: "🛡", kind: "report_upheld", tiers: [1, 3, 10, 25, 100] },
+  { key: "founder", labelFa: "بنیان‌گذار", emoji: "🏛", kind: "business_submit", tiers: [1, 3, 10, 25, 100] },
+] as const;
+
+export interface EarnedBadge {
+  key: string;
+  labelFa: string;
+  emoji: string;
+  /** 1..5 */
+  tier: number;
+  /** Confirmed contributions of this kind. */
+  count: number;
+  /** What the next tier needs, or null at the top. */
+  nextAt: number | null;
+}
+
+export const ROMAN = ["", "I", "II", "III", "IV", "V"] as const;
+
+/**
+ * Badges from a map of kind → confirmed count.
+ *
+ * Counts must come from CONFIRMED events only. Feeding it pending or reversed
+ * counts would hand out a badge for work that never held up, which is the one
+ * thing the settled-not-granted design exists to prevent.
+ */
+export function badgesFor(
+  confirmedByKind: Record<string, number>,
+  families: readonly BadgeFamily[] = BADGE_FAMILIES
+): EarnedBadge[] {
+  const out: EarnedBadge[] = [];
+  for (const f of families) {
+    const count = confirmedByKind[f.kind] ?? 0;
+    let tier = 0;
+    for (let i = 0; i < f.tiers.length; i++) if (count >= f.tiers[i]) tier = i + 1;
+    if (tier === 0) continue;
+    out.push({
+      key: f.key,
+      labelFa: f.labelFa,
+      emoji: f.emoji,
+      tier,
+      count,
+      nextAt: tier < f.tiers.length ? f.tiers[tier] : null,
+    });
+  }
+  return out.sort((a, b) => b.tier - a.tier || b.count - a.count);
+}

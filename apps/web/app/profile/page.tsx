@@ -27,7 +27,7 @@
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
+import { Award,
   ArrowLeft,
   BadgeCheck,
   Bell,
@@ -43,6 +43,7 @@ import {
 
 import { PageShell } from "@/components/page-shell";
 import { requireUser } from "@/lib/auth/session";
+import { getStandingSettings } from "@/lib/standing/rules";
 import { ensureUserProfile } from "@/lib/profiles/ensure-profile";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -92,6 +93,10 @@ export default async function ProfilePage() {
     n(supabase.from("channels").select("id", { count: "exact", head: true }).eq("submitted_by", user.id)),
   ]);
 
+  // Both switches, because /profile/standing 404s unless both are on.
+  const standingSettings = await getStandingSettings();
+  const standingPublic = standingSettings.enabled && standingSettings.public_display;
+
   // Own page, so level 0 IS shown here with what is missing — that is the
   // difference from the public badge, which renders nothing below level 1.
   // A ladder you cannot see the next rung of is not a ladder.
@@ -133,6 +138,20 @@ export default async function ProfilePage() {
       href: channels > 0 ? "/dashboard/channels" : "/channels/submit",
       badge: channels > 0 ? fa(channels) : null,
     },
+    // Only when the programme is BOTH running and publicly displayed. A card
+    // pointing at a 404 is worse than no card, and the page it links to
+    // notFound()s under exactly these conditions.
+    ...(standingPublic
+      ? [
+          {
+            icon: Award,
+            title: "اعتبار مشارکت من",
+            hint: "سطح، نشان‌ها و دفترچه‌ی مشارکت",
+            href: "/profile/standing",
+            badge: null as string | null,
+          },
+        ]
+      : []),
     ...(isStaff
       ? [
           {

@@ -21,7 +21,14 @@
 // Env / Identity: Server only, service role throughout. Admin-triggered paths
 //      pass `by`; system paths (moderation hooks, cron) leave it null.
 // ============================================================================
-import { levelFor, type StandingAggregates, type StandingLevel } from "@goplaza/core";
+import {
+  badgesFor,
+  fetchAllRows,
+  levelFor,
+  type EarnedBadge,
+  type StandingAggregates,
+  type StandingLevel,
+} from "@goplaza/core";
 
 import { getRule, getStandingSettings } from "@/lib/standing/rules";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -373,4 +380,61 @@ export async function getStandingMany(
     // A standing lookup that fails must never take a review list with it.
   }
   return out;
+}
+
+/**
+ * One user's public-facing standing: level, badges, and the ledger itself.
+ *
+ * The ledger is returned INCLUDING reversals. That is the point of the page
+ * it feeds: "why did my number go down" has to be answerable, and a history
+ * with the failures edited out is the kind of flattering fiction this project
+ * does not ship.
+ */
+export async function getStandingProfile(userId: string): Promise<{
+  aggregates: StandingAggregates;
+  level: StandingLevel;
+  badges: EarnedBadge[];
+  events: {
+    id: string;
+    kind: string;
+    state: string;
+    points: number;
+    created_at: string;
+    settled_at: string | null;
+    reason: string | null;
+  }[];
+} | null> {
+  const base = await getStanding(userId);
+  if (!base) return null;
+  const admin = createSupabaseAdminClient();
+
+  // Two reads, deliberately. The visible ledger is the last 100 events; the
+  // badge counts are EVERY confirmed event, drained past PostgREST's silent
+  // 1,000-row cap. Counting badges from the visible page would quietly
+  // under-award the most active contributors — the people the badges are for.
+  const [{ data: rows }, allConfirmed] = await Promise.all([
+    admin
+      .from("standing_events")
+      .select("id, kind, state, points, created_at, settled_at, reason")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(100),
+    fetchAllRows<{ kind: string }>(() =>
+      admin.from("standing_events").select("kind").eq("user_id", userId).eq("state", "confirmed")
+    ),
+  ]);
+
+  // CONFIRMED only — a badge for work that did not hold up is exactly what
+  // settled-not-granted exists to prevent.
+  const confirmedByKind: Record<string, number> = {};
+  for (const r of allConfirmed) {
+    confirmedByKind[r.kind] = (confirmedByKind[r.kind] ?? 0) + 1;
+  }
+
+  return {
+    aggregates: base.aggregates,
+    level: base.level,
+    badges: badgesFor(confirmedByKind),
+    events: (rows ?? []) as never,
+  };
 }
