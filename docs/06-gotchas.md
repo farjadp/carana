@@ -1665,3 +1665,26 @@ person, which is exactly when this is easiest to get wrong — the same shape as
 now — `normalizeJoinUrl()` accepts `GoPlaza`, `@GoPlaza`, `t.me/GoPlaza`, a
 `telegram.me` link and a pasted URL with a query on it, and shows the resolved
 address before it is stored.
+
+## A layout's redirect does not stop the page from streaming
+
+**Symptom:** `curl` with no cookies read the content of a brand-new
+`/admin/standing` page — probe names, headings — despite
+`app/admin/(dashboard)/layout.tsx` calling `redirect("/admin/login")` for
+anonymous users. Sibling admin pages did not visibly leak (54KB of
+`/admin/users` contained zero user emails), which is why nobody had noticed.
+
+**Cause:** App Router renders a layout and its page in parallel. The
+redirect aborts the stream when the layout settles — but a page whose
+awaits resolve fast can finish rendering first and its HTML is already in
+the response. The new page's queries failed fast (its tables were not
+applied yet), which made it the first page quick enough to lose the race.
+The older admin pages were merely slow enough to win it, every time so far.
+
+**Fix:** the page re-checks `requireAdmin` itself and redirects on failure
+(`admin/(dashboard)/standing/page.tsx`). Layout gating is a convenience,
+not the gate.
+
+**Lesson:** any admin page whose data can be empty/fast must carry its own
+auth check. "The layout gates the section" is a race, not a guarantee —
+and it is won by exactly the pages that look too boring to leak.

@@ -21,25 +21,35 @@ both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
-## Standing & loyalty — designed 26 Aug, nothing built
+## Standing phase 1 — CODE COMPLETE 26 Aug; blocked on one SQL Editor paste
 
-«اعتبار مشارکت» (users) and «وفاداری مالک» (owners). Spec:
-`docs/16-standing-and-loyalty.md`. Plan: `docs/17-standing-phase-1-plan.md`,
-eight tasks. Read the spec before touching any of it — most of its content is
-what the design refuses to do and why.
+«اعتبار مشارکت». Spec: `docs/16-standing-and-loyalty.md` · plan:
+`docs/17-standing-phase-1-plan.md`. All eight tasks are written: the
+migration, `@goplaza/core/standing.ts` (levelFor exercised at 14 boundaries),
+the ledger with its six named settle guards, both emitters (channels,
+reviews), `/admin/standing` (green knobs + amber actions with server-enforced
+reasons), and the 08:10 UTC recompute cron. Both switches seed **off**.
 
-**Nothing exists.** No migration, no core module, no route. The Notion board
-carries the eight tasks as Standing T1–T8.
+**Farjad, the one blocker:** paste `20260830420000_standing.sql` into the
+Supabase SQL Editor and run it, then tell a session so it can `pnpm
+gen:types` and run the deferred verification. A session tried to apply it
+via the Management API with the CLI keychain token; the permission
+classifier blocked reading the token, so the paste is genuinely yours.
 
-**Us:** T2 through T8 in order. T4 (the channels emitter) cannot be *run*
-until the channels table has rows, which is the section above.
+**Still unverified, honestly:** everything that needs the tables — recording
+a real event, the settle/reverse round-trip, the admin page with green
+probes, the cron writing aggregates. What WAS verified by running:
+`/admin/standing` renders red probes without crashing, both API routes
+refuse unauthenticated calls, and an empty reason is rejected by the amber
+route's schema. One real find from running: the page's HTML streamed to an
+unauthenticated curl before the layout redirect landed (App Router renders
+page and layout in parallel; fail-fast queries made the page quick) — the
+page now re-checks requireAdmin itself. `06-gotchas` has the entry.
 
-**Farjad:** T1 ends with pasting `20260830420000_standing.sql` into the
-Supabase SQL Editor — `pnpm db:push` is still blocked by the CLI password
-prompt. Nothing else in phase 1 needs you.
-
-**Not urgent.** Phase 1 is invisible to visitors by design (`public_display`
-defaults off), so it competes with seeding channels rather than blocking it.
+**Pre-existing failures, not from this work:** `pnpm lint` — one error in
+`apps/web/app/channels/page.tsx:112` (impure call during render) and one in
+mobile; `pnpm check:brand` — 8 old-brand hits in `docs/15` and
+`scripts/fix-blog-brand.mts`. A background-task chip exists for these.
 
 ## Channels directory — LIVE 26 Aug; it needs rows, not code
 
