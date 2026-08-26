@@ -1526,3 +1526,38 @@ against whether the page looks plausible. It looked entirely plausible.
 **How this one was actually caught:** by rendering the page and comparing
 three figures to a `SELECT` over the raw events. Not by reading the code, and
 not by any check that could have been automated from the types.
+
+---
+
+## `check:brand` scans source. The rebrand lived in the database too
+
+**Symptom:** eight days after the čārana → GOPLAZA rebrand, with
+`pnpm check:brand` passing and the whole repo clean, the new Telegram channel
+posted an article whose excerpt read "با چارانا به راحتی می‌توانی…". Checking
+the table: **23 of 74 published posts** still carried the old brand — in
+`body_md`, `summary_en`, `excerpt`, `tags` and `faq` — and every one of them
+was live on goplaza.ca the whole time.
+
+**Cause:** `scripts/check-brand.mjs` walks the working tree. The blog is not
+in the working tree; it is rows. Those posts were written by the generator
+*before* 18 August, when the prompt still said čārana, and nothing has ever
+looked at them since. The guard was doing exactly what it was built to do and
+the content it could not see drifted out from under it.
+
+**Fix:** `scripts/fix-blog-brand.mts` — dry by default, `--apply` to write,
+idempotent, reading the replacements from `brand.ts` rather than typing them.
+Narrow on purpose: reader-facing text fields only, never `slug` (a published
+URL must not move) and never inside a URL or an email, because `charana.ca`
+still resolves and `imports@charana.ca` is a real mailbox.
+
+Worth keeping from writing it: the first version stashed protected URLs as
+` ${i} ` and restored on `/ (\d+) /`, which would have written a stashed URL
+over any bare " 5 " already in an article. It was caught by reading the dry
+run instead of trusting it, and the placeholder is now NUL-delimited with a
+post-condition that throws if one survives.
+
+**Lesson:** a guard is scoped to what it can see, and nobody writes that scope
+down. When a rule is about *content* — a brand, a claim, a disclaimer — ask
+where the content actually lives before believing the check that says it is
+clean. Generated content is the worst case: it was written under a prompt
+that has since changed, and it never gets re-read.
