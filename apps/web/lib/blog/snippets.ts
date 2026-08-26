@@ -36,7 +36,6 @@ import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 
-import { env } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { WRITER_MODEL, inventedNumbers } from "./pipeline";
 import { postTelegramText, type SyndicationOutcome } from "./syndicate";
@@ -226,8 +225,8 @@ SCOPE — the rule that matters most, and the one the first draft of this featur
 
 How it has to read:
 - The first line earns the second. Telegram is read in a scroll; a card that opens with a throat-clear is a card nobody finishes.
-- No greeting, no "در این پست", no "بیایید", no "آیا می‌دانستید که" as filler, no call to action — a link is added underneath automatically, do not write one.
-- Two to four sentences, and they must stand alone. Someone who never opens the article has to come away having actually learned the thing. Never tease ("برای دانستن بقیه کلیک کنید").
+- No greeting, no "در این پست", no "بیایید", no "آیا می‌دانستید که" as filler, no call to action, and no link — nothing is appended underneath, so the last sentence you write is the last thing the reader sees.
+- Two to four sentences, and they must stand alone. The reader is given no link, so anything you leave out is simply lost — never tease, never refer to "the article", never promise more elsewhere. This card is the whole thing.
 - Vary sentence length. One short sentence somewhere.
 - Written register, plain and direct: می‌رسد not می‌رسه, است not ـه, را not رو. Second-person singular where you address the reader.
 - نیم‌فاصله and Persian digits. English proper nouns (Toronto, CRA, RRSP) stay in Latin.
@@ -251,11 +250,14 @@ const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
 /**
  * The card as it appears in the channel.
  *
- * The link is labelled rather than bare, and sits last: the card is the post,
- * the article is the footnote. Bold on the hook only — a card with three
- * emphasised things has none.
+ * No link. The card IS the post — it was always written to stand alone, and a
+ * "read the full article" line underneath quietly contradicts that: it turns a
+ * finished thought into a teaser and invites the reader to feel they were given
+ * the short version. Whoever wants the article can find the site.
+ *
+ * Bold on the hook only — a card with three emphasised things has none.
  */
-export function renderSnippet(s: { kind: SnippetKind; hook: string; body: string; tags: string[] }, slug: string): string {
+export function renderSnippet(s: { kind: SnippetKind; hook: string; body: string; tags: string[] }): string {
   const spec = KIND_SPEC[s.kind];
   const tags = s.tags
     .map((t) => t.trim())
@@ -263,17 +265,7 @@ export function renderSnippet(s: { kind: SnippetKind; hook: string; body: string
     .slice(0, 2)
     .map((t) => `#${t.replace(/\s+/g, "_")}`)
     .join(" ");
-  const link = `${env.baseUrl}/blog/${slug}`;
-  return [
-    `${spec.emoji} <b>${escapeHtml(s.hook)}</b>`,
-    "",
-    escapeHtml(s.body),
-    "",
-    `<a href="${link}">متن کامل در گوپلازا</a>`,
-    tags ? `\n${tags}` : "",
-  ]
-    .join("\n")
-    .trim();
+  return [`${spec.emoji} <b>${escapeHtml(s.hook)}</b>`, "", escapeHtml(s.body), tags ? `\n${tags}` : ""].join("\n").trim();
 }
 
 // ---------------------------------------------------------------------------
@@ -411,7 +403,7 @@ export async function sendSnippet(id: string): Promise<SyndicationOutcome> {
   const post = snip.blog_posts as unknown as { slug: string; status: string };
   if (post.status !== "published") return { channel: "telegram" as const, status: "skipped" as const, error: "source post is not published" };
 
-  const text = renderSnippet({ kind: snip.kind as SnippetKind, hook: snip.hook, body: snip.body, tags: snip.tags ?? [] }, post.slug);
+  const text = renderSnippet({ kind: snip.kind as SnippetKind, hook: snip.hook, body: snip.body, tags: snip.tags ?? [] });
   const outcome = await postTelegramText(text);
 
   await admin
