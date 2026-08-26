@@ -43,7 +43,7 @@ export default async function AdminDashboardLayout({
   // Live badge counts. head+exact costs one round trip each and keeps the
   // sidebar honest — these were hard-coded strings until 16 Aug.
   const n = async (q: PromiseLike<{ count: number | null }>) => (await q).count ?? 0;
-  const [claims, reviews, suggestions, blog, reports, unknownCity, jobs] = await Promise.all([
+  const [claims, reviews, suggestions, blog, reports, unknownCity, jobs, channels] = await Promise.all([
     n(adminClient.from("business_claims").select("id", { count: "exact", head: true }).eq("status", "pending")),
     n(adminClient.from("public_reviews").select("id", { count: "exact", head: true }).eq("status", "pending_moderation")),
     n(adminClient.from("suggestions").select("id", { count: "exact", head: true }).eq("status", "new")),
@@ -51,8 +51,9 @@ export default async function AdminDashboardLayout({
     n(adminClient.from("business_reports").select("id", { count: "exact", head: true }).eq("status", "new")),
     n(adminClient.from("businesses").select("id", { count: "exact", head: true }).eq("city", "نامشخص")),
     n(adminClient.from("job_posts").select("id", { count: "exact", head: true }).eq("status", "pending_moderation")),
+    n(adminClient.from("channels").select("id", { count: "exact", head: true }).eq("status", "pending_moderation")),
   ]);
-  const counts: AdminCounts = { claims, reviews, suggestions, blog, reports, unknownCity, jobs };
+  const counts: AdminCounts = { claims, reviews, suggestions, blog, reports, unknownCity, jobs, channels };
 
   return (
     <div className="admin-layout">

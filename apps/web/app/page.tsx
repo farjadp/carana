@@ -49,6 +49,7 @@ import { BusinessCard } from "@/components/business/business-card";
 import { HomeHero } from "@/components/home-hero";
 import { SuggestionBox } from "@/components/suggestion-box";
 import { HomeLatestPosts } from "@/components/blog/latest-posts";
+import { HomeChannels } from "@/components/channels/home-channels";
 import { STORES } from "@/lib/data/releases";
 
 // The eight cities with generated background art. Kept here rather than read
@@ -335,12 +336,18 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 8. The blog. It used to be reachable from one link inside one
+        {/* 8. Channels and groups. Renders nothing until something is
+            published — see components/channels/home-channels.tsx. It sits
+            above the blog because it is the other half of the same promise:
+            the directory knows what is still there. */}
+        <HomeChannels />
+
+        {/* 9. The blog. It used to be reachable from one link inside one
             dropdown, so nothing written there was ever read. Renders nothing
             when no post is published — see components/blog/latest-posts.tsx. */}
         <HomeLatestPosts />
 
-        {/* 9. Why this directory, and how it stays honest. Previously two
+        {/* 10. Why this directory, and how it stays honest. Previously two
             sections — a four-card "چرا GOPLAZA؟" and a paragraph headed
             "اطلاعات قابل اعتماد" — making the same argument twice. */}
         <section className="border-t border-gray-100 bg-gray-50 px-4 py-16">
@@ -367,7 +374,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 10. Business owner path */}
+        {/* 11. Business owner path */}
         <section className="relative overflow-hidden bg-[color:var(--lajvard)] px-4 py-20 text-white">
           <div className="absolute inset-0 bg-black/10" />
           <div className="relative z-10 mx-auto max-w-4xl text-center">
@@ -396,14 +403,14 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 11. Ask the visitor what is missing — text or voice */}
+        {/* 12. Ask the visitor what is missing — text or voice */}
         <section className="border-t border-gray-100 bg-white px-4 py-16">
           <div className="mx-auto max-w-3xl">
             <SuggestionBox page="/" />
           </div>
         </section>
 
-        {/* 12. The app — a working miniature of the real UI, not a dead frame */}
+        {/* 13. The app — a working miniature of the real UI, not a dead frame */}
         <section className="relative overflow-hidden bg-[#14213d] px-4 py-24 text-[#f6f1e8]">
           <style>{`
             @keyframes app-float { 0%,100% { transform: rotate(-5deg) translateY(0); } 50% { transform: rotate(-5deg) translateY(-10px); } }

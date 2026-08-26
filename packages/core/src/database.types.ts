@@ -642,6 +642,7 @@ export type Database = {
         Row: {
           admin_note: string | null
           business_id: string | null
+          channel_id: string | null
           contact: string | null
           created_at: string
           details: string | null
@@ -657,6 +658,7 @@ export type Database = {
         Insert: {
           admin_note?: string | null
           business_id?: string | null
+          channel_id?: string | null
           contact?: string | null
           created_at?: string
           details?: string | null
@@ -672,6 +674,7 @@ export type Database = {
         Update: {
           admin_note?: string | null
           business_id?: string | null
+          channel_id?: string | null
           contact?: string | null
           created_at?: string
           details?: string | null
@@ -697,6 +700,13 @@ export type Database = {
             columns: ["link_page_id"]
             isOneToOne: false
             referencedRelation: "link_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_reports_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
             referencedColumns: ["id"]
           },
         ]
@@ -985,6 +995,205 @@ export type Database = {
           category_slug?: string
         }
         Relationships: []
+      }
+      channel_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          name_fa: string
+          position: number
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          name_fa: string
+          position?: number
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          name_fa?: string
+          position?: number
+          slug?: string
+        }
+        Relationships: []
+      }
+      channel_events: {
+        Row: {
+          bot: boolean
+          channel_id: string
+          created_at: string
+          device: string | null
+          event_type: string
+          id: number
+          referrer_host: string | null
+          source: string
+          visitor_hash: string | null
+        }
+        Insert: {
+          bot?: boolean
+          channel_id: string
+          created_at?: string
+          device?: string | null
+          event_type: string
+          id?: number
+          referrer_host?: string | null
+          source?: string
+          visitor_hash?: string | null
+        }
+        Update: {
+          bot?: boolean
+          channel_id?: string
+          created_at?: string
+          device?: string | null
+          event_type?: string
+          id?: number
+          referrer_host?: string | null
+          source?: string
+          visitor_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_events_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_events_event_type_fkey"
+            columns: ["event_type"]
+            isOneToOne: false
+            referencedRelation: "event_types"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      channel_member_snapshots: {
+        Row: {
+          channel_id: string
+          day: string
+          member_count: number
+        }
+        Insert: {
+          channel_id: string
+          day: string
+          member_count: number
+        }
+        Update: {
+          channel_id?: string
+          day?: string
+          member_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_member_snapshots_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channels: {
+        Row: {
+          category_slug: string
+          check_failures: number
+          city: string | null
+          confirm_by: string | null
+          created_at: string
+          description: string
+          id: string
+          join_url: string
+          kind: string
+          language: string
+          last_post_at: string | null
+          member_count: number | null
+          metrics_checked_at: string | null
+          metrics_source: string
+          moderation_reason: string | null
+          platform: string
+          posts_last_30d: number | null
+          province: string | null
+          published_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          slug: string
+          status: string
+          submitted_by: string | null
+          tg_username: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category_slug: string
+          check_failures?: number
+          city?: string | null
+          confirm_by?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          join_url: string
+          kind: string
+          language?: string
+          last_post_at?: string | null
+          member_count?: number | null
+          metrics_checked_at?: string | null
+          metrics_source?: string
+          moderation_reason?: string | null
+          platform: string
+          posts_last_30d?: number | null
+          province?: string | null
+          published_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          slug: string
+          status?: string
+          submitted_by?: string | null
+          tg_username?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category_slug?: string
+          check_failures?: number
+          city?: string | null
+          confirm_by?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          join_url?: string
+          kind?: string
+          language?: string
+          last_post_at?: string | null
+          member_count?: number | null
+          metrics_checked_at?: string | null
+          metrics_source?: string
+          moderation_reason?: string | null
+          platform?: string
+          posts_last_30d?: number | null
+          province?: string | null
+          published_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          slug?: string
+          status?: string
+          submitted_by?: string | null
+          tg_username?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channels_category_slug_fkey"
+            columns: ["category_slug"]
+            isOneToOne: false
+            referencedRelation: "channel_categories"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       city_aliases: {
         Row: {
@@ -2103,11 +2312,14 @@ export type Database = {
         Args: { b: Database["public"]["Tables"]["businesses"]["Row"] }
         Returns: string
       }
+      channel_view_count: { Args: { p_channel_id: string }; Returns: number }
+      channels_recent_count: { Args: { p_user_id: string }; Returns: number }
       current_user_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
       fa_normalize: { Args: { t: string }; Returns: string }
+      roll_up_channel_day: { Args: { p_day: string }; Returns: number }
       handle_available: { Args: { p_handle: string }; Returns: boolean }
       has_business_access: {
         Args: { target_business_id: string; target_user_id: string }

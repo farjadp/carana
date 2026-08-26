@@ -2279,10 +2279,13 @@ section {
 .header-nav {
   display: none;
   align-items: center;
-  /* Fluid, not fixed: the bar carries five links plus three menu triggers, and
-     at a flat 1.35rem that row overflowed the brand/actions on the narrowest
-     desktop width (900px) once «مقالات» joined it. It relaxes back to 1.35rem
-     from ~1180px up, so nothing changes on a normal screen. */
+  /* Fluid, not fixed: at a flat 1.35rem this row overflowed the brand and the
+     actions at the narrowest desktop width (900px) back when the bar carried
+     eight triggers. It carries five since the 26 Aug rebuild — see
+     components/header-nav.tsx — but the clamp stays: «کانال‌ها و گروه‌ها» is
+     the longest label the bar has ever had, and the clamp is what absorbs the
+     next one. It relaxes back to 1.35rem from ~1180px up, so nothing changes
+     on a normal screen. */
   gap: clamp(0.85rem, 1.35vw, 1.35rem);
   flex: 1;
 }
@@ -2756,4 +2759,26 @@ section {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Sectioned nav menu — one trigger, two labelled columns. 2026-08-26
+   The «راهنما» menu carries twelve destinations. As a flat list that is a
+   panel nobody reads past the sixth item; as two columns it is two ideas.
+   Falls back to a single column below 560px, where the panel is nearly the
+   width of the screen anyway. */
+.header-nav-menu-panel.is-sectioned {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  gap: 4px 12px;
+  padding: 12px;
+}
+.header-nav-menu-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted-text);
+  padding: 4px 12px 6px;
+  margin: 0;
+}
+@media (max-width: 560px) {
+  .header-nav-menu-panel.is-sectioned { grid-template-columns: 1fr; }
 }

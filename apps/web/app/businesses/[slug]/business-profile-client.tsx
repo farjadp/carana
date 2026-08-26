@@ -623,7 +623,7 @@ export default function BusinessProfileClient({
                 {/* A real report: posts to /api/reports and lands in the admin
                     queue. The old button raised a toast and wrote nothing. */}
                 <div className="pt-3 mt-1 border-t border-[color:var(--line)]">
-                  <ReportDialog businessId={business.id} businessName={business.name} />
+                  <ReportDialog subject={{ kind: "business", id: business.id, name: business.name }} />
                 </div>
               </div>
             </Section>
