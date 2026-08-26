@@ -23,6 +23,55 @@ one *was* stale dev cache: a hard reload showed 9,689. Both of those cost
 about a minute each to disprove, and both would have been plausible bug
 reports written from a single screenshot.
 
+**The first real submission failed, and it was our fault twice over**
+(`20ec2b0`). Farjad tried to add the project's own channel — `t.me/GoPlaza` —
+and got «ثبت کانال ناموفق بود» and nothing else. `channels.tg_username` carries
+a lower-case-only CHECK; `telegramUsername()` returned whatever casing the URL
+had. So **no handle with a capital letter could ever be submitted**, which is
+most of them. Both halves were written the same afternoon by the same person,
+which is exactly when this is easiest to miss — the same shape as the `citext`
+trap one entry above it in `06-gotchas`. Proven against the real table both
+ways before touching anything: the raw casing returns 23514, the lower-cased
+value inserts.
+
+It broke a second thing quietly. The duplicate check compared `tg_username`
+case-sensitively, so one channel could have been stored twice under two
+spellings with the unique index none the wiser.
+
+The form also stopped asking for a URL, which is what Farjad asked for and
+would have prevented nothing here — but is the reason the id now has exactly
+one canonical form on the way in. A CHECK that narrows a value's shape is only
+safe when something canonicalises the value first; otherwise it is a landmine
+laid at write time and stepped on by a user.
+
+**`/profile` was redesigned, and it paid for itself twice** (`a0685c3`,
+`3c4f491`). The redesign is one column and four zones instead of a settings
+form under four identical cards — two of which restated what the page already
+showed. But the two things worth remembering are what it turned up on the way.
+
+**`<Toaster />` was never mounted.** Twenty client components import `toast`
+from sonner — every moderation queue, the owner dashboard, the claim flow, the
+verification banner, the interaction bar — and the renderer those calls need
+was not in the root layout. Every «منتشر شد» and every failure message since
+the admin panel was built has gone nowhere. It is the worst shape a UI bug
+takes here: not a wrong message but no message, on exactly the actions where a
+person needs to know whether the thing happened. A moderator whose publish
+failed saw what a moderator whose publish succeeded saw. Nothing catches it —
+it type-checks, it builds, the call site reads correctly, and the underlying
+action works.
+
+**A `select()` narrower than the type reading it.** `ensureUserProfile` has
+fetched six columns since 11 Aug while the profile form read `avatar_url`,
+`mobile_number`, `birth_date` and `bio` off the same object, typed `any`. So
+those fields rendered blank for accounts that had them saved: upload an avatar,
+reload, gone. `any` on a prop does not merely skip a check — it turns "never
+fetched" into "empty", which is a state a reader will believe.
+
+Also deleted rather than restyled: a `profileStatusCopy` computed and never
+rendered, and a progress bar claiming that completing your profile lets
+«کسب‌وکارها ارتباط مؤثرتری با شما بگیرند» — businesses cannot contact users at
+all, and there is no column that would carry such a feature.
+
 **The signup-success page was rebuilt too** (`b23e505`). It had been three
 lines of implementation notes shown to a human — «سشن کاربر هم فعال شده» — on
 the first page a new account ever sees. It now answers what just happened,

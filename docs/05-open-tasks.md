@@ -21,6 +21,26 @@ both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
+## Standing & loyalty — designed 26 Aug, nothing built
+
+«اعتبار مشارکت» (users) and «وفاداری مالک» (owners). Spec:
+`docs/16-standing-and-loyalty.md`. Plan: `docs/17-standing-phase-1-plan.md`,
+eight tasks. Read the spec before touching any of it — most of its content is
+what the design refuses to do and why.
+
+**Nothing exists.** No migration, no core module, no route. The Notion board
+carries the eight tasks as Standing T1–T8.
+
+**Us:** T2 through T8 in order. T4 (the channels emitter) cannot be *run*
+until the channels table has rows, which is the section above.
+
+**Farjad:** T1 ends with pasting `20260830420000_standing.sql` into the
+Supabase SQL Editor — `pnpm db:push` is still blocked by the CLI password
+prompt. Nothing else in phase 1 needs you.
+
+**Not urgent.** Phase 1 is invisible to visitors by design (`public_display`
+defaults off), so it competes with seeding channels rather than blocking it.
+
 ## Channels directory — LIVE 26 Aug; it needs rows, not code
 
 «کانال‌ها و گروه‌ها» — Telegram channels/groups and WhatsApp groups, any
@@ -39,6 +59,13 @@ two-column «راهنما» panel, and the home page — where the «چرا گو
 is gone and the channels band correctly renders nothing while the table is
 empty. Console is clean apart from the pre-existing `exchange_rates_shape`
 warning (Navasan).
+
+**Fixed 26 Aug after the first real submission (`20ec2b0`):** `t.me/GoPlaza`
+could not be submitted at all. `tg_username` has a lower-case-only CHECK and
+`telegramUsername()` returned the raw casing, so every handle with a capital
+letter failed its insert as a generic «ثبت کانال ناموفق بود». Proven against
+the database both ways before and after the fix. The link field also asks for
+an **id** now rather than a URL. See `06-gotchas`.
 
 **Us, in order:**
 
@@ -88,6 +115,33 @@ the `CRON_SECRET` that is already set.
 making our bot a channel admin, live `last_post_at`, an owner stats panel,
 private channels. The only thing phase 1 owes it is that `verified` stayed a
 separate concept from `measured`; no `verified` column was added.
+
+## /profile redesigned (26 Aug, `a0685c3`) — and two bugs it uncovered
+
+One column, four zones: who you are, what you have done, what you can change,
+where to go. Five head-counts against the user's own rows feed a stat strip and
+the destination rows.
+
+**Two real bugs came out of it, both now in `06-gotchas`:**
+
+1. **`<Toaster />` was never mounted** (`3c4f491`). Twenty client components
+   call `toast()` — every moderation queue, the owner dashboard, the claim
+   flow, the verification banner — and none of it has ever been drawn. Fixed.
+   Worth re-walking those screens now that messages will actually appear:
+   some of the copy has never been read by anyone.
+2. **`ensureUserProfile` selected six columns** while the form read ten off the
+   same object, typed `any`. The profile form has been showing empty fields for
+   saved data since 11 Aug. Fixed with one shared column list.
+
+**Not verified visually.** Build, typecheck and all six count queries pass, but
+nobody has seen the page signed in — the same wall as the welcome page, and the
+same cause: no way to hold a session here. See the magic-link entry in
+`06-gotchas`.
+
+**Small follow-up:** `calculateUserProfileProgress` in `lib/utils/progress.ts`
+is now unused by the profile (the form names the missing fields instead of
+showing a percentage). The business half of that file is still used. Delete the
+user half when someone is in there.
 
 ## Signup success page rebuilt (26 Aug, `b23e505`)
 

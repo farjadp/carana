@@ -1585,3 +1585,83 @@ another that produces the identical-looking URL. When a flow is verified only
 through the UI that generates it, the other generator is untested by
 construction. Found 26 Aug 2026 while trying to render `/auth/signup-success`
 as a signed-in user.
+
+
+## Twenty components were calling toast() and nothing was ever drawn
+
+**Symptom.** No feedback at all on actions that report through sonner —
+publishing from a moderation queue, saving an announcement, claiming a
+listing, toggling busy status. The action worked; nothing said so, and nothing
+said when it failed either.
+
+**Cause.** `<Toaster />` was never mounted. Twenty client components import
+`toast` from sonner; the renderer that draws those toasts was not in the root
+layout, so every call went nowhere. Nothing errors — sonner queues to a
+component that does not exist.
+
+**Fix.** `<Toaster />` in `app/layout.tsx`, with `dir="rtl"` (sonner follows
+the document direction only when told) and the Vazirmatn variable so a Persian
+message is not drawn in the fallback face.
+
+**Lesson.** A missing renderer is invisible to every check we run: it type-
+checks, it builds, the call site reads correctly, and the action it reports on
+succeeds. Only looking at the screen finds it — and only if you look at the
+screen *after* doing something that should produce a message. Found 26 Aug
+2026 while adding the first toast to `/profile`, which means the new code would
+have been silent too.
+
+## A `select()` that is narrower than the type reading it
+
+**Symptom.** The profile form rendered an empty avatar, phone and birth date
+for an account that had all three saved. Uploading an avatar showed it until
+the next reload, then it was gone.
+
+**Cause.** `ensureUserProfile` had selected six columns since 11 Aug while
+`ProfileForm` read `avatar_url`, `mobile_number`, `birth_date` and `bio` off
+the same object. The prop was typed `any`, so every one of those reads was
+`undefined` and nothing complained anywhere.
+
+**Fix.** One `PROFILE_COLUMNS` constant used by both queries in that file, and
+a real `AppProfile` type with the columns on it.
+
+**Lesson.** `any` on a prop does not just skip a check — it converts "this
+column was never fetched" into "this field is empty", which is a plausible
+state. The bug then looks like the user never filled the field in. Any time a
+row crosses a boundary as `any`, the column list on the other side is
+unverified by construction.
+
+
+## A lower-case CHECK and a case-preserving parser: the first real submission failed
+
+**Symptom.** Submitting `https://t.me/GoPlaza` — the project's own channel —
+returned «ثبت کانال ناموفق بود» and nothing else. Every field was valid.
+
+**Cause.** `channels.tg_username` carries
+`CHECK (tg_username ~ '^[a-z][a-z0-9_]{3,31}$')`, and `telegramUsername()`
+returned the username with whatever casing the URL had. `'GoPlaza'` fails that
+regex, Postgres raises `23514`, and the server action's catch-all turned it
+into a generic failure. **Any handle with a capital letter could never be
+submitted**, which is most of them.
+
+Two other things it broke quietly: the duplicate check
+(`.eq("tg_username", username)`) was case-sensitive, so the same channel could
+have been stored twice under two spellings, and the unique index would not
+have stopped it.
+
+**Fix.** `telegramUsername()` lower-cases what it returns — Telegram usernames
+are case-insensitive, so a canonical form is correct anyway, not merely
+convenient. Invite codes (`t.me/+abc`) are left alone: those ARE
+case-sensitive and lower-casing one produces a dead link.
+
+**Lesson.** A CHECK constraint that narrows a value's shape is only safe if
+something canonicalises the value on the way in; otherwise it is a landmine
+laid at write time and stepped on by a user, with the error surfacing as a
+generic failure message. Both were written the same afternoon by the same
+person, which is exactly when this is easiest to get wrong — the same shape as
+`citext` making a regex CHECK case-insensitive, one entry above. Found 26 Aug
+2026 on the very first real submission.
+
+**Also fixed in the same commit:** the form asked for a URL. It asks for an id
+now — `normalizeJoinUrl()` accepts `GoPlaza`, `@GoPlaza`, `t.me/GoPlaza`, a
+`telegram.me` link and a pasted URL with a query on it, and shows the resolved
+address before it is stored.

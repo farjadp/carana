@@ -1,7 +1,13 @@
 // ============================================================================
 // Source: app/profile/actions.ts
-// Version: 1.0.0 — 2026-08-12
+// Version: 1.1.0 — 2026-08-26
 // Why: Server actions for updating user profile and password reset.
+//      v1.1: accepts `bio`, folds Persian digits in the phone number, and
+//      bounds both fields. The digit fold is the boundary, not the polish —
+//      the form folds as you type so the field shows what will be stored, but
+//      the app forces RTL and a crafted request can carry «۶۴۷» straight to
+//      the column. That class of bug has broken sign-in and verification here
+//      before; see docs/06-gotchas.md.
 // ============================================================================
 "use server";
 
@@ -9,6 +15,10 @@ import { createSupabaseActionClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 import { env } from "@/lib/env";
+import { toLatinDigits } from "@/lib/utils/digits";
+
+/** Matches BIO_MAX in profile-form.tsx. */
+const BIO_MAX = 280;
 
 export async function updateUserProfile(formData: FormData) {
   try {
@@ -19,16 +29,22 @@ export async function updateUserProfile(formData: FormData) {
       return { success: false, error: "کاربر احراز هویت نشده است" };
     }
 
-    const full_name = formData.get("full_name") as string;
-    const mobile_number = formData.get("mobile_number") as string;
-    const birth_date = formData.get("birth_date") as string;
-    const avatar_url = formData.get("avatar_url") as string;
+    const full_name = formData.get("full_name") as string | null;
+    const mobile_number = formData.get("mobile_number") as string | null;
+    const birth_date = formData.get("birth_date") as string | null;
+    const avatar_url = formData.get("avatar_url") as string | null;
+    const bio = formData.get("bio") as string | null;
 
-    const updates: any = {};
-    if (full_name !== null) updates.full_name = full_name;
-    if (mobile_number !== null) updates.mobile_number = mobile_number;
+    const updates: Record<string, string | null> = {};
+    if (full_name !== null) updates.full_name = full_name.trim().slice(0, 120) || null;
+    if (mobile_number !== null) {
+      // Persian digits first. Anything else — spaces, dashes, a leading + —
+      // is kept, because this is a display field, not a parsed one.
+      updates.mobile_number = toLatinDigits(mobile_number).trim().slice(0, 32) || null;
+    }
     if (birth_date !== null) updates.birth_date = birth_date || null;
-    if (avatar_url !== null) updates.avatar_url = avatar_url;
+    if (avatar_url !== null) updates.avatar_url = avatar_url || null;
+    if (bio !== null) updates.bio = bio.trim().slice(0, BIO_MAX) || null;
 
     const { error } = await supabase
       .from("profiles")

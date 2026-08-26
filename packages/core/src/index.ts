@@ -74,3 +74,8 @@ export * from "./hours";
 // «کانال‌ها و گروه‌ها»: what a channel entry is, when it counts as alive, and
 // which of its numbers we are allowed to print as fact.
 export * from "./channels";
+
+// «اعتبار مشارکت»: the settled-contribution ladder. SQL counts (user_standing
+// aggregates); this judges — levelFor() is the only definition of the levels
+// and privilegesFor() the only map from level to capability.
+export * from "./standing";

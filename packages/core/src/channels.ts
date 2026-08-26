@@ -157,15 +157,22 @@ export function showsViewCount(views: number | null | undefined): boolean {
 // ---------------------------------------------------------------------------
 
 /**
- * The public Telegram username in a join URL, or null.
+ * The public Telegram username in a join URL, **lower-cased**, or null.
  *
- * Only `t.me/<name>` counts. `t.me/+abc`, `t.me/joinchat/…` and every
- * WhatsApp URL return null, which is what puts those rows on the `declared`
- * side of the axis: without a public username there is no public page to read.
+ * Only `t.me/<name>` counts. `t.me/+abc`, `t.me/joinchat/…` and every WhatsApp
+ * URL return null, which is what puts those rows on the `declared` side of the
+ * axis: without a public username there is no public page to read.
+ *
+ * THE LOWER-CASING IS LOAD-BEARING, TWICE. Telegram usernames are
+ * case-insensitive, so `t.me/GoPlaza` and `t.me/goplaza` are one channel and
+ * the unique index has to see one string. And `channels.tg_username` carries a
+ * `^[a-z][a-z0-9_]{3,31}$` CHECK — returning the raw casing made every handle
+ * with a capital letter fail its insert with nothing but "ثبت کانال ناموفق
+ * بود". Found 26 Aug on the first real submission, which was `t.me/GoPlaza`.
  */
 export function telegramUsername(url: string): string | null {
   const m = /^https?:\/\/(?:www\.)?t\.me\/([A-Za-z][A-Za-z0-9_]{3,31})\/?$/.exec((url ?? "").trim());
-  return m ? m[1] : null;
+  return m ? m[1].toLowerCase() : null;
 }
 
 const WHATSAPP_INVITE = /^https?:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]{6,}\/?$/;
@@ -183,6 +190,52 @@ export function isValidJoinUrl(platform: ChannelPlatform, url: string): boolean 
     );
   }
   return WHATSAPP_INVITE.test(v) || WHATSAPP_CHANNEL.test(v);
+}
+
+/**
+ * Whatever somebody actually typed, turned into the one canonical join URL —
+ * or null when it cannot be.
+ *
+ * Nobody types `https://`. They paste `t.me/GoPlaza`, or `@GoPlaza`, or just
+ * `GoPlaza`, or the whole URL with a tracking query on the end, and any of
+ * those is what they mean. Asking a form to reject four of the five is asking
+ * it to be difficult on purpose.
+ *
+ * Telegram: `@name`, `name`, `t.me/name`, `telegram.me/name` and the full URL
+ * all collapse to `https://t.me/<name>` with the name lower-cased; invite
+ * forms (`+abc`, `joinchat/abc`) keep their case, because those codes are
+ * case-SENSITIVE and lower-casing one would produce a dead link.
+ *
+ * WhatsApp: a bare invite code is deliberately NOT accepted. There is no way
+ * to tell `Kx9fA2` meant for a group from one meant for a channel, and a link
+ * we guessed the shape of is a link we cannot stand behind.
+ */
+export function normalizeJoinUrl(platform: ChannelPlatform, input: string): string | null {
+  let v = (input ?? "").trim();
+  if (!v) return null;
+  // A pasted URL often arrives with a query or a fragment attached.
+  v = v.split(/[?#]/)[0].replace(/\/+$/, "");
+
+  if (platform === "telegram") {
+    const bare = v
+      .replace(/^https?:\/\//i, "")
+      .replace(/^(?:www\.)?(?:t\.me|telegram\.me|telegram\.dog)\//i, "")
+      .replace(/^@/, "");
+    if (!bare) return null;
+
+    const invite = /^(?:\+|joinchat\/)([A-Za-z0-9_-]{6,})$/.exec(bare);
+    if (invite) return `https://t.me/+${invite[1]}`;
+
+    if (/^[A-Za-z][A-Za-z0-9_]{3,31}$/.test(bare)) return `https://t.me/${bare.toLowerCase()}`;
+    return null;
+  }
+
+  const bare = v.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+  const group = /^chat\.whatsapp\.com\/([A-Za-z0-9]{6,})$/.exec(bare);
+  if (group) return `https://chat.whatsapp.com/${group[1]}`;
+  const channel = /^whatsapp\.com\/channel\/([A-Za-z0-9]{6,})$/.exec(bare);
+  if (channel) return `https://whatsapp.com/channel/${channel[1]}`;
+  return null;
 }
 
 /** What the row's metrics source must be, given only its join URL. */
