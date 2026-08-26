@@ -23,6 +23,34 @@ one *was* stale dev cache: a hard reload showed 9,689. Both of those cost
 about a minute each to disprove, and both would have been plausible bug
 reports written from a single screenshot.
 
+**`/profile` was redesigned, and it paid for itself twice** (`a0685c3`,
+`3c4f491`). The redesign is one column and four zones instead of a settings
+form under four identical cards — two of which restated what the page already
+showed. But the two things worth remembering are what it turned up on the way.
+
+**`<Toaster />` was never mounted.** Twenty client components import `toast`
+from sonner — every moderation queue, the owner dashboard, the claim flow, the
+verification banner, the interaction bar — and the renderer those calls need
+was not in the root layout. Every «منتشر شد» and every failure message since
+the admin panel was built has gone nowhere. It is the worst shape a UI bug
+takes here: not a wrong message but no message, on exactly the actions where a
+person needs to know whether the thing happened. A moderator whose publish
+failed saw what a moderator whose publish succeeded saw. Nothing catches it —
+it type-checks, it builds, the call site reads correctly, and the underlying
+action works.
+
+**A `select()` narrower than the type reading it.** `ensureUserProfile` has
+fetched six columns since 11 Aug while the profile form read `avatar_url`,
+`mobile_number`, `birth_date` and `bio` off the same object, typed `any`. So
+those fields rendered blank for accounts that had them saved: upload an avatar,
+reload, gone. `any` on a prop does not merely skip a check — it turns "never
+fetched" into "empty", which is a state a reader will believe.
+
+Also deleted rather than restyled: a `profileStatusCopy` computed and never
+rendered, and a progress bar claiming that completing your profile lets
+«کسب‌وکارها ارتباط مؤثرتری با شما بگیرند» — businesses cannot contact users at
+all, and there is no column that would carry such a feature.
+
 **The signup-success page was rebuilt too** (`b23e505`). It had been three
 lines of implementation notes shown to a human — «سشن کاربر هم فعال شده» — on
 the first page a new account ever sees. It now answers what just happened,

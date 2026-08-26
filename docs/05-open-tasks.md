@@ -109,6 +109,33 @@ making our bot a channel admin, live `last_post_at`, an owner stats panel,
 private channels. The only thing phase 1 owes it is that `verified` stayed a
 separate concept from `measured`; no `verified` column was added.
 
+## /profile redesigned (26 Aug, `a0685c3`) — and two bugs it uncovered
+
+One column, four zones: who you are, what you have done, what you can change,
+where to go. Five head-counts against the user's own rows feed a stat strip and
+the destination rows.
+
+**Two real bugs came out of it, both now in `06-gotchas`:**
+
+1. **`<Toaster />` was never mounted** (`3c4f491`). Twenty client components
+   call `toast()` — every moderation queue, the owner dashboard, the claim
+   flow, the verification banner — and none of it has ever been drawn. Fixed.
+   Worth re-walking those screens now that messages will actually appear:
+   some of the copy has never been read by anyone.
+2. **`ensureUserProfile` selected six columns** while the form read ten off the
+   same object, typed `any`. The profile form has been showing empty fields for
+   saved data since 11 Aug. Fixed with one shared column list.
+
+**Not verified visually.** Build, typecheck and all six count queries pass, but
+nobody has seen the page signed in — the same wall as the welcome page, and the
+same cause: no way to hold a session here. See the magic-link entry in
+`06-gotchas`.
+
+**Small follow-up:** `calculateUserProfileProgress` in `lib/utils/progress.ts`
+is now unused by the profile (the form names the missing fields instead of
+showing a percentage). The business half of that file is still used. Delete the
+user half when someone is in there.
+
 ## Signup success page rebuilt (26 Aug, `b23e505`)
 
 `/auth/signup-success` was three lines of implementation notes shown to a

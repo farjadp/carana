@@ -1585,3 +1585,47 @@ another that produces the identical-looking URL. When a flow is verified only
 through the UI that generates it, the other generator is untested by
 construction. Found 26 Aug 2026 while trying to render `/auth/signup-success`
 as a signed-in user.
+
+
+## Twenty components were calling toast() and nothing was ever drawn
+
+**Symptom.** No feedback at all on actions that report through sonner —
+publishing from a moderation queue, saving an announcement, claiming a
+listing, toggling busy status. The action worked; nothing said so, and nothing
+said when it failed either.
+
+**Cause.** `<Toaster />` was never mounted. Twenty client components import
+`toast` from sonner; the renderer that draws those toasts was not in the root
+layout, so every call went nowhere. Nothing errors — sonner queues to a
+component that does not exist.
+
+**Fix.** `<Toaster />` in `app/layout.tsx`, with `dir="rtl"` (sonner follows
+the document direction only when told) and the Vazirmatn variable so a Persian
+message is not drawn in the fallback face.
+
+**Lesson.** A missing renderer is invisible to every check we run: it type-
+checks, it builds, the call site reads correctly, and the action it reports on
+succeeds. Only looking at the screen finds it — and only if you look at the
+screen *after* doing something that should produce a message. Found 26 Aug
+2026 while adding the first toast to `/profile`, which means the new code would
+have been silent too.
+
+## A `select()` that is narrower than the type reading it
+
+**Symptom.** The profile form rendered an empty avatar, phone and birth date
+for an account that had all three saved. Uploading an avatar showed it until
+the next reload, then it was gone.
+
+**Cause.** `ensureUserProfile` had selected six columns since 11 Aug while
+`ProfileForm` read `avatar_url`, `mobile_number`, `birth_date` and `bio` off
+the same object. The prop was typed `any`, so every one of those reads was
+`undefined` and nothing complained anywhere.
+
+**Fix.** One `PROFILE_COLUMNS` constant used by both queries in that file, and
+a real `AppProfile` type with the columns on it.
+
+**Lesson.** `any` on a prop does not just skip a check — it converts "this
+column was never fetched" into "this field is empty", which is a plausible
+state. The bug then looks like the user never filled the field in. Any time a
+row crosses a boundary as `any`, the column list on the other side is
+unverified by construction.
