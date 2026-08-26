@@ -23,6 +23,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { PAID_PLANS, PLATINUM_SEAT_CAP, intervalsFor, priceIdFor, type BillingInterval, type PlanId } from "@/lib/billing/plans";
+import { ensureLoyaltyCoupon } from "@/lib/loyalty/coupon";
+import { loyaltyStatusFor } from "@/lib/loyalty/status";
 import { requireUser } from "@/lib/auth/session";
 import { stripe } from "@/lib/stripe/client";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
@@ -106,6 +108,15 @@ export async function POST(req: NextRequest) {
     await admin.from("businesses").update({ stripe_customer_id: customerId }).eq("id", business.id);
   }
 
+  // «وفاداری مالک»: what continuous paid tenure has earned, recomputed here
+  // from invoices rather than taken from anything the client sent. Returns a
+  // null tier whenever the programme is switched off, so an off switch means
+  // no discount can be applied by this route at all.
+  const loyalty = await loyaltyStatusFor(supabase, business.id as string);
+  const loyaltyCoupon = loyalty.enabled && loyalty.tier
+    ? await ensureLoyaltyCoupon(loyalty.tier.percentOff)
+    : null;
+
   const base = env.baseUrl;
   const session = await s.checkout.sessions.create({
     mode: "subscription",
@@ -116,10 +127,28 @@ export async function POST(req: NextRequest) {
     automatic_tax: { enabled: true },
     customer_update: { address: "auto", name: "auto" },
     billing_address_collection: "required",
-    allow_promotion_codes: true,
+    // Stripe refuses `discounts` and `allow_promotion_codes` together, so the
+    // two are exclusive by necessity: an owner who has earned a loyalty
+    // discount gets it applied automatically and cannot also type a promo
+    // code in the same session. That is the right way round — the earned
+    // discount is the one we owe them — but it is a real trade, not an
+    // oversight, and removing the condition below breaks checkout outright.
+    ...(loyaltyCoupon
+      ? { discounts: [{ coupon: loyaltyCoupon }] }
+      : { allow_promotion_codes: true }),
     locale: "auto",
     // Both ids ride on the subscription so the webhook never has to guess.
-    subscription_data: { metadata: { business_id: business.id as string, plan, user_id: user.id } },
+    subscription_data: {
+      metadata: {
+        business_id: business.id as string,
+        plan,
+        user_id: user.id,
+        // Recorded so an invoice can be explained a year later without
+        // re-deriving tenure from whatever the tables say by then.
+        loyalty_percent_off: String(loyalty.tier?.percentOff ?? 0),
+        loyalty_tenure_months: String(loyalty.tenure.months),
+      },
+    },
     metadata: { business_id: business.id as string, plan, user_id: user.id },
     success_url: `${base}/dashboard/business/${business.id}/billing?checkout=success`,
     cancel_url: `${base}/dashboard/business/${business.id}/billing?checkout=cancelled`,
