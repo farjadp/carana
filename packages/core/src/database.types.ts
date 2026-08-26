@@ -144,6 +144,7 @@ export type Database = {
           title_en: string | null
           topic_seed: string | null
           updated_at: string
+          view_count: number
         }
         Insert: {
           admin_note?: string | null
@@ -171,6 +172,7 @@ export type Database = {
           title_en?: string | null
           topic_seed?: string | null
           updated_at?: string
+          view_count?: number
         }
         Update: {
           admin_note?: string | null
@@ -198,6 +200,7 @@ export type Database = {
           title_en?: string | null
           topic_seed?: string | null
           updated_at?: string
+          view_count?: number
         }
         Relationships: [
           {
@@ -2109,6 +2112,10 @@ export type Database = {
       has_business_access: {
         Args: { target_business_id: string; target_user_id: string }
         Returns: boolean
+      }
+      increment_blog_post_view: {
+        Args: { target_id: string }
+        Returns: undefined
       }
       increment_business_view: {
         Args: { target_id: string }

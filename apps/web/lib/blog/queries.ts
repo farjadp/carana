@@ -7,12 +7,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const POST_COLUMNS =
-  "id, slug, title, title_en, excerpt, summary_en, cover_url, cover_alt, category_slug, tags, published_at, author_name, reading_minutes, updated_at";
+  "id, slug, title, title_en, excerpt, summary_en, cover_url, cover_alt, category_slug, tags, published_at, author_name, reading_minutes, updated_at, view_count";
 
 export type PostCard = {
   id: string; slug: string; title: string; title_en: string | null; excerpt: string | null; summary_en: string | null;
   cover_url: string | null; cover_alt: string | null; category_slug: string | null; tags: string[];
   published_at: string | null; author_name: string; reading_minutes: number | null; updated_at: string;
+  view_count: number;
 };
 export type PostFull = PostCard & {
   body_md: string;

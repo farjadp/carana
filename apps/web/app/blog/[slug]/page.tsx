@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/blog/[slug]/page.tsx
-// Version: 1.1.0 — 2026-08-24
+// Version: 1.2.0 — 2026-08-24
 // Why: One post. Markdown body (GFM), FAQ block mirrored as FAQPage LD,
 //      Article LD with the English title as alternateName and summary_en as
 //      the abstract, related posts, and the "بعدش چه کار کنم" doors into the
@@ -15,6 +15,11 @@
 //          rendered at the foot and emitted as schema.org `citation`. The
 //          links are rel="nofollow noopener" because attribution is not an
 //          endorsement and the body deliberately carries no outbound links.
+//
+//      v1.2 counts views. The increment runs in the browser (see
+//      components/blog/view-counter.tsx) because this page is ISR-cached for
+//      ten minutes; the app calls the same RPC, so the figure is the total
+//      across both surfaces, not the website's share of it.
 // Env / Identity: Public. Revalidates every 10 min.
 // ============================================================================
 import type { Metadata } from "next";
@@ -22,12 +27,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, Eye } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
 import { JsonLd } from "@/components/json-ld";
 import { OG_FALLBACK } from "@/lib/seo/entity";
 import { PostCard } from "@/components/blog/post-card";
+import { BlogViewCounter } from "@/components/blog/view-counter";
 import { SuggestionBox } from "@/components/suggestion-box";
 import { fmtDate, getPost, listCategories, relatedPosts } from "@/lib/blog/queries";
 import { SITE, breadcrumbLd, faqLd } from "@/lib/seo/local";
@@ -94,6 +100,7 @@ export default async function BlogPostPage({ params }: Params) {
   return (
     <PageShell currentPath={path} currentSection="brand">
       <JsonLd data={[articleLd, breadcrumbLd([{ name: "خانه", url: "/" }, { name: "وبلاگ", url: "/blog" }, ...(cat ? [{ name: cat.name, url: `/blog/category/${cat.slug}` }] : []), { name: post.title, url: path }]), ...(post.faq?.length ? [faqLd(post.faq)] : [])]} />
+      <BlogViewCounter postId={post.id} />
       <main className="min-h-screen bg-[color:var(--bg)]">
         <article className="mx-auto max-w-3xl px-4 pt-10 md:pt-14">
           <nav className="mb-5 flex flex-wrap items-center gap-2 text-xs text-[color:var(--muted-text)]" aria-label="مسیر">
@@ -108,6 +115,10 @@ export default async function BlogPostPage({ params }: Params) {
             <span>·</span>
             <time dateTime={post.published_at ?? undefined}>{fmtDate(post.published_at)}</time>
             {post.reading_minutes ? <><span>·</span><span className="inline-flex items-center gap-1"><Clock size={12} /> {fa(post.reading_minutes)} دقیقه</span></> : null}
+            {/* Only once there is something to report. The reader's own visit
+                is counted after this render, so a fresh post shows nothing
+                rather than a "۰" that contradicts the person looking at it. */}
+            {post.view_count > 0 ? <><span>·</span><span className="inline-flex items-center gap-1"><Eye size={12} /> {fa(post.view_count)} بازدید</span></> : null}
           </div>
 
           {post.cover_url ? (

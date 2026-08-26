@@ -1,9 +1,14 @@
 // ============================================================================
 // Source: apps/mobile/src/app/blog/[slug].tsx
-// Version: 1.0.0 — 2026-08-16
+// Version: 1.1.0 — 2026-08-24
 // Why: One post, rendered from the same markdown the website renders, with the
 //      FAQ block, a search box into the directory (the point of every post)
 //      and related posts.
+//
+//      v1.1 counts the read through the same RPC the website uses, so the
+//      "بازدید" figure is one number for both surfaces. Shipped in the same
+//      change as the web half on purpose — the app has fallen behind the site
+//      four times by treating "web first, mobile later" as a plan.
 // Env / Identity: Public reads; RLS serves published rows only.
 // ============================================================================
 import { brand } from "@goplaza/core";
@@ -11,12 +16,12 @@ import { useCallback, useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronLeft, ChevronRight, Clock, Search, Share2 } from "lucide-react-native";
+import { ChevronLeft, ChevronRight, Clock, Eye, Search, Share2 } from "lucide-react-native";
 
 import { BrandLoading, MerlonGlyph } from "../../components/brand-mark";
 import { Markdown } from "../../components/markdown";
 import { SuggestionBox } from "../../components/suggestion-box";
-import { faDate, getPost, listBlogCategories, relatedPosts, type BlogCategory, type Post, type PostCard } from "../../lib/blog";
+import { faDate, getPost, incrementPostView, listBlogCategories, relatedPosts, type BlogCategory, type Post, type PostCard } from "../../lib/blog";
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
 const WEB = brand.url;
@@ -38,6 +43,10 @@ export default function BlogPostScreen() {
       const found = await getPost(decodeURIComponent(slug ?? ""));
       setPost(found);
       if (found) {
+        // Counted once the post is actually on screen, not on navigation, so
+        // a failed fetch is not recorded as a read. Awaiting it would delay
+        // the related posts for a number nobody is waiting on.
+        void incrementPostView(found.id);
         const [rel, categories] = await Promise.all([relatedPosts(found), listBlogCategories()]);
         setRelated(rel);
         setCats(categories);
@@ -92,6 +101,15 @@ export default function BlogPostScreen() {
             <>
               <Text style={styles.meta}>·</Text>
               <View style={styles.metaTime}><Clock size={11} color={colors.mutedText} /><Text style={styles.meta}>{fa(post.reading_minutes)} دقیقه</Text></View>
+            </>
+          ) : null}
+          {/* Only once there is something to report. This reader's own visit
+              is counted after the fetch that produced this number, so a fresh
+              post shows nothing rather than a "۰" the reader can disprove. */}
+          {post.view_count > 0 ? (
+            <>
+              <Text style={styles.meta}>·</Text>
+              <View style={styles.metaTime}><Eye size={11} color={colors.mutedText} /><Text style={styles.meta}>{fa(post.view_count)} بازدید</Text></View>
             </>
           ) : null}
         </View>
