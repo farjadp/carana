@@ -21,6 +21,28 @@ const SHAPES: Record<string, z.ZodTypeAny> = {
     enabled: z.boolean(),
     daily_cap: z.number().int().min(0).max(10_000),
   }),
+  // «اعتبار مشارکت» — the green knobs of docs/16. Safe to retune at runtime
+  // because settlement freezes points into each event; a change here touches
+  // only future settlements.
+  [SETTING_KEYS.standing]: z.object({
+    enabled: z.boolean(),
+    public_display: z.boolean(),
+    thresholds: z.object({
+      level1: z.object({
+        xp: z.number().int().min(0).max(1_000_000),
+        confirmed: z.number().int().min(0).max(100_000),
+        accuracy: z.number().min(0).max(1),
+        kinds: z.number().int().min(0).max(50),
+      }),
+      level2: z.object({
+        xp: z.number().int().min(0).max(1_000_000),
+        confirmed: z.number().int().min(0).max(100_000),
+        accuracy: z.number().min(0).max(1),
+        kinds: z.number().int().min(0).max(50),
+      }),
+    }),
+    maintenance_window_days: z.number().int().min(7).max(3650),
+  }),
 };
 
 export async function POST(req: NextRequest) {
