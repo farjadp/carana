@@ -1,5 +1,47 @@
 # 2026-08-26 (later) — «کانال‌ها و گروه‌ها», and a header that had run out of room
 
+**Addendum, same evening.** Three things changed after the entry below was
+written, and two of them contradict it.
+
+**The migration was already applied.** The entry below says it had not been
+run. It had — `channels`, `channel_categories`, `channel_member_snapshots` and
+`channel_events` all answer on the project the app uses, and the eight seeded
+categories render as filter chips. Not run by this session; either Farjad or
+the concurrent session in the same worktree did it. The lesson is small and
+annoying: "I did not do it" is not "it was not done", and one `curl` against
+the REST endpoint would have settled it before the claim went into a commit
+message.
+
+**The dev server did start, on the third attempt, and running it earned its
+keep immediately.** The first screenshot of the new «راهنما» menu showed a
+transparent panel with the hero bleeding through — which was the fade
+transition caught mid-frame, not a bug, and reading it as a bug would have
+produced a fix for nothing. The second screenshot showed an opaque
+two-column panel. Separately, the home hero rendered «۱۱۲۴ کسب‌وکار» against a
+directory of 9,689 — the exact shape of the mobile bug from 24 Aug — and that
+one *was* stale dev cache: a hard reload showed 9,689. Both of those cost
+about a minute each to disprove, and both would have been plausible bug
+reports written from a single screenshot.
+
+**«چرا گوپلازا؟» is gone from the home page** (Farjad's call). The four-card
+grid asserted the site was trustworthy; the channels band that replaced it
+shows six real channels with the date each last posted and the date we checked.
+One is a claim about ourselves and the other is evidence, and the page had room
+for one of them. The band has two honest modes — freshest-by-activity, and
+newest-by-registration when nothing has a readable timestamp yet — with the
+heading saying which, because calling a WhatsApp group with no readable date
+"recently active" is the precise claim this section exists to stop making.
+`/channels` became a real index in the same change: paged, three sort orders,
+and an activity filter that converts the chip into a `last_post_at` range using
+the thresholds imported from core rather than retyped.
+
+What is still unproven is now much narrower: **anything that needs a row.** The
+table is empty, so no card, detail page, growth block or queue entry has ever
+been seen with data in it. Seeding is the only remaining job.
+
+## The original entry, as written
+
+
 A directory of Telegram channels/groups and WhatsApp groups. Designed in the
 morning as one doc, built in the afternoon as one commit. `8dcdbfc` (design),
 `1c18c35` (build).

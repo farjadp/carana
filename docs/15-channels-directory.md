@@ -1,7 +1,7 @@
 # Channels directory — design
 
-**Written:** 2026-08-26 · **Status:** **BUILT on web, 26 Aug** (`1c18c35`) —
-the migration still has to be run · **Owner:** Claude
+**Written:** 2026-08-26 · **Status:** **BUILT on web and LIVE, 26 Aug** —
+the migration is applied · **Owner:** Claude
 **Decisions by Farjad:** 26 Aug (brainstorm, recorded below with what each rules out)
 **Name:** «کانال‌ها و گروه‌ها» (Farjad, 26 Aug)
 
@@ -19,15 +19,18 @@ band, and the header rebuild the new section forced (eight triggers → five).
 Not built: mobile, the reconfirm reminder email, and any owner-facing stats
 panel. All three follow patterns already in the repo.
 
-**The migration has not been run.** Until it is, every read of the table
-errors and every surface falls back to its empty state — `/channels` renders
-its "nothing yet" panel, the home band returns null, the admin badge reads
-zero. Reachable and empty, not broken. Run it in the Supabase SQL Editor;
-`pnpm db:push` still hits the CLI's interactive password prompt.
+**The migration is applied.** Verified against the project the app actually
+uses: `channels`, `channel_categories`, `channel_member_snapshots` and
+`channel_events` all answer, and the eight seeded categories render as filter
+chips on `/channels`. Not run by this session — either Farjad or the
+concurrent session did it while this was being written.
 
-**Not verified by running.** `next build` passes and typecheck is clean, but
-the dev server could not be started in this session, so no page in this
-section has ever been rendered. See `05-open-tasks`.
+**Verified by running, in part.** The dev server came up on the second attempt
+and `/channels`, the filtered variant, the rebuilt header and the home page
+were all rendered and read. What is still unverified is anything that needs a
+row: no card, no detail page, no admin queue entry has ever been seen with
+data in it, because the table is empty. Seeding is the next step — see
+`05-open-tasks`.
 
 A directory of Telegram channels/groups and WhatsApp groups serving the
 Iranian community in Canada. Any subject: a Toronto news channel, a Vancouver
@@ -249,7 +252,7 @@ repo has already shipped a report button that only raised a toast.
 
 | Surface | Route |
 |---|---|
-| Index — filter by platform / category / city / language / activity | `/channels` |
+| Index — paged (24/page), sorted, filtered by platform / subject / city / activity | `/channels` |
 | Category | `/channels/category/[slug]` |
 | Detail (English slug) | `/channels/[slug]` |
 | Submit | `/channels/submit` (auth required) |

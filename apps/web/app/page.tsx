@@ -38,7 +38,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, MapPin, ArrowLeft, Star, ShieldCheck, Bookmark, MessageSquare, CheckCircle2, Download, Megaphone, Users } from "lucide-react";
+import { Search, ArrowLeft, Star, ShieldCheck, Bookmark, MessageSquare, Download, Megaphone, Users } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
@@ -336,45 +336,22 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 8. Channels and groups. Renders nothing until something is
-            published — see components/channels/home-channels.tsx. It sits
-            above the blog because it is the other half of the same promise:
-            the directory knows what is still there. */}
-        <HomeChannels />
-
-        {/* 9. The blog. It used to be reachable from one link inside one
+        {/* 8. The blog. It used to be reachable from one link inside one
             dropdown, so nothing written there was ever read. Renders nothing
             when no post is published — see components/blog/latest-posts.tsx. */}
         <HomeLatestPosts />
 
-        {/* 10. Why this directory, and how it stays honest. Previously two
-            sections — a four-card "چرا GOPLAZA؟" and a paragraph headed
-            "اطلاعات قابل اعتماد" — making the same argument twice. */}
-        <section className="border-t border-gray-100 bg-gray-50 px-4 py-16">
-          <div className="mx-auto max-w-7xl">
-            <SectionHead
-              title="چرا گوپلازا؟"
-              subtitle="یک دایرکتوری که فقط چیزی را نشان می‌دهد که پشتش داده‌ی واقعی هست."
-              center
-            />
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-              <Why icon={<MapPin className="h-6 w-6" />} title="تمرکز اختصاصی">
-                مرجع تخصصی کسب‌وکارهای ایرانیان کانادا، بدون نتایج نامربوط.
-              </Why>
-              <Why icon={<Search className="h-6 w-6" />} title="جستجوی فارسی‌فهم">
-                نام، خدمت، دسته یا شهر — فارسی یا انگلیسی، حتی با کیبورد اشتباه.
-              </Why>
-              <Why icon={<ShieldCheck className="h-6 w-6" />} title="نشان تأیید واقعی">
-                نشان یعنی مالکیت با پیامک یا ایمیل اثبات شده — فروشی نیست، و شش‌ماهه تازه می‌شود.
-              </Why>
-              <Why icon={<CheckCircle2 className="h-6 w-6" />} title="انتشار کنترل‌شده">
-                پروفایل‌ها و نظرهای عمومی پیش از انتشار بررسی می‌شوند؛ یادداشت‌های شخصی خصوصی می‌مانند.
-              </Why>
-            </div>
-          </div>
-        </section>
+        {/* 9. Channels and groups, in the slot the «چرا گوپلازا؟» card grid
+            held until 26 Aug (Farjad's call). That grid asserted the site was
+            trustworthy in four cards; this shows six real channels with the
+            date each last posted and the date we checked. One is a claim about
+            ourselves and the other is evidence, and the page had room for one.
+            Renders nothing while nothing is published, and relabels itself
+            when it can only show newly-added entries — see
+            components/channels/home-channels.tsx. */}
+        <HomeChannels />
 
-        {/* 11. Business owner path */}
+        {/* 10. Business owner path */}
         <section className="relative overflow-hidden bg-[color:var(--lajvard)] px-4 py-20 text-white">
           <div className="absolute inset-0 bg-black/10" />
           <div className="relative z-10 mx-auto max-w-4xl text-center">
@@ -403,14 +380,14 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 12. Ask the visitor what is missing — text or voice */}
+        {/* 11. Ask the visitor what is missing — text or voice */}
         <section className="border-t border-gray-100 bg-white px-4 py-16">
           <div className="mx-auto max-w-3xl">
             <SuggestionBox page="/" />
           </div>
         </section>
 
-        {/* 13. The app — a working miniature of the real UI, not a dead frame */}
+        {/* 12. The app — a working miniature of the real UI, not a dead frame */}
         <section className="relative overflow-hidden bg-[#14213d] px-4 py-24 text-[#f6f1e8]">
           <style>{`
             @keyframes app-float { 0%,100% { transform: rotate(-5deg) translateY(0); } 50% { transform: rotate(-5deg) translateY(-10px); } }
@@ -621,18 +598,6 @@ function SectionHead({
     <div className={`${bare ? "" : "mb-8"} ${center ? "text-center" : ""}`}>
       <h2 className="text-2xl font-bold md:text-3xl">{title}</h2>
       {subtitle ? <p className="mt-1.5 text-sm text-gray-500">{subtitle}</p> : null}
-    </div>
-  );
-}
-
-function Why({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[color:var(--lajvard-light)]/20 text-[color:var(--lajvard)]">
-        {icon}
-      </div>
-      <h3 className="mb-2 text-lg font-bold">{title}</h3>
-      <p className="text-sm leading-relaxed text-gray-600">{children}</p>
     </div>
   );
 }

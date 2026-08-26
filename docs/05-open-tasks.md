@@ -1,9 +1,13 @@
 # Open tasks
 
-**Updated:** 2026-08-26 — the **channels directory** «کانال‌ها و گروه‌ها» is
-**built on web** (`1c18c35`) and waiting on one SQL Editor run from Farjad.
-The header was rebuilt in the same commit: eight top-level triggers down to
-five. Everything from 25 Aug follows unchanged.
+**Updated:** 2026-08-26 (late) — the **channels directory** «کانال‌ها و
+گروه‌ها» is **built and live**; the migration turned out to be applied
+already. It now owns the home-page slot the «چرا گوپلازا؟» card grid held
+(Farjad, 26 Aug) and `/channels` is a real paged, sorted, filterable index.
+The header was rebuilt in the same work: eight top-level triggers down to
+five. **It has been run and looked at.** What is still unproven is anything
+that needs a row — the table is empty. Everything from 25 Aug follows
+unchanged.
 
 **Updated:** 2026-08-25 — **GPLZ Link** is built end to end and waiting on two
 dashboard steps from Farjad; its remaining engineering is the first section
@@ -17,70 +21,94 @@ both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
 
-## Channels directory — BUILT 26 Aug (`1c18c35`); one thing on Farjad
+## Channels directory — LIVE 26 Aug; it needs rows, not code
 
 «کانال‌ها و گروه‌ها» — Telegram channels/groups and WhatsApp groups, any
 subject, free. Design and the reasoning behind every fork:
-`docs/15-channels-directory.md`. Read it before touching any of this; three of
-the items below only make sense with the `metrics_source` axis in mind.
+`docs/15-channels-directory.md`. Read it before touching any of this.
 
-**Farjad — one step, and nothing in this section works without it:**
+**The migration is applied** — verified against the project the app uses:
+`channels`, `channel_categories`, `channel_member_snapshots` and
+`channel_events` all answer, and the eight seeded categories render as filter
+chips. Not applied by the session that wrote it; either Farjad or the
+concurrent session ran it.
 
-1. **Run `supabase/migrations/20260830410000_channels.sql` in the Supabase SQL
-   Editor.** Not `pnpm db:push` — that still hits the CLI's interactive
-   password prompt, the same wall the 19 Aug migrations hit. Until it runs,
-   every read of the table errors and every surface falls back to its empty
-   state: `/channels` shows its "nothing yet" panel, the home band renders
-   nothing, the admin badge reads zero. **Reachable and empty, not broken** —
-   so this is not urgent in the way a white screen would be, but the section
-   cannot hold a single row until it is done.
-
-   Also set **`CHANNEL_METRICS_PER_RUN`** on Vercel if 120/day is the wrong
-   pace. The cron is in `apps/web/vercel.json` at 06:40 UTC.
+**What was verified by running** (dev server, 26 Aug): `/channels` empty state,
+`/channels` with filters applied, the rebuilt header including the new
+two-column «راهنما» panel, and the home page — where the «چرا گوپلازا؟» grid
+is gone and the channels band correctly renders nothing while the table is
+empty. Console is clean apart from the pre-existing `exchange_rates_shape`
+warning (Navasan).
 
 **Us, in order:**
 
-2. **Nothing in this section has ever been rendered.** `next build` passes and
-   typecheck is clean, but the dev server would not start in this session
-   (`pnpm --filter @goplaza/web dev` hung before printing a line), so every
-   page here has been verified by compiler only. On this project that is the
-   weakest kind of evidence there is — the hero that read «۱٬۰۰۰ کسب‌وکار»
-   type-checked perfectly. Run it, walk `/channels`, `/channels/submit`,
-   `/dashboard/channels` and `/admin/channels`, and submit one real channel end
-   to end before anything is promoted anywhere.
+1. **Seed it — this is the whole remaining job.** Everything is built and
+   nothing has ever been seen with data in it: no card, no detail page, no
+   admin queue entry, no home band. Twenty or thirty real, well-known channels
+   through `/channels/submit`, approved at `/admin/channels`.
 
-3. **The cron's parser is unverified against a live page.** `readTelegramMetrics`
-   parses `t.me/s/<name>` HTML that nobody has fetched yet. Call
-   `/api/cron/channel-metrics?n=1` as an admin against one real public channel
-   and check the four numbers it writes. Telegram owes us nothing and can
-   change that markup any day; every failure is already absorbed rather than
-   thrown, and three consecutive failures demote the row to `declared`, but a
-   parser that has never parsed anything is not a parser yet.
+   **Do not invent entries.** Every row is a claim about something that
+   exists, and a made-up one is the exact failure this section was built to
+   expose in other people's link lists.
 
-4. **Seed it.** An empty directory is honest and useless. Twenty or thirty
-   real, well-known channels through `/channels/submit` would make the section
-   worth the nav slot it now occupies. Do NOT invent entries — every row here
-   is a claim about something that exists.
+   Prefer public `t.me/<name>` links: those are the ones the daily cron can
+   measure. A section seeded entirely with invite links would show
+   «بررسی خودکار برای این مورد ممکن نیست» on every card and look like the
+   feature does not work.
 
-5. **The reconfirm reminder email.** Declared rows carry `confirm_by` (90 days)
+2. **The cron's parser is unverified against a live page.** `readTelegramMetrics`
+   parses `t.me/s/<name>` HTML that nobody has fetched yet. Once there is one
+   measurable row, call `/api/cron/channel-metrics?n=1` as an admin and check
+   the four numbers it writes. Failures are absorbed by design, so a broken
+   parser looks exactly like a set of unreachable channels — quiet, and wrong.
+
+3. **Then look at a populated page.** The card, the detail page's four metric
+   tiles, the growth block (which needs two snapshots a month apart, so it will
+   not appear for weeks), and the view-count floor.
+
+4. **The reconfirm reminder email.** Declared rows carry `confirm_by` (90 days)
    and today nothing tells the submitter before it passes; the entry simply
    leaves the index. Reuse the reminder-stage pattern in
    `verification-status.ts` and the mail shape from `5c80228`.
 
-6. **Mobile read side.** List + detail. `channelActivity()` is already in
-   `@goplaza/core`, so there is nothing to re-derive — this is the parity
-   lesson from 24 Aug applied in advance rather than after.
+5. **Mobile read side.** List + detail. `channelActivity()` is already in
+   `@goplaza/core`, so there is nothing to re-derive.
 
-7. **Watch the first renames.** The cron pushes a materially renamed channel
-   back to `pending_moderation`. `titleChangedMaterially()` deliberately
-   ignores emoji, punctuation and one title containing the other, but its
-   threshold has never met a real rename. If the queue fills with false alarms
-   it will get ignored, which is worse than not having the check.
+6. **Watch the first renames.** The cron pushes a materially renamed channel
+   back to `pending_moderation`. `titleChangedMaterially()` ignores emoji,
+   punctuation and one title containing the other, but its threshold has never
+   met a real rename. A queue full of false alarms is a queue that gets
+   ignored, which is worse than not having the check.
+
+**Farjad, optional:** `CHANNEL_METRICS_PER_RUN` on Vercel if 120 channels a day
+is the wrong pace. The cron is in `apps/web/vercel.json` at 06:40 UTC and uses
+the `CRON_SECRET` that is already set.
 
 **Phase 2, not started, not designed:** the Telegram bot — ownership proof by
 making our bot a channel admin, live `last_post_at`, an owner stats panel,
 private channels. The only thing phase 1 owes it is that `verified` stayed a
 separate concept from `measured`; no `verified` column was added.
+
+## Home page: «چرا گوپلازا؟» replaced by the channels band (26 Aug)
+
+Farjad's call. The four-card grid asserted the site was trustworthy; the band
+shows six real channels with the date each last posted and the date we checked.
+One is a claim about ourselves and the other is evidence.
+
+The band has **two honest modes and the heading says which**: normally the
+freshest channels (rows with a real `last_post_at`, in practice the public
+Telegram ones the cron can read), and when none of those exist yet, the most
+recently *added* entries under a different heading. Calling a WhatsApp group
+with no readable timestamp "recently active" would be the exact claim this
+section exists to stop making. It renders nothing at all while the table is
+empty, which is what the home page does today.
+
+`/channels` became a real index in the same change: 24 per page with a pager,
+three sort orders (freshness — the default — members, newest), and filters for
+platform, subject, city and **activity**. Activity is still computed from
+`last_post_at` at read time, so the filter converts the chip into a timestamp
+range using the same thresholds `channelActivity()` uses, imported from core
+rather than retyped — the chip and the badge cannot drift apart.
 
 ## Header rebuilt — 26 Aug, same commit
 
@@ -96,9 +124,10 @@ its own breakpoint (`06-gotchas`, the 900→960px move).
 - Nav order is now data: one `NAV` array of items-or-groups, instead of two
   arrays concatenated, which had pinned every menu to the end of the bar.
 
-**Unverified visually.** Nobody has looked at the new bar or the sectioned
-menu panel at any width. The two-column panel is new CSS
-(`.header-nav-menu-panel.is-sectioned`) and has never been on screen.
+**Verified at 1280px** on 26 Aug: five triggers with room to spare, and the
+«راهنما» panel opens as two labelled columns («استفاده از گوپلازا»،
+«درباره ما») over an opaque white panel. Not yet checked at 960–1100px or on
+mobile, where the bar has overflowed before.
 
 ## GPLZ Link — BUILT 25 Aug; two on Farjad, three on us
 
