@@ -60,24 +60,6 @@ export const QUIET_FAILURE_KINDS = [
 export type QuietFailure = (typeof QUIET_FAILURE_KINDS)[number];
 
 /**
- * `peiman@gmail.com` → `pe•••@gmail.com`.
- *
- * system_errors is diagnosis, not a copy of the data that failed — but a
- * support report always arrives as "someone says X is broken", and a row that
- * cannot be tied to a person answers nothing. The masked form plus the
- * timestamp is enough to match a complaint without turning this table into an
- * address book.
- */
-export function maskEmail(email: string | null | undefined): string | null {
-  if (!email) return null;
-  const at = email.indexOf("@");
-  if (at < 1) return "•••";
-  const local = email.slice(0, at);
-  const head = local.slice(0, Math.min(2, local.length));
-  return `${head}•••${email.slice(at)}`;
-}
-
-/**
  * Record a failure the product deliberately swallowed.
  *
  * Never awaited by callers and never allowed to throw: a reporting failure

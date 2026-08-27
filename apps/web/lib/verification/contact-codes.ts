@@ -10,7 +10,7 @@
 // ============================================================================
 import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 
-import { maskEmail, reportQuietFailure } from "@/lib/observability/report";
+import { reportQuietFailure } from "@/lib/observability/report";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/send";
 import { verificationCodeEmail } from "@/lib/email/templates";
@@ -47,6 +47,10 @@ function safeEquals(a: string, b: string) {
  * the other five (cooldown, missing address, missing handset, a failed insert)
  * wrote nothing at all. A support report of "the email code errors" could not
  * be told apart from a code that was sent and never arrived.
+ *
+ * The address is recorded in full (see migration 20260830480000): it is the
+ * only thing that ties one of these rows to the person who wrote in. The code
+ * itself is never recorded — that is the line.
  */
 function reportCodeFailure(
   userId: string,
@@ -58,7 +62,7 @@ function reportCodeFailure(
     channel: type,
     reason,
     user_id: userId,
-    email: type === "email" ? maskEmail(email) : undefined,
+    email: type === "email" ? email ?? null : undefined,
   });
 }
 

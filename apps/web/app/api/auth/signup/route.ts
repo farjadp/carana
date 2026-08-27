@@ -6,7 +6,7 @@
 // ============================================================================
 import { type NextRequest, NextResponse } from "next/server";
 
-import { maskEmail, reportQuietFailure } from "@/lib/observability/report";
+import { reportQuietFailure } from "@/lib/observability/report";
 import { serverEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { createSupabaseRouteHandlerClient } from "@/lib/supabase/route-handler";
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   // there is no user_activity_logs entry and nothing to attach one to. Before
   // this, "اجازه ثبت نمیده" was unanswerable.
   const fail = (stage: string, reason: string, status: number) => {
-    reportQuietFailure("signup_failed", { stage, reason, email: maskEmail(email) });
+    reportQuietFailure("signup_failed", { stage, reason, email });
     return NextResponse.json({ error: reason }, { status });
   };
 
