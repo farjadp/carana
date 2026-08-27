@@ -49,6 +49,7 @@ export default async function StandingExplainerPage() {
     <InnerPage
       currentPath="/standing"
       currentSection="business"
+      hero="wash"
       eyebrow="اعتبار مشارکت"
       title="امتیاز وقتی شمرده می‌شود که درست از آب دربیاید"
       description="پلازا را آدم‌ها کامل می‌کنند: کانالی که ثبت می‌شود، ساعت کاری‌ای که اصلاح می‌شود، نظری که نوشته می‌شود. این صفحه می‌گوید این مشارکت‌ها چطور شمرده می‌شوند و چه چیزی باز می‌کنند."
@@ -69,7 +70,7 @@ export default async function StandingExplainerPage() {
 
       {/* 1. The one idea. */}
       <section className="mb-10">
-        <h2 className="text-lg font-black text-[color:var(--text)]">
+        <h2 className="text-xl font-black text-[color:var(--text)] md:text-2xl">
           امتیاز داده نمی‌شود؛ تسویه می‌شود
         </h2>
         <p className="mt-2 text-sm leading-7 text-[color:var(--text)]">
@@ -98,7 +99,7 @@ export default async function StandingExplainerPage() {
       {/* 2. What counts — live from standing_rules. */}
       {active.length > 0 ? (
         <section className="mb-10">
-          <h2 className="text-lg font-black text-[color:var(--text)]">چه چیزی شمرده می‌شود</h2>
+          <h2 className="text-xl font-black text-[color:var(--text)] md:text-2xl">چه چیزی شمرده می‌شود</h2>
           <div className="mt-3 overflow-x-auto rounded-xl border border-[color:var(--line)]">
             <table className="w-full min-w-[420px] text-sm">
               <thead>
@@ -130,7 +131,7 @@ export default async function StandingExplainerPage() {
 
       {/* 3. Levels — live thresholds. */}
       <section className="mb-10">
-        <h2 className="text-lg font-black text-[color:var(--text)]">چهار سطح</h2>
+        <h2 className="text-xl font-black text-[color:var(--text)] md:text-2xl">چهار سطح</h2>
         <p className="mt-2 text-sm leading-7 text-[color:var(--muted-text)]">
           هر سطح یک چیز واقعی باز می‌کند. سطحی که چیزی باز نکند، وجود ندارد.
         </p>
@@ -178,7 +179,7 @@ export default async function StandingExplainerPage() {
 
       {/* 4. Decay + accuracy. */}
       <section className="mb-10">
-        <h2 className="text-lg font-black text-[color:var(--text)]">
+        <h2 className="text-xl font-black text-[color:var(--text)] md:text-2xl">
           سطح نگه داشته می‌شود، نه گرفته
         </h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -204,7 +205,7 @@ export default async function StandingExplainerPage() {
 
       {/* 5. Badges. */}
       <section className="mb-10">
-        <h2 className="text-lg font-black text-[color:var(--text)]">نشان‌ها</h2>
+        <h2 className="text-xl font-black text-[color:var(--text)] md:text-2xl">نشان‌ها</h2>
         <p className="mt-2 text-sm leading-7 text-[color:var(--muted-text)]">
           نشان‌ها <b>هیچ چیزی باز نمی‌کنند</b>. سطح یعنی اجازه، نشان یعنی
           خاطره — اگر نشان هم اجازه بدهد، می‌شود سیستم دوم و چیز دومی برای
@@ -229,7 +230,7 @@ export default async function StandingExplainerPage() {
 
       {/* 6. The refusals — the part that makes the rest believable. */}
       <section className="mb-10">
-        <h2 className="text-lg font-black text-[color:var(--text)]">
+        <h2 className="text-xl font-black text-[color:var(--text)] md:text-2xl">
           چیزهایی که این سیستم عمداً نیست
         </h2>
         <ul className="mt-3 space-y-2 text-sm leading-7 text-[color:var(--text)]">

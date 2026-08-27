@@ -21,12 +21,19 @@ const P: Record<string, { label: string; icon: React.ReactNode }> = {
 
 export default function ReleasesPage() {
   return (
-    <InnerPage currentPath="/releases" currentSection="brand" eyebrow="نسخه‌ها" title="چه چیزی عوض شد." description="هر نسخه، به زبان آدمیزاد. وب خودکار به‌روز است؛ اپ را از صفحه‌ی دانلود بگیرید.">
+    <InnerPage
+      currentPath="/releases"
+      currentSection="brand"
+      hero="wash"
+      eyebrow="نسخه‌ها"
+      title="چه چیزی عوض شد."
+      description="هر نسخه، به زبان آدمیزاد. وب خودکار به‌روز است؛ اپ را از صفحه‌ی دانلود بگیرید."
+    >
       <ol className="relative border-r-2 border-[color:var(--line)] pr-6 space-y-8" dir="rtl">
         {RELEASES.map((r, i) => (
           <li key={r.version} className="relative">
             <span className={`absolute -right-[31px] top-1.5 w-4 h-4 rounded-full border-4 border-[color:var(--bg)] ${i === 0 ? "bg-[color:var(--annabi)]" : "bg-[color:var(--muted-text)]"}`} />
-            <div className="rounded-2xl bg-white border border-[color:var(--line)] p-5">
+            <div className={`rounded-2xl border bg-white p-5 ${i === 0 ? "border-[color:var(--annabi)]/30 shadow-[0_16px_40px_rgba(122,24,49,0.08)]" : "border-[color:var(--line)]"}`}>
               <div className="flex flex-wrap items-center gap-2 mb-1">
                 <span className="text-lg font-black text-[color:var(--text)]" dir="ltr">v{r.version}</span>
                 {i === 0 ? <span className="text-[11px] font-bold bg-[color:var(--annabi)] text-[#f6f1e8] px-2 py-0.5 rounded-full">جدیدترین</span> : null}
@@ -36,7 +43,7 @@ export default function ReleasesPage() {
                 </span>
               </div>
               <div className="font-bold text-[color:var(--text)]">{r.title}</div>
-              <ul className="mt-2 space-y-1 text-sm text-[color:var(--text)]/80 list-disc pr-5">
+              <ul className="mt-2.5 list-disc space-y-1.5 pr-5 text-[13px] leading-7 text-[color:var(--text)]/80">
                 {r.highlights.map((h) => <li key={h}>{h}</li>)}
               </ul>
             </div>

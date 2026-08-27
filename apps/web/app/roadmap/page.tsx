@@ -16,20 +16,29 @@ export const metadata: Metadata = {
 
 export default function RoadmapPage() {
   return (
-    <InnerPage currentPath="/roadmap" currentSection="brand" eyebrow="رودمپ" title="به کجا می‌رویم." description="سه ستون: همین حالا، بعدی، انجام‌شده. تاریخ قول نمی‌دهیم؛ ترتیب را قول می‌دهیم.">
-      <div className="grid md:grid-cols-3 gap-4" dir="rtl">
-        {ROADMAP.map((col) => (
-          <section key={col.when} className="rounded-3xl bg-white border border-[color:var(--line)] p-5">
-            <h2 className="font-black text-[color:var(--text)] mb-3 flex items-center gap-2">
-              <svg viewBox="0 0 18 18" width="11" height="11" aria-hidden><path fill="#c9a24b" d="M0,18 V12 H6 V6 H12 V0 H18 V18 Z" /></svg>{col.when}
-            </h2>
-            <ul className="space-y-3">
+    <InnerPage
+      currentPath="/roadmap"
+      currentSection="brand"
+      hero="wash"
+      eyebrow="رودمپ"
+      title="به کجا می‌رویم."
+      description="سه ستون: همین حالا، بعدی، انجام‌شده. تاریخ قول نمی‌دهیم؛ ترتیب را قول می‌دهیم."
+    >
+      <div className="grid gap-4 md:grid-cols-3" dir="rtl">
+        {ROADMAP.map((col, i) => (
+          <section key={col.when} className="rounded-3xl border border-[color:var(--line)] bg-white p-6">
+            {/* The stage is the heading. The gold glyph that used to sit
+                beside it decorated three columns identically and told the
+                reader nothing about which stage they were in. */}
+            <span className={`block h-1 w-10 rounded-full ${i === 0 ? "bg-[color:var(--annabi)]" : i === 1 ? "bg-[color:var(--lajvard)]" : "bg-emerald-600"}`} aria-hidden />
+            <h2 className="mb-4 mt-4 text-lg font-black text-[color:var(--text)]">{col.when}</h2>
+            <ul className="space-y-4">
               {col.items.map((it) => (
                 <li key={it.title} className="flex gap-2.5">
                   {it.done ? <CheckCircle2 size={18} className="text-emerald-600 shrink-0 mt-0.5" /> : <Circle size={18} className="text-[color:var(--line)] shrink-0 mt-0.5" />}
-                  <div>
-                    <div className={`font-bold ${it.done ? "text-[color:var(--muted-text)] line-through decoration-1" : "text-[color:var(--text)]"}`}>{it.title}</div>
-                    <p className="text-sm text-[color:var(--muted-text)] leading-relaxed">{it.body}</p>
+                  <div className="min-w-0">
+                    <div className={`font-bold leading-6 ${it.done ? "text-[color:var(--muted-text)] line-through decoration-1" : "text-[color:var(--text)]"}`}>{it.title}</div>
+                    <p className="mt-1 text-[13px] leading-7 text-[color:var(--muted-text)]">{it.body}</p>
                   </div>
                 </li>
               ))}

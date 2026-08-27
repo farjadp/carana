@@ -27,6 +27,7 @@ export default function DownloadPage() {
     <InnerPage
       currentPath="/download"
       currentSection="brand"
+      hero="wash"
       eyebrow="دانلود"
       title="پلازا را همراه داشته باش."
       description={`نسخه‌ی ${fa(APP_VERSION)} — همان حساب سایت، همان کسب‌وکارها، با تماس و مسیریابی یک‌لمسی. رایگان.`}
