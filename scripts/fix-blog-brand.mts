@@ -1,7 +1,8 @@
 // ============================================================================
 // Source: scripts/fix-blog-brand.mts
 // Version: 1.0.0 — 2026-08-26
-// Why: `pnpm check:brand` scans SOURCE. It has never scanned the database, and
+// Why: `pnpm check:brand` scans SOURCE, and the database drifts out from under
+//      it. Twice now. It has never scanned the database, and
 //      the blog is content: 23 of 74 published posts were still telling readers
 //      "با چارانا ..." eight days after the rebrand, live on goplaza.ca. The
 //      gap surfaced when the Telegram channel broadcast one of those excerpts
@@ -49,6 +50,13 @@ const supabase = createClient(url, key, { auth: { persistSession: false } });
  */
 const RULES: { find: RegExp; replace: string }[] = [
   { find: /چارانا/g, replace: brand.nameFa },
+  // Added 2026-08-26, hours after this script first ran. The Persian display
+  // form was shortened گوپلازا → پلازا that same day, which means the 23 posts
+  // this script had already "fixed" were wrong again by evening: it wrote
+  // whatever brand.nameFa said at the moment it ran, and the answer changed.
+  // That is the argument for running it on a schedule rather than once — the
+  // database does not re-read brand.ts on its own.
+  { find: /گوپلازا/g, replace: brand.nameFa },
   { find: /čārana/gi, replace: brand.name },
   { find: /charana/gi, replace: brand.name },
 ];

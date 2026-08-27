@@ -1949,3 +1949,36 @@ directs you to features, not to screens. **When auditing parity, open the
 screens a signed-out visitor sees first** — that is where the promises live,
 and promises are the thing the house rule is about. Grepping for a function's
 definition proves nothing; grep for its *call sites*.
+---
+
+## The brand fix was correct when it ran and wrong by evening
+
+**Symptom:** `scripts/fix-blog-brand.mts` rewrote 23 published posts from
+چارانا to the current Persian brand at 11:00. By 17:00 all **74** posts held a
+forbidden token — including the 23 just fixed.
+
+**Cause:** the Persian display form was shortened گوپلازا → پلازا that same
+afternoon, in another session, and `گوپلازا` was added to `check-brand.mjs`'s
+FORBIDDEN list. The script reads `brand.nameFa`, so it wrote whatever that
+said at the moment it ran. The value changed; the rows did not. A database
+does not re-read `brand.ts`.
+
+**Fix:** a second rule, `گوپلازا → brand.nameFa`, and the script re-run (74
+posts, 237 fields). The scope guard in `lib/blog/snippets.ts` had the same
+disease in miniature — it tested `/گوپلازا|…/` as a literal, so after the
+shortening it would have kept passing while checking for a name nobody uses.
+It reads `brand.nameFa` now.
+
+**Lesson:** "derive it from the source of truth" protects the code, not the
+data the code has already written. Anything a generator stamps into rows —
+a brand, a tagline, a URL, a support address — is a copy that goes stale
+silently, and the check that would notice only looks at source. Content
+migrations are not one-off scripts; they are scheduled jobs that happen to
+have run once so far.
+
+**Also:** several sessions share this worktree, and one of them switched the
+branch mid-task. Three commits landed on `channels-directory` while
+`git push origin main` pushed an unchanged `main` — so the "deploy" being
+waited on never existed, and a retry loop spent 27 model calls against the old
+code. Check `git status -sb` before pushing, and use `git worktree` to commit
+to a branch you are not standing on.

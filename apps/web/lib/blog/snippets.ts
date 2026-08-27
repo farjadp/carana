@@ -37,6 +37,7 @@ import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { brand } from "@goplaza/core";
 import { WRITER_MODEL, inventedNumbers } from "./pipeline";
 import { postTelegramText, type SyndicationOutcome } from "./syndicate";
 
@@ -66,7 +67,7 @@ const FEATURE_WORDS = ["فیلتر", "ابزار", "قابلیت", "اپلیکی
 /**
  * First-person-plural observation claims.
  *
- * The blog allows one "ما در گوپلازا دیده‌ایم…" aside per article, tied to a
+ * The blog allows one "ما در ... دیده‌ایم…" aside per article, tied to a
  * number from the directory. In a three-sentence card there is no room to tie
  * it to anything, and the model fills the gap with invented customer
  * behaviour — "برخی مشتریان تنها نزدیک‌ترین فروشگاه را انتخاب می‌کنند" is not
@@ -228,7 +229,7 @@ async function write(post: SourcePost, kind: SnippetKind) {
     schema: snippetSchema,
     temperature: 0.85,
     providerOptions: { openai: { strictJsonSchema: false } },
-    prompt: `You write the Telegram channel of GOPLAZA (گوپلازا), the Persian-language directory of Iranian-owned businesses in Canada.
+    prompt: `You write the Telegram channel of ${brand.name} (${brand.nameFa}), the Persian-language directory of Iranian-owned businesses in Canada.
 
 Write ONE short card, in Persian, of this kind:
 ${spec.fa} — ${spec.brief}
@@ -236,12 +237,12 @@ ${spec.fa} — ${spec.brief}
 It is lifted from the article below. Everything in the card must already be in that article: every number, name, place, date and claim. You are choosing and sharpening, never adding. If the article does not contain something worth a card of this kind, set usable: false and say why in one sentence — a weak card is worse than no card, and there are 74 other articles.
 
 SCOPE — the rule that matters most, and the one the first draft of this feature broke:
-- A number from GOPLAZA's directory is a fact about OUR LISTINGS, never about Canada. "۳ کسب‌وکار تأییدشده در گوپلازا" is true; "تنها ۳ کسب‌وکار ایرانی کانادا تأیید رسمی دارند" is a different and false claim. Always carry the scope in the sentence: «در گوپلازا ثبت شده», «از کسب‌وکارهایی که در گوپلازا فهرست شده‌اند», «در تورنتو، در فهرست ما».
+- A number from GOPLAZA's directory is a fact about OUR LISTINGS, never about Canada. "۳ کسب‌وکار تأییدشده در ${brand.nameFa}" is true; "تنها ۳ کسب‌وکار ایرانی کانادا تأیید رسمی دارند" is a different and false claim. Always carry the scope in the sentence: «در ${brand.nameFa} ثبت شده», «از کسب‌وکارهایی که در ${brand.nameFa} فهرست شده‌اند», «در تورنتو، در فهرست ما».
 - Never turn "we have not listed many of X" into "there are not many X".
 - The words تأییدشده / verified describe our verification badge only. Never use them as a synonym for "listed", and never imply an official or governmental approval — we are a directory, not a regulator.
 - A count of listings is not a count of businesses, a search count is not a demand figure, and a city figure is never a country figure.
 - Write the scope in PERSIAN, inside the sentence, as something a person would say. Never splice an English phrase such as "Canada-wide" into a Persian sentence, and never bolt the scope on at the end as a disclaimer.
-- Do not open with تنها or فقط before a directory count. Those words make the number an assertion about the world; "در گوپلازا ۳ کسب‌وکار ... " states the same figure honestly.
+- Do not open with تنها or فقط before a directory count. Those words make the number an assertion about the world; "در ${brand.nameFa} ۳ کسب‌وکار ... " states the same figure honestly.
 
 How it has to read:
 - The first line earns the second. Telegram is read in a scroll; a card that opens with a throat-clear is a card nobody finishes.
@@ -250,7 +251,7 @@ How it has to read:
 - Vary sentence length. One short sentence somewhere.
 - Written register, plain and direct: می‌رسد not می‌رسه, است not ـه, را not رو. Second-person singular where you address the reader.
 - نیم‌فاصله and Persian digits. English proper nouns (Toronto, CRA, RRSP) stay in Latin.
-- Never first-person singular. And in a card, never claim to have OBSERVED anything — no "ما در گوپلازا دیده‌ایم", no "متوجه شده‌ایم". A directory of listings knows how many listings it has; it does not know what customers do, prefer or choose. Say what the article says.
+- Never first-person singular. And in a card, never claim to have OBSERVED anything — no "ما در ${brand.nameFa} دیده‌ایم", no "متوجه شده‌ایم". A directory of listings knows how many listings it has; it does not know what customers do, prefer or choose. Say what the article says.
 - Never describe a GOPLAZA feature the article does not describe. We have search; we do not have product filters, maps, alerts or anything else you might assume a directory has. Offering a reader a feature that does not exist is the worst thing this card can do, because they will go looking for it.
 - No hashtags in the text; put them in the tags field.
 
@@ -358,7 +359,7 @@ export async function generateSnippets(n: number, opts?: { send?: boolean; dryRu
 
       // The exact shape that got through twice: a verification count stated
       // without saying whose verification it is. "۳ کسب‌وکار تأیید شده‌اند" is
-      // a claim about Canada; "۳ کسب‌وکار در گوپلازا نشان تأیید دارند" is a
+      // a claim about Canada; "۳ کسب‌وکار در <brand.nameFa> نشان تأیید دارند" is a
       // claim about us. A number plus تأیید therefore requires the scope word.
       // Product capabilities the article never mentioned.
       borrowed.push(...FEATURE_WORDS.filter((w) => text.includes(w) && !source.includes(w)).map((w) => `قابلیت «${w.trim()}» در مقاله نیست`));
@@ -369,8 +370,11 @@ export async function generateSnippets(n: number, opts?: { send?: boolean; dryRu
 
       const claimsVerification = /تأیید|تایید|verified/i.test(text);
       const hasDigits = /[۰-۹0-9]/.test(text);
-      const hasScope = /گوپلازا|فهرست ما|در فهرست/.test(text);
-      if (claimsVerification && hasDigits && !hasScope) borrowed.push("ادعای تأیید بدون ذکر «گوپلازا»");
+      // The scope marker is read from brand.ts. A literal here would have gone
+      // stale the day the Persian display form was shortened, and the guard
+      // would have kept passing while checking for a name nobody uses.
+      const hasScope = new RegExp(`${brand.nameFa}|فهرست ما|در فهرست`).test(text);
+      if (claimsVerification && hasDigits && !hasScope) borrowed.push(`ادعای تأیید بدون ذکر «${brand.nameFa}»`);
 
       if (borrowed.length) {
         const reason = `words not in the source article: ${borrowed.join("، ")}`;
