@@ -26,6 +26,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 export const QUIET_FAILURE_KINDS = [
   "email_not_configured",
   "email_send_failed",
+  "email_from_invalid",
   "sms_not_configured",
   "sms_send_failed",
   "sms_carrier_rejected",
@@ -60,6 +61,20 @@ export const QUIET_FAILURE_KINDS = [
 export type QuietFailure = (typeof QUIET_FAILURE_KINDS)[number];
 
 /**
+ * One row per kind per window, per instance.
+ *
+ * A failure that happens once and a failure that happens on every render are
+ * the same story, and the second one costs a database row each time: by
+ * 27 Aug a single dead upstream had put 205,800 identical rows in this table,
+ * 97% of everything in it, and the interesting failures — mail that never
+ * reached real users — were buried under them. The count of what was
+ * suppressed rides along on the next row that does get written, so the
+ * frequency is not lost with the rows.
+ */
+const REPORT_WINDOW_MS = 10 * 60_000;
+const lastReported = new Map<QuietFailure, { at: number; suppressed: number }>();
+
+/**
  * Record a failure the product deliberately swallowed.
  *
  * Never awaited by callers and never allowed to throw: a reporting failure
@@ -74,12 +89,21 @@ export function reportQuietFailure(
   // Vercel log is the fastest thing to read.
   console.error(`[quiet-failure] ${kind}`, detail);
 
+  const now = Date.now();
+  const seen = lastReported.get(kind);
+  if (seen && now - seen.at < REPORT_WINDOW_MS) {
+    seen.suppressed += 1;
+    return;
+  }
+  const suppressed = seen?.suppressed ?? 0;
+  lastReported.set(kind, { at: now, suppressed: 0 });
+
   void (async () => {
     try {
       const admin = createSupabaseAdminClient();
       await admin.from("system_errors").insert({
         kind,
-        detail,
+        detail: suppressed > 0 ? { ...detail, suppressed_since_last: suppressed } : detail,
         environment: process.env.VERCEL_ENV ?? "development",
       });
     } catch (err) {

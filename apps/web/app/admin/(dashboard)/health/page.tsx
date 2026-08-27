@@ -40,6 +40,7 @@ const when = (v: string) =>
 const KIND_FA: Record<QuietFailure, string> = {
   email_not_configured: "کلید ایمیل تنظیم نشده",
   email_send_failed: "ارسال ایمیل ناموفق",
+  email_from_invalid: "فرستنده ایمیل نامعتبر",
   sms_not_configured: "پیامک تنظیم نشده",
   sms_send_failed: "ارسال پیامک ناموفق",
   sms_carrier_rejected: "اپراتور پیامک را رد کرد",
