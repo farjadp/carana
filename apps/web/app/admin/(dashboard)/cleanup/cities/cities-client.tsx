@@ -13,6 +13,7 @@ import Link from "next/link";
 import { Check, ExternalLink, MapPin, Phone, SkipForward, Sparkles } from "lucide-react";
 
 import { applyHighConfidence, setCity, skipBusiness } from "./actions";
+import { faNumber as fa } from "@goplaza/core";
 
 export type CleanupRow = {
   id: string; name: string; slug: string | null; phone: string | null; province: string | null;
@@ -21,7 +22,6 @@ export type CleanupRow = {
   confidence: "city" | "region" | null; candidates: string[];
 };
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export function CityCleanupClient({ rows }: { rows: CleanupRow[] }) {
   const [pending, start] = useTransition();

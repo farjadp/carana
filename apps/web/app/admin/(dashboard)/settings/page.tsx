@@ -29,13 +29,13 @@ import { BackupManager } from "./backup-manager";
 import { BusinessExport } from "./business-export";
 import { SmartSearchSettings } from "./smart-search-settings";
 import { hoursAgoIso } from "@/lib/time";
+import { faNumber as fa } from "@goplaza/core";
 
 export const metadata: Metadata = {
   title: "تنظیمات سیستم | داشبورد ادمین",
 };
 export const dynamic = "force-dynamic";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 /** Live smart-search usage + infra probes. Errors read as zero / a red probe, never a crash. */
 async function loadStatus() {

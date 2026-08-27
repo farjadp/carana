@@ -38,13 +38,13 @@ import {
   summarise,
 } from "@/lib/seo/local";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { faNumber as fa } from "@goplaza/core";
 
 export const revalidate = 3600;
 
 type Params = { params: Promise<{ slug: string; category: string }>; searchParams?: Promise<{ page?: string }> };
 const PAGE = 24;
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export function generateStaticParams() {
   return cityConfigs.flatMap((c) => Object.keys(CATEGORY_DETAILS).map((category) => ({ slug: c.slug, category })));

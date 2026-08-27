@@ -36,8 +36,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { addProfileContact, removeProfileContact, type ContactRow } from "./contacts-actions";
+import { faNumber as fa } from "@goplaza/core";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 /** Everything that differs between the two lists, in one place. */
 type KindMeta = {

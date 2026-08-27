@@ -38,9 +38,9 @@ import { SuggestionBox } from "@/components/suggestion-box";
 import { fmtDate, getPost, listCategories, relatedPosts } from "@/lib/blog/queries";
 import { SITE, breadcrumbLd, faqLd } from "@/lib/seo/local";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { faNumber as fa } from "@goplaza/core";
 
 export const revalidate = 600;
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 type Params = { params: Promise<{ slug: string }> };
 

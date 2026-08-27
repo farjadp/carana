@@ -28,6 +28,7 @@ import { BADGE_FAMILIES, LEVEL_LABELS_FA, ROMAN } from "@goplaza/core";
 
 import { InnerPage } from "@/components/inner-page";
 import { getRules, getStandingSettings } from "@/lib/standing/rules";
+import { faNumber as fa } from "@goplaza/core";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/standing" },
@@ -38,7 +39,6 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export default async function StandingExplainerPage() {
   const [settings, rules] = await Promise.all([getStandingSettings(), getRules()]);

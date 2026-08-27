@@ -17,6 +17,7 @@ import { InnerPage } from "@/components/inner-page";
 import { BrandMark } from "@/components/brand-mark";
 import { company } from "@/lib/data/company";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { faDigits as fa } from "@goplaza/core";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/about" },
@@ -24,8 +25,6 @@ export const metadata: Metadata = {
   description: `پلازا دایرکتوری فارسی‌زبان کسب‌وکارهای ایرانی در کاناداست — ساخته‌ی ${company.legalName} در تورنتو. ${brand.tagline.fa}`,
 };
 
-const FA = "۰۱۲۳۴۵۶۷۸۹";
-const fa = (n: number) => String(n).replace(/\d/g, (d) => FA[Number(d)]);
 
 const PRINCIPLES = [
   { icon: ShieldCheck, title: "اعتماد", body: "هر ادعایی روی صفحه باید پشتش واقعیت باشد. نشان «مالکیت احرازشده» فقط وقتی می‌آید که صاحب کسب‌وکار با پیامک به شماره‌ی خودش یا با ثبت مستقیم آن را ثابت کرده باشد — و هر شش ماه باید تمدید شود." },

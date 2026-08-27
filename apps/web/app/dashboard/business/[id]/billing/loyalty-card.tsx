@@ -23,8 +23,8 @@ import { Check, Gift } from "lucide-react";
 
 import type { CapacityBonus, LoyaltyTier, UpkeepChecks } from "@goplaza/core";
 import { UPKEEP_LABELS_FA } from "@goplaza/core";
+import { faNumber as fa } from "@goplaza/core";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export function LoyaltyCard({
   businessId,

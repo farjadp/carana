@@ -23,6 +23,7 @@ import { bioUrl, bioUrlDisplay, validateHandle } from "@goplaza/core";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createLinkPageForBusiness, setLinkHandle, setLinkPageStatus } from "@/lib/actions/link-page";
+import { faNumber as fa } from "@goplaza/core";
 
 export type LinkItemRow = { id: string; kind: string; label_fa: string | null; enabled: boolean; position: number };
 
@@ -30,7 +31,6 @@ type Page = { id: string; handle: string; title: string; status: string; footer_
 
 /** Persian digits: the app forces RTL and a Latin numeral mid-sentence reads
  *  as untranslated. */
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 const KIND_FA: Record<string, string> = {
   phone: "تماس تلفنی",

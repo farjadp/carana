@@ -42,6 +42,7 @@ import { company } from "@/lib/data/company";
 import { getDirectoryStats } from "@/lib/data/directory-stats";
 import { requireUser } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { faNumber as fa } from "@goplaza/core";
 
 export const metadata: Metadata = {
   title: "خوش آمدی",
@@ -50,7 +51,6 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 /** The gold corner mark used as a section bullet across the brand pages. */
 function Notch() {

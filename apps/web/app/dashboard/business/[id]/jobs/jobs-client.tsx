@@ -39,6 +39,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { closeJob, createJob, extendJob } from "@/lib/actions/jobs";
+import { faNumber as fa } from "@goplaza/core";
 
 export type JobRow = {
   id: string;
@@ -63,7 +64,6 @@ export type JobRow = {
   created_at: string;
 };
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 const date = (iso: string) => new Date(iso).toLocaleDateString("fa-IR", { dateStyle: "medium" });
 
 const field = "h-11 w-full rounded-xl border border-[color:var(--line)] px-3 text-sm outline-none focus:border-[color:var(--lajvard)]";

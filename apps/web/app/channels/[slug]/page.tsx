@@ -70,10 +70,10 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { RelatedChannels } from "@/components/channels/related-channels";
 
 import { JoinButton } from "./join-button";
+import { faNumber as fa } from "@goplaza/core";
 
 export const revalidate = 3600;
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 const SELECT =
   "id, slug, title, description, platform, kind, language, city, province, category_slug, join_url, metrics_source, member_count, last_post_at, posts_last_30d, metrics_checked_at, confirm_by, status, created_at, owner_user_id, owner_verified_at, owner_verified_until, owner_verified_method";

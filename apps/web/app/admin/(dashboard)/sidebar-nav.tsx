@@ -7,6 +7,7 @@
 "use client";
 
 import Link from "next/link";
+import { faNumber as fa } from "@goplaza/core";
 import { usePathname } from "next/navigation";
 import { PencilLine, Gift, Award,
   LayoutDashboard,
@@ -38,7 +39,6 @@ export type AdminCounts = {
   errors24h: number;
 };
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export function AdminSidebarNav({ counts }: { counts: AdminCounts }) {
   const pathname = usePathname();

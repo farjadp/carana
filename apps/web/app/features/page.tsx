@@ -39,6 +39,7 @@ import { PageShell } from "@/components/page-shell";
 import { JsonLd } from "@/components/json-ld";
 import { breadcrumbLd } from "@/lib/seo/local";
 import { ANNOUNCEMENT_LIMITS, GALLERY_LIMITS, PLANS } from "@/lib/billing/plans";
+import { faNumber as fa } from "@goplaza/core";
 
 export const metadata: Metadata = {
   title: "امکانات پلازا",
@@ -47,7 +48,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/features" },
 };
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 /** `null` in the limits table means unlimited. */
 const qty = (n: number | null) => (n === null ? "نامحدود" : fa(n));
 

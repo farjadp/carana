@@ -21,6 +21,7 @@ import { Archive, Check, ExternalLink, Newspaper, Pencil, Send, Share2, Sparkles
 
 import type { Channel } from "@/lib/blog/syndicate";
 import { deletePost, runBacklog, runGenerator, runSourceGenerator, setPostStatus, sharePost } from "./actions";
+import { faNumber as fa } from "@goplaza/core";
 
 export type DeskPost = {
   id: string; slug: string; title: string; title_en: string | null; status: "draft" | "review" | "published" | "archived";
@@ -31,7 +32,6 @@ export type DeskPost = {
 export type DeskShare = { post_id: string; channel: Channel; status: "pending" | "sent" | "failed" | "skipped"; url: string | null; error: string | null };
 export type DeskRun = { id: string; started_at: string; finished_at: string | null; requested: number; created: number; errors: unknown; notes: string | null };
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString("fa-IR", { dateStyle: "medium", timeStyle: "short" }) : "—");
 
 const CHANNEL_LABEL: Record<Channel, string> = { telegram: "تلگرام", linkedin: "لینکدین" };

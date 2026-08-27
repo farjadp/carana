@@ -26,11 +26,11 @@ import { NotAuthenticatedError, requireAdmin } from "@/lib/auth/require-admin";
 import { getStanding } from "@/lib/standing/ledger";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { CorrectionsClient, type CorrectionRow } from "./corrections-client";
+import { faNumber as fa } from "@goplaza/core";
 
 export const metadata: Metadata = { title: "اصلاح اطلاعات | داشبورد ادمین" };
 export const dynamic = "force-dynamic";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 const label = (f: string) => CORRECTABLE_LABELS_FA[f as CorrectableField] ?? f;
 
 export default async function CorrectionsAdminPage() {

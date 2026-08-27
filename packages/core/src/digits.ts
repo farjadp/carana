@@ -28,3 +28,24 @@ export function toLatinDigits(input: string): string {
     return String(code - base);
   });
 }
+
+const FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
+
+/**
+ * ASCII digits to Persian, character for character — no grouping, no sign
+ * handling, non-digits untouched. The inverse of toLatinDigits for display.
+ * Until 27 Aug this lived as ~7 near-identical `const fa = …` copies in
+ * apps/web; the grouped variant below had ~38. Same drift risk as the fold.
+ */
+export function faDigits(value: string | number): string {
+  return String(value).replace(/\d/g, (d) => FA_DIGITS[Number(d)]);
+}
+
+/**
+ * Locale-formatted Persian number — Persian digits WITH the Persian
+ * thousands separator («۶٬۱۵۵»). Not interchangeable with faDigits: a year
+ * or a phone fragment wants faDigits; a count wants this.
+ */
+export function faNumber(n: number): string {
+  return n.toLocaleString("fa-IR");
+}

@@ -47,6 +47,7 @@ import { breadcrumbLd } from "@/lib/seo/local";
 import { collectionLd } from "@/lib/seo/entity";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { daysAgoIso } from "@/lib/time";
+import { faNumber as fa } from "@goplaza/core";
 
 export const metadata: Metadata = {
   title: "کانال‌ها و گروه‌های فارسی‌زبان کانادا",
@@ -60,7 +61,6 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 const PAGE_SIZE = 24;
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 const SORTS = [
   { key: "fresh", label: "تازه‌ترین فعالیت" },

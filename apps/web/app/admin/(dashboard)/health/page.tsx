@@ -23,11 +23,11 @@ import { tableExists } from "@/lib/admin/table-exists";
 import { QUIET_FAILURE_KINDS, type QuietFailure } from "@/lib/observability/report";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { daysAgoIso } from "@/lib/time";
+import { faNumber as fa } from "@goplaza/core";
 
 export const metadata: Metadata = { title: "سلامت سیستم | داشبورد ادمین" };
 export const dynamic = "force-dynamic";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 const when = (v: string) =>
   new Date(v).toLocaleString("fa-IR", {

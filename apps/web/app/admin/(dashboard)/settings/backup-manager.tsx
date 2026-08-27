@@ -19,6 +19,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, Archive, Download, HardDriveDownload, RotateCcw, X } from "lucide-react";
 
 import type { BackupTable } from "@/lib/admin/backup-tables";
+import { faNumber as fa } from "@goplaza/core";
 
 type ManifestTable = { name: string; rows: number; bytes: number };
 type Manifest = {
@@ -31,7 +32,6 @@ type Manifest = {
 
 type Progress = { phase: string; done: number; total: number; detail: string };
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 const mb = (bytes: number) => `${(bytes / 1024 / 1024).toLocaleString("fa-IR", { maximumFractionDigits: 2 })} MB`;
 
 async function api<T>(body: object): Promise<T> {

@@ -26,11 +26,11 @@ import { getLoyaltySettings } from "@/lib/loyalty/settings";
 import { platinumWaitlist } from "@/lib/loyalty/waitlist";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { LoyaltyEditor } from "./loyalty-editor";
+import { faNumber as fa } from "@goplaza/core";
 
 export const metadata: Metadata = { title: "وفاداری مالک | داشبورد ادمین" };
 export const dynamic = "force-dynamic";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export default async function LoyaltyAdminPage() {
   try {

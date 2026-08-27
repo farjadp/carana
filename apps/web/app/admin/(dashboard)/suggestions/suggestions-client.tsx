@@ -9,6 +9,7 @@ import { useState, useTransition } from "react";
 import { Check, Eye, Mic, Smartphone, Globe, RotateCcw } from "lucide-react";
 
 import { updateSuggestion } from "./actions";
+import { faNumber as fa } from "@goplaza/core";
 
 export type SuggestionRow = {
   id: string;
@@ -26,7 +27,6 @@ export type SuggestionRow = {
 
 type Row = SuggestionRow & { voice_url: string | null; author: { email: string | null; full_name: string | null } | null };
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 const when = (iso: string) => new Date(iso).toLocaleString("fa-IR", { dateStyle: "medium", timeStyle: "short" });
 
 export function SuggestionsClient({ rows }: { rows: Row[] }) {

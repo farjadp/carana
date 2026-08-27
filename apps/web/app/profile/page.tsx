@@ -55,6 +55,7 @@ import { AccountActions } from "./account-actions";
 import { ContactsForm } from "./contacts-form";
 import type { ContactRow } from "./contacts-actions";
 import { ProfileForm } from "./profile-form";
+import { faNumber as fa } from "@goplaza/core";
 
 export const metadata: Metadata = {
   title: "پروفایل من",
@@ -63,7 +64,6 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 const faDate = (iso: string) => new Date(iso).toLocaleDateString("fa-IR", { dateStyle: "long" });
 
 export default async function ProfilePage() {

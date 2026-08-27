@@ -13,6 +13,7 @@ import { Apple, ArrowLeft, Download, Play, ShieldCheck, Smartphone } from "lucid
 import { InnerPage } from "@/components/inner-page";
 import { BrandMark } from "@/components/brand-mark";
 import { APP_VERSION, STORES } from "@/lib/data/releases";
+import { faDigits as fa } from "@goplaza/core";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/download" },
@@ -20,7 +21,6 @@ export const metadata: Metadata = {
   description: "اپ پلازا برای iOS و Android — دایرکتوری کسب‌وکارهای ایرانی کانادا در جیب شما.",
 };
 
-const fa = (s: string | number) => String(s).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
 
 export default function DownloadPage() {
   return (

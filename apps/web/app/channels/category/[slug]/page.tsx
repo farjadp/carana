@@ -20,10 +20,10 @@ import { PageShell } from "@/components/page-shell";
 import { breadcrumbLd } from "@/lib/seo/local";
 import { collectionLd } from "@/lib/seo/entity";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { faNumber as fa } from "@goplaza/core";
 
 export const revalidate = 3600;
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 async function loadCategory(slug: string) {
   const supabase = await createSupabaseServerClient();

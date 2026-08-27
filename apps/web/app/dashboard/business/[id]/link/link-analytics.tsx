@@ -22,8 +22,8 @@
 //      RLS on analytics_daily decides what is visible.
 // ============================================================================
 import { BarChart3, Lock } from "lucide-react";
+import { faNumber as fa } from "@goplaza/core";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 /** A Gregorian ISO date reads as foreign inside a Persian sentence — the same
  *  defect as printing "Toronto، ON" on the bio page. The rest of the dashboard

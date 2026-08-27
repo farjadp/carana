@@ -54,14 +54,13 @@ import { logUserActivity } from "@/lib/actions/logs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { faDigits as fa } from "@goplaza/core";
 
 type AuthMode = "login" | "signup" | "forgot" | "update-password";
 
 /** Live directory counts for the brand panel. Omit and the box is not shown. */
 export type AuthPanelStats = { total: number; cities: number; topCities: string[] };
 
-const FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
-const fa = (n: number) => String(n).replace(/\d/g, (d) => FA_DIGITS[Number(d)]);
 
 const modeCopy: Record<
   AuthMode,

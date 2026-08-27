@@ -12,6 +12,7 @@ import { Check, ExternalLink, Eye, Pencil, ShieldAlert, X } from "lucide-react";
 
 import { updateReport } from "./actions";
 import { restoreLinkPage, suspendLinkPage } from "@/lib/actions/link-page";
+import { faNumber as fa } from "@goplaza/core";
 
 export type ReportRow = {
   id: string; business_id: string | null; reporter_id: string | null; reason: string; details: string | null;
@@ -27,7 +28,6 @@ const REASON_FA: Record<string, string> = {
   closed: "تعطیل شده", wrong_info: "اطلاعات اشتباه", duplicate: "تکراری", not_iranian: "ایرانی نیست",
   spam: "اسپم", offensive: "محتوای نامناسب", impersonation: "جعل هویت", other: "مورد دیگر",
 };
-const fa = (n: number) => n.toLocaleString("fa-IR");
 const when = (iso: string) => new Date(iso).toLocaleString("fa-IR", { dateStyle: "medium", timeStyle: "short" });
 
 export function ReportsClient({ rows }: { rows: ReportRow[] }) {

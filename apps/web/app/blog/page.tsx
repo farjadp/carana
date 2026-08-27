@@ -16,6 +16,7 @@ import { listCategories, listPosts } from "@/lib/blog/queries";
 import { breadcrumbLd } from "@/lib/seo/local";
 import { collectionLd } from "@/lib/seo/entity";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { faNumber as fa } from "@goplaza/core";
 
 export const revalidate = 600;
 
@@ -25,7 +26,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/blog", types: { "application/rss+xml": "/blog/feed.xml" } },
 };
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export default async function BlogIndex({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const page = Math.max(1, parseInt((await searchParams).page ?? "1", 10) || 1);

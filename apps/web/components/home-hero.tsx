@@ -30,9 +30,8 @@ import { ArrowLeft, BadgeCheck, Building2, MapPin, Search, Store } from "lucide-
 import { brand } from "@goplaza/core";
 
 import { BrandMark } from "@/components/brand-mark";
+import { faDigits as fa } from "@goplaza/core";
 
-const FA = "۰۱۲۳۴۵۶۷۸۹";
-const fa = (n: number) => String(n).replace(/\d/g, (d) => FA[Number(d)]);
 
 function useCountUp(target: number, ms = 1400) {
   // Server render shows the real number (no layout jump, correct for crawlers);

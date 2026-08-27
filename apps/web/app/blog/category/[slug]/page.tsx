@@ -13,9 +13,9 @@ import { PostCard } from "@/components/blog/post-card";
 import { listCategories, listPosts } from "@/lib/blog/queries";
 import { breadcrumbLd } from "@/lib/seo/local";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { faNumber as fa } from "@goplaza/core";
 
 export const revalidate = 600;
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 type Params = { params: Promise<{ slug: string }>; searchParams: Promise<{ page?: string }> };
 

@@ -38,12 +38,12 @@ import {
 } from "@goplaza/core";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { faNumber as fa } from "@goplaza/core";
 
 const HOW_MANY = 5;
 /** How wide the shuffle looks. Small enough to stay one cheap query. */
 const POOL = 60;
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 /**
  * Fisher–Yates. Module scope because Math.random() in a component body is an

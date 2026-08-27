@@ -34,9 +34,9 @@ import { getCategoryDetail } from "@/lib/data/category-details";
 import { cleanQuery, logSearch, searchAnnouncements, searchBusinesses, type AnnouncementHit, type SearchHit } from "@/lib/search";
 import { expandQuery, type SmartExpansion } from "@/lib/search/smart";
 import { isPlaceholderCity } from "@/lib/seo/geo-index";
+import { faDigits as fa } from "@goplaza/core";
 
 const PAGE = 24;
-const fa = (n: number | string) => String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }): Promise<Metadata> {
   const { q } = await searchParams;

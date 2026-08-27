@@ -35,8 +35,8 @@ import Link from "next/link";
 import { ArrowLeft, Crown, ShieldCheck, Sparkles } from "lucide-react";
 
 import { PLANS, PLATINUM_SEAT_CAP, type PlanId } from "@goplaza/core";
+import { faNumber as fa } from "@goplaza/core";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export function ProfileUpsellBanner({
   plan,

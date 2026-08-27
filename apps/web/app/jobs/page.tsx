@@ -31,6 +31,7 @@ import { PageShell } from "@/components/page-shell";
 import { breadcrumbLd } from "@/lib/seo/local";
 import { collectionLd } from "@/lib/seo/entity";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { faNumber as fa } from "@goplaza/core";
 
 export const metadata: Metadata = {
   title: "فرصت‌های شغلی در کسب‌وکارهای ایرانی کانادا",
@@ -43,7 +44,6 @@ export const metadata: Metadata = {
 // staleness is fine, a day is not.
 export const revalidate = 900;
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 type Search = { city?: string; type?: string; lang?: string };
 

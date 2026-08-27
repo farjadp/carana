@@ -19,11 +19,11 @@ import { PageShell } from "@/components/page-shell";
 import { requireUser } from "@/lib/auth/session";
 import { entitlementsFor } from "@/lib/billing/entitlements";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { faNumber as fa } from "@goplaza/core";
 
 export const metadata: Metadata = { title: "آمار کسب‌وکار" };
 export const dynamic = "force-dynamic";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 /** The day event recording began. Nothing before this exists to report. */
 const EVENTS_SINCE = new Date("2026-08-16T00:00:00Z");

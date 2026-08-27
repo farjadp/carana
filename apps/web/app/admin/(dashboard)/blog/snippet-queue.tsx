@@ -19,6 +19,7 @@ import { useState, useTransition } from "react";
 import { Archive, Pencil, Send, Sparkles } from "lucide-react";
 
 import { archiveSnippet, runSnippets, saveSnippet, sendSnippetNow } from "./actions";
+import { faNumber as fa } from "@goplaza/core";
 
 export type DeskSnippet = {
   id: string;
@@ -44,7 +45,6 @@ const KIND_FA: Record<string, string> = {
   news: "📰 خبر",
 };
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString("fa-IR", { dateStyle: "medium", timeStyle: "short" }) : "—");
 
 export function SnippetQueue({ snippets, telegramOn }: { snippets: DeskSnippet[]; telegramOn: boolean }) {

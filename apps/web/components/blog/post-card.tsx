@@ -7,8 +7,8 @@ import Link from "next/link";
 import { Clock } from "lucide-react";
 
 import { fmtDate, type PostCard as PostCardData } from "@/lib/blog/queries";
+import { faNumber as fa } from "@goplaza/core";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export function PostCard({ post, categoryName, featured = false, className = "" }: { post: PostCardData; categoryName?: string | null; featured?: boolean; className?: string }) {
   return (

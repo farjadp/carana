@@ -28,11 +28,11 @@ import { PageShell } from "@/components/page-shell";
 import { requireUser } from "@/lib/auth/session";
 import { getStandingProfile } from "@/lib/standing/ledger";
 import { getStandingSettings } from "@/lib/standing/rules";
+import { faNumber as fa } from "@goplaza/core";
 
 export const metadata: Metadata = { title: "اعتبار مشارکت من" };
 export const dynamic = "force-dynamic";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 const date = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString("fa-IR", { dateStyle: "medium" }) : "—";
 

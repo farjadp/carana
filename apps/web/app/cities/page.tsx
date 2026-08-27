@@ -21,6 +21,7 @@ import { cityConfigs, citySlug, findCityConfig } from "@/lib/data/cities";
 import { listCitiesWithCounts } from "@/lib/data/geography";
 import { breadcrumbLd } from "@/lib/seo/local";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { faNumber as fa } from "@goplaza/core";
 
 export const revalidate = 3600;
 
@@ -30,7 +31,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/cities" },
 };
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export default async function CitiesPage() {
   const supabase = await createSupabaseServerClient();

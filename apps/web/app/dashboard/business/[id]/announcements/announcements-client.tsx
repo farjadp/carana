@@ -16,10 +16,10 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { createAnnouncement, deleteAnnouncement } from "@/lib/actions/announcements";
+import { faNumber as fa } from "@goplaza/core";
 
 export type AnnouncementRow = { id: string; title: string; body: string | null; expires_at: string | null; created_at: string };
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 const date = (iso: string) => new Date(iso).toLocaleDateString("fa-IR", { dateStyle: "medium" });
 
 export function AnnouncementsClient({

@@ -17,8 +17,8 @@
 // ============================================================================
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { faNumber as fa } from "@goplaza/core";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 export const ADMIN_PAGE_SIZE = 50;
 

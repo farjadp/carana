@@ -13,6 +13,8 @@
 //      never hand-roll a timezone offset.
 // ============================================================================
 
+import { faDigits } from "./digits";
+
 const div = (a: number, b: number) => Math.trunc(a / b);
 const mod = (a: number, b: number) => a - Math.trunc(a / b) * b;
 
@@ -109,8 +111,7 @@ export function toShahanshahi(jalaliYear: number): number {
   return jalaliYear + 1180;
 }
 
-const faDigits = (n: number | string) => String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
-export { faDigits };
+// faDigits: canonical copy moved to ./digits on 27 Aug; imported at top.
 
 export type TehranNow = {
   jy: number; jm: number; jd: number;

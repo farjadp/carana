@@ -51,6 +51,7 @@ import { SuggestionBox } from "@/components/suggestion-box";
 import { HomeLatestPosts } from "@/components/blog/latest-posts";
 import { HomeChannels } from "@/components/channels/home-channels";
 import { STORES } from "@/lib/data/releases";
+import { faDigits as fa } from "@goplaza/core";
 
 // The eight cities with generated background art. Kept here rather than read
 // from lib/data/cities.ts because only these have images — a card whose
@@ -73,8 +74,6 @@ const APP_LIVE = !!(STORES.appStore || STORES.playStore);
 const APP_STORE_URL = STORES.appStore;
 const PLAY_STORE_URL = STORES.playStore;
 
-const FA = "۰۱۲۳۴۵۶۷۸۹";
-const fa = (n: number) => String(n).replace(/\d/g, (d) => FA[Number(d)]);
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },

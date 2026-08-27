@@ -32,13 +32,13 @@ import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/sup
 import { daysAgoIso, hoursAgoIso } from "@/lib/time";
 import { RulesEditor } from "./rules-editor";
 import { UserActions } from "./user-actions";
+import { faNumber as fa } from "@goplaza/core";
 
 export const metadata: Metadata = {
   title: "اعتبار مشارکت | داشبورد ادمین",
 };
 export const dynamic = "force-dynamic";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 
 /** Probes + live counts. Errors read as a red probe / zero, never a crash. */
 async function loadStatus() {

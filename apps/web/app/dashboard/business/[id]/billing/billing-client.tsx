@@ -19,6 +19,7 @@ import { useSearchParams } from "next/navigation";
 import { AlertTriangle, CheckCircle2, CreditCard, Download, ExternalLink } from "lucide-react";
 
 import { formatCad, planOf, INTERVAL_LABEL_FA, PLATINUM_SEAT_CAP, type BillingInterval, type Plan, type PlanId } from "@/lib/billing/plans";
+import { faNumber as fa } from "@goplaza/core";
 
 export type SubscriptionRow = {
   id: string; plan: string; status: string; interval: string | null;
@@ -30,7 +31,6 @@ export type InvoiceRow = {
   hosted_invoice_url: string | null; invoice_pdf: string | null; created_at: string;
 };
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
 const date = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("fa-IR", { dateStyle: "long" }) : "—");
 const money = (cents: number | null, currency: string) =>
   cents === null ? "—" : `${(cents / 100).toLocaleString("fa-IR", { maximumFractionDigits: 2 })} ${currency.toUpperCase()}`;
