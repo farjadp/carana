@@ -15,33 +15,64 @@ import "server-only";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
-/** Anything that failed but did not throw. */
-export type QuietFailure =
-  | "email_not_configured"
-  | "email_send_failed"
-  | "sms_not_configured"
-  | "sms_send_failed"
-  | "sms_carrier_rejected"
-  | "verification_write_failed"
-  | "reminder_send_failed"
-  | "job_reminder_send_failed"
-  | "job_reminder_no_address"
-  | "cron_run_failed"
-  | "request_error"
-  | "exchange_rates_http"
-  | "exchange_rates_shape"
-  | "exchange_rates_fetch_failed"
+/**
+ * Anything that failed but did not throw.
+ *
+ * A list, not a bare union, because the admin health page needs to enumerate
+ * the kinds to count them — and a union that only exists in the type system
+ * cannot be iterated at runtime. Adding a kind here is what makes it appear
+ * in that page's breakdown.
+ */
+export const QUIET_FAILURE_KINDS = [
+  "email_not_configured",
+  "email_send_failed",
+  "email_from_invalid",
+  "sms_not_configured",
+  "sms_send_failed",
+  "sms_carrier_rejected",
+  "verification_write_failed",
+  "reminder_send_failed",
+  "job_reminder_send_failed",
+  "job_reminder_no_address",
+  "cron_run_failed",
+  "request_error",
+  // Sign-up and contact-code failures. Both were invisible before 27 Aug:
+  // the routes returned the error straight to the browser and wrote nothing,
+  // so "I can't register" and "the email code errors" could only ever be
+  // investigated by asking the person to try again while someone watched.
+  "signup_failed",
+  "contact_code_failed",
+  "exchange_rates_http",
+  "exchange_rates_shape",
+  "exchange_rates_fetch_failed",
   // GPLZ Link analytics. A rollup that fails is not an outage — the raw
   // events are still there and the next run retries the day — but it must
   // leave a trace, because the symptom otherwise is a customer's chart
   // missing a day months later with nothing to explain it.
-  | "link_rollup_day"
-  | "link_rollup_backlog"
+  "link_rollup_day",
+  "link_rollup_backlog",
   // The channel rollup, on the same cron and for the same reason: a view
   // count that quietly stays at zero looks identical to a channel nobody
   // opened.
-  | "channel_rollup_day"
-  | "link_prune";
+  "channel_rollup_day",
+  "link_prune",
+] as const;
+
+export type QuietFailure = (typeof QUIET_FAILURE_KINDS)[number];
+
+/**
+ * One row per kind per window, per instance.
+ *
+ * A failure that happens once and a failure that happens on every render are
+ * the same story, and the second one costs a database row each time: by
+ * 27 Aug a single dead upstream had put 205,800 identical rows in this table,
+ * 97% of everything in it, and the interesting failures — mail that never
+ * reached real users — were buried under them. The count of what was
+ * suppressed rides along on the next row that does get written, so the
+ * frequency is not lost with the rows.
+ */
+const REPORT_WINDOW_MS = 10 * 60_000;
+const lastReported = new Map<QuietFailure, { at: number; suppressed: number }>();
 
 /**
  * Record a failure the product deliberately swallowed.
@@ -58,12 +89,21 @@ export function reportQuietFailure(
   // Vercel log is the fastest thing to read.
   console.error(`[quiet-failure] ${kind}`, detail);
 
+  const now = Date.now();
+  const seen = lastReported.get(kind);
+  if (seen && now - seen.at < REPORT_WINDOW_MS) {
+    seen.suppressed += 1;
+    return;
+  }
+  const suppressed = seen?.suppressed ?? 0;
+  lastReported.set(kind, { at: now, suppressed: 0 });
+
   void (async () => {
     try {
       const admin = createSupabaseAdminClient();
       await admin.from("system_errors").insert({
         kind,
-        detail,
+        detail: suppressed > 0 ? { ...detail, suppressed_since_last: suppressed } : detail,
         environment: process.env.VERCEL_ENV ?? "development",
       });
     } catch (err) {

@@ -18,7 +18,7 @@ import { PencilLine, Gift, Award,
   MessageSquare,
   Activity,
   Layers,
-  FileSpreadsheet, Lightbulb, Newspaper, MapPinOff, Briefcase, Send } from "lucide-react";
+  FileSpreadsheet, Lightbulb, Newspaper, MapPinOff, Briefcase, Send, HeartPulse } from "lucide-react";
 
 /**
  * Counts come from the layout, which reads them per request. They used to be
@@ -34,6 +34,8 @@ export type AdminCounts = {
   unknownCity: number;
   jobs: number;
   channels: number;
+  /** Quiet failures in the last 24h. Danger-coloured: it is never a queue. */
+  errors24h: number;
 };
 
 const fa = (n: number) => n.toLocaleString("fa-IR");
@@ -57,6 +59,7 @@ export function AdminSidebarNav({ counts }: { counts: AdminCounts }) {
     { href: "/admin/cleanup/cities", label: "شهرهای نامشخص", icon: MapPinOff, badge: badge(counts.unknownCity) },
     { href: "/admin/users", label: "مدیریت کاربران", icon: Users },
     { href: "/admin/logs", label: "گزارش فعالیت‌ها", icon: Activity },
+    { href: "/admin/health", label: "سلامت سیستم", icon: HeartPulse, badge: badge(counts.errors24h), badgeDanger: true },
     { href: "/admin/reports", label: "گزارش تخلفات", icon: ShieldAlert, badge: badge(counts.reports), badgeDanger: true },
     { href: "/admin/corrections", label: "اصلاح اطلاعات", icon: PencilLine },
     { href: "/admin/standing", label: "اعتبار مشارکت", icon: Award },

@@ -30,7 +30,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "تعرفه‌ها",
-  description: "ثبت کسب‌وکار و نشان تأیید در گوپلازا همیشه رایگان است. پلن‌های حرفه‌ای، ویژه و پلاتینیوم برای آمار کامل، اعلان‌ها و جایگاه برچسب‌دار.",
+  description: "ثبت کسب‌وکار و نشان تأیید در پلازا همیشه رایگان است. پلن‌های حرفه‌ای، ویژه و پلاتینیوم برای آمار کامل، اعلان‌ها و جایگاه برچسب‌دار.",
   alternates: { canonical: "/pricing" },
 };
 
@@ -58,7 +58,7 @@ export default async function PricingPage() {
             ثبت رایگان است. همیشه.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-8 text-[color:var(--muted-text)] md:text-base">
-            پیدا شدن در گوپلازا پول نمی‌خواهد. پلن‌های پولی برای وقتی است که می‌خواهی بدانی پروفایلت چه می‌کند،
+            پیدا شدن در پلازا پول نمی‌خواهد. پلن‌های پولی برای وقتی است که می‌خواهی بدانی پروفایلت چه می‌کند،
             بیشتر درباره‌ی کسب‌وکارت بگویی، یا بالاتر دیده شوی.
           </p>
         </section>

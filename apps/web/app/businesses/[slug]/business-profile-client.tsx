@@ -90,7 +90,7 @@ const faTime = (t: string) => t.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Num
 /**
  * "مرداد ۱۴۰۵" — fa-IR resolves to the Jalali calendar, same as the badge.
  * Built from parts because `format()` with {year, month} emits "۱۴۰۵ مرداد"
- * on this ICU, which reads backwards after "عضو گوپلازا از".
+ * on this ICU, which reads backwards after "عضو پلازا از".
  */
 const faMonthYear = (iso: string) => {
   const parts = new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long" }).formatToParts(new Date(iso));
@@ -206,7 +206,7 @@ export default function BusinessProfileClient({
 
         {/* Breadcrumb */}
         <div className="absolute top-5 right-4 md:right-8 z-10 flex items-center gap-2 text-xs text-white/85">
-          <Link href="/" className="hover:text-white flex items-center gap-1.5"><BrandMark size={16} color="#f6f1e8" simple /> گوپلازا</Link>
+          <Link href="/" className="hover:text-white flex items-center gap-1.5"><BrandMark size={16} color="#f6f1e8" simple /> پلازا</Link>
           <ChevronLeft size={12} />
           {category ? <Link href={`/categories/${category.slug}`} className="hover:text-white">{category.name}</Link> : null}
           {business.city ? (<><ChevronLeft size={12} /><Link href={`/cities/${encodeURIComponent(business.city)}`} className="hover:text-white">{cityLabel}</Link></>) : null}
@@ -460,7 +460,7 @@ export default function BusinessProfileClient({
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-full bg-[color:var(--annabi)]/10 text-[color:var(--annabi)] text-xs font-black flex items-center justify-center">{rev.user_name?.[0] || "ک"}</div>
-                          <span className="font-bold text-xs text-[color:var(--text)]">{rev.user_name || "کاربر گوپلازا"}</span>
+                          <span className="font-bold text-xs text-[color:var(--text)]">{rev.user_name || "کاربر پلازا"}</span>
                           {/* Renders nothing below level 1, which is most
                               reviewers. A badge on everybody would say
                               nothing; this one is only here when somebody
@@ -594,7 +594,7 @@ export default function BusinessProfileClient({
                     </div>
                     {publicOwner.member_since ? (
                       <div className="text-[11px] text-[color:var(--muted-text)]">
-                        عضو گوپلازا از {faMonthYear(publicOwner.member_since)}
+                        عضو پلازا از {faMonthYear(publicOwner.member_since)}
                       </div>
                     ) : null}
                   </div>
@@ -612,7 +612,7 @@ export default function BusinessProfileClient({
                 {(publicOwner.standing_level ?? 0) >= 1 ? (
                   <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-relaxed text-[color:var(--muted-text)]">
                     <Sparkles size={13} className="mt-px shrink-0 text-[color:var(--muted-text)]" />
-                    در گوپلازا سطح «{LEVEL_LABELS_FA[(publicOwner.standing_level ?? 0) as StandingLevel]}» دارد —{" "}
+                    در پلازا سطح «{LEVEL_LABELS_FA[(publicOwner.standing_level ?? 0) as StandingLevel]}» دارد —{" "}
                     {STANDING_MEANING_FA[(publicOwner.standing_level ?? 0) as StandingLevel]}
                   </p>
                 ) : null}
@@ -642,7 +642,7 @@ export default function BusinessProfileClient({
                 ) : null}
                 {business.ref_no ? (
                   <div className="pt-3 mt-1 border-t border-[color:var(--line)] flex items-center justify-between gap-2">
-                    <span className="text-[color:var(--muted-text)]">شماره‌ی مرجع گوپلازا</span>
+                    <span className="text-[color:var(--muted-text)]">شماره‌ی مرجع پلازا</span>
                     <button type="button" onClick={copyRef} className="font-black text-[color:var(--text)] tabular-nums [font-family:var(--font-latin)] tracking-wider inline-flex items-center gap-1.5 hover:text-[color:var(--annabi)] transition" dir="ltr" title="کپی">
                       #{String(business.ref_no)} {refCopied ? <Check size={13} /> : <Copy size={13} className="opacity-50" />}
                     </button>

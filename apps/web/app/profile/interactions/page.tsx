@@ -5,7 +5,7 @@ import { NotebookPen } from "lucide-react";
 
 export const metadata = {
   title: "تعاملات من",
-  description: "مدیریت ذخیره‌شده‌ها، یادداشت‌ها و نظرات شما در پلتفرم گوپلازا",
+  description: "مدیریت ذخیره‌شده‌ها، یادداشت‌ها و نظرات شما در پلتفرم پلازا",
 };
 
 export default async function InteractionsPage() {

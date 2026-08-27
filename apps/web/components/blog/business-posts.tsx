@@ -9,7 +9,7 @@
 //      The heading is decided by the data, not by hope. `suggestedPostsFor`
 //      reports how many of the three actually matched the business on its city
 //      or on the words of its category; when none did, the section says
-//      «خواندنی‌های گوپلازا» instead of «مقالات مرتبط». Titling three
+//      «خواندنی‌های پلازا» instead of «مقالات مرتبط». Titling three
 //      unrelated posts "related" is the same unbacked claim as a verified chip
 //      on an unverified listing.
 // Env / Identity: Server Component. Anon client; RLS shows published only.
@@ -53,7 +53,7 @@ export async function BusinessPosts({
     ? parts.length
       ? `خواندنی‌هایی درباره‌ی ${parts.join(" و ")}`
       : "مقاله‌هایی نزدیک به این کسب‌وکار"
-    : "تازه‌ترین نوشته‌های گوپلازا درباره‌ی زندگی و کسب‌وکار ایرانی در کانادا";
+    : "تازه‌ترین نوشته‌های پلازا درباره‌ی زندگی و کسب‌وکار ایرانی در کانادا";
 
   return (
     <section className="border-t border-[color:var(--line)] bg-[color:var(--bg)] px-4 py-14" dir="rtl">
@@ -64,7 +64,7 @@ export async function BusinessPosts({
               <Newspaper className="h-3 w-3" /> وبلاگ
             </span>
             <h2 className="text-xl font-black text-[color:var(--text)] md:text-2xl">
-              {related ? "مقالات مرتبط" : "خواندنی‌های گوپلازا"}
+              {related ? "مقالات مرتبط" : "خواندنی‌های پلازا"}
             </h2>
             <p className="mt-1 text-sm text-[color:var(--muted-text)]">{subtitle}</p>
           </div>

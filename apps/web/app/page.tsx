@@ -171,7 +171,7 @@ export default async function HomePage() {
           <div className="mx-auto max-w-7xl">
             <SectionHead
               title="دنبال چه خدمتی می‌گردی؟"
-              subtitle="دسته‌بندی‌های پرجستجوی گوپلازا"
+              subtitle="دسته‌بندی‌های پرجستجوی پلازا"
               center
             />
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
@@ -236,7 +236,7 @@ export default async function HomePage() {
         {latestAnnouncements && latestAnnouncements.length > 0 && (
           <section className="border-t border-gray-100 bg-white px-4 py-16">
             <div className="mx-auto max-w-7xl">
-              <SectionHead title="تازه‌ترین اعلان‌ها" subtitle="تخفیف، رویداد و خبر تازه از کسب‌وکارهای گوپلازا" />
+              <SectionHead title="تازه‌ترین اعلان‌ها" subtitle="تخفیف، رویداد و خبر تازه از کسب‌وکارهای پلازا" />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {latestAnnouncements.map((a: any) => (
                   <Link
@@ -265,7 +265,7 @@ export default async function HomePage() {
           <section className="border-t border-gray-100 bg-white px-4 py-16">
             <div className="mx-auto max-w-7xl">
               <div className="mb-8 flex items-end justify-between gap-4">
-                <SectionHead title="جدیدترین کسب‌وکارها" subtitle="تازه‌ترین کسب‌وکارهایی که در گوپلازا منتشر شده‌اند" bare />
+                <SectionHead title="جدیدترین کسب‌وکارها" subtitle="تازه‌ترین کسب‌وکارهایی که در پلازا منتشر شده‌اند" bare />
                 <Button asChild variant="ghost" className="hidden shrink-0 text-[color:var(--lajvard)] sm:inline-flex">
                   <Link href="/businesses">مشاهده همه <ArrowLeft className="mr-1 h-4 w-4" /></Link>
                 </Button>
@@ -284,7 +284,7 @@ export default async function HomePage() {
         {popularBusinesses.length > 0 && (
           <section className="border-t border-gray-100 bg-gray-50/70 px-4 py-16">
             <div className="mx-auto max-w-7xl">
-              <SectionHead title="پربازدیدترین کسب‌وکارها" subtitle="بیشترین بازدید در گوپلازا" />
+              <SectionHead title="پربازدیدترین کسب‌وکارها" subtitle="بیشترین بازدید در پلازا" />
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {popularBusinesses.map((biz) => (
                   <BusinessCard key={biz.id} business={biz} showViews categoryLabel={catLabel.get(biz.category)} />
@@ -341,7 +341,7 @@ export default async function HomePage() {
             when no post is published — see components/blog/latest-posts.tsx. */}
         <HomeLatestPosts />
 
-        {/* 9. Channels and groups, in the slot the «چرا گوپلازا؟» card grid
+        {/* 9. Channels and groups, in the slot the «چرا پلازا؟» card grid
             held until 26 Aug (Farjad's call). That grid asserted the site was
             trustworthy in four cards; this shows six real channels with the
             date each last posted and the date we checked. One is a claim about
@@ -358,7 +358,7 @@ export default async function HomePage() {
             <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold">
               <Users className="h-3.5 w-3.5" /> برای صاحبان کسب‌وکار
             </div>
-            <h2 className="mb-5 text-3xl font-black md:text-4xl">کسب‌وکار ایرانی داری؟ در گوپلازا معرفی‌اش کن.</h2>
+            <h2 className="mb-5 text-3xl font-black md:text-4xl">کسب‌وکار ایرانی داری؟ در پلازا معرفی‌اش کن.</h2>
             <p className="mx-auto mb-12 max-w-2xl leading-relaxed text-white/90">
               ثبت رایگان است و همیشه رایگان می‌ماند. آدرس سایتت را بده — بقیه‌ی اطلاعات را خودمان می‌خوانیم و پر می‌کنیم.
             </p>
@@ -431,7 +431,7 @@ export default async function HomePage() {
 
                   {/* app header */}
                   <div className="flex items-center justify-between px-4 pb-2 pt-1">
-                    <span className="text-lg font-black text-[#7A1831]">گوپلازا</span>
+                    <span className="text-lg font-black text-[#7A1831]">پلازا</span>
                     <span className="rounded-full bg-[#14213d]/5 px-2 py-1 text-[9px] font-bold text-[#14213d]">تورنتو ▾</span>
                   </div>
 
@@ -517,7 +517,7 @@ export default async function HomePage() {
               </span>
 
               <h2 className="mb-5 text-3xl font-black leading-[1.25] md:text-5xl">
-                گوپلازا توی جیبت،
+                پلازا توی جیبت،
                 <br />
                 <span className="text-[#c9a24b]">هرجای کانادا که باشی</span>
               </h2>

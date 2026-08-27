@@ -119,11 +119,18 @@ Built this session (`components/auth-form.tsx`, `lib/auth/providers.ts`,
    transcript while setting this up — rotate it in Clients → Add secret,
    swap it in Supabase, delete the old one.
 3. **The magic-link email template and redirect URLs.** Auth → Email
-   Templates → Magic Link: the Persian shell is already written in
-   `docs/02-engineering.md` («ورود به گوپلازا» / «ورود»). Auth → URL
-   Configuration: `https://goplaza.ca/auth/callback` must be in Redirect
-   URLs. Without the template the mail goes out in Supabase's English
-   default; without the URL the link bounces to `/auth/error`.
+   Templates → **Magic Link**: the full paste-ready HTML and its subject line
+   are now written out in `docs/02-engineering.md` — same shell as the other
+   two, plus two sentences the others do not need (the link signs you in, and
+   it is single-use, so it must not be forwarded). Auth → URL Configuration:
+   `https://goplaza.ca/**` and `http://localhost:3000/**` must both be in
+   Redirect URLs. Without the template the mail goes out in Supabase's
+   English default; without the URL the link lands on the Site URL,
+   `/auth/callback` never runs, and nobody is signed in.
+   **The allow-list cannot be checked from outside** —
+   `GET /auth/v1/authorize?redirect_to=…` passes any target through, including
+   one that is plainly not allow-listed, so it proves nothing. Look at the
+   dashboard.
 
 **The bug the screenshot found.** The panel's header promised «تا ۳ ایمیل و ۳
 شماره» flat, and each list printed «{used} از ۳». But the extra rows are
@@ -217,12 +224,38 @@ Seen rendered: the "not active yet" banner, the live rules table, the four
 levels, badges, and the refusals list. The "my ledger" button appears only
 once `public_display` is on.
 
-**Your test values are what the public page prints.** The rules table
-currently reads 8 / 89 / 3 / 34 / 55 / 13 and the levels 377 / 987 xp with a
-2,584-day (~7 year) maintenance window — Fibonacci numbers, evidently typed
-to prove the admin form saves. That is fine while the programme is off and
-the banner says so, but they are the numbers the page will show the day it is
-turned on. Seeded defaults were 25/30/10/15/20/5, 100/500 xp, 180 days.
+**The tuning values were reset to the seeded defaults** (26 Aug, on Farjad's
+instruction). The admin had been left holding Fibonacci numbers from testing
+the form — 8 / 89 / 3 / 34 / 55 / 13 and 377 / 987 xp with a 2,584-day
+window — and `/standing` prints whatever is stored, so those were what the
+public page showed. Now 25 / 30 / 10 / 15 / 20 / 5, 100 / 500 xp, 180 days,
+confirmed rendered. `standing_rules.version` bumped to 3 on every row whose
+points moved, which is correct: the ledger is empty, so no settled event
+carries an old version.
+
+**⚠️ OPEN DECISION — the owner badge contradicts the wall.** `debac42`
+renders the owner's contributor level in the «صاحب کسب‌وکار» block of
+`/businesses/[slug]`, with a sentence explaining what it means. `docs/16`
+says, unamended:
+
+> Neither program may ever contribute to what a visitor reads as the
+> credibility of a business … nothing that renders on `/businesses/[slug]`
+> may read from `user_standing`.
+
+The commit's stated mitigation — that the level travels but the score does
+not — addresses *precision*, not the category. The problem is adjacency: a
+visitor choosing a dentist reads «معتمد» beside the owner's name as a claim
+about the dentist, when it was earned by correcting opening hours and
+submitting Telegram channels. And because it is earned by activity, a
+business owner can raise their listing's apparent credibility by doing
+directory chores — which is the exact failure the wall was written to
+prevent, and the reason `plans.ts` refuses to sell verification.
+
+**This is Farjad's call, not a bug to fix unilaterally.** Either the badge
+comes off the business profile (it is fine beside a review author, where the
+person is the subject), or `docs/16`'s wall is amended to say the level may
+travel and why. What must not stand is the code and the spec disagreeing
+with nobody having decided.
 
 **Still not seen:** `/profile/standing`. It 404s unless both switches are on,
 and turning `public_display` on is a product decision, not a test.

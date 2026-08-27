@@ -37,7 +37,7 @@ export type PublicOwner = {
   /** Display name. Never rendered when empty — see `ownerSectionVisible`. */
   full_name: string | null;
   avatar_url: string | null;
-  /** Profile creation date, shown as "با گوپلازا از …". */
+  /** Profile creation date, shown as "با پلازا از …". */
   member_since: string | null;
   /**
    * «اعتبار مشارکت» level, 0–3. Resolved on the server like everything else
@@ -81,5 +81,5 @@ export const OWNER_SECTION_NOTE: Record<"claimed" | "self_onboarded", string> = 
   claimed:
     "این شخص با دریافت کد پیامکی روی شماره‌ی همین آگهی، مالکیتش را اثبات کرده است.",
   self_onboarded:
-    "این شخص خودش این کسب‌وکار را در گوپلازا ثبت کرده و ایمیل و شماره‌اش تایید شده است.",
+    "این شخص خودش این کسب‌وکار را در پلازا ثبت کرده و ایمیل و شماره‌اش تایید شده است.",
 };

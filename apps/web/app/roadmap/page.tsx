@@ -12,7 +12,7 @@ import { ROADMAP } from "@/lib/data/releases";
 import { company } from "@/lib/data/company";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/roadmap" }, title: "رودمپ", description: "گوپلازا به کجا می‌رود." };
+  alternates: { canonical: "/roadmap" }, title: "رودمپ", description: "پلازا به کجا می‌رود." };
 
 export default function RoadmapPage() {
   return (

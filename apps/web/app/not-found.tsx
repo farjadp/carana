@@ -18,7 +18,7 @@ const DOORS = [
   { href: "/categories", label: "دسته‌بندی‌ها", hint: "۱۲ دسته، از پزشک تا رستوران", icon: LayoutGrid },
   { href: "/cities", label: "شهرها", hint: "تورنتو، ونکوور، مونترال…", icon: MapPin },
   { href: "/businesses", label: "همه کسب‌وکارها", hint: "فهرست کامل، تأییدشده‌ها اول", icon: Building2 },
-  { href: "/how-it-works", label: "چطور کار می‌کند", hint: "گوپلازا چیست و نشان تأیید یعنی چه", icon: Compass },
+  { href: "/how-it-works", label: "چطور کار می‌کند", hint: "پلازا چیست و نشان تأیید یعنی چه", icon: Compass },
 ];
 
 export default function NotFound() {
@@ -45,7 +45,7 @@ export default function NotFound() {
             <input
               name="q"
               placeholder="مثلاً دندان‌پزشک، رستوران، ریچموندهیل…"
-              aria-label="جستجو در گوپلازا"
+              aria-label="جستجو در پلازا"
               className="h-11 flex-1 bg-transparent text-[15px] text-[color:var(--text)] outline-none placeholder:text-[color:var(--muted-text)]"
             />
             <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-full bg-[color:var(--annabi)] px-5 font-bold text-[#f6f1e8] transition hover:bg-[#5A1124]">

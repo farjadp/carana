@@ -1929,6 +1929,82 @@ section {
   border-bottom: none;
 }
 
+/* Table of contents for the long legal documents. */
+.legal-toc {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.25rem 1.4rem;
+  margin-bottom: 2.5rem;
+  background: rgba(20, 33, 61, 0.02);
+}
+
+.legal-toc-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+}
+
+.legal-toc-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.35rem 1.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: legal-toc;
+}
+
+.legal-toc-list li {
+  font-size: 0.88rem;
+  line-height: 1.9;
+}
+
+.legal-toc-list a {
+  color: var(--muted-text);
+  text-decoration: none;
+}
+
+.legal-toc-list a:hover {
+  color: var(--lajvard);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Reserved for the few statements that carry the most weight. */
+.legal-callout {
+  border: 1px solid var(--line);
+  border-inline-start: 3px solid var(--annabi);
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  margin: 0 0 1.25rem;
+  background: rgba(150, 27, 45, 0.035);
+}
+
+.legal-callout-title {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+
+.legal-callout-body p {
+  margin-bottom: 0.5rem;
+}
+
+.legal-callout-body p:last-child,
+.legal-callout-body .legal-list {
+  margin-bottom: 0;
+}
+
+.legal-section h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 1.25rem 0 0.5rem;
+}
+
 .faq-list {
   display: grid;
   gap: 1rem;
@@ -2540,13 +2616,50 @@ section {
 
 .contact-form .form-group { display: grid; gap: 0.4rem; }
 
-/* Off-screen rather than display:none — some bots skip hidden inputs. */
+/* Matches the Input primitive so the select does not read as a foreign control. */
+.support-select {
+  min-height: 3.5rem;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 0.75rem 1rem;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.support-select:focus {
+  border-color: var(--lajvard);
+  box-shadow: 0 0 0 2px rgba(0, 71, 171, 0.12);
+}
+
+.form-hint {
+  font-size: 0.78rem;
+  color: var(--muted-text);
+  line-height: 1.8;
+}
+
+/*
+ * Hidden rather than display:none — some bots skip hidden inputs.
+ *
+ * CLIPPED, NOT DISPLACED. This used to be `left: -9999px`, which in an RTL
+ * document overflows the scrollable END rather than falling off the origin
+ * the way it does in LTR: every page carrying a form gained ~10,000px of
+ * horizontal scroll on mobile (375px viewport reported a 10,374px document).
+ * A reader could swipe the whole site sideways into blank cream. Clipping
+ * keeps the field rendered and fillable — which is the entire point of a
+ * honeypot — without contributing any scrollable area.
+ */
 .honeypot {
   position: absolute;
-  left: -9999px;
   width: 1px;
   height: 1px;
   overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .contact-sent {

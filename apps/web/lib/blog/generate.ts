@@ -86,7 +86,7 @@ async function planTopics(n: number, inv: Inventory) {
     schema: z.object({ briefs: z.array(briefSchema).min(1) }),
     temperature: 0.8,
     providerOptions: { openai: { strictJsonSchema: false } },
-    prompt: `You are the content editor of GOPLAZA (گوپلازا), the Persian-language directory of Iranian-owned businesses in Canada (goplaza.ca). Plan ${n} article briefs for today.
+    prompt: `You are the content editor of GOPLAZA (پلازا), the Persian-language directory of Iranian-owned businesses in Canada (goplaza.ca). Plan ${n} article briefs for today.
 
 Editorial line: useful, specific, grounded in the directory's own data. Never generic listicles ("10 tips…"). Each brief answers a real question an Iranian in Canada has, and links to real pages on the site.
 Prefer these categories today (least recently covered): ${wanted.join(", ")}.

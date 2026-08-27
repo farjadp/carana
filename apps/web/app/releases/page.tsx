@@ -11,7 +11,7 @@ import { InnerPage } from "@/components/inner-page";
 import { RELEASES } from "@/lib/data/releases";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/releases" }, title: "نسخه‌ها", description: "تغییرات هر نسخه‌ی گوپلازا." };
+  alternates: { canonical: "/releases" }, title: "نسخه‌ها", description: "تغییرات هر نسخه‌ی پلازا." };
 const fa = (s: string | number) => String(s).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
 const P: Record<string, { label: string; icon: React.ReactNode }> = {
   web: { label: "وب", icon: <Globe size={12} /> },

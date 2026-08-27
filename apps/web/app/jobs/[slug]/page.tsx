@@ -217,7 +217,7 @@ export default async function JobPage({ params }: { params: Promise<{ slug: stri
               value={job.apply_value}
             />
             <p className="mt-3 text-xs text-[color:var(--muted-text)]">
-              درخواست مستقیم به همین کسب‌وکار می‌رود؛ گوپلازا در استخدام واسطه نیست و رزومه‌ای دریافت نمی‌کند.
+              درخواست مستقیم به همین کسب‌وکار می‌رود؛ پلازا در استخدام واسطه نیست و رزومه‌ای دریافت نمی‌کند.
             </p>
           </div>
 
@@ -230,7 +230,7 @@ export default async function JobPage({ params }: { params: Promise<{ slug: stri
             </p>
           ) : null}
         </article>
-        <LatestPostsStrip subtitle="راهنماهای تازه‌ی گوپلازا درباره‌ی کار، مهاجرت و کسب‌وکار در کانادا" />
+        <LatestPostsStrip subtitle="راهنماهای تازه‌ی پلازا درباره‌ی کار، مهاجرت و کسب‌وکار در کانادا" />
       </main>
     </PageShell>
   );

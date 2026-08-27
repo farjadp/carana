@@ -104,7 +104,7 @@ async function readSource(article: SourceArticle, inv: Inventory): Promise<Sourc
     schema: sourceBriefSchema,
     temperature: 0.4,
     providerOptions: { openai: { strictJsonSchema: false } },
-    prompt: `You are the content editor of GOPLAZA (گوپلازا), goplaza.ca — the Persian-language directory of Iranian-owned businesses in Canada.
+    prompt: `You are the content editor of GOPLAZA (پلازا), goplaza.ca — the Persian-language directory of Iranian-owned businesses in Canada.
 
 Below is an article published by ${article.sourceName}. Your job is NOT to summarise or rewrite it. Your job is to (a) pull out the checkable facts it reports, and (b) decide what GOPLAZA would write about the same subject that is genuinely ours: what this means for an Iranian family or business owner in Canada, and what they should do about it.
 

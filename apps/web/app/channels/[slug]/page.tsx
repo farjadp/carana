@@ -190,7 +190,7 @@ export default async function ChannelPage({ params }: { params: Promise<{ slug: 
                   answers for what is posted there, and that sentence is true
                   either way. */}
               <p className="mt-2 text-[11px] leading-6 text-[color:var(--muted-text)]">
-                این لینک به بیرون از گوپلازا می‌رود و مسئولیت محتوای آن با اداره‌کننده‌اش است.
+                این لینک به بیرون از پلازا می‌رود و مسئولیت محتوای آن با اداره‌کننده‌اش است.
               </p>
             </div>
           </div>
@@ -241,7 +241,7 @@ export default async function ChannelPage({ params }: { params: Promise<{ slug: 
                 anything, and printing it makes the section read dead. */}
             {showsViewCount(viewCount) ? (
               <div className="rounded-2xl border border-[color:var(--line)] bg-white p-5">
-                <p className="mb-1 text-xs font-bold text-[color:var(--muted-text)]">بازدید در گوپلازا</p>
+                <p className="mb-1 text-xs font-bold text-[color:var(--muted-text)]">بازدید در پلازا</p>
                 <p className="text-sm leading-7 text-[color:var(--text)]">{fa(viewCount as number)} بار</p>
               </div>
             ) : null}

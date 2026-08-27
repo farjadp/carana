@@ -13,7 +13,45 @@ import { reportQuietFailure } from "@/lib/observability/report";
 
 import { company } from "@/lib/data/company";
 
-const FROM = process.env.EMAIL_FROM ?? `${company.brand} <${company.email.noreply}>`;
+const DEFAULT_FROM = `${company.brand} <${company.email.noreply}>`;
+
+/**
+ * The sender header, repaired if it has to be.
+ *
+ * Found on 27 Aug: EMAIL_FROM carried one orphaned byte of the `č` from the
+ * old čārana name, left behind by the rebrand, and Resend rejected every send
+ * with "Invalid `from` field" — silently, because sendEmail returns
+ * { sent: false } by design. Verification codes and listing decisions had been
+ * failing for real users for days, and the only trace was 17 rows in
+ * system_errors that nothing read.
+ *
+ * So the header is repaired rather than trusted: control characters and U+FFFD
+ * (what an invalid byte has become by the time it reaches process.env) are
+ * stripped, and anything still not shaped like an address falls back to the
+ * brand default. A Persian display name is left alone — that is legal and
+ * intended; only unrenderable junk is removed.
+ */
+function resolveFrom(): string {
+  const raw = process.env.EMAIL_FROM?.trim();
+  if (!raw) return DEFAULT_FROM;
+
+  const cleaned = raw.replace(/[\u0000-\u001F\u007F-\u009F\uFFFD]/g, "").trim();
+  const addressOnly = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+  const named = /^[^<>]+<[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+>$/;
+
+  if (!addressOnly.test(cleaned) && !named.test(cleaned)) {
+    reportQuietFailure("email_from_invalid", { configured: raw, using: DEFAULT_FROM });
+    return DEFAULT_FROM;
+  }
+
+  if (cleaned !== raw) {
+    reportQuietFailure("email_from_invalid", { configured: raw, using: cleaned });
+  }
+
+  return cleaned;
+}
+
+const FROM = resolveFrom();
 
 /**
  * Created lazily. Reading the key at module scope would make every route that

@@ -181,7 +181,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         <div className="mt-6 flex items-end justify-between gap-4">
           <div>
             <h1 className="text-xl md:text-2xl font-black text-[color:var(--text)]">
-              {q ? <>نتایج برای «{q}»</> : city || category ? <>{[category ? catLabel.get(category) : null, city].filter(Boolean).join(" در ")}</> : "جستجو در گوپلازا"}
+              {q ? <>نتایج برای «{q}»</> : city || category ? <>{[category ? catLabel.get(category) : null, city].filter(Boolean).join(" در ")}</> : "جستجو در پلازا"}
             </h1>
             <p className="text-sm text-[color:var(--muted-text)] mt-1">
               {q || city || category ? <>{fa(total)} کسب‌وکار{city && !widened ? ` در ${city}` : ""}{verifiedOnly ? " · فقط احرازشده" : ""}</> : "نام، خدمت، دسته یا شهر را بنویس — فارسی یا انگلیسی، فرقی نمی‌کند."}

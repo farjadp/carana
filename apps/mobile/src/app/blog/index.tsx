@@ -65,7 +65,7 @@ export default function BlogListScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(active); }} tintColor={colors.annabi} />}
         ListHeaderComponent={
           <View style={{ gap: space.sm, marginBottom: space.sm }}>
-            <Text style={styles.lede}>راهنماها، شهرها و آنچه داده‌های گوپلازا درباره‌ی ایرانیان کانادا می‌گویند.</Text>
+            <Text style={styles.lede}>راهنماها، شهرها و آنچه داده‌های پلازا درباره‌ی ایرانیان کانادا می‌گویند.</Text>
             <FlatList
               horizontal
               inverted

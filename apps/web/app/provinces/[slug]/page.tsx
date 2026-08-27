@@ -127,7 +127,7 @@ export default async function ProvincePage({
         <section className="province-listings">
           <h2>هنوز کسب‌وکاری در {province.name} ثبت نشده</h2>
           <p>
-            گوپلازا دایرکتوری زنده است و این استان فعلاً خالی است. اگر کسب‌وکاری
+            پلازا دایرکتوری زنده است و این استان فعلاً خالی است. اگر کسب‌وکاری
             در {province.name} می‌شناسید، ثبتش رایگان است و همین صفحه با اولین
             ثبت زنده می‌شود.
           </p>
@@ -169,7 +169,7 @@ export default async function ProvincePage({
         ) : null}
       </section>
       )}
-      <LatestPostsStrip subtitle="راهنماهای تازه‌ی گوپلازا درباره‌ی استان‌ها و زندگی ایرانی در کانادا" />
+      <LatestPostsStrip subtitle="راهنماهای تازه‌ی پلازا درباره‌ی استان‌ها و زندگی ایرانی در کانادا" />
     </InnerPage>
   );
 }

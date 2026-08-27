@@ -6,6 +6,7 @@
 // ============================================================================
 import { type NextRequest, NextResponse } from "next/server";
 
+import { reportQuietFailure } from "@/lib/observability/report";
 import { serverEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { createSupabaseRouteHandlerClient } from "@/lib/supabase/route-handler";
@@ -26,25 +27,25 @@ export async function POST(request: NextRequest) {
   const email = body.email?.trim().toLowerCase() ?? "";
   const password = body.password ?? "";
 
+  // Every rejection below leaves a row. A signup that fails is the one
+  // failure nobody can report from the inside: the person has no account, so
+  // there is no user_activity_logs entry and nothing to attach one to. Before
+  // this, "اجازه ثبت نمیده" was unanswerable.
+  const fail = (stage: string, reason: string, status: number) => {
+    reportQuietFailure("signup_failed", { stage, reason, email });
+    return NextResponse.json({ error: reason }, { status });
+  };
+
   if (!fullName || !email || !password) {
-    return NextResponse.json(
-      { error: "نام، ایمیل و رمز عبور الزامی هستند." },
-      { status: 400 }
-    );
+    return fail("validation", "نام، ایمیل و رمز عبور الزامی هستند.", 400);
   }
 
   if (!isValidEmail(email)) {
-    return NextResponse.json(
-      { error: "فرمت ایمیل معتبر نیست." },
-      { status: 400 }
-    );
+    return fail("validation", "فرمت ایمیل معتبر نیست.", 400);
   }
 
   if (password.length < 8) {
-    return NextResponse.json(
-      { error: "رمز عبور باید حداقل ۸ کاراکتر باشد." },
-      { status: 400 }
-    );
+    return fail("validation", "رمز عبور باید حداقل ۸ کاراکتر باشد.", 400);
   }
 
   // 1. If testing flag is enabled, bypass email confirmation using Admin SDK
@@ -61,10 +62,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.status ?? 400 }
-      );
+      return fail("admin_create_user", error.message, error.status ?? 400);
     }
 
     return NextResponse.json({
@@ -88,10 +86,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (error) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: error.status ?? 400 }
-    );
+    return fail("supabase_sign_up", error.message, error.status ?? 400);
   }
 
   const baseResponse = getResponse();

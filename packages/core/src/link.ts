@@ -171,7 +171,7 @@ export type LinkLimits = {
   pixel: boolean;
   /** May choose their own handle rather than the g-#### fallback. */
   customHandle: boolean;
-  /** May remove the "ساخته‌شده با گوپلازا" footer. */
+  /** May remove the "ساخته‌شده با پلازا" footer. */
   footerRemovable: boolean;
   /** Full theme control rather than the three presets. */
   themeCustom: boolean;

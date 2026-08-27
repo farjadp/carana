@@ -21,7 +21,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export const metadata: Metadata = {
   alternates: { canonical: "/about" },
   title: "درباره ما",
-  description: `گوپلازا دایرکتوری فارسی‌زبان کسب‌وکارهای ایرانی در کاناداست — ساخته‌ی ${company.legalName} در تورنتو. ${brand.tagline.fa}`,
+  description: `پلازا دایرکتوری فارسی‌زبان کسب‌وکارهای ایرانی در کاناداست — ساخته‌ی ${company.legalName} در تورنتو. ${brand.tagline.fa}`,
 };
 
 const FA = "۰۱۲۳۴۵۶۷۸۹";
@@ -38,7 +38,7 @@ const HOW = [
   { n: "۱", title: "جستجو یا گشتن", body: "بر اساس دسته، شهر یا استان — یا مستقیم نام کسب‌وکار و خدمت." },
   { n: "۲", title: "پروفایل کامل", body: "تلفن، واتساپ، آدرس، ساعات کاری، خدمات و تعرفه، شبکه‌های اجتماعی و لینک رزرو — همه یک‌جا." },
   { n: "۳", title: "نشان اعتماد", body: "ببین چه کسی مالکیتش را ثابت کرده. بقیه را با یک کلیک ذخیره کن یا برای خودت یادداشت بگذار." },
-  { n: "۴", title: "تماس مستقیم", body: "زنگ بزن، پیام بده، مسیر بگیر یا نوبت رزرو کن — گوپلازا واسطه‌ی هیچ معامله‌ای نیست." },
+  { n: "۴", title: "تماس مستقیم", body: "زنگ بزن، پیام بده، مسیر بگیر یا نوبت رزرو کن — پلازا واسطه‌ی هیچ معامله‌ای نیست." },
 ];
 
 export default async function AboutPage() {
@@ -57,7 +57,7 @@ export default async function AboutPage() {
       currentPath="/about"
       currentSection="brand"
       eyebrow="درباره ما"
-      title="گوپلازا برای این ساخته شد که با اطمینان پیدا کنی."
+      title="پلازا برای این ساخته شد که با اطمینان پیدا کنی."
       description="یک دایرکتوری فارسی‌زبان برای کسب‌وکارهای ایرانی در کانادا — با اطلاعات واقعی، نشان احراز مالکیت و تجربه‌ی هم‌زبان‌ها. نه تبلیغ، نه لیست خالی."
     >
       {/* Numbers */}
@@ -79,7 +79,7 @@ export default async function AboutPage() {
       {/* Why */}
       <section className="mt-12 grid lg:grid-cols-12 gap-8 items-start" dir="rtl">
         <div className="lg:col-span-7 space-y-4 text-[15px] leading-[1.95] text-[color:var(--text)]/85">
-          <h2 className="text-2xl font-black text-[color:var(--text)] flex items-center gap-2"><Merlon /> چرا گوپلازا؟</h2>
+          <h2 className="text-2xl font-black text-[color:var(--text)] flex items-center gap-2"><Merlon /> چرا پلازا؟</h2>
           <p>
             وقتی تازه به کانادا می‌رسی، اولین سؤال‌ها ساده‌اند و جوابشان سخت: کدام وکیل مهاجرت فارسی حرف می‌زند؟
             دندانپزشکی که خانواده‌ام راحت باشد کجاست؟ حسابداری که مالیات کانادا و شرایط تازه‌وارد را با هم بفهمد؟
@@ -87,7 +87,7 @@ export default async function AboutPage() {
             «کسی که واقعاً کارش را بلد است» و «کسی که فقط تبلیغ می‌کند» فرق گذاشتن، تجربه می‌خواست که تازه‌وارد ندارد.
           </p>
           <p>
-            گوپلازا آن مرجع متمرکز است: کسب‌وکارهای ایرانی کانادا، به فارسی، با اطلاعات کامل — و یک تفاوت مهم:
+            پلازا آن مرجع متمرکز است: کسب‌وکارهای ایرانی کانادا، به فارسی، با اطلاعات کامل — و یک تفاوت مهم:
             <strong className="text-[color:var(--annabi)]"> نشان احراز مالکیت.</strong> وقتی صاحب کسب‌وکار با شماره‌ی خودش ثابت
             کرده که این پروفایل مال اوست، تو می‌دانی با چه کسی طرفی. و چون این نشان هر شش ماه باید تمدید شود،
             «تاییدشده» یعنی همین امروز، نه سه سال پیش.
@@ -109,7 +109,7 @@ export default async function AboutPage() {
               <div className="text-sm text-[#f6f1e8]/75 mt-1">شرکت اجرایی و تحول دیجیتال · تورنتو</div>
               <p className="text-sm text-[#f6f1e8]/80 leading-relaxed mt-4">
                 آشاوید برای کسب‌وکارها سیستم‌های عملیاتی و اتوماسیون هوش مصنوعی می‌سازد و به بنیان‌گذاران مهاجر کمک
-                می‌کند شرکت واقعی در کانادا راه بیندازند. گوپلازا محصولی است که برای همین جامعه ساخته و منتشر می‌کند.
+                می‌کند شرکت واقعی در کانادا راه بیندازند. پلازا محصولی است که برای همین جامعه ساخته و منتشر می‌کند.
               </p>
               <div className="mt-5 pt-4 border-t border-white/10">
                 <div className="text-xs text-[#f6f1e8]/60 mb-1">بنیان‌گذار</div>

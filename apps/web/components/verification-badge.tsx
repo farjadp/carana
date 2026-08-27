@@ -130,7 +130,7 @@ export function VerificationDetail({
       <div className="rounded-xl bg-gray-50 p-3 text-xs text-gray-700">
         <p className="font-bold mb-1">هنوز تایید نشده</p>
         <p className="text-gray-500 leading-relaxed">
-          این آگهی را گوپلازا ثبت کرده است و صاحب آن هنوز مالکیتش را احراز نکرده.
+          این آگهی را پلازا ثبت کرده است و صاحب آن هنوز مالکیتش را احراز نکرده.
           اطلاعات تماس ممکن است به‌روز نباشد.
         </p>
       </div>
@@ -172,7 +172,7 @@ export function VerificationDetail({
         )}
 
       <p className="mt-2 text-[10px] text-[#5f6472] leading-relaxed">
-        گوپلازا هر شش ماه یک‌بار شماره تماس و ایمیل هر کسب‌وکار را دوباره تایید می‌کند
+        پلازا هر شش ماه یک‌بار شماره تماس و ایمیل هر کسب‌وکار را دوباره تایید می‌کند
         تا مطمئن شود اطلاعات همچنان درست است.
       </p>
     </div>

@@ -93,7 +93,7 @@ export function BlogDesk({ posts, runs, categories, shares, channels, backlog, a
         <div className="flex items-center gap-2 rounded-2xl border border-[color:var(--line)] bg-white p-2">
           <input type="number" min={1} max={10} value={n} onChange={(e) => setN(Number(e.target.value))} className="h-9 w-16 rounded-lg border border-[color:var(--line)] px-2 text-center text-sm" aria-label="تعداد" />
           <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={publishNow} onChange={(e) => setPublishNow(e.target.checked)} /> انتشار مستقیم</label>
-          <button type="button" disabled={pending} onClick={() => act(() => runGenerator(n, publishNow))} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-[color:var(--annabi)] px-4 text-sm font-bold text-[#f6f1e8] disabled:opacity-50" title="موضوع را از داده‌های خود گوپلازا برمی‌دارد">
+          <button type="button" disabled={pending} onClick={() => act(() => runGenerator(n, publishNow))} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-[color:var(--annabi)] px-4 text-sm font-bold text-[#f6f1e8] disabled:opacity-50" title="موضوع را از داده‌های خود پلازا برمی‌دارد">
             <Sparkles size={15} /> {pending ? "در حال نوشتن…" : "از داده‌ها بنویس"}
           </button>
           <button type="button" disabled={pending} onClick={() => act(() => runSourceGenerator(n, publishNow))} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-[color:var(--lajvard)] px-4 text-sm font-bold text-[#f6f1e8] disabled:opacity-50" title="موضوع تازه را از منابع خارجی برمی‌دارد؛ اگر تازه کم بود، از آرشیو">

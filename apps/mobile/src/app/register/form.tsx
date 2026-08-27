@@ -142,7 +142,7 @@ export default function RegisterFormScreen() {
           <View style={styles.doneIcon}><CheckCircle2 size={44} color={colors.success} /></View>
           <Text style={[type.h1, { fontSize: 22, textAlign: "center" }]}>اطلاعات کسب‌وکار دریافت شد</Text>
           <Text style={[type.body, { color: colors.mutedText, textAlign: "center" }]}>
-            پروفایل شما به‌عنوان «ارسال‌شده برای بررسی» ثبت شد. تیم گوپلازا آن را بررسی می‌کند و پس از تایید،
+            پروفایل شما به‌عنوان «ارسال‌شده برای بررسی» ثبت شد. تیم پلازا آن را بررسی می‌کند و پس از تایید،
             در دایرکتوری منتشر می‌شود — معمولاً ۲ تا ۵ روز کاری.
           </Text>
           <View style={{ alignSelf: "stretch", marginTop: space.sm }}>
@@ -251,7 +251,7 @@ export default function RegisterFormScreen() {
           {/* ---------------------------------------------------- 4 */}
           {step === 4 ? (
             <Card>
-              <StepHeader n={4} title="اعتبار" description="این بخش محرمانه است و فقط برای بررسی تیم گوپلازا استفاده می‌شود؛ هرگز عمومی نمی‌شود." />
+              <StepHeader n={4} title="اعتبار" description="این بخش محرمانه است و فقط برای بررسی تیم پلازا استفاده می‌شود؛ هرگز عمومی نمی‌شود." />
               <MultiChoice label="زبان‌های ارائه‌ی خدمات" options={LANGUAGES} value={data.languages} onChange={(v) => set("languages", v)} error={errors.languages} />
               <Toggle label="کسب‌وکار ایرانی-کانادایی است" value={data.is_iranian_owned} onChange={(v) => set("is_iranian_owned", v)} />
               <TextField label="شماره ثبت شرکت (اختیاری)" latin value={data.business_number ?? ""} onChangeText={(t) => set("business_number", t)} placeholder="BN / Corporation #" />
@@ -320,7 +320,7 @@ export default function RegisterFormScreen() {
                   {agree ? <CheckCircle2 size={16} color={colors.onAnnabi} /> : null}
                 </View>
                 <Text style={styles.agreeText}>
-                  تایید می‌کنم اطلاعات واردشده صحیح و واقعی است و می‌پذیرم انتشار نهایی پس از بررسی تیم گوپلازا انجام می‌شود.
+                  تایید می‌کنم اطلاعات واردشده صحیح و واقعی است و می‌پذیرم انتشار نهایی پس از بررسی تیم پلازا انجام می‌شود.
                 </Text>
               </Pressable>
               {submitError ? <Alert tone="error">{submitError}</Alert> : null}

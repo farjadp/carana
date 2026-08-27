@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const cats = await listCategories(await createSupabaseServerClient());
   const cat = cats.find((c) => c.slug === slug);
   if (!cat) return { title: "دسته پیدا نشد" };
-  return { title: `${cat.name} | وبلاگ گوپلازا`, description: cat.description ?? undefined, alternates: { canonical: `/blog/category/${slug}` } };
+  return { title: `${cat.name} | وبلاگ پلازا`, description: cat.description ?? undefined, alternates: { canonical: `/blog/category/${slug}` } };
 }
 
 export default async function BlogCategoryPage({ params, searchParams }: Params) {

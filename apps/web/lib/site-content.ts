@@ -9,8 +9,10 @@ export type NavSection = "home" | "business" | "brand";
 export const legalLinks = [
   { href: "/privacy", label: "حریم خصوصی" },
   { href: "/disclaimer", label: "سلب مسئولیت" },
-  { href: "/terms", label: "شرایط استفاده" },
+  { href: "/terms", label: "قوانین و مقررات" },
+  // In the footer on purpose: a complaints route nobody can find is not one.
+  { href: "/complaint", label: "ثبت شکایت" },
 ] as const;
 
 export const footerCopy =
-  "از ریشه‌های فارسی تا شهرهای کانادا، گوپلازا خانه دیجیتال معرفی کسب‌وکارهای ایرانی است. © 2026 همه حقوق برای گوپلازا محفوظ است.";
+  "از ریشه‌های فارسی تا شهرهای کانادا، پلازا خانه دیجیتال معرفی کسب‌وکارهای ایرانی است. © 2026 همه حقوق برای پلازا محفوظ است.";

@@ -40,10 +40,10 @@ export const STANDING_MEANING_FA: Record<StandingLevel, string> = {
   2: "سابقه‌ی طولانی و دقیقی از مشارکت‌های تأییدشده دارد.",
   // Says only what the level MEANS, never restates its name. The owner
   // section prints «سطح «نگهبان» دارد — {this}», and the first draft of this
-  // string began «نقش نگهبانی در گوپلازا دارد», which read back as the same
+  // string began «نقش نگهبانی در پلازا دارد», which read back as the same
   // sentence twice. A string written for a tooltip does not automatically
   // compose into a sentence.
-  3: "این سطح را تیم گوپلازا می‌دهد و به‌دست نمی‌آید.",
+  3: "این سطح را تیم پلازا می‌دهد و به‌دست نمی‌آید.",
 };
 
 const STYLE: Record<StandingLevel, string> = {

@@ -68,3 +68,44 @@ export function LegalTable({
 export function LegalMeta({ updated }: { updated: string }) {
   return <p className="legal-meta">آخرین بروزرسانی: {updated}</p>;
 }
+
+/**
+ * Anchored table of contents. These documents are long by necessity — a
+ * reader looking for the refund rule should not have to scroll past sixteen
+ * headings to find it. Ids must match the `id` given to each LegalSection.
+ */
+export function LegalToc({ items }: { items: { id: string; label: string }[] }) {
+  return (
+    <nav className="legal-toc" aria-label="فهرست مطالب">
+      <h2 className="legal-toc-title">فهرست مطالب</h2>
+      <ol className="legal-toc-list">
+        {items.map((item) => (
+          <li key={item.id}>
+            <a href={`#${item.id}`}>{item.label}</a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
+/**
+ * A boxed statement for the handful of lines that carry the most weight —
+ * the summary at the top, the auto-renewal rule, what the verification badge
+ * does not mean. Used sparingly; a document where everything is highlighted
+ * highlights nothing.
+ */
+export function LegalCallout({
+  title,
+  children,
+}: {
+  title?: string;
+  children: ReactNode;
+}) {
+  return (
+    <aside className="legal-callout">
+      {title ? <strong className="legal-callout-title">{title}</strong> : null}
+      <div className="legal-callout-body">{children}</div>
+    </aside>
+  );
+}

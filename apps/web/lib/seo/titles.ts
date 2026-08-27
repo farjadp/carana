@@ -108,7 +108,7 @@ export function fitTitle(parts: {
 // ---------------------------------------------------------------------------
 
 /**
- * `{name} — {category} ایرانی در {city} | آدرس و تلفن | گوپلازا`
+ * `{name} — {category} ایرانی در {city} | آدرس و تلفن | پلازا`
  * The em-dash matters: 9 imported rows have a Latin name run straight into a
  * Persian one with no separator, and a bare space would hide that.
  */

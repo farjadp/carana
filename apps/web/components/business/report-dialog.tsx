@@ -128,7 +128,7 @@ export function ReportDialog({ subject }: { subject: ReportSubject }) {
                 <CheckCircle2 size={40} className="mx-auto mb-3 text-[color:var(--success,#0f7b4f)]" />
                 <h2 className="text-lg font-black text-[color:var(--text)]">گزارش ثبت شد</h2>
                 <p className="mx-auto mt-2 max-w-sm text-sm leading-7 text-[color:var(--muted-text)]">
-                  در صف بررسی تیم گوپلازاست. اگر تغییری لازم باشد اعمال می‌کنیم؛ ممکن است چند روز طول بکشد.
+                  در صف بررسی تیم پلازاست. اگر تغییری لازم باشد اعمال می‌کنیم؛ ممکن است چند روز طول بکشد.
                 </p>
                 <button type="button" onClick={close} className="mt-5 h-10 rounded-full bg-[color:var(--text)] px-6 text-sm font-bold text-[#f6f1e8]">بستن</button>
               </div>

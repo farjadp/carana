@@ -47,6 +47,97 @@ standalone card for the channel with four mechanical honesty checks.
 That the table styling was verified visually — screenshots below the fold came
 back blank and the check was actually computed styles plus rendered HTML. Said
 so at the time rather than implying otherwise.
+# 2026-08-26 (late) — is the app the same as the site? No, and the app was selling something it does not have
+
+Farjad asked one question: are the app and the website on the same version.
+Two different answers, and conflating them is how this went unnoticed.
+
+**Version numbers agree.** `app.json` 1.4.0, the APK `/download` serves 1.4.0
+(EAS `6f8b7259`, 24 Aug, 110 MB), `APP_VERSION` in `lib/data/releases.ts`
+1.4.0. That is exactly the state the 1.3.0 lesson asked for.
+
+**Feature parity does not.** Since `4f04073` ("Mobile catches up with the web",
+24 Aug) there were **59 commits touching `apps/web` and 2 touching
+`apps/mobile`** — one of those two only made the lint gate green. Three whole
+products shipped on the web in that window with nothing on native: the
+**channels directory**, **standing & loyalty**, and **GPLZ Link**. Plus the
+correction dialog, the `/profile` redesign and `/auth/signup-success`. Three of
+those already have their rules in `@goplaza/core`, so the gap is screens, not
+logic — which is the whole reason the package exists.
+
+`04-mobile`'s parity table was dated 24 Aug and was being read as current. It
+is rewritten, in three parts (still-true / opened-since / verified-by-running),
+and `05-open-tasks` **reopens** the struck-through "Mobile is behind the web"
+section rather than leaving it closed. That gap reopens by default every time
+the web ships; "mobile is caught up" is a claim with an expiry date.
+
+## What was said wrongly, or left unproven
+
+**`04-mobile` said "Not built: auth, saving, private notes, reviews, user
+profile."** All five have been built since before the 24 Aug catch-up —
+`auth/`, `interaction-bar.tsx`, `listPublishedReviews`, the profile tab. The
+line was stale and had been read as current by at least this session. Corrected
+in place with the correction stated, not quietly deleted.
+
+**The first version of the rewritten table was built by reading routes and
+grepping, and it said the standing gap was "the badge on the public
+`/businesses/[slug]`".** True, but imprecise in a way worth fixing: that badge
+is on a *reviewer* next to their review, and it renders nothing below level 1,
+so today the visible difference may be zero. Precision matters here because the
+row was about to justify work.
+
+**A defect was nearly recorded that was not one.** The app's home hero reads
+«۹٬۶۸۹ کسب‌وکار» while `00-START-HERE` says the directory is 10,680, and
+mobile computes that number by summing per-category counts where the web takes
+an exact server-side count — so they *could* disagree. They do not: an exact
+count over `PUBLIC_STATUSES` is 9,689 and the docs' larger figure counts
+non-public rows. One query. Writing it into `06-gotchas` unchecked would have
+left a fake trap for the next session, and this is the second session in two
+days to have to disprove this exact number (see the «کانال‌ها» entry).
+
+## The honesty bug that only running the app could find
+
+The signed-out «حساب من» tab sold a free account with three benefits. The third
+was **«ثبت نظر — به بقیه کمک کنید کسب‌وکار درست را پیدا کنند»**. The app cannot
+post a review. `submitReview()` and `getMyReview()` sit in
+`src/lib/interactions.ts` with **zero call sites**; the screen that would call
+them was never built. The only rating the app writes is `personal_rating`, on
+the caller's own interaction row, shown inside the private-note sheet and
+nowhere else. The subtitle above the cards made the same promise — «تجربه‌تان
+را با بقیه به اشتراک بگذارید».
+
+So the app asked people to open an account for a feature that is not in the
+binary. Fixed (`3e06a6c`): the card is «باخبرم کن», which the interaction bar
+really does on every business, and the subtitle now lists saving, private notes
+and ratings, and announcement mail. Verified on screen after the change.
+
+**The unused functions stay on purpose.** They are the write path a future
+review screen needs; deleting them hides that the screen is missing instead of
+recording it. What was wrong was the promise, not the function.
+
+**Why the 24 Aug audit missed it.** Its parity table had "Reviews" on the
+"mobile has it" side and was not wrong — mobile *reads* reviews. Read and write
+are separate claims, and one table row per feature hides the missing half. And
+the audit never opened the signed-out account screen at all, because a parity
+list points you at features while the false promises live on screens. Both
+lessons are in `06-gotchas`.
+
+## Verified by running
+
+iOS simulator (iPhone 17 Pro, SDK 57 dev build, live production Supabase).
+Seen on screen: five tabs and no channels tab · no channels band on the home
+page · a business profile with the owner-identity section and «گزارش مشکل» but
+no standing badge and no correction control · the blog read counter
+incrementing live («۱ بازدید») · the jobs rail, suggestion box and Tehran
+footer · the fixed account tab. `pnpm typecheck` clean, `check:brand` clean,
+`pnpm lint` 0 errors (4 pre-existing warnings).
+
+## Still open
+
+Unchanged and long-standing on mobile: **no owner controls at all** (edit,
+insights, billing, announcement and job writing) and **no push infrastructure**.
+Now added to that list: channels, standing, GPLZ Link, corrections. Review
+*writing* is still web-only — the app reads reviews and cannot write one.
 
 # 2026-08-26 (later still) — sign-in: a magic link, extra contacts, and a Google button that had never worked
 

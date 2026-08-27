@@ -31,7 +31,7 @@ export async function generateMetadata({
     alternates: { canonical: `/categories/${slug}` },
     openGraph: {
       locale: "fa_CA",
-      title: `${config.name} ایرانی در کانادا | دایرکتوری گوپلازا`,
+      title: `${config.name} ایرانی در کانادا | دایرکتوری پلازا`,
       description: config.description,
       images: [config.imageUrl],
     },
@@ -80,7 +80,7 @@ export default async function CategoryDetailPage({
         initialBusinesses={initialBusinesses}
         cityLinks={cityLinks}
       />
-      <LatestPostsStrip subtitle="راهنماهای تازه‌ی گوپلازا برای انتخاب درست و کسب‌وکار ایرانی در کانادا" />
+      <LatestPostsStrip subtitle="راهنماهای تازه‌ی پلازا برای انتخاب درست و کسب‌وکار ایرانی در کانادا" />
     </>
   );
 }

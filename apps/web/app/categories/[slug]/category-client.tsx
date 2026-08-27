@@ -171,7 +171,7 @@ export default function CategoryClientPage({
             <div>
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full text-sm font-medium mb-3 border border-white/10">
                 <span className="text-xl">{categoryConfig.icon}</span>
-                <span>دایرکتوری تخصصی گوپلازا</span>
+                <span>دایرکتوری تخصصی پلازا</span>
               </div>
               <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-4">
                 {categoryConfig.name}
@@ -267,7 +267,7 @@ export default function CategoryClientPage({
                   className="rounded text-[color:var(--lajvard)] focus:ring-0"
                 />
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                <span>تاییدشده توسط گوپلازا</span>
+                <span>تاییدشده توسط پلازا</span>
               </label>
 
               <label className="flex items-center gap-1.5 cursor-pointer hover:text-gray-900">

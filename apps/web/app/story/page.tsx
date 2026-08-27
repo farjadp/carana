@@ -21,7 +21,7 @@ import { MarkSizes, MarkSurfaces, SwatchGrid, type Swatch } from "./brand-kit-cl
 
 export const metadata: Metadata = {
   title: "داستان برند و برندکیت",
-  description: "گوپلازا یعنی چه، نشان G چه می‌گوید، و برندکیت کامل: رنگ‌ها، فونت، نقش‌مایه‌ها، قواعد استفاده و فایل‌های لوگو.",
+  description: "پلازا یعنی چه، نشان G چه می‌گوید، و برندکیت کامل: رنگ‌ها، فونت، نقش‌مایه‌ها، قواعد استفاده و فایل‌های لوگو.",
   alternates: { canonical: "/story" },
 };
 
@@ -59,7 +59,7 @@ export default function StoryPage() {
               <p className="mb-3 text-xs font-bold tracking-wide text-[color:var(--annabi)]">داستان برند · برندکیت</p>
               <h1 className="text-4xl font-black leading-[1.15] text-[color:var(--text)] md:text-6xl">
                 <span dir="ltr" className="font-latin">GOPLAZA</span>
-                <span className="block text-2xl font-bold text-[color:var(--muted-text)] md:text-3xl">گوپلازا</span>
+                <span className="block text-2xl font-bold text-[color:var(--muted-text)] md:text-3xl">پلازا</span>
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-8 text-[color:var(--text)]/85 md:text-lg">
                 <em>Go</em> + <em>Plaza</em>: برو به میدان. پلازا همان جایی است که آدم‌ها برای پیدا کردن، دیدن و معامله کردن به آن
@@ -83,7 +83,7 @@ export default function StoryPage() {
             {[
               ["گویا", "اسم همان کاری را می‌گوید که محصول می‌کند: برو، پیدا کن، وصل شو. برای فارسی‌زبان آشناست و در بازار کانادا بدون توضیح خوانده می‌شود."],
               ["یک حرف، یک نشان", "حرف G به‌تنهایی مونوگرام است: آیکن اپ، فاوآیکن، مهر تأیید. برند بدون واژه‌نشان هم شناخته می‌شود."],
-              ["همیشه یک شکل", "واژه‌نشان همیشه GOPLAZA است — تمام‌بزرگ، یک کلمه. در متن فارسی «گوپلازا» می‌نویسیم؛ هیچ‌کدام ترجمه‌ی دیگری نیست."],
+              ["همیشه یک شکل", "واژه‌نشان همیشه GOPLAZA است — تمام‌بزرگ، یک کلمه. در متن فارسی «پلازا» می‌نویسیم؛ هیچ‌کدام ترجمه‌ی دیگری نیست."],
             ].map(([t, d]) => (
               <div key={t} className="rounded-3xl border border-[color:var(--line)] bg-white p-6">
                 <h2 className="mb-2 text-lg font-black text-[color:var(--text)]">{t}</h2>
@@ -230,7 +230,7 @@ export default function StoryPage() {
               ))}
             </ul>
             <p className="mt-6 text-xs text-[color:var(--muted-text)]">
-              مالکیت: Ashavid Inc. استفاده برای معرفی گوپلازا (رسانه، شریک، لینک) آزاد است؛ تغییر شکل، رنگ یا ترکیب با نشان دیگر نه. سؤال؟ <Link href="/contact" className="font-bold text-[color:var(--lajvard)]">تماس</Link>
+              مالکیت: Ashavid Inc. استفاده برای معرفی پلازا (رسانه، شریک، لینک) آزاد است؛ تغییر شکل، رنگ یا ترکیب با نشان دیگر نه. سؤال؟ <Link href="/contact" className="font-bold text-[color:var(--lajvard)]">تماس</Link>
               {" "}· <Link href="/team" className="inline-flex items-center gap-1 font-bold text-[color:var(--lajvard)]">تیم <ArrowLeft size={12} /></Link>
             </p>
           </div>

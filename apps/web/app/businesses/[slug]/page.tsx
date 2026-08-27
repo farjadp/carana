@@ -298,7 +298,7 @@ export default async function BusinessProfilePage({
     user_name:
       r.display_identity === "anonymous"
         ? "کاربر ناشناس"
-        : reviewerNames.get(r.user_id) ?? "کاربر گوپلازا",
+        : reviewerNames.get(r.user_id) ?? "کاربر پلازا",
     // 0 for anonymous reviewers and for everyone who has not earned a level.
     // StandingBadge renders nothing at 0, so most cards carry no badge — which
     // is the point: the badge means something because it is not on everything.

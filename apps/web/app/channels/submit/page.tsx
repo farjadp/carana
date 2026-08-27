@@ -22,7 +22,7 @@ import { SubmitChannelForm } from "./submit-form";
 
 export const metadata: Metadata = {
   title: "ثبت کانال یا گروه",
-  description: "کانال تلگرام یا گروه واتس‌اپ فارسی‌زبان کانادا را در گوپلازا ثبت کن. رایگان است.",
+  description: "کانال تلگرام یا گروه واتس‌اپ فارسی‌زبان کانادا را در پلازا ثبت کن. رایگان است.",
   alternates: { canonical: "/channels/submit" },
   // A form has nothing to rank for, and an indexed submit page competes with
   // the index it feeds.
