@@ -24,6 +24,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { PAID_PLANS, PLATINUM_SEAT_CAP, intervalsFor, priceIdFor, type BillingInterval, type PlanId } from "@/lib/billing/plans";
 import { ensureLoyaltyCoupon } from "@/lib/loyalty/coupon";
+import { reportQuietFailure } from "@/lib/observability/report";
 import { loyaltyStatusFor } from "@/lib/loyalty/status";
 import { requireUser } from "@/lib/auth/session";
 import { stripe } from "@/lib/stripe/client";
@@ -135,41 +136,63 @@ export async function POST(req: NextRequest) {
     : null;
 
   const base = env.baseUrl;
-  const session = await s.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    line_items: [{ price: priceId, quantity: 1 }],
-    // Canadian sales tax is province-dependent; let Stripe compute it from the
-    // address it collects rather than hard-coding a rate that will go stale.
-    automatic_tax: { enabled: true },
-    customer_update: { address: "auto", name: "auto" },
-    billing_address_collection: "required",
-    // Stripe refuses `discounts` and `allow_promotion_codes` together, so the
-    // two are exclusive by necessity: an owner who has earned a loyalty
-    // discount gets it applied automatically and cannot also type a promo
-    // code in the same session. That is the right way round — the earned
-    // discount is the one we owe them — but it is a real trade, not an
-    // oversight, and removing the condition below breaks checkout outright.
-    ...(loyaltyCoupon
-      ? { discounts: [{ coupon: loyaltyCoupon }] }
-      : { allow_promotion_codes: true }),
-    locale: "auto",
-    // Both ids ride on the subscription so the webhook never has to guess.
-    subscription_data: {
-      metadata: {
-        business_id: business.id as string,
-        plan,
-        user_id: user.id,
-        // Recorded so an invoice can be explained a year later without
-        // re-deriving tenure from whatever the tables say by then.
-        loyalty_percent_off: String(loyalty.tier?.percentOff ?? 0),
-        loyalty_tenure_months: String(loyalty.tenure.months),
+  let session: Awaited<ReturnType<typeof s.checkout.sessions.create>>;
+  try {
+    session = await s.checkout.sessions.create({
+      mode: "subscription",
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      // Canadian sales tax is province-dependent; let Stripe compute it from the
+      // address it collects rather than hard-coding a rate that will go stale.
+      automatic_tax: { enabled: true },
+      customer_update: { address: "auto", name: "auto" },
+      billing_address_collection: "required",
+      // Stripe refuses `discounts` and `allow_promotion_codes` together, so the
+      // two are exclusive by necessity: an owner who has earned a loyalty
+      // discount gets it applied automatically and cannot also type a promo
+      // code in the same session. That is the right way round — the earned
+      // discount is the one we owe them — but it is a real trade, not an
+      // oversight, and removing the condition below breaks checkout outright.
+      ...(loyaltyCoupon
+        ? { discounts: [{ coupon: loyaltyCoupon }] }
+        : { allow_promotion_codes: true }),
+      locale: "auto",
+      // Both ids ride on the subscription so the webhook never has to guess.
+      subscription_data: {
+        metadata: {
+          business_id: business.id as string,
+          plan,
+          user_id: user.id,
+          // Recorded so an invoice can be explained a year later without
+          // re-deriving tenure from whatever the tables say by then.
+          loyalty_percent_off: String(loyalty.tier?.percentOff ?? 0),
+          loyalty_tenure_months: String(loyalty.tenure.months),
+        },
       },
-    },
-    metadata: { business_id: business.id as string, plan, user_id: user.id },
-    success_url: `${base}/dashboard/business/${business.id}/billing?checkout=success`,
-    cancel_url: `${base}/dashboard/business/${business.id}/billing?checkout=cancelled`,
-  });
+      metadata: { business_id: business.id as string, plan, user_id: user.id },
+      success_url: `${base}/dashboard/business/${business.id}/billing?checkout=success`,
+      cancel_url: `${base}/dashboard/business/${business.id}/billing?checkout=cancelled`,
+    });
+  } catch (e) {
+    // Stripe rejects a session for reasons that live in the Stripe dashboard,
+    // not in this repo — an unconfigured tax head office, an archived price, a
+    // key from the wrong mode. Every one of them used to arrive as an
+    // unhandled 500 and «اتصال به Stripe ناموفق بود» in the browser, with
+    // nothing written down: the audit on 27 Aug found automatic tax had been
+    // failing every checkout in test mode and no record existed anywhere.
+    const reason = e instanceof Error ? e.message : String(e);
+    reportQuietFailure("checkout_failed", {
+      reason,
+      plan,
+      interval,
+      price_id: priceId,
+      business_id: business.id as string,
+    });
+    return NextResponse.json(
+      { error: "شروع پرداخت ممکن نشد. تیم پشتیبانی در جریان قرار گرفت." },
+      { status: 502 }
+    );
+  }
 
   return NextResponse.json({ url: session.url });
 }

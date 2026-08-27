@@ -36,6 +36,12 @@ export const QUIET_FAILURE_KINDS = [
   "job_reminder_no_address",
   "cron_run_failed",
   "request_error",
+  // Money. A Stripe call that throws returns a 500 to the browser and a
+  // generic «اتصال به Stripe ناموفق بود» to the owner — which is how a
+  // checkout that had been dead since automatic tax was switched on went
+  // unnoticed with nobody able to buy anything.
+  "checkout_failed",
+  "portal_failed",
   // Sign-up and contact-code failures. Both were invisible before 27 Aug:
   // the routes returned the error straight to the browser and wrote nothing,
   // so "I can't register" and "the email code errors" could only ever be

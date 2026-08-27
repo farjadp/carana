@@ -8,6 +8,7 @@
 // ============================================================================
 import { NextResponse, type NextRequest } from "next/server";
 
+import { reportQuietFailure } from "@/lib/observability/report";
 import { requireUser } from "@/lib/auth/session";
 import { stripe } from "@/lib/stripe/client";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -40,10 +41,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "هنوز اشتراکی برای این کسب‌وکار ثبت نشده است." }, { status: 400 });
   }
 
-  const session = await stripe().billingPortal.sessions.create({
-    customer: business.stripe_customer_id as string,
-    return_url: `${env.baseUrl}/dashboard/business/${business.id}/billing`,
-  });
-
-  return NextResponse.json({ url: session.url });
+  // The portal is where an owner reaches every past invoice, so a failure
+  // here is a failure to hand someone their own receipts — it gets written
+  // down rather than becoming a 500 nobody sees.
+  try {
+    const session = await stripe().billingPortal.sessions.create({
+      customer: business.stripe_customer_id as string,
+      return_url: `${env.baseUrl}/dashboard/business/${business.id}/billing`,
+    });
+    return NextResponse.json({ url: session.url });
+  } catch (e) {
+    reportQuietFailure("portal_failed", {
+      reason: e instanceof Error ? e.message : String(e),
+      business_id: business.id as string,
+      customer_id: business.stripe_customer_id as string,
+    });
+    return NextResponse.json(
+      { error: "اتصال به پنل پرداخت ممکن نشد. تیم پشتیبانی در جریان قرار گرفت." },
+      { status: 502 }
+    );
+  }
 }

@@ -50,6 +50,8 @@ const KIND_FA: Record<QuietFailure, string> = {
   job_reminder_no_address: "آگهی استخدام بدون ایمیل",
   cron_run_failed: "اجرای زمان‌بندی‌شده ناموفق",
   request_error: "خطای درخواست",
+  checkout_failed: "شروع پرداخت ناموفق",
+  portal_failed: "ورود به پنل Stripe ناموفق",
   signup_failed: "ثبت‌نام ناموفق",
   contact_code_failed: "درخواست کد تایید ناموفق",
   exchange_rates_http: "نرخ ارز — خطای HTTP",
