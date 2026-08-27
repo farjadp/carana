@@ -46,6 +46,7 @@ import { PageShell } from "@/components/page-shell";
 import { breadcrumbLd } from "@/lib/seo/local";
 import { collectionLd } from "@/lib/seo/entity";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { daysAgoIso } from "@/lib/time";
 
 export const metadata: Metadata = {
   title: "کانال‌ها و گروه‌های فارسی‌زبان کانادا",
@@ -83,10 +84,6 @@ type Search = {
   page?: string;
 };
 
-/** ISO timestamp d days ago. Module scope: the react-compiler lint treats a
- *  Date.now() inside the component body as an impure call during render. */
-const daysAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString();
-
 export default async function ChannelsPage({ searchParams }: { searchParams: Promise<Search> }) {
   const params = await searchParams;
   const { platform, category, city, activity } = params;
@@ -113,10 +110,10 @@ export default async function ChannelsPage({ searchParams }: { searchParams: Pro
   // means filtering on the timestamp, with the SAME thresholds the labels use
   // — imported from core rather than retyped, so the chip and the badge can
   // never disagree about where «فعال» ends.
-  if (activity === "active") query = query.gte("last_post_at", daysAgo(CHANNEL_ACTIVE_DAYS));
+  if (activity === "active") query = query.gte("last_post_at", daysAgoIso(CHANNEL_ACTIVE_DAYS));
   else if (activity === "quiet") {
-    query = query.gte("last_post_at", daysAgo(CHANNEL_QUIET_DAYS)).lt("last_post_at", daysAgo(CHANNEL_ACTIVE_DAYS));
-  } else if (activity === "dormant") query = query.lt("last_post_at", daysAgo(CHANNEL_QUIET_DAYS));
+    query = query.gte("last_post_at", daysAgoIso(CHANNEL_QUIET_DAYS)).lt("last_post_at", daysAgoIso(CHANNEL_ACTIVE_DAYS));
+  } else if (activity === "dormant") query = query.lt("last_post_at", daysAgoIso(CHANNEL_QUIET_DAYS));
   else if (activity === "unknown") query = query.is("last_post_at", null);
 
   if (sort === "members") {

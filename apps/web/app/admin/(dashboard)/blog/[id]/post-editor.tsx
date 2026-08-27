@@ -66,7 +66,10 @@ export function PostEditor({ post, categories }: { post: Post; categories: { slu
             <label className="block text-xs font-bold">برچسب‌ها (با ، جدا)<input className={inp} value={f.tags} onChange={set("tags")} /></label>
           </div>
           <label className="block text-xs font-bold">کاور URL<input className={inp} dir="ltr" value={f.cover_url} onChange={set("cover_url")} /></label>
-          {f.cover_url ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={f.cover_url} alt="" className="aspect-[16/9] w-full rounded-2xl object-cover" /> : null}
+          {f.cover_url ? (
+            // eslint-disable-next-line @next/next/no-img-element -- admin-only preview of an arbitrary remote URL; next/image would need it allow-listed
+            <img src={f.cover_url} alt="" className="aspect-[16/9] w-full rounded-2xl object-cover" />
+          ) : null}
           <label className="block text-xs font-bold">کاور alt<input className={inp} value={f.cover_alt} onChange={set("cover_alt")} /></label>
           <label className="block text-xs font-bold">متن (Markdown)<textarea className={`${inp} font-mono text-[13px] leading-6`} rows={28} value={f.body_md} onChange={set("body_md")} /></label>
           <label className="block text-xs font-bold">یادداشت داخلی<input className={inp} value={f.admin_note} onChange={set("admin_note")} /></label>

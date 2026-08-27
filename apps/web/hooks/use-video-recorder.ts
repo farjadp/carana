@@ -12,6 +12,9 @@ export function useVideoRecorder(maxDurationSeconds = 60) {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const previewVideoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  // Mirrors videoUrl so the unmount cleanup can revoke the last take without
+  // depending on it — a [videoUrl] cleanup would also run on every re-take.
+  const videoUrlRef = useRef<string | null>(null);
 
   const startCamera = useCallback(async () => {
     try {
@@ -73,7 +76,10 @@ export function useVideoRecorder(maxDurationSeconds = 60) {
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: "video/webm" });
         setVideoBlob(blob);
-        setVideoUrl(URL.createObjectURL(blob));
+        // Revoke the previous take before replacing it (see the voice hook).
+        if (videoUrlRef.current) URL.revokeObjectURL(videoUrlRef.current);
+        videoUrlRef.current = URL.createObjectURL(blob);
+        setVideoUrl(videoUrlRef.current);
         chunksRef.current = [];
         stopCamera();
       };
@@ -95,27 +101,28 @@ export function useVideoRecorder(maxDurationSeconds = 60) {
       console.error("Failed to start recording:", err);
       setError("خطا در شروع ضبط ویدئو.");
     }
-  }, [maxDurationSeconds, stopCamera]);
+  }, [maxDurationSeconds, stopCamera, stopRecording]);
 
 
   const resetRecording = useCallback(() => {
     setVideoBlob(null);
-    if (videoUrl) {
-      URL.revokeObjectURL(videoUrl);
+    if (videoUrlRef.current) {
+      URL.revokeObjectURL(videoUrlRef.current);
+      videoUrlRef.current = null;
       setVideoUrl(null);
     }
     setRecordingTime(0);
     setError(null);
-  }, [videoUrl]);
+  }, []);
 
   // Clean up on unmount
   useEffect(() => {
     return () => {
       stopCamera();
       if (timerRef.current) clearInterval(timerRef.current);
-      if (videoUrl) URL.revokeObjectURL(videoUrl);
+      if (videoUrlRef.current) URL.revokeObjectURL(videoUrlRef.current);
     };
-  }, [stopCamera, videoUrl]);
+  }, [stopCamera]);
 
   return {
     isRecording,

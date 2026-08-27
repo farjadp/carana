@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 export function useVoiceRecorder(maxDurationSeconds = 180) {
   const [isRecording, setIsRecording] = useState(false);
@@ -10,6 +10,9 @@ export function useVoiceRecorder(maxDurationSeconds = 180) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  // Mirrors audioUrl so the unmount cleanup can revoke the last take without
+  // depending on it — a [audioUrl] cleanup would also run on every re-take.
+  const audioUrlRef = useRef<string | null>(null);
 
   // Declared before startRecording, which closes over it: the react
   // compiler refuses a callback that reads a binding declared later (TDZ),
@@ -42,7 +45,11 @@ export function useVoiceRecorder(maxDurationSeconds = 180) {
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         setAudioBlob(blob);
-        setAudioUrl(URL.createObjectURL(blob));
+        // Revoke the previous take before replacing it: re-recording used to
+        // leak one blob URL per attempt, held for the life of the document.
+        if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = URL.createObjectURL(blob);
+        setAudioUrl(audioUrlRef.current);
         chunksRef.current = [];
         
         // Stop all tracks
@@ -67,18 +74,32 @@ export function useVoiceRecorder(maxDurationSeconds = 180) {
       console.error("Microphone access denied or error:", err);
       setError("لطفاً دسترسی به میکروفون را مجاز کنید.");
     }
-  }, [maxDurationSeconds]);
+  }, [maxDurationSeconds, stopRecording]);
 
 
   const resetRecording = useCallback(() => {
     setAudioBlob(null);
-    if (audioUrl) {
-      URL.revokeObjectURL(audioUrl);
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
       setAudioUrl(null);
     }
     setRecordingTime(0);
     setError(null);
-  }, [audioUrl]);
+  }, []);
+
+  // Clean up on unmount: the microphone track and the last blob URL both
+  // outlive the component otherwise.
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
+      mediaRecorderRef.current?.stream.getTracks().forEach((t) => t.stop());
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
+    };
+  }, []);
 
   return {
     isRecording,

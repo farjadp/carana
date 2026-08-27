@@ -22,6 +22,7 @@ import { NotAuthenticatedError, requireAdmin } from "@/lib/auth/require-admin";
 import { tableExists } from "@/lib/admin/table-exists";
 import { QUIET_FAILURE_KINDS, type QuietFailure } from "@/lib/observability/report";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
+import { daysAgoIso } from "@/lib/time";
 
 export const metadata: Metadata = { title: "سلامت سیستم | داشبورد ادمین" };
 export const dynamic = "force-dynamic";
@@ -109,7 +110,7 @@ export default async function SystemHealthPage({
     );
   }
 
-  const since = new Date(Date.now() - days * 86_400_000).toISOString();
+  const since = daysAgoIso(days);
 
   // Counted per kind rather than aggregated from a fetched page: an unbounded
   // select is capped at 1,000 rows by PostgREST without saying so, and a

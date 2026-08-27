@@ -14,6 +14,7 @@ import {
 
 import { getOptionalUser } from "@/lib/auth/session";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { hoursAgoIso } from "@/lib/time";
 import { AdminSidebarNav, type AdminCounts } from "./sidebar-nav";
 
 
@@ -58,7 +59,7 @@ export default async function AdminDashboardLayout({
       adminClient
         .from("system_errors")
         .select("id", { count: "exact", head: true })
-        .gte("created_at", new Date(Date.now() - 86_400_000).toISOString())
+        .gte("created_at", hoursAgoIso(24))
     ),
   ]);
   const counts: AdminCounts = { claims, reviews, suggestions, blog, reports, unknownCity, jobs, channels, errors24h };

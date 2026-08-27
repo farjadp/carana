@@ -29,6 +29,7 @@ import { NotAuthenticatedError, requireAdmin } from "@/lib/auth/require-admin";
 import { tableExists } from "@/lib/admin/table-exists";
 import { getRules, getStandingSettings } from "@/lib/standing/rules";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
+import { daysAgoIso, hoursAgoIso } from "@/lib/time";
 import { RulesEditor } from "./rules-editor";
 import { UserActions } from "./user-actions";
 
@@ -42,8 +43,8 @@ const fa = (n: number) => n.toLocaleString("fa-IR");
 /** Probes + live counts. Errors read as a red probe / zero, never a crash. */
 async function loadStatus() {
   const admin = createSupabaseAdminClient();
-  const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-  const monthAgo = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+  const dayAgo = hoursAgoIso(24);
+  const monthAgo = daysAgoIso(30);
 
   // tableExists, not a HEAD probe: a HEAD request for a missing table returns
   // 204/null/no-error, so `!error` renders GREEN for a table that is not

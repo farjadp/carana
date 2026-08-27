@@ -28,6 +28,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { BackupManager } from "./backup-manager";
 import { BusinessExport } from "./business-export";
 import { SmartSearchSettings } from "./smart-search-settings";
+import { hoursAgoIso } from "@/lib/time";
 
 export const metadata: Metadata = {
   title: "تنظیمات سیستم | داشبورد ادمین",
@@ -39,7 +40,7 @@ const fa = (n: number) => n.toLocaleString("fa-IR");
 /** Live smart-search usage + infra probes. Errors read as zero / a red probe, never a crash. */
 async function loadStatus() {
   const admin = createSupabaseAdminClient();
-  const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  const dayAgo = hoursAgoIso(24);
   const [{ count: newToday, error: expErr }, { count: cachedTotal }, { count: aiToday }] =
     await Promise.all([
       admin.from("search_ai_expansions").select("q_norm", { count: "exact", head: true }).gt("created_at", dayAgo),
