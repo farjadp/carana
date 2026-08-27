@@ -2137,3 +2137,37 @@ different normalisation will disagree eventually; the disagreement shows up as
 a number, not an error. A page that states the same quantity twice from two
 sources is a cheap, permanent consistency check — this was found by reading a
 screenshot, not by any test.
+
+---
+
+## A state that changed but looks identical reads as a click that did nothing
+
+**Symptom.** «کلیک می‌کنم و بعد صفحه را رفرش می‌کنم، دوباره می‌آید» — reported
+against the new verify button on `/dashboard/business` the hour it shipped.
+
+**Cause.** Nothing was broken. The click had written the badge (all three
+listings `self_onboarded`, verified until 2027-02-25, public profiles carrying
+«ثبت‌شده توسط صاحب کسب‌وکار», `getVerificationStatus` returning `verified` when
+run against the real row). What came back was the **verified** banner, and it
+occupied the same position on the card, at the same size, in the same
+`bg-white` with the same border and text colour as the unverified one that had
+been there a second earlier. Only a 20px icon and one sentence differed.
+
+`VerificationRenewalBanner` gave every state its own colour — expired red,
+superseded amber, expiring gold — and left `verified` neutral, which was fine
+while it was the only white box on the card. Adding a second white box
+directly above it made the two states indistinguishable at a glance.
+
+**Fix.** Verified is green, unverified is gold. Also `verifyOwnListing` and the
+claim confirmation were revalidating `/dashboard` while the cards render on
+`/dashboard/business` — `revalidatePath` matches the exact path, so that call
+had never done anything for this screen.
+
+**Lesson.** When a control changes state in place, the *difference* is the
+feedback — a toast is not enough, because the box the user is looking at is
+what they read. Before shipping a new state into an existing component, render
+every state of it side by side and look; a temporary route with real row data
+takes two minutes and is the only way to see a screen that needs a session
+nobody in the session can establish. And note what this cost: the person
+reported it as a broken write, and it would have been easy to go hunting in the
+action, the RLS and the cache. Check what the data actually says first.

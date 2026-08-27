@@ -67,6 +67,24 @@ that class is greppable and the sweep is in there.
   `verification-badge`'s local `faNumber` was left alone for the same reason:
   its `Math.abs` is deliberate, the renewal banner feeds it negative days.
 
+## The same evening — the first bug report against today's work
+
+Farjad verified his three listings with the new button and reported that the
+banner came back after a refresh. It did, and the write had worked: the badge
+was in the database and on the public profiles. The returning box was the
+*verified* banner, identical in size, position and colour to the unverified one
+because `verified` was the one state the component had left neutral white — and
+I had put a second white box directly above it. Green for verified, gold for
+unverified (`dd46317`), plus a real find underneath it: `verifyOwnListing`
+revalidated `/dashboard` while the cards live on `/dashboard/business`, so that
+call had never done anything. New `06-gotchas` entry.
+
+Worth recording how it was diagnosed, because the instinct was wrong: the
+report said "the click does nothing", which points at the action, RLS and
+caching. Reading the three rows out of the database first turned a suspected
+write bug into a five-minute CSS fix. **Farjad's three listings are the first
+`self_onboarded` badges the product has ever issued.**
+
 ## Not verified, and honestly so
 
 - The unverified-listing banner and the link-page suspend controls have
