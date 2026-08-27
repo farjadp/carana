@@ -655,34 +655,16 @@ its own breakpoint (`06-gotchas`, the 900→960px move).
 «درباره ما») over an opaque white panel. Not yet checked at 960–1100px or on
 mobile, where the bar has overflowed before.
 
-## Soft 404s across the whole site — found 27 Aug, not fixed
+## ~~Soft 404s across the whole site~~ — found and FIXED 27 Aug
 
-Every route that calls `notFound()` from a dynamic segment answers **HTTP
-200** with the not-found page in the body. Checked against production:
-
-| URL | Status |
-|---|---|
-| `goplaza.ca/businesses/definitely-not-real-xyz` | **200** |
-| `goplaza.ca/blog/no-such-post-xyz` | **200** |
-| `gplz.link/<unknown-handle>` | **200** |
-| `goplaza.ca/no-such-page-xyz` (no route at all) | 404, correct |
-
-So the framework's own unmatched-path 404 is right and every `notFound()` we
-call is not. Reproduced locally on `/link/<handle>`, where line 270 of
-`app/link/[handle]/page.tsx` does call `notFound()` — the status is already
-flushed by the time it runs, which is what streaming SSR does to a late
-`notFound()`.
-
-Why it matters here more than usual: this directory's whole SEO case is tens
-of thousands of city × category × business URLs. A soft 404 tells Google a
-dead listing is a live page, and Google's own guidance is that soft 404s get
-crawled less and can drag neighbouring URLs with them. It also means any
-client checking `res.ok` — ours or someone else's — believes a deleted
-listing still exists.
-
-Not fixed in the session that found it: it is a change to how every dynamic
-route resolves, it belongs with the SEO work in `docs/14`, and it was found
-while verifying a DNS change. Found by checking, not by reading.
+Every route calling `notFound()` answered HTTP 200 with the not-found page in
+the body, because `app/loading.tsx` was a Suspense boundary around the whole
+app and the response had already streamed. Deleted; `components/nav-progress.tsx`
+does the navigation feedback now. Eight not-found paths verified at 404 with
+the right `<title>`; real pages still 200. Full write-up in `06-gotchas.md`,
+including the correction to the first claim — Next injects `noindex` into
+streamed not-found responses, verified against production, so this was never
+the indexation emergency it was first called.
 
 ## GPLZ Link — BUILT 25 Aug; two on Farjad, three on us
 

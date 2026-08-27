@@ -24,6 +24,8 @@ import { organizationLd, webSiteLd } from "@/lib/seo/entity";
 import "./globals.css";
 import { Toaster } from "sonner";
 
+import { NavProgress } from "@/components/nav-progress";
+
 const vazirmatn = Vazirmatn({
   subsets: ["arabic", "latin"],
   variable: "--font-vazirmatn",
@@ -106,6 +108,11 @@ export default function RootLayout({
             rather than something a crawler has to infer from the redirect. */}
         <JsonLd data={organizationLd()} />
         <JsonLd data={webSiteLd()} />
+        {/* Replaces app/loading.tsx, which was deleted on 27 Aug: a root-level
+            loading.tsx is a Suspense boundary around the entire app, and it
+            made every notFound() answer HTTP 200 with the wrong <title>.
+            See components/nav-progress.tsx and docs/06-gotchas.md. */}
+        <NavProgress />
         {children}
         {/* Cookieless by design. It stores nothing on the visitor's device, so
             it needs no consent banner — which matters here, because a cookie

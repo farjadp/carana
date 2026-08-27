@@ -2089,33 +2089,44 @@ section {
 
 /* --- route states ------------------------------------------------------- */
 
-.route-loading {
-  display: flex;
-  gap: 0.4rem;
-  align-items: center;
-  justify-content: center;
-  min-height: 40vh;
+/* Navigation feedback. This used to be three pulsing dots rendered by
+   app/loading.tsx, which was a root-level Suspense boundary — and that boundary
+   made every notFound() in the app answer HTTP 200, because the response had
+   already started streaming. The dots are gone with it; components/nav-progress.tsx
+   draws this bar on a link click instead and hides it when the pathname lands. */
+.nav-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 9999;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--annabi) 12%, transparent);
 }
 
-.route-loading-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
+.nav-progress-bar {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: 100% 50%; /* RTL: grows from the right */
   background: var(--annabi);
-  opacity: 0.35;
-  animation: route-loading-pulse 1s ease-in-out infinite;
+  /* Linear, so the keyframe percentages mean what they say. An ease-out here
+     reached 96% within two seconds, which reads as a finished bar rather than
+     a working one. */
+  animation: nav-progress-grow 10s linear forwards;
 }
 
-.route-loading-dot:nth-child(2) { animation-delay: 0.15s; }
-.route-loading-dot:nth-child(3) { animation-delay: 0.3s; }
-
-@keyframes route-loading-pulse {
-  0%, 100% { opacity: 0.25; transform: scale(0.85); }
-  50% { opacity: 1; transform: scale(1); }
+@keyframes nav-progress-grow {
+  0%   { transform: scaleX(0.04); }
+  15%  { transform: scaleX(0.35); }
+  40%  { transform: scaleX(0.62); }
+  70%  { transform: scaleX(0.82); }
+  100% { transform: scaleX(0.95); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .route-loading-dot { animation: none; opacity: 0.6; }
+  .nav-progress-bar { animation: none; transform: scaleX(0.4); }
 }
 
 .sr-only {

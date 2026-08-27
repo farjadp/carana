@@ -32,6 +32,49 @@ because nothing was wrong with the data.
 
 ---
 
+## A root `loading.tsx` turned every `notFound()` into an HTTP 200
+
+**Symptom.** `goplaza.ca/businesses/<anything-not-real>` answered **200**, not
+404. So did `/blog/<missing>`, `/cities/<missing>`, `/jobs/<missing>`,
+`gplz.link/<unknown handle>` — every route that calls `notFound()`. A path with
+no route at all (`/no-such-page-xyz`) answered 404 correctly, which is what
+made it look like the framework was fine and our routes were not. The
+not-found page's own `<title>` never appeared either: the tab read
+«GOPLAZA | GOPLAZA» instead of «صفحه پیدا نشد».
+
+**Cause.** `app/loading.tsx` — added 22 Aug for a navigation spinner. A
+`loading.tsx` is a Suspense boundary around its whole segment, and at the ROOT
+that is the entire application. The response therefore starts streaming before
+any page has resolved, the headers (status and `<head>`) are already sent, and
+`notFound()` can no longer change either. Next's own docs say so:
+`node_modules/next/dist/docs`, `01-app/03-api-reference/03-file-conventions/loading.md`
+-> "Status codes", and `04-functions/not-found.md`.
+
+**Fix.** Deleted `app/loading.tsx`; `components/nav-progress.tsx` gives the
+navigation feedback instead — a top bar started by a same-origin link click and
+ended when `location.href` changes. Proven by experiment before writing
+anything: moving `app/loading.tsx` out of the tree flipped
+`/link/<unknown>` from `200 / GOPLAZA | GOPLAZA` to
+`404 / صفحه پیدا نشد | GOPLAZA` on the spot, and moving it back restored the
+bug. All eight not-found paths now answer 404 with the right title.
+
+**What this cost:** on a slow first load there is no instant shell any more —
+the browser waits for the server rather than showing three dots. That is the
+trade, and it is the right way round: an instant spinner on every page is
+worth less than every dead URL telling the truth about itself.
+
+**Lesson, and a correction.** The first write-up of this called it an SEO
+emergency. It is not: Next injects `<meta name="robots" content="noindex">`
+into a streamed not-found response, and that was verified against production
+before the claim was repeated. What was actually broken is everything that
+reads a status code — analytics, uptime checks, `res.ok` in any client, and
+Search Console's soft-404 report — plus the wrong `<title>`, which is
+user-visible. The general lesson is the older one: a file added for a cosmetic
+reason changed the semantics of every route in the app, and nothing connected
+the two for five days.
+
+---
+
 ## A Google sign-in button shipped for a provider that was never enabled
 
 **Symptom.** «ادامه با حساب گوگل» sat on `/auth/login` and `/auth/signup` from
