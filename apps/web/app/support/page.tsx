@@ -25,7 +25,8 @@ import Link from "next/link";
 import { SuggestionBox } from "@/components/suggestion-box";
 import { ArrowLeft, BadgeCheck, Building2, KeyRound, LifeBuoy, Mail, MapPin, Send, Store, UserRoundX } from "lucide-react";
 
-import { InnerPage } from "@/components/inner-page";
+import { PageShell } from "@/components/page-shell";
+import { SupportHero } from "@/components/support-hero";
 import { company } from "@/lib/data/company";
 import { SupportForm } from "./support-form";
 
@@ -68,14 +69,15 @@ const GROUPS: { title: string; items: Faq[] }[] = [
 ];
 
 export default function SupportPage() {
+  // Counted, never typed by hand: the hero cannot claim more answers than the
+  // FAQ below actually renders.
+  const answers = GROUPS.reduce((n, g) => n + g.items.length, 0);
+
   return (
-    <InnerPage
-      currentPath="/support"
-      currentSection="brand"
-      eyebrow="پشتیبانی"
-      title="کمک می‌خواهی؟ اینجاییم."
-      description={`بیشتر سؤال‌ها همین پایین جواب دارند. اگر نه، فرم همین صفحه را پر کن یا مستقیم ایمیل${company.telegram ? " و تلگرام" : ""} بزن — معمولاً ظرف یک تا دو روز کاری پاسخ می‌دهیم.`}
-    >
+    <PageShell currentPath="/support" currentSection="brand">
+      <SupportHero answers={answers} />
+
+      <main className="page-main">
       {/* Quick actions */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3" dir="rtl">
         {QUICK.map(({ icon: Icon, title, href }) => (
@@ -85,18 +87,6 @@ export default function SupportPage() {
             <ArrowLeft size={14} className="text-[color:var(--muted-text)] group-hover:-translate-x-0.5 transition" />
           </Link>
         ))}
-      </section>
-
-      {/* Straight to a human, for anyone whose question the FAQ will not answer. */}
-      <section className="mt-8 rounded-3xl bg-[color:var(--text)] text-[#f6f1e8] p-6 md:p-7 flex flex-col md:flex-row md:items-center gap-4" dir="rtl">
-        <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0"><LifeBuoy size={22} /></div>
-        <div className="flex-1">
-          <div className="font-black text-lg">می‌خواهی مستقیم با یک آدم حرف بزنی؟</div>
-          <div className="text-sm text-[#f6f1e8]/75 mt-0.5">فرم پایین صفحه، ایمیل{company.telegram ? " و تلگرام" : ""} — پاسخ ظرف یک تا دو روز کاری.</div>
-        </div>
-        <a href="#form" className="inline-flex items-center gap-2 bg-[#f6f1e8] font-bold px-4 py-2.5 rounded-xl hover:bg-white transition" style={{ color: "#14213d" }}>
-          <Mail size={16} /> رفتن به فرم
-        </a>
       </section>
 
       {/* FAQ */}
@@ -244,7 +234,8 @@ export default function SupportPage() {
       <p className="mt-10 text-xs text-[color:var(--muted-text)]" dir="rtl">
         دنبال ثبت کسب‌وکار یا همکاری هستی؟ <Link href="/contact" className="text-[color:var(--lajvard)] font-bold">صفحه‌ی تماس</Link>.
       </p>
-    </InnerPage>
+      </main>
+    </PageShell>
   );
 }
 

@@ -2642,13 +2642,24 @@ section {
   line-height: 1.8;
 }
 
-/* Off-screen rather than display:none — some bots skip hidden inputs. */
+/*
+ * Hidden rather than display:none — some bots skip hidden inputs.
+ *
+ * CLIPPED, NOT DISPLACED. This used to be `left: -9999px`, which in an RTL
+ * document overflows the scrollable END rather than falling off the origin
+ * the way it does in LTR: every page carrying a form gained ~10,000px of
+ * horizontal scroll on mobile (375px viewport reported a 10,374px document).
+ * A reader could swipe the whole site sideways into blank cream. Clipping
+ * keeps the field rendered and fillable — which is the entire point of a
+ * honeypot — without contributing any scrollable area.
+ */
 .honeypot {
   position: absolute;
-  left: -9999px;
   width: 1px;
   height: 1px;
   overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .contact-sent {
