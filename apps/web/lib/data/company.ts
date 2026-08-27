@@ -34,6 +34,15 @@ export const company = {
     noreply: "noreply@charana.ca",
   },
 
+  /**
+   * Direct Telegram for support, without the `@`. Rendered by /support.
+   *
+   * An empty string hides the whole Telegram block rather than printing a
+   * dead handle — a contact route that does not answer is the same class of
+   * lie as a badge nothing backs. Set it here only; nothing hard-codes it.
+   */
+  telegram: "",
+
   social: {
     linkedin: "https://www.linkedin.com/company/ashavid/",
     instagram: "https://www.instagram.com/ashavidgroup/",

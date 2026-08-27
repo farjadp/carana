@@ -1,20 +1,33 @@
 // ============================================================================
 // Source: app/support/page.tsx
-// Version: 3.0.0 — 2026-08-15
+// Version: 4.0.0 — 2026-08-26
 // Why: Support that answers before you have to ask. Required for the App
 //      Store listing (a reachable support URL) and useful on its own. v3:
 //      brand layout, quick-action tiles, grouped FAQ that reflects how the
 //      product actually works today (verification window, website import,
 //      the mobile app), and one honest response-time promise.
-// Env / Identity: Static page, public information only.
+//
+//      v4 gives the page a way to actually reach a human. Until now it
+//      offered a mailto link and a suggestion box, so anyone who wanted to
+//      DESCRIBE a problem had to leave the page to do it. It now carries a
+//      working form (app/support/actions.ts, delivered by Resend), the full
+//      set of mailboxes, the operating company, and a direct Telegram.
+//
+//      The Telegram block renders only when company.telegram is set. An
+//      unset handle prints nothing rather than a dead link — a contact route
+//      that does not answer is the same class of lie as a badge nothing
+//      backs, and this page is where someone already stuck ends up.
+// Env / Identity: Static page, public information only. The form posts to a
+//      server action; no secrets reach the client.
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SuggestionBox } from "@/components/suggestion-box";
-import { ArrowLeft, BadgeCheck, KeyRound, LifeBuoy, Mail, Store, UserRoundX } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Building2, KeyRound, LifeBuoy, Mail, MapPin, Send, Store, UserRoundX } from "lucide-react";
 
 import { InnerPage } from "@/components/inner-page";
 import { company } from "@/lib/data/company";
+import { SupportForm } from "./support-form";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/support" },
@@ -61,7 +74,7 @@ export default function SupportPage() {
       currentSection="brand"
       eyebrow="پشتیبانی"
       title="کمک می‌خواهی؟ اینجاییم."
-      description="بیشتر سؤال‌ها همین پایین جواب دارند. اگر نه، ایمیل بزن — معمولاً ظرف یک تا دو روز کاری پاسخ می‌دهیم."
+      description={`بیشتر سؤال‌ها همین پایین جواب دارند. اگر نه، فرم همین صفحه را پر کن یا مستقیم ایمیل${company.telegram ? " و تلگرام" : ""} بزن — معمولاً ظرف یک تا دو روز کاری پاسخ می‌دهیم.`}
     >
       {/* Quick actions */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3" dir="rtl">
@@ -74,15 +87,15 @@ export default function SupportPage() {
         ))}
       </section>
 
-      {/* Direct */}
+      {/* Straight to a human, for anyone whose question the FAQ will not answer. */}
       <section className="mt-8 rounded-3xl bg-[color:var(--text)] text-[#f6f1e8] p-6 md:p-7 flex flex-col md:flex-row md:items-center gap-4" dir="rtl">
         <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0"><LifeBuoy size={22} /></div>
         <div className="flex-1">
-          <div className="font-black text-lg">تماس مستقیم با پشتیبانی</div>
-          <div className="text-sm text-[#f6f1e8]/75 mt-0.5">پاسخ ظرف یک تا دو روز کاری. اگر درباره‌ی یک کسب‌وکار خاص است، نامش را بنویس.</div>
+          <div className="font-black text-lg">می‌خواهی مستقیم با یک آدم حرف بزنی؟</div>
+          <div className="text-sm text-[#f6f1e8]/75 mt-0.5">فرم پایین صفحه، ایمیل{company.telegram ? " و تلگرام" : ""} — پاسخ ظرف یک تا دو روز کاری.</div>
         </div>
-        <a href={`mailto:${company.email.support}`} className="inline-flex items-center gap-2 bg-[#f6f1e8] font-bold px-4 py-2.5 rounded-xl hover:bg-white transition" style={{ color: "#14213d", fontFamily: "var(--font-latin)" }} dir="ltr">
-          <Mail size={16} /> {company.email.support}
+        <a href="#form" className="inline-flex items-center gap-2 bg-[#f6f1e8] font-bold px-4 py-2.5 rounded-xl hover:bg-white transition" style={{ color: "#14213d" }}>
+          <Mail size={16} /> رفتن به فرم
         </a>
       </section>
 
@@ -107,13 +120,134 @@ export default function SupportPage() {
         </section>
       ))}
 
+      {/* Form + contact details. The form brings its own white card, so the
+          column around it must not add a second one — nested cards. */}
+      <section id="form" className="mt-12 grid lg:grid-cols-12 gap-8 scroll-mt-24" dir="rtl">
+        <div className="lg:col-span-7">
+          <h2 className="text-xl font-black text-[color:var(--text)] flex items-center gap-2 mb-1">
+            <Merlon /> جوابت را پیدا نکردی؟ بنویس
+          </h2>
+          <p className="text-sm text-[color:var(--muted-text)] mb-5">
+            موضوع را انتخاب کن تا پیام سریع‌تر به دست آدم درستش برسد. پیام به{" "}
+            <span dir="ltr" className="[font-family:var(--font-latin)]">{company.email.support}</span>{" "}
+            می‌رسد و پاسخ به ایمیل خودت فرستاده می‌شود.
+          </p>
+          <SupportForm />
+        </div>
+
+        <aside className="lg:col-span-5 space-y-4">
+          {/* Direct routes */}
+          <div className="rounded-3xl bg-[color:var(--text)] text-[#f6f1e8] p-6">
+            <div className="flex items-center gap-2 text-xs text-[#f6f1e8]/60 mb-3">
+              <LifeBuoy size={14} /> تماس مستقیم
+            </div>
+
+            <a
+              href={`mailto:${company.email.support}`}
+              className="flex items-center gap-3 rounded-2xl bg-white/10 hover:bg-white/20 transition p-3.5"
+            >
+              <span className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                <Mail size={16} />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-xs text-[#f6f1e8]/60">ایمیل پشتیبانی</span>
+                <span className="block font-bold text-sm truncate [font-family:var(--font-latin)]" dir="ltr">
+                  {company.email.support}
+                </span>
+              </span>
+            </a>
+
+            {company.telegram ? (
+              <a
+                href={`https://t.me/${company.telegram}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2.5 flex items-center gap-3 rounded-2xl bg-white/10 hover:bg-white/20 transition p-3.5"
+              >
+                <span className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                  <Send size={16} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-xs text-[#f6f1e8]/60">تلگرام</span>
+                  <span className="block font-bold text-sm truncate [font-family:var(--font-latin)]" dir="ltr">
+                    @{company.telegram}
+                  </span>
+                </span>
+              </a>
+            ) : null}
+
+            <p className="mt-4 pt-3.5 border-t border-white/10 text-xs text-[#f6f1e8]/60 leading-relaxed">
+              پاسخ معمولاً ظرف یک تا دو روز کاری. اگر درباره‌ی یک کسب‌وکار خاص
+              است، نامش را بنویس.
+            </p>
+          </div>
+
+          {/* Every mailbox, so nobody has to guess which one */}
+          <div className="rounded-3xl bg-white border border-[color:var(--line)] p-6">
+            <div className="flex items-center gap-2 text-xs text-[color:var(--muted-text)] mb-3">
+              <Mail size={14} /> بقیه‌ی نشانی‌ها
+            </div>
+            <ul className="space-y-2.5 text-sm">
+              {[
+                ["عمومی", company.email.general],
+                ["همکاری و تبلیغات", company.email.partners],
+                ["حریم خصوصی", company.email.privacy],
+              ].map(([label, address]) => (
+                <li key={address} className="flex items-center justify-between gap-3">
+                  <span className="text-[color:var(--muted-text)]">{label}</span>
+                  <a
+                    href={`mailto:${address}`}
+                    className="font-bold text-[color:var(--lajvard)] [font-family:var(--font-latin)]"
+                    dir="ltr"
+                  >
+                    {address}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Who is actually behind this */}
+          <div className="rounded-3xl bg-white border border-[color:var(--line)] p-6">
+            <div className="flex items-center gap-2 text-xs text-[color:var(--muted-text)] mb-3">
+              <Building2 size={14} /> شرکت
+            </div>
+            {/* dir=ltr, or RTL reorders the trailing period to the front. */}
+            <div className="font-black text-[color:var(--text)]" dir="ltr">{company.legalName}</div>
+            <div className="text-sm text-[color:var(--muted-text)] mt-1 flex items-center gap-1.5">
+              <MapPin size={14} /> {company.address}
+            </div>
+            <a
+              href={company.parentSite}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-sm mt-3 underline underline-offset-4 text-[color:var(--lajvard)] font-bold"
+              dir="ltr"
+            >
+              ashavid.ca
+            </a>
+            <p className="mt-4 pt-3.5 border-t border-[color:var(--line)] text-xs text-[color:var(--muted-text)] leading-relaxed">
+              پیش از نوشتن، شاید{" "}
+              <Link href="/terms" className="text-[color:var(--lajvard)] font-bold">قوانین و مقررات</Link>{" "}
+              یا{" "}
+              <Link href="/privacy" className="text-[color:var(--lajvard)] font-bold">حریم خصوصی</Link>{" "}
+              جوابت را داشته باشد.
+            </p>
+          </div>
+        </aside>
+      </section>
+
       <section className="mt-12" dir="rtl">
         <SuggestionBox page="/support" title="پیشنهادی داری؟" hint="امکانی که کم است، چیزی که اذیت می‌کند، کسب‌وکاری که باید باشد — بنویس یا بگو." />
       </section>
 
       <p className="mt-10 text-xs text-[color:var(--muted-text)]" dir="rtl">
-        سؤالت این‌جا نبود؟ <Link href="/contact" className="text-[color:var(--lajvard)] font-bold">صفحه‌ی تماس</Link> — یا مستقیم به <a href={`mailto:${company.email.support}`} className="text-[color:var(--lajvard)] font-bold" dir="ltr">{company.email.support}</a>.
+        دنبال ثبت کسب‌وکار یا همکاری هستی؟ <Link href="/contact" className="text-[color:var(--lajvard)] font-bold">صفحه‌ی تماس</Link>.
       </p>
     </InnerPage>
   );
+}
+
+function Merlon() {
+  return <svg viewBox="0 0 18 18" width="12" height="12" aria-hidden><path fill="#c9a24b" d="M0,18 V12 H6 V6 H12 V0 H18 V18 Z" /></svg>;
 }

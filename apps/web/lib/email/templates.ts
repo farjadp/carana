@@ -19,6 +19,24 @@ const MUTED = "#5f6472";
  * inline and table-free. `dir="rtl"` on the body is what Outlook actually
  * honours.
  */
+/**
+ * Escape text that came from a stranger before it goes into an HTML email.
+ *
+ * The contact and support forms are open to anyone, and their output lands in
+ * a human's inbox. Without this, a sender can post `<a href="...">` — or an
+ * invisible style block — straight into the mail the support team reads, which
+ * turns our own transactional mail into a phishing carrier. Escape at the
+ * point of interpolation; the plain-text part needs no escaping.
+ */
+function esc(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function shell(bodyHtml: string) {
   return `<!doctype html>
 <html lang="fa" dir="rtl">
@@ -232,10 +250,10 @@ export function contactMessageEmail(input: {
   return {
     subject: `پیام تماس: ${input.subject}`,
     html: shell(`
-      <p style="margin:0 0 14px;"><strong>از:</strong> ${input.name} &lt;${input.email}&gt;</p>
-      <p style="margin:0 0 14px;"><strong>موضوع:</strong> ${input.subject}</p>
+      <p style="margin:0 0 14px;"><strong>از:</strong> ${esc(input.name)} &lt;${esc(input.email)}&gt;</p>
+      <p style="margin:0 0 14px;"><strong>موضوع:</strong> ${esc(input.subject)}</p>
       <hr style="border:none;border-top:1px solid #eee;margin:16px 0;">
-      <div style="white-space:pre-wrap;">${input.message}</div>
+      <div style="white-space:pre-wrap;">${esc(input.message)}</div>
     `),
     text: `از: ${input.name} <${input.email}>\nموضوع: ${input.subject}\n\n${input.message}`,
   };

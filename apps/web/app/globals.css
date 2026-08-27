@@ -2616,6 +2616,32 @@ section {
 
 .contact-form .form-group { display: grid; gap: 0.4rem; }
 
+/* Matches the Input primitive so the select does not read as a foreign control. */
+.support-select {
+  min-height: 3.5rem;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 0.75rem 1rem;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.support-select:focus {
+  border-color: var(--lajvard);
+  box-shadow: 0 0 0 2px rgba(0, 71, 171, 0.12);
+}
+
+.form-hint {
+  font-size: 0.78rem;
+  color: var(--muted-text);
+  line-height: 1.8;
+}
+
 /* Off-screen rather than display:none — some bots skip hidden inputs. */
 .honeypot {
   position: absolute;
