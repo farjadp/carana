@@ -59,11 +59,18 @@ Built this session (`components/auth-form.tsx`, `lib/auth/providers.ts`,
    transcript while setting this up — rotate it in Clients → Add secret,
    swap it in Supabase, delete the old one.
 3. **The magic-link email template and redirect URLs.** Auth → Email
-   Templates → Magic Link: the Persian shell is already written in
-   `docs/02-engineering.md` («ورود به گوپلازا» / «ورود»). Auth → URL
-   Configuration: `https://goplaza.ca/auth/callback` must be in Redirect
-   URLs. Without the template the mail goes out in Supabase's English
-   default; without the URL the link bounces to `/auth/error`.
+   Templates → **Magic Link**: the full paste-ready HTML and its subject line
+   are now written out in `docs/02-engineering.md` — same shell as the other
+   two, plus two sentences the others do not need (the link signs you in, and
+   it is single-use, so it must not be forwarded). Auth → URL Configuration:
+   `https://goplaza.ca/**` and `http://localhost:3000/**` must both be in
+   Redirect URLs. Without the template the mail goes out in Supabase's
+   English default; without the URL the link lands on the Site URL,
+   `/auth/callback` never runs, and nobody is signed in.
+   **The allow-list cannot be checked from outside** —
+   `GET /auth/v1/authorize?redirect_to=…` passes any target through, including
+   one that is plainly not allow-listed, so it proves nothing. Look at the
+   dashboard.
 
 **The bug the screenshot found.** The panel's header promised «تا ۳ ایمیل و ۳
 شماره» flat, and each list printed «{used} از ۳». But the extra rows are

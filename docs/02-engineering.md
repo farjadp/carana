@@ -652,11 +652,57 @@ the SMTP settings. See `12-integrations.md` and the SMTP mission in Notion.
 
 ---
 
-### Magic link — magic-link login is live since 26 Aug, so this one is due
+### Magic link — live since 26 Aug, so this template is due
 
-Same shell; headline «ورود به گوپلازا», button label «ورود», and the
-"ignore this" line: «اگر شما درخواست ورود نداده‌اید، این ایمیل را نادیده
-بگیرید.»
+Sent by `signInWithOtp()` from the login form's «لینک ورود با ایمیل» tab.
+Same shell as the two above. Two things this one says that the others do not:
+the link **signs you in**, and it is **single-use** — both are true of the
+Supabase OTP link and both are worth saying, because a sign-in link forwarded
+to someone else is an account handed over.
+
+**Subject:** `لینک ورود شما به گوپلازا`
+
+```html
+<div dir="rtl" style="margin:0;padding:0;background:#f6f1e8;font-family:Tahoma,Arial,sans-serif;">
+  <div style="max-width:520px;margin:0 auto;padding:32px 20px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <span style="font-size:26px;font-weight:bold;color:#800000;">GOPLAZA</span>
+    </div>
+    <div style="background:#ffffff;border-radius:14px;padding:28px 24px;color:#14213d;font-size:15px;line-height:2;text-align:right;">
+      <p style="margin:0 0 14px;">سلام،</p>
+      <p style="margin:0 0 18px;">برای ورود به حساب گوپلازای خود روی دکمه‌ی زیر بزنید. رمز عبور لازم نیست.</p>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#800000;color:#ffffff;text-decoration:none;padding:13px 30px;border-radius:999px;font-weight:bold;font-size:15px;">ورود به حساب</a>
+      </div>
+      <p style="margin:0 0 10px;color:#5f6472;font-size:13px;">اگر دکمه کار نکرد، این نشانی را در مرورگر باز کنید:</p>
+      <p style="margin:0 0 18px;font-size:12px;direction:ltr;text-align:left;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#0047ab;">{{ .ConfirmationURL }}</a></p>
+      <p style="margin:0 0 10px;color:#5f6472;font-size:13px;">این لینک یک‌بار مصرف است و شما را مستقیم وارد حساب می‌کند — آن را برای کسی نفرستید.</p>
+      <p style="margin:0;color:#5f6472;font-size:13px;">اگر شما درخواست ورود نداده‌اید، این ایمیل را نادیده بگیرید — بدون باز کردن این لینک هیچ‌کس وارد حساب شما نمی‌شود.</p>
+    </div>
+    <div style="text-align:center;margin-top:20px;color:#5f6472;font-size:12px;line-height:1.9;">
+      <div>گوپلازا — دایرکتوری کسب‌وکارهای ایرانی کانادا</div>
+      <div style="margin-top:6px;">
+        <a href="https://goplaza.ca/privacy" style="color:#5f6472;">حریم خصوصی</a> ·
+        <a href="https://goplaza.ca/support" style="color:#5f6472;">پشتیبانی</a>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+**The template is only half of it.** The login form passes
+`emailRedirectTo: <origin>/auth/callback?next=…`, and Supabase honours that
+only if the origin is in Auth → URL Configuration → Redirect URLs. If it is
+not, the link silently lands on the Site URL instead, `/auth/callback` never
+runs, and the person is not signed in. `https://goplaza.ca/**` and
+`http://localhost:3000/**` both have to be there.
+
+Worth writing down, because it was checked and the check was useless:
+`GET /auth/v1/authorize?redirect_to=…` passes ANY target straight through into
+the Google URL, including a domain that is obviously not allow-listed. That
+endpoint does not validate; the allow-list is applied later, when the token is
+exchanged. So there is no way to read the allow-list from outside — it has to
+be looked at in the dashboard.
 
 ---
 
