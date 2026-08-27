@@ -60,6 +60,22 @@ const CACHE_MS = 10 * 60_000;
 const BACKOFF_MS = 15 * 60_000;
 const QUOTA_BACKOFF_MS = 6 * 60 * 60_000;
 
+/**
+ * OFF since 27 Aug 2026, on Farjad's call — set to `true` to bring it back.
+ *
+ * The Navasan key's monthly quota is spent and its data stopped moving nine
+ * days ago, so every call ends in a rejected rate and a log row. The backoff
+ * added the same day cuts that to one row per instance per fifteen minutes,
+ * which is survivable but still not zero across a fleet, and there is nothing
+ * to be gained by asking: the widget cannot show a number until the key is
+ * renewed. So it does not ask.
+ *
+ * Nothing else changes. `null` is the path the footer has always taken when
+ * rates are unavailable, so the widget simply does not render — no placeholder,
+ * no stale figure, no "temporarily unavailable" box claiming a feature exists.
+ */
+const ENABLED = false;
+
 /** Module scope: one per instance, which is the granularity the API bills at. */
 let cached: { at: number; rates: ExchangeRates } | null = null;
 let blockedUntil = 0;
@@ -130,6 +146,8 @@ function describeCandidates(raw: unknown, now: number): Record<string, string> {
  * arrive at it.
  */
 export async function getExchangeRates(): Promise<ExchangeRates | null> {
+  if (!ENABLED) return null;
+
   const key = process.env.NAVASAN_API_KEY;
   if (!key) return null;
 
