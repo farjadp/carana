@@ -1,5 +1,44 @@
 # Open tasks
 
+**Updated:** 2026-08-27 — **small-bug and tech-debt sweep** (`chore/small-fixes`,
+7 commits). Three of the finds were not small: `verifyOwnListing`,
+`suspendLinkPage` and `restoreLinkPage` all existed on the server with no
+caller anywhere, so a self-registered listing could not be verified and a
+reported bio page could not be taken down. Both are wired to screens now.
+**Two things need a human and are listed immediately below.** Everything from
+26 Aug follows unchanged.
+
+## From the 27 Aug sweep — two things need eyes, one needs a decision
+
+**LOOK AT — the two new controls have never been seen rendered.** Both need a
+signed-in session this session could not establish. Neither is exotic; they
+just need one person to look:
+
+1. `/dashboard/business` — every unverified listing should now carry a banner.
+   If the account's email *and* mobile are verified it offers «تایید این
+   کسب‌وکار»; otherwise it links to `/dashboard/verify-contact`. Farjad's own
+   three listings (Verixa, Contivo, Upside Tree) are the test case — they are
+   why this was found.
+2. `/admin/reports` — a report about a GPLZ Link page now renders the page
+   with suspend (reason required) and restore controls. **The queue has no
+   link-page reports**, so seeing this needs one: report a page from
+   `/link/[handle]` first.
+
+**CHORE — verify ownership of two Telegram channels.** `/admin/channels`, for
+`get_verixa` and `heros_journey`. Not a bug: the green check is a manual admin
+action and «کانال رسمی پلازا» is the only one that has had it. Separately,
+their «نامشخص» activity label is truthful — Telegram answers 302 on `t.me/s/`
+for both handles (200 for `goplaza`), so the cron genuinely cannot read them.
+The `bot` ownership method is specified in `@goplaza/core` and **not built**;
+that is the only route that would give those two a member count.
+
+**STILL OPEN, not from this sweep:** the `fa()` consolidation moved 45 call
+sites onto `@goplaza/core`; `verification-badge.tsx` keeps its own `faNumber`
+on purpose (it applies `Math.abs`, and the renewal banner feeds it negative
+days). Do not "finish" that one without reading why.
+
+## Sign-in work (26 Aug)
+
 **Updated:** 2026-08-26 (later still) — **sign-in work**: magic-link login and
 «راه‌های تماس بیشتر» are built, and the Google button is now honest — **and
 Google is live**, enabled by Farjad the same evening. Two things still need a

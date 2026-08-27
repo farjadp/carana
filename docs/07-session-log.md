@@ -1,3 +1,85 @@
+# 2026-08-27 — small bugs and technical debt; three of them turned out to be features that were never wired up
+
+Asked for «باگ‌های ریز و بدهی فنی». Seven commits on `chore/small-fixes`. The
+small ones were small. Three were not: a function that grants the verified
+badge, and two that suspend an abusive bio page, all existed on the server
+with **no caller anywhere in the product**. See the new `06-gotchas` entry —
+that class is greppable and the sweep is in there.
+
+## What was actually broken
+
+- **A self-registered listing could not be verified by any route.**
+  `verifyOwnListing()` shipped 24 Aug with zero callers. The renewal banner
+  returned `null` for the unverified state on the stated assumption that
+  onboarding prompted for it; onboarding never called it either. Only
+  imported listings claimed via `/claim` by SMS could ever get a badge.
+  Found because Farjad asked why his own three listings were unverified —
+  not by review, not by tests, all of which passed on the half that existed.
+- **A reported bio page could not be taken down.** `suspendLinkPage` /
+  `restoreLinkPage` — admin-only DB functions with a required reason and a
+  migration arguing the case — also had zero callers. The intake half worked;
+  `/admin/reports` rendered a link-page report as «کسب‌وکار حذف‌شده» with
+  nothing to act on.
+- **Two more OTP boxes ate Persian digits**, one of them on
+  `/dashboard/verify-contact`, which is the prerequisite for verifying a
+  listing at all. `\D` deletes Persian digits rather than folding them.
+  Phone fields were stored unfolded too, and the public page renders them
+  inside `tel:` — a dead link that reads perfectly.
+- **`/categories/[slug]` counted unpublished rows** for their own owner (RLS
+  is not a status filter) **and had no paging**, so it would have stopped at
+  1,000 rows silently; the largest category is at 839.
+- **`/search` ranked its city dropdown over a 9% sample** — an unbounded
+  select capped at 1,000 of ~10,700 rows. With the full table counted,
+  «نامشخص» ranked 7th, so placeholder cities are now excluded.
+- **One row held `city = "Toronto "`**, so the Toronto page's title and its
+  own counter disagreed by one and that listing appeared on neither.
+- Two lint errors (`Date.now()` in a server component), a mid-line
+  `eslint-disable` that disabled nothing, and both recorder hooks leaking a
+  blob URL per take plus a live microphone track after unmount.
+- «به‌زودی» in two places nothing backs. The channels code already states the
+  rule — a date we have not committed to is a promise — and these
+  contradicted it.
+
+## Debt paid
+
+- `lib/time.ts`: one definition of the day/hour window, replacing five.
+- `@goplaza/core` `digits.ts`: `faDigits` (plain) and `faNumber` (grouped)
+  replace **45** local `const fa = …` copies across web, in the two different
+  behaviours they actually had. `iran-calendar` stopped exporting its own.
+  Mobile gets both for free.
+- `lib/business/fold-contact-digits.ts`: phone folding in one place,
+  server-side, so every client is covered rather than one form.
+
+## What was got wrong
+
+- **Assumed the channels question was the same bug as the businesses one.**
+  It was two unrelated things and neither was a bug: the green check is a
+  manual admin action nobody had taken, and «نامشخص» is activity, not
+  approval — Telegram answers 302 on `t.me/s/` for those two handles, proven
+  live rather than argued. Said so instead of "fixing" it.
+- **A `python3` heuristic that inserted an import after "the last import
+  line" broke a multi-line `import { … }` in `sidebar-nav.tsx`.** Typecheck
+  caught it immediately; the repair pass then checked all 45 files for the
+  same shape rather than only the one that failed.
+- **Nearly merged the 45 `fa()` copies mechanically.** They had two different
+  outputs — «۲۰۲۶» vs «۲٬۰۲۶» — so a single helper would have silently
+  changed rendering on seven pages. Each call site kept the behaviour it had.
+  `verification-badge`'s local `faNumber` was left alone for the same reason:
+  its `Math.abs` is deliberate, the renewal banner feeds it negative days.
+
+## Not verified, and honestly so
+
+- The unverified-listing banner and the link-page suspend controls have
+  **never been seen rendered**. Both need a signed-in session this session
+  could not establish (owner, and admin with a link-page report in the queue).
+  Everything else was checked by running: 85 sitemap URLs all 200, no server
+  errors, images non-broken and lazy in the browser, category counts
+  unchanged for a visitor, «نامشخص» gone from the search dropdown, and the
+  Toronto page's two numbers agreeing after the trim.
+- Writes to the production database were blocked for this session by the
+  permission classifier, so the one-row `btrim` was handed over as SQL and
+  Farjad ran it (`UPDATE 1`), then re-verified from the app.
+
 # 2026-08-26 (blog) — the blog reads the news, publishes itself, and talks to Telegram
 
 Shipped: a second writer that takes topics from atash.ca and writes our own
