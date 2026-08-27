@@ -80,7 +80,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
           withPhone: rows.filter((r) => r.phone).length,
           withWebsite: s.withWebsite,
         })
-      : `${h1} — به‌زودی. ثبت رایگان کسب‌وکار در پلازا.`,
+      : `${h1} — هنوز موردی ثبت نشده. ثبت رایگان کسب‌وکار در پلازا.`,
     alternates: { canonical: path },
     robots: s.total >= MIN_INDEXABLE ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: { locale: "fa_CA", title: h1, description: cat.description, url: path, images: cat.imageUrl ? [{ url: cat.imageUrl }] : undefined },

@@ -28,10 +28,12 @@ import { ArrowLeft, BadgeCheck, MapPin, Megaphone, Search as SearchIcon, Sliders
 import { PageShell } from "@/components/page-shell";
 import { BusinessCard } from "@/components/business/business-card";
 import { SuggestionBox } from "@/components/suggestion-box";
+import { PUBLIC_STATUSES, fetchAllRows } from "@goplaza/core";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCategoryDetail } from "@/lib/data/category-details";
 import { cleanQuery, logSearch, searchAnnouncements, searchBusinesses, type AnnouncementHit, type SearchHit } from "@/lib/search";
 import { expandQuery, type SmartExpansion } from "@/lib/search/smart";
+import { isPlaceholderCity } from "@/lib/seo/geo-index";
 
 const PAGE = 24;
 const fa = (n: number | string) => String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
@@ -51,10 +53,15 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
   const supabase = await createSupabaseServerClient();
-  const [first, { data: categories }, { data: cityRows }] = await Promise.all([
+  const [first, { data: categories }, cityRows] = await Promise.all([
     q || city || category ? searchBusinesses(supabase, { q, city, category, verifiedOnly, limit: PAGE, offset: (page - 1) * PAGE }) : Promise.resolve({ hits: [], total: 0 }),
     supabase.from("categories").select("slug, name").eq("is_active", true).order("display_order"),
-    supabase.from("businesses").select("city").in("status", ["APPROVED", "PUBLISHED"]).not("city", "is", null),
+    // Paginated: unbounded, PostgREST stops at 1,000 of the ~10,700 published
+    // rows without an error, and the "top 30 cities" filter below would be a
+    // frequency ranking over a 9% sample in whatever order the page came back.
+    fetchAllRows<{ city: string | null }>(() =>
+      supabase.from("businesses").select("city").in("status", PUBLIC_STATUSES).not("city", "is", null).order("id")
+    ),
   ]);
   // A city filter that finds nothing should not be a dead end: rerun without
   // it and say so. The query is still logged with the city, so the demand
@@ -126,7 +133,10 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   }
   const catLabel = new Map((categories ?? []).map((c) => [c.slug as string, c.name as string]));
   const cityFreq = new Map<string, number>();
-  for (const r of cityRows ?? []) { const c = String(r.city).trim(); if (c) cityFreq.set(c, (cityFreq.get(c) ?? 0) + 1); }
+  // Placeholder values («نامشخص» &c.) skipped: now that the count runs over
+  // the full table instead of a 1,000-row sample, «نامشخص» ranks 7th — it is
+  // an admin cleanup queue, not a place a visitor can filter by.
+  for (const r of cityRows ?? []) { const c = String(r.city).trim(); if (c && !isPlaceholderCity(c)) cityFreq.set(c, (cityFreq.get(c) ?? 0) + 1); }
   const cities = [...cityFreq.entries()].sort((a, b) => b[1] - a[1]).map(([c]) => c).slice(0, 30);
 
   if (q && page === 1) {

@@ -23,7 +23,7 @@ import { cityNameFa, getGeoIndex } from "@/lib/seo/geo-index";
 import { businessDescription, businessTitle } from "@/lib/seo/titles";
 import { getVerificationStatus, isTrusted } from "@/lib/verification/status";
 import { BusinessPosts } from "@/components/blog/business-posts";
-import { entitlementsFor, ownerProfileId, ownerSectionVisible, type PlanId, type PublicOwner } from "@goplaza/core";
+import { PUBLIC_STATUSES, entitlementsFor, ownerProfileId, ownerSectionVisible, type PlanId, type PublicOwner } from "@goplaza/core";
 import { ProfileUpsellBanner } from "@/components/business/profile-upsell-banner";
 
 export const revalidate = 60; // ISR cache 1 minute
@@ -324,15 +324,20 @@ export default async function BusinessProfilePage({
   const [{ data: sameCategory }, { data: sameCity }] = hideRivals
     ? [{ data: [] as any[] }, { data: [] as any[] }]
     : await Promise.all([
+        // Status filtered explicitly, not left to RLS: RLS also shows a row
+        // to its own owner and to admins, so without this a signed-in owner
+        // saw their unpublished listing rendered as a "related business".
         supabase
           .from("businesses")
           .select("id, slug, name, category, city, province, cover_url, logo_url")
+          .in("status", PUBLIC_STATUSES)
           .eq("category", business.category)
           .neq("id", business.id)
           .limit(4),
         supabase
           .from("businesses")
           .select("id, slug, name, category, city, province, cover_url, logo_url")
+          .in("status", PUBLIC_STATUSES)
           .eq("city", business.city)
           .neq("id", business.id)
           .limit(4),

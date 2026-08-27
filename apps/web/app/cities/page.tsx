@@ -109,7 +109,7 @@ export default async function CitiesPage() {
                     <p className="text-xs text-[#f6f1e8]/70" dir="ltr">{cfg.nameEn}, {cfg.province}</p>
                   </div>
                   <span className="rounded-full bg-[#f6f1e8]/15 px-3 py-1 text-xs font-bold text-[#f6f1e8] backdrop-blur">
-                    {count ? `${fa(count)} کسب‌وکار` : "به‌زودی"}
+                    {count ? `${fa(count)} کسب‌وکار` : "هنوز کسب‌وکاری ثبت نشده"}
                   </span>
                 </div>
               </Link>

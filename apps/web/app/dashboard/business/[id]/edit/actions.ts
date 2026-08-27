@@ -11,6 +11,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { logUserActivity } from "@/lib/actions/logs";
 import { reviewListingChange, type ChangeReview } from "@/lib/moderation/change-review";
+import { foldContactDigits } from "@/lib/business/fold-contact-digits";
 import { entitlementsFor } from "@/lib/billing/entitlements";
 
 export type EditActionResult = {
@@ -84,7 +85,9 @@ function pickOwnerFields(formData: Record<string, unknown>, existing: Record<str
     payload.gallery_video_url = existing.gallery_video_url ?? null;
   }
 
-  return payload;
+  // Phone-like fields digit-folded on top of the trim: the public page puts
+  // these inside tel: links, where a Persian digit is a dead link.
+  return foldContactDigits(payload);
 }
 
 /**

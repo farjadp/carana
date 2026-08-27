@@ -9,6 +9,7 @@
 import { createSupabaseActionClient } from "@/lib/supabase/server";
 import { finalBusinessSchema } from "@goplaza/core";
 import { logUserActivity } from "@/lib/actions/logs";
+import { foldContactDigits } from "@/lib/business/fold-contact-digits";
 import { slugify } from "@goplaza/core";
 
 // ----------------------------------------------------------------------------
@@ -66,7 +67,7 @@ export async function saveBusinessDraft(formData: any, businessId?: string) {
     }
 
     const payload = {
-      ...sanitizedData,
+      ...foldContactDigits(sanitizedData),
       slug: businessId ? undefined : slug, // Don't override slug if updating
       created_by: user.id,
       status: "DRAFT",
@@ -139,7 +140,7 @@ export async function submitBusiness(rawFormData: any, businessId?: string) {
     }
 
     const payload = {
-      ...sanitizedData,
+      ...foldContactDigits(sanitizedData),
       slug: businessId ? undefined : slug, 
       created_by: user.id,
       status: "SUBMITTED",

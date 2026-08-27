@@ -38,6 +38,12 @@ import { fetchAllRows } from "@/lib/supabase/fetch-all";
  */
 const PLACEHOLDER_CITIES = new Set(["نامشخص", "نا مشخص", "unknown", "n/a", "-", "—"]);
 
+/** True for the "we don't know" values imports left in `city` — never offer
+ *  these to a visitor as if they were a place. */
+export function isPlaceholderCity(rawCity: string | null | undefined): boolean {
+  return !rawCity || PLACEHOLDER_CITIES.has(key(rawCity));
+}
+
 /** Listings below this never get an indexable page of their own. */
 export const MIN_INDEXABLE = 3;
 
