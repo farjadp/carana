@@ -13,7 +13,7 @@
 //      working form (app/support/actions.ts, delivered by Resend), the full
 //      set of mailboxes, the operating company, and a direct Telegram.
 //
-//      The Telegram block renders only when company.telegram is set. An
+//      The Telegram block renders only when company.telegram.support is set. An
 //      unset handle prints nothing rather than a dead link — a contact route
 //      that does not answer is the same class of lie as a badge nothing
 //      backs, and this page is where someone already stuck ends up.
@@ -59,7 +59,7 @@ const GROUPS: { title: string; items: Faq[] }[] = [
   {
     title: "برای کاربران",
     items: [
-      { q: "گوپلازا رایگان است؟", a: <>بله — هم برای جستجو و استفاده، هم برای ثبت کسب‌وکار. گوپلازا واسطه‌ی هیچ معامله‌ای نیست و کمیسیونی نمی‌گیرد.</> },
+      { q: "پلازا رایگان است؟", a: <>بله — هم برای جستجو و استفاده، هم برای ثبت کسب‌وکار. پلازا واسطه‌ی هیچ معامله‌ای نیست و کمیسیونی نمی‌گیرد.</> },
       { q: "«ذخیره» و «یادداشت خصوصی» چیست؟", a: <>با حساب کاربری می‌توانید هر کسب‌وکاری را ذخیره کنید و برای خودتان یادداشت بگذارید («رفتم، خوب بود»، «قیمت گرفتم»). یادداشت خصوصی را فقط خودتان می‌بینید؛ نظر عمومی جداست و پس از بررسی منتشر می‌شود.</> },
       { q: "اپ موبایل دارید؟", a: <>بله، برای iOS و Android — با همان حساب سایت. انتشار در App Store و Google Play در راه است؛ فعلاً نسخه‌ی آزمایشی Android در دسترس تسترهاست. سؤال یا مشکل اپ را به همین ایمیل پشتیبانی بفرستید.</> },
       { q: "رمز عبورم را فراموش کرده‌ام.", a: <>از <Link href="/auth/forgot-password">صفحه‌ی بازیابی رمز</Link> استفاده کنید. ایمیل از <span dir="ltr">{company.email.noreply}</span> می‌آید — اگر نرسید، پوشه‌ی هرزنامه را ببینید.</> },
@@ -147,9 +147,9 @@ export default function SupportPage() {
               </span>
             </a>
 
-            {company.telegram ? (
+            {company.telegram.support ? (
               <a
-                href={`https://t.me/${company.telegram}`}
+                href={`https://t.me/${company.telegram.support}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2.5 flex items-center gap-3 rounded-2xl bg-white/10 hover:bg-white/20 transition p-3.5"
@@ -160,7 +160,7 @@ export default function SupportPage() {
                 <span className="min-w-0">
                   <span className="block text-xs text-[#f6f1e8]/60">تلگرام</span>
                   <span className="block font-bold text-sm truncate [font-family:var(--font-latin)]" dir="ltr">
-                    @{company.telegram}
+                    @{company.telegram.support}
                   </span>
                 </span>
               </a>

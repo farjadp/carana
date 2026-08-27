@@ -17,7 +17,7 @@ import { APP_VERSION, STORES } from "@/lib/data/releases";
 export const metadata: Metadata = {
   alternates: { canonical: "/download" },
   title: "دانلود اپلیکیشن",
-  description: "اپ گوپلازا برای iOS و Android — دایرکتوری کسب‌وکارهای ایرانی کانادا در جیب شما.",
+  description: "اپ پلازا برای iOS و Android — دایرکتوری کسب‌وکارهای ایرانی کانادا در جیب شما.",
 };
 
 const fa = (s: string | number) => String(s).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
@@ -28,7 +28,7 @@ export default function DownloadPage() {
       currentPath="/download"
       currentSection="brand"
       eyebrow="دانلود"
-      title="گوپلازا را همراه داشته باش."
+      title="پلازا را همراه داشته باش."
       description={`نسخه‌ی ${fa(APP_VERSION)} — همان حساب سایت، همان کسب‌وکارها، با تماس و مسیریابی یک‌لمسی. رایگان.`}
     >
       <section className="grid md:grid-cols-3 gap-4" dir="rtl">

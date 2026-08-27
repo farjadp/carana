@@ -6,7 +6,7 @@
 //      worth staying for.
 //
 //      THE WALL (docs/16): nothing in this file may become a trust signal.
-//      Tenure is a FACT about a customer relationship — «۳ سال در گوپلازا» is
+//      Tenure is a FACT about a customer relationship — «۳ سال در پلازا» is
 //      publishable; «کسب‌وکار مورد اعتماد» is not, and no export here says
 //      anything of the second kind. Loyalty buys money and room, never
 //      credibility.
@@ -126,9 +126,9 @@ export interface LoyaltyTier {
  * moving when Farjad says so, not when a deploy lands.
  */
 export const DEFAULT_LOYALTY_TIERS: LoyaltyTier[] = [
-  { months: 12, percentOff: 5, bonusPhotos: 2, bonusAnnouncements: 1, labelFa: "یک سال با گوپلازا" },
-  { months: 24, percentOff: 10, bonusPhotos: 5, bonusAnnouncements: 2, labelFa: "دو سال با گوپلازا" },
-  { months: 36, percentOff: 15, bonusPhotos: 10, bonusAnnouncements: 3, labelFa: "سه سال با گوپلازا" },
+  { months: 12, percentOff: 5, bonusPhotos: 2, bonusAnnouncements: 1, labelFa: "یک سال با پلازا" },
+  { months: 24, percentOff: 10, bonusPhotos: 5, bonusAnnouncements: 2, labelFa: "دو سال با پلازا" },
+  { months: 36, percentOff: 15, bonusPhotos: 10, bonusAnnouncements: 3, labelFa: "سه سال با پلازا" },
 ];
 
 /** The highest tier this many continuous months has reached, or null. */

@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/standing" },
   title: "اعتبار مشارکت",
   description:
-    "امتیاز مشارکت در گوپلازا وقتی شمرده می‌شود که کاری که کرده‌ای تأیید شود — نه وقتی ثبتش می‌کنی.",
+    "امتیاز مشارکت در پلازا وقتی شمرده می‌شود که کاری که کرده‌ای تأیید شود — نه وقتی ثبتش می‌کنی.",
 };
 
 export const dynamic = "force-dynamic";
@@ -51,7 +51,7 @@ export default async function StandingExplainerPage() {
       currentSection="business"
       eyebrow="اعتبار مشارکت"
       title="امتیاز وقتی شمرده می‌شود که درست از آب دربیاید"
-      description="گوپلازا را آدم‌ها کامل می‌کنند: کانالی که ثبت می‌شود، ساعت کاری‌ای که اصلاح می‌شود، نظری که نوشته می‌شود. این صفحه می‌گوید این مشارکت‌ها چطور شمرده می‌شوند و چه چیزی باز می‌کنند."
+      description="پلازا را آدم‌ها کامل می‌کنند: کانالی که ثبت می‌شود، ساعت کاری‌ای که اصلاح می‌شود، نظری که نوشته می‌شود. این صفحه می‌گوید این مشارکت‌ها چطور شمرده می‌شوند و چه چیزی باز می‌کنند."
     >
       {!settings.enabled ? (
         <section className="mb-8 rounded-2xl border border-amber-400/60 bg-amber-50/40 p-5">

@@ -34,7 +34,7 @@ export async function SiteHeader({ currentPath }: SiteHeaderProps) {
         <div className="header-actions">
           <form action="/search" method="get" className="header-search" role="search">
             <Search size={15} aria-hidden />
-            <input name="q" placeholder="جستجو…" aria-label="جستجو در گوپلازا" />
+            <input name="q" placeholder="جستجو…" aria-label="جستجو در پلازا" />
           </form>
           {user ? (
             <Link href="/profile" className="header-link">

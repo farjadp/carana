@@ -72,9 +72,9 @@ export default function RegisterEntry() {
         <View style={styles.heroIcon}>
           <Store size={30} color={colors.annabi} />
         </View>
-        <Text style={styles.title}>ثبت کسب‌وکار در گوپلازا</Text>
+        <Text style={styles.title}>ثبت کسب‌وکار در پلازا</Text>
         <Text style={styles.subtitle}>
-          رایگان است. پروفایلتان بعد از بررسی تیم گوپلازا منتشر می‌شود و با نشان تایید در جستجوها دیده می‌شود.
+          رایگان است. پروفایلتان بعد از بررسی تیم پلازا منتشر می‌شود و با نشان تایید در جستجوها دیده می‌شود.
         </Text>
 
         {/* Gate */}

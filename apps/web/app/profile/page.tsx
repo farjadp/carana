@@ -126,7 +126,7 @@ export default async function ProfilePage() {
   const next = level === 0 ? DEFAULT_THRESHOLDS.level1 : level === 1 ? DEFAULT_THRESHOLDS.level2 : null;
 
   const isStaff = profile?.role === "admin" || profile?.role === "moderator";
-  const displayName = profile?.full_name?.trim() || user.email?.split("@")[0] || "کاربر گوپلازا";
+  const displayName = profile?.full_name?.trim() || user.email?.split("@")[0] || "کاربر پلازا";
 
   const stats = [
     { icon: Bookmark, label: "ذخیره‌شده", value: saved, href: "/profile/interactions" },

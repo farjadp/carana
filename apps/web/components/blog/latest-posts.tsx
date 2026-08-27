@@ -42,13 +42,13 @@ export async function HomeLatestPosts() {
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-[color:var(--annabi)]/8 px-3 py-1 text-xs font-black text-[color:var(--annabi)]">
-              <Newspaper className="h-3.5 w-3.5" /> وبلاگ گوپلازا
+              <Newspaper className="h-3.5 w-3.5" /> وبلاگ پلازا
             </span>
             <h2 className="text-2xl font-black leading-tight text-[color:var(--text)] md:text-3xl">
               جدیدترین مقالات
             </h2>
             <p className="mt-1.5 max-w-2xl text-sm text-gray-500">
-              راهنمای عملی زندگی و کسب‌وکار ایرانی در کانادا — شهرها، مهاجرت، مناسبت‌ها و آنچه داده‌های گوپلازا می‌گویند.
+              راهنمای عملی زندگی و کسب‌وکار ایرانی در کانادا — شهرها، مهاجرت، مناسبت‌ها و آنچه داده‌های پلازا می‌گویند.
             </p>
           </div>
           <Link
@@ -95,7 +95,7 @@ export async function HomeLatestPosts() {
  */
 export async function LatestPostsStrip({
   title = "جدیدترین مقالات",
-  subtitle = "راهنماهای تازه‌ی گوپلازا برای زندگی و کسب‌وکار ایرانی در کانادا",
+  subtitle = "راهنماهای تازه‌ی پلازا برای زندگی و کسب‌وکار ایرانی در کانادا",
   limit = 3,
   excludeSlug,
   category,

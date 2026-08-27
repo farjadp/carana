@@ -384,7 +384,7 @@ export default function InteractionModal({ isOpen, onClose, businessId, initialI
               lineHeight: 1.7,
             }}>
               <Globe size={18} style={{ color: "#2563EB", flexShrink: 0, marginTop: 1 }} />
-              نظر شما پس از بررسی توسط تیم گوپلازا برای عموم منتشر خواهد شد.
+              نظر شما پس از بررسی توسط تیم پلازا برای عموم منتشر خواهد شد.
             </div>
 
             <div style={{ textAlign: "center" }}>

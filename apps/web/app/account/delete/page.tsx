@@ -15,7 +15,7 @@ import { DeleteAccountClient } from "./delete-client";
 
 export const metadata: Metadata = {
   title: "حذف حساب کاربری",
-  description: "حذف دائمی حساب کاربری و تمام اطلاعات شخصی در گوپلازا.",
+  description: "حذف دائمی حساب کاربری و تمام اطلاعات شخصی در پلازا.",
 };
 
 export default async function DeleteAccountPage() {

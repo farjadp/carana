@@ -358,7 +358,7 @@ export default function BusinessScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.subhead}>{owner.full_name}</Text>
                   {owner.member_since ? (
-                    <Text style={styles.hint}>عضو گوپلازا از {faMonthYear(owner.member_since)}</Text>
+                    <Text style={styles.hint}>عضو پلازا از {faMonthYear(owner.member_since)}</Text>
                   ) : null}
                 </View>
               </View>
@@ -393,7 +393,7 @@ export default function BusinessScreen() {
               <Pressable onPress={copyRef} style={styles.refRow}>
                 <Text style={styles.refValue}>#{business.ref_no}</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.subhead}>شماره‌ی مرجع گوپلازا</Text>
+                  <Text style={styles.subhead}>شماره‌ی مرجع پلازا</Text>
                   <Text style={styles.hint}>در تماس با پشتیبانی یا احراز مالکیت این شماره را بگویید. برای کپی لمس کنید.</Text>
                 </View>
               </Pressable>

@@ -114,9 +114,9 @@ export default function ProfileScreen() {
 
           <View style={styles.linksBlock}>
             <InternalRow icon={<Store size={17} color={colors.annabi} />} label="ثبت کسب‌وکار" onPress={() => router.push("/register")} />
-            <InternalRow icon={<Sparkles size={17} color={colors.annabi} />} label="امکانات گوپلازا" onPress={() => router.push("/features")} />
+            <InternalRow icon={<Sparkles size={17} color={colors.annabi} />} label="امکانات پلازا" onPress={() => router.push("/features")} />
             <InternalRow icon={<Briefcase size={17} color={colors.annabi} />} label="فرصت‌های شغلی" onPress={() => router.push("/jobs")} />
-            <InternalRow icon={<Newspaper size={17} color={colors.annabi} />} label="وبلاگ گوپلازا" onPress={() => router.push("/blog")} />
+            <InternalRow icon={<Newspaper size={17} color={colors.annabi} />} label="وبلاگ پلازا" onPress={() => router.push("/blog")} />
             <ExternalRow icon={<LifeBuoy size={17} color={colors.mutedText} />} label="پشتیبانی" url={`${WEB}/support`} />
             <ExternalRow icon={<Shield size={17} color={colors.mutedText} />} label="حریم خصوصی" url={`${WEB}/privacy`} />
           </View>
@@ -190,9 +190,9 @@ export default function ProfileScreen() {
         <Section title="حساب کاربری">
           <InternalRow icon={<UserRound size={17} color={colors.annabi} />} label="ویرایش پروفایل" onPress={() => router.push("/account/edit")} />
           <InternalRow icon={<Store size={17} color={colors.annabi} />} label="کسب‌وکار من / ثبت کسب‌وکار" onPress={() => router.push("/register")} />
-          <InternalRow icon={<Sparkles size={17} color={colors.annabi} />} label="امکانات گوپلازا" onPress={() => router.push("/features")} />
+          <InternalRow icon={<Sparkles size={17} color={colors.annabi} />} label="امکانات پلازا" onPress={() => router.push("/features")} />
           <InternalRow icon={<Briefcase size={17} color={colors.annabi} />} label="فرصت‌های شغلی" onPress={() => router.push("/jobs")} />
-          <InternalRow icon={<Newspaper size={17} color={colors.annabi} />} label="وبلاگ گوپلازا" onPress={() => router.push("/blog")} />
+          <InternalRow icon={<Newspaper size={17} color={colors.annabi} />} label="وبلاگ پلازا" onPress={() => router.push("/blog")} />
           <ExternalRow icon={<LifeBuoy size={17} color={colors.mutedText} />} label="پشتیبانی" url={`${WEB}/support`} />
           <ExternalRow icon={<Shield size={17} color={colors.mutedText} />} label="حریم خصوصی" url={`${WEB}/privacy`} />
         </Section>

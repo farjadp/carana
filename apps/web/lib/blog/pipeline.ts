@@ -48,12 +48,12 @@ export type Inventory = Awaited<ReturnType<typeof buildInventory>>;
 export async function buildInventory() {
   const admin = createSupabaseAdminClient();
   const targets: LinkTarget[] = [
-    { path: "/search", label: "جستجوی گوپلازا", kind: "page" },
+    { path: "/search", label: "جستجوی پلازا", kind: "page" },
     { path: "/how-it-works", label: "چطور کار می‌کند", kind: "page" },
     { path: "/trust", label: "نشان تأیید چیست", kind: "page" },
     { path: "/dashboard/business/new", label: "ثبت رایگان کسب‌وکار", kind: "page" },
-    { path: "/download", label: "دانلود اپ گوپلازا", kind: "page" },
-    { path: "/blog", label: "وبلاگ گوپلازا", kind: "page" },
+    { path: "/download", label: "دانلود اپ پلازا", kind: "page" },
+    { path: "/blog", label: "وبلاگ پلازا", kind: "page" },
     { path: "/jobs", label: "آگهی‌های استخدام", kind: "page" },
   ];
   for (const c of Object.values(CATEGORY_DETAILS)) targets.push({ path: `/categories/${c.slug}`, label: c.name, kind: "category" });
@@ -135,7 +135,7 @@ export function linkBlock(inv: Inventory): string {
 // ---------------------------------------------------------------------------
 
 /** Rules for the first (structured) pass. */
-export const HOUSE_STYLE = `Style: expert but plain; second-person singular خودمانی ("پیدا کن", "بپرس"); never first-person singular ("من", "خودم") and never invented personal anecdotes — the only first person allowed is "ما در گوپلازا" about the directory's data; written register, not spoken (می‌رسد not می‌رسه, است not ـه، را not رو); GOPLAZA launched in 2026 — never "سال‌ها" or "همیشه" about our own experience; the word "تأییدشده/verified" only for the verified count itself, never as a synonym for "listed"; nim-fasele (نیم‌فاصله) always; Persian digits inside Persian text; keep English proper nouns (city names, RRSP, TFSA, T1, CRA, IRCC) in Latin; no "در این مقاله"; no filler intro; open with the reader's situation in two sentences; end with a short "بعدش چه کار کنم" section that points to the site. Do not invent statistics, prices, laws or names. Where a rule depends on province, say "در انتاریو…" explicitly and keep it general.`;
+export const HOUSE_STYLE = `Style: expert but plain; second-person singular خودمانی ("پیدا کن", "بپرس"); never first-person singular ("من", "خودم") and never invented personal anecdotes — the only first person allowed is "ما در پلازا" about the directory's data; written register, not spoken (می‌رسد not می‌رسه, است not ـه، را not رو); GOPLAZA launched in 2026 — never "سال‌ها" or "همیشه" about our own experience; the word "تأییدشده/verified" only for the verified count itself, never as a synonym for "listed"; nim-fasele (نیم‌فاصله) always; Persian digits inside Persian text; keep English proper nouns (city names, RRSP, TFSA, T1, CRA, IRCC) in Latin; no "در این مقاله"; no filler intro; open with the reader's situation in two sentences; end with a short "بعدش چه کار کنم" section that points to the site. Do not invent statistics, prices, laws or names. Where a rule depends on province, say "در انتاریو…" explicitly and keep it general.`;
 
 /** Rules for the second (humanising) pass. */
 export const HUMAN_VOICE = `- Vary sentence length hard: some very short. Some longer, with a clause that adds a concrete detail. Never three sentences in a row of similar length.
@@ -144,7 +144,7 @@ export const HUMAN_VOICE = `- Vary sentence length hard: some very short. Some l
 - No tricolon padding ("سریع، آسان و مطمئن") and no bullet list longer than five items.
 - Cut hedging stacks: pick "معمولاً" or "اغلب", never both. Cut adverbs. Prefer verbs to nominalisations (بررسی کن, not انجام بررسی).
 - NEVER first-person singular — no "من", no "خودم", no verb in the first-person singular ("می‌کنم", "دیدم", "بررسی کردم", "متوجه شدم"). The writer is a team, not a person with memories.
-- Exactly one aside in first-person plural ("ما در گوپلازا دیده‌ایم که…"), and it may ONLY restate a number that is already in the article. GOPLAZA launched in 2026 and has no observations from before it — never claim one.
+- Exactly one aside in first-person plural ("ما در پلازا دیده‌ایم که…"), and it may ONLY restate a number that is already in the article. GOPLAZA launched in 2026 and has no observations from before it — never claim one.
 - Add NO new fact. Not a number, not a percentage, not a price, not a year, not a neighbourhood, not a school, not a shop, not a brand, not an anecdote. Every figure, place and date in your output must already appear in the article you were given. If a paragraph feels thin, make the existing point sharper — do not invent an example to fill it.
 - Exactly one place where the article takes a position ("به نظر ما…") and gives the reason for it.
 - One concrete, checkable detail per section — a number we were given, a document name, a month, a neighbourhood.

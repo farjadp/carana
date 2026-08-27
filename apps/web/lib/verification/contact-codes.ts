@@ -102,7 +102,7 @@ export async function issueContactCode(
 
   const result = await sendSms(
     mobile,
-    `کد تایید گوپلازا: ${code}\n\nاین کد تا ۱۵ دقیقه معتبر است. آن را با کسی به اشتراک نگذارید.`
+    `کد تایید پلازا: ${code}\n\nاین کد تا ۱۵ دقیقه معتبر است. آن را با کسی به اشتراک نگذارید.`
   );
   if (!result.sent) return { success: false, error: result.error ?? "ارسال پیامک انجام نشد." };
   return { success: true, message: "کد تایید به موبایل شما پیامک شد." };

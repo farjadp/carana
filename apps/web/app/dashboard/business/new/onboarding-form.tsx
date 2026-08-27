@@ -278,7 +278,7 @@ export default function BusinessOnboardingForm({
 
           <p className="text-[color:var(--muted-text)] mb-6 leading-loose text-sm">
             پروفایل کسب‌وکار شما با موفقیت به عنوان <strong className="text-blue-700">«ارسال شده برای بررسی»</strong> ثبت شد.
-            تیم كارشناسان گوپلازا اطلاعات را بررسی کرده و پس از تایید، کسب‌وکار شما در دایرکتوری عمومی
+            تیم كارشناسان پلازا اطلاعات را بررسی کرده و پس از تایید، کسب‌وکار شما در دایرکتوری عمومی
             منتشر خواهد شد. این فرآیند معمولاً ۲ تا ۵ روز کاری زمان می‌برد.
           </p>
 
@@ -1040,7 +1040,7 @@ export default function BusinessOnboardingForm({
               {currentStep === 4 && (
                 <StepWrapper
                   title="۴. جزئیات اعتماد و اعتبار"
-                  description="این اطلاعات صرفاً برای راستی‌آزمایی توسط تیم گوپلازا دریافت می‌شود و در پروفایل عمومی نمایش داده نخواهد شد."
+                  description="این اطلاعات صرفاً برای راستی‌آزمایی توسط تیم پلازا دریافت می‌شود و در پروفایل عمومی نمایش داده نخواهد شد."
                 >
                   {/* هشدار محرمانه بودن */}
                   <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl mb-2">
@@ -1354,8 +1354,8 @@ export default function BusinessOnboardingForm({
                   {/* چک‌باکس‌های تایید */}
                   <div className="space-y-3 mt-6 p-5 bg-blue-50/70 rounded-xl border border-blue-100">
                     <TermsCheckbox id="terms1" label="تایید می‌کنم که تمام اطلاعات وارد شده صحیح و واقعی است." />
-                    <TermsCheckbox id="terms2" label="می‌پذیرم که انتشار نهایی در دایرکتوری، پس از بررسی و تایید تیم گوپلازا انجام خواهد شد." />
-                    <TermsCheckbox id="terms3" label={<>با <a href="/terms" target="_blank" className="underline text-[color:var(--lajvard)]">قوانین و مقررات</a> و <a href="/privacy" target="_blank" className="underline text-[color:var(--lajvard)]">حریم خصوصی</a> گوپلازا موافقم.</>} />
+                    <TermsCheckbox id="terms2" label="می‌پذیرم که انتشار نهایی در دایرکتوری، پس از بررسی و تایید تیم پلازا انجام خواهد شد." />
+                    <TermsCheckbox id="terms3" label={<>با <a href="/terms" target="_blank" className="underline text-[color:var(--lajvard)]">قوانین و مقررات</a> و <a href="/privacy" target="_blank" className="underline text-[color:var(--lajvard)]">حریم خصوصی</a> پلازا موافقم.</>} />
                   </div>
                 </StepWrapper>
               )}

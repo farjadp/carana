@@ -293,7 +293,7 @@ export function verificationRenewalEmail(input: {
     html: shell(`
       <p style="margin:0 0 14px;">سلام،</p>
       <p style="margin:0 0 18px;">${lead}</p>
-      <p style="margin:0 0 18px;">گوپلازا هر شش ماه یک‌بار شماره تماس و ایمیل هر کسب‌وکار را دوباره تایید می‌کند. این کاری است که باعث می‌شود نشان تایید معنا داشته باشد: کاربری که آن را می‌بیند مطمئن است اطلاعات تماس همین چند ماه اخیر بررسی شده، نه یک بار در گذشته.</p>
+      <p style="margin:0 0 18px;">پلازا هر شش ماه یک‌بار شماره تماس و ایمیل هر کسب‌وکار را دوباره تایید می‌کند. این کاری است که باعث می‌شود نشان تایید معنا داشته باشد: کاربری که آن را می‌بیند مطمئن است اطلاعات تماس همین چند ماه اخیر بررسی شده، نه یک بار در گذشته.</p>
       <p style="margin:0 0 18px;">تمدید چند ثانیه طول می‌کشد و از داشبورد انجام می‌شود.</p>
       <div style="text-align:center;margin:24px 0;">
         <a href="${url}" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">${lapsed ? "تمدید تایید" : "تمدید کنید"}</a>
@@ -338,7 +338,7 @@ export function jobModeratedEmail(input: {
       subject: `آگهی «${input.jobTitle}» منتشر شد`,
       html: shell(`
         <p style="margin:0 0 14px;">سلام،</p>
-        <p style="margin:0 0 18px;">آگهی <strong>${input.jobTitle}</strong> برای <strong>${input.businessName}</strong> بررسی شد و حالا روی تابلوی فرصت‌های شغلی گوپلازا منتشر است.</p>
+        <p style="margin:0 0 18px;">آگهی <strong>${input.jobTitle}</strong> برای <strong>${input.businessName}</strong> بررسی شد و حالا روی تابلوی فرصت‌های شغلی پلازا منتشر است.</p>
         <div style="text-align:center;margin:24px 0;">
           <a href="${jobUrl}" style="display:inline-block;background:${ANNABI};color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;">دیدن آگهی</a>
         </div>

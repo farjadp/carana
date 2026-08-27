@@ -180,7 +180,7 @@ export function UserListClient({ initialUsers, currentUserId }: UserListClientPr
         <div>
           <h1 className="text-2xl font-extrabold text-[color:var(--text)]">مدیریت کاربران پلتفرم</h1>
           <p className="text-sm text-[color:var(--muted-text)] mt-1">
-            مشاهده، فیلتر، ویرایش نقش‌ها و حذف حساب‌های کاربری واقعی دایرکتوری گوپلازا
+            مشاهده، فیلتر، ویرایش نقش‌ها و حذف حساب‌های کاربری واقعی دایرکتوری پلازا
           </p>
         </div>
         <div className="text-sm bg-white border border-[color:var(--line)] px-4 py-2 rounded-2xl shadow-sm">

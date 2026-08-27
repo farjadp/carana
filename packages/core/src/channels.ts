@@ -266,8 +266,8 @@ export const CHANNEL_OWNERSHIP_LABEL_FA: Record<ChannelOwnership, string> = {
 
 /** What the badge means, per method. Never «تأیید شده» on its own. */
 export const CHANNEL_OWNER_METHOD_FA: Record<ChannelOwnerMethod, string> = {
-  admin: "اداره‌کننده‌ی این کانال نزد تیم گوپلازا تأیید شده است.",
-  bot: "ربات گوپلازا ادمین این کانال است، پس اداره‌کننده‌اش مالکیت را خودش اثبات کرده.",
+  admin: "اداره‌کننده‌ی این کانال نزد تیم پلازا تأیید شده است.",
+  bot: "ربات پلازا ادمین این کانال است، پس اداره‌کننده‌اش مالکیت را خودش اثبات کرده.",
 };
 
 /**
@@ -275,10 +275,10 @@ export const CHANNEL_OWNER_METHOD_FA: Record<ChannelOwnerMethod, string> = {
  * not committed to is a promise, and the line states what is true today.
  */
 export const CHANNEL_OWNERSHIP_HINT_FA =
-  "این کانال را یکی از کاربران گوپلازا معرفی کرده و کسی اداره‌ی آن را اثبات نکرده است. اگر اداره‌کننده‌اش هستی، به پشتیبانی بنویس.";
+  "این کانال را یکی از کاربران پلازا معرفی کرده و کسی اداره‌ی آن را اثبات نکرده است. اگر اداره‌کننده‌اش هستی، به پشتیبانی بنویس.";
 
 /** The submitter is named to nobody. Same rule the owner-identity gates use. */
-export const CHANNEL_SUBMITTER_FA = "معرفی‌شده توسط یکی از کاربران گوپلازا";
+export const CHANNEL_SUBMITTER_FA = "معرفی‌شده توسط یکی از کاربران پلازا";
 
 // ---------------------------------------------------------------------------
 // Links

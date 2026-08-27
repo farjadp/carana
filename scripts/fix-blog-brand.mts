@@ -43,7 +43,7 @@ const supabase = createClient(url, key, { auth: { persistSession: false } });
  * replacement targets are read from brand.ts rather than written here.
  *
  * `چارانا` matches inside `چارانا،` and `چاراناست` and both come out correct
- * (`گوپلازا،`, `گوپلازاست`), which is why the pattern has no word boundary.
+ * (`پلازا،`, `پلازاست`), which is why the pattern has no word boundary.
  * A boundary would also be wrong for Persian, where the letter classes are
  * not what \b thinks they are.
  */

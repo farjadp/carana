@@ -79,7 +79,7 @@ export default async function BusinessDashboardPage() {
             </div>
             <h2 className="text-xl font-bold mb-2">هنوز کسب‌وکاری ثبت نکرده‌اید</h2>
             <p className="text-[color:var(--muted-text)] max-w-md mb-6">
-              شما می‌توانید پروفایل کسب‌وکار خود را در دایرکتوری ایجاد کنید تا پس از بررسی تیم گوپلازا، به هزاران ایرانی در کانادا معرفی شوید.
+              شما می‌توانید پروفایل کسب‌وکار خود را در دایرکتوری ایجاد کنید تا پس از بررسی تیم پلازا، به هزاران ایرانی در کانادا معرفی شوید.
             </p>
             <Link 
               href="/dashboard/business/new"

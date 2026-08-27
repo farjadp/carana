@@ -174,7 +174,7 @@ export default async function BlogPostPage({ params }: Params) {
           {post.sources?.length ? (
             <section className="mt-8 rounded-2xl border border-[color:var(--line)] bg-white p-5" aria-labelledby="src-h">
               <h2 id="src-h" className="mb-2 text-sm font-black text-[color:var(--text)]">منبع خبر</h2>
-              <p className="mb-3 text-xs leading-6 text-[color:var(--muted-text)]">این نوشته را تیم گوپلازا نوشته است. خبری که موضوع را ساخت، این‌جا منتشر شده بود:</p>
+              <p className="mb-3 text-xs leading-6 text-[color:var(--muted-text)]">این نوشته را تیم پلازا نوشته است. خبری که موضوع را ساخت، این‌جا منتشر شده بود:</p>
               <ul className="space-y-1.5 text-sm">
                 {post.sources.map((s) => (
                   <li key={s.url}>
@@ -187,7 +187,7 @@ export default async function BlogPostPage({ params }: Params) {
 
           <div className="mt-12 rounded-3xl bg-[color:var(--annabi)] p-6 text-[#f6f1e8] md:p-8">
             <h2 className="text-xl font-black">دنبال کسب‌وکار ایرانی می‌گردی؟</h2>
-            <p className="mt-1 text-sm text-[#f6f1e8]/80">جستجوی گوپلازا فارسی و انگلیسی را می‌فهمد — حتی با کیبورد اشتباه.</p>
+            <p className="mt-1 text-sm text-[#f6f1e8]/80">جستجوی پلازا فارسی و انگلیسی را می‌فهمد — حتی با کیبورد اشتباه.</p>
             <form action="/search" method="get" className="mt-4 flex gap-2">
               <input name="q" placeholder="مثلاً دندان‌پزشک، رستوران، ریچموندهیل…" className="h-11 flex-1 rounded-full bg-white px-4 text-sm text-[color:var(--text)] outline-none" aria-label="جستجو" />
               <button type="submit" className="h-11 rounded-full bg-[#14213d] px-5 text-sm font-bold text-[#f6f1e8]">جستجو</button>

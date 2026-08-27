@@ -10,7 +10,7 @@
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Building2, Handshake, LifeBuoy, Mail, MapPin, ShieldCheck, Store, UserRoundX } from "lucide-react";
+import { ArrowLeft, Building2, Handshake, LifeBuoy, Mail, MapPin, Phone, Scale, Send, ShieldCheck, Store, UserRoundX } from "lucide-react";
 
 import { InnerPage } from "@/components/inner-page";
 import { BrandMark } from "@/components/brand-mark";
@@ -36,6 +36,7 @@ const INTENTS = [
   { icon: ShieldCheck, title: "کسب‌وکارم در سایت هست — مال من است", body: "با یک پیامک به شماره‌ی روی پروفایل، مالکیتت را ثابت کن و نشان تایید بگیر.", href: "/claim", cta: "احراز مالکیت", tone: "lajvard" as const },
   { icon: LifeBuoy, title: "مشکل فنی یا سؤال درباره‌ی حساب", body: "پرسش‌های پرتکرار و ایمیل مستقیم پشتیبانی.", href: "/support", cta: "پشتیبانی", tone: "plain" as const },
   { icon: Handshake, title: "همکاری، رسانه یا پیشنهاد", body: "برای شراکت، تبلیغات و هر چیزی که در دسته‌های دیگر نمی‌گنجد.", href: `mailto:${company.email.partners}`, cta: company.email.partners, tone: "plain" as const, ltr: true },
+  { icon: Scale, title: "شکایتی دارم", body: "فرم رسمی: مستقیم به مدیریت می‌رسد و ظرف ۳۰ روز پاسخ کتبی می‌گیرد.", href: "/complaint", cta: "ثبت شکایت", tone: "plain" as const },
 ];
 
 export default function ContactPage() {
@@ -45,7 +46,7 @@ export default function ContactPage() {
       currentSection="brand"
       eyebrow="تماس با ما"
       title="چطور می‌توانیم کمک کنیم؟"
-      description="یکی از این چهار مسیر را انتخاب کن، یا همین‌جا پیام بگذار. معمولاً ظرف یک تا دو روز کاری جواب می‌دهیم."
+      description="مسیرت را انتخاب کن، یا همین‌جا پیام بگذار. معمولاً ظرف یک تا دو روز کاری جواب می‌دهیم."
     >
       {/* Route by intent */}
       <section className="grid md:grid-cols-2 gap-4" dir="rtl">
@@ -102,6 +103,7 @@ export default function ContactPage() {
                 ["پشتیبانی", company.email.support],
                 ["همکاری و تبلیغات", company.email.partners],
                 ["حریم خصوصی", company.email.privacy],
+                ["مدیریت", company.email.management],
               ].map(([l, e]) => (
                 <li key={e} className="flex items-center justify-between gap-3">
                   <span className="text-[color:var(--muted-text)]">{l}</span>
@@ -109,6 +111,37 @@ export default function ContactPage() {
                 </li>
               ))}
             </ul>
+            <div className="mt-4 pt-3 border-t border-[color:var(--line)]">
+              <div className="flex items-center gap-2 text-xs text-[color:var(--muted-text)] mb-3"><Phone size={14} /> تلفن</div>
+              <ul className="space-y-2.5 text-sm">
+                {[
+                  ["پشتیبانی", company.phone.support],
+                  ["مدیریت", company.phone.management],
+                ].map(([l, n]) => (
+                  <li key={n} className="flex items-center justify-between gap-3">
+                    <span className="text-[color:var(--muted-text)]">{l}</span>
+                    <a href={`tel:${n}`} className="font-bold text-[color:var(--lajvard)] [font-family:var(--font-latin)]" dir="ltr">{n}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {company.telegram.support ? (
+              <div className="mt-4 pt-3 border-t border-[color:var(--line)]">
+                <div className="flex items-center gap-2 text-xs text-[color:var(--muted-text)] mb-3"><Send size={14} /> تلگرام</div>
+                <ul className="space-y-2.5 text-sm">
+                  {([["پشتیبانی", company.telegram.support], ["مدیریت", company.telegram.personal]] as const)
+                    .filter(([, h]) => Boolean(h))
+                    .map(([l, h]) => (
+                      <li key={h} className="flex items-center justify-between gap-3">
+                        <span className="text-[color:var(--muted-text)]">{l}</span>
+                        <a href={`https://t.me/${h}`} target="_blank" rel="noopener noreferrer" className="font-bold text-[color:var(--lajvard)] [font-family:var(--font-latin)]" dir="ltr">@{h}</a>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ) : null}
+
             <div className="mt-4 pt-3 border-t border-[color:var(--line)] text-xs text-[color:var(--muted-text)] flex items-center gap-1.5">
               <UserRoundX size={13} /> حذف حساب کاربری: <Link href="/account/delete" className="text-[color:var(--lajvard)] font-bold">این صفحه</Link>
             </div>

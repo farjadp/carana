@@ -2,7 +2,7 @@
 // Source: components/channels/home-channels.tsx
 // Version: 2.0.0 — 2026-08-26
 // Why: The «کانال‌ها و گروه‌ها» band on the home page, in the slot the
-//      «چرا گوپلازا؟» card grid used to hold (Farjad, 26 Aug).
+//      «چرا پلازا؟» card grid used to hold (Farjad, 26 Aug).
 //
 //      That grid argued the site was trustworthy. This shows it: six real
 //      channels, each with the date it last posted and the date we checked.

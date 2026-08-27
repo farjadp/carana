@@ -76,7 +76,7 @@ export default function AdminLoginPage() {
           <div className="admin-shield-icon">
             <ShieldCheck size={28} />
           </div>
-          <h1>پنل مدیریت گوپلازا</h1>
+          <h1>پنل مدیریت پلازا</h1>
           <p>دروازه کنترل و نظارت امنیتی پلتفرم</p>
         </div>
 

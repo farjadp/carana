@@ -368,7 +368,7 @@ export default async function CityDetailPage({ params }: CityPageParams) {
             </div>
           </div>
         </section>
-        <LatestPostsStrip subtitle="راهنماهای تازه‌ی گوپلازا درباره‌ی شهرها و زندگی ایرانی در کانادا" />
+        <LatestPostsStrip subtitle="راهنماهای تازه‌ی پلازا درباره‌ی شهرها و زندگی ایرانی در کانادا" />
       </main>
     </PageShell>
   );

@@ -72,7 +72,7 @@ export function VerifyContactClient() {
           </div>
           <h1 className="text-xl font-black text-amber-900 mb-2">اعتبارسنجی دوره‌ای</h1>
           <p className="text-sm text-amber-800/80 leading-relaxed max-w-sm mx-auto">
-            جهت حفظ امنیت و کیفیت اطلاعات گوپلازا، تایید موبایل و ایمیل هر ۶ ماه یکبار برای ثبت یا ویرایش کسب‌وکار الزامی است.
+            جهت حفظ امنیت و کیفیت اطلاعات پلازا، تایید موبایل و ایمیل هر ۶ ماه یکبار برای ثبت یا ویرایش کسب‌وکار الزامی است.
           </p>
         </div>
 

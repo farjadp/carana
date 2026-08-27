@@ -69,7 +69,7 @@ export default async function NewBusinessPage({
                   <span>دایرکتوری مشاغل ایرانیان کانادا</span>
                 </div>
                 <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-3">
-                  ثبت و معرفی کسب‌وکار شما در گوپلازا
+                  ثبت و معرفی کسب‌وکار شما در پلازا
                 </h1>
                 <p className="text-gray-300 text-sm md:text-base max-w-2xl leading-relaxed">
                   با تکمیل این فرم در ۷ مرحله ساده، پروفایل اختصاصی و سئو شده کسب‌وکار خود را بسازید تا توسط هم‌وطنان مقیم کانادا دیده شوید.
@@ -109,7 +109,7 @@ export default async function NewBusinessPage({
               {/* Why Join Banner */}
               <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm space-y-4">
                 <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
-                  <Building2 size={20} className="text-[color:var(--lajvard)]" /> چرا کسب‌وکار خود را در گوپلازا ثبت کنید؟
+                  <Building2 size={20} className="text-[color:var(--lajvard)]" /> چرا کسب‌وکار خود را در پلازا ثبت کنید؟
                 </h3>
                 <ul className="space-y-3 text-xs md:text-sm text-gray-600 leading-relaxed">
                   <li className="flex items-start gap-2">
@@ -122,7 +122,7 @@ export default async function NewBusinessPage({
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-emerald-500 font-bold">✓</span>
-                    <span><strong>اعتبار و Badge تایید:</strong> دریافت تاییدیه رسمی گوپلازا جهت جلب اعتماد مشتریان جدید.</span>
+                    <span><strong>اعتبار و Badge تایید:</strong> دریافت تاییدیه رسمی پلازا جهت جلب اعتماد مشتریان جدید.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-emerald-500 font-bold">✓</span>
@@ -138,14 +138,14 @@ export default async function NewBusinessPage({
                   <span>نیاز به راهنمایی در ثبت دارید؟</span>
                 </div>
                 <p className="leading-relaxed">
-                  تیم پشتیبانی گوپلازا در تمام مراحل ثبت، ویرایش اطلاعات و بارگذاری مدارک همراه شماست.
+                  تیم پشتیبانی پلازا در تمام مراحل ثبت، ویرایش اطلاعات و بارگذاری مدارک همراه شماست.
                 </p>
                 <div className="pt-2">
                   <Link
                     href="/contact"
                     className="inline-flex items-center gap-2 font-bold text-blue-700 hover:text-blue-900 transition"
                   >
-                    <PhoneCall size={14} /> تماس با پشتیبانی گوپلازا
+                    <PhoneCall size={14} /> تماس با پشتیبانی پلازا
                   </Link>
                 </div>
               </div>

@@ -137,12 +137,12 @@ export default async function SignupSuccessPage() {
 
   const faqs: { q: string; a: React.ReactNode }[] = [
     {
-      q: "استفاده از گوپلازا پولی است؟",
+      q: "استفاده از پلازا پولی است؟",
       a: (
         <>
           نه. جستجو رایگان است، ثبت کسب‌وکار رایگان است و رایگان می‌ماند، و ثبت آگهی استخدام و کانال هم
           رایگان است. <Link href="/pricing">پلن‌های پولی</Link> فقط برای جایگاه ویژه و امکانات اضافه‌اند —
-          هیچ‌کدام شرط دیده‌شدن نیستند. گوپلازا واسطه‌ی هیچ معامله‌ای نیست و کمیسیون نمی‌گیرد.
+          هیچ‌کدام شرط دیده‌شدن نیستند. پلازا واسطه‌ی هیچ معامله‌ای نیست و کمیسیون نمی‌گیرد.
         </>
       ),
     },
@@ -214,7 +214,7 @@ export default async function SignupSuccessPage() {
               </span>
 
               <h1 className="text-3xl font-black leading-tight md:text-4xl">
-                {firstName ? `${firstName}، خوش آمدی به گوپلازا.` : "خوش آمدی به گوپلازا."}
+                {firstName ? `${firstName}، خوش آمدی به پلازا.` : "خوش آمدی به پلازا."}
               </h1>
 
               <p className="mt-4 max-w-xl text-sm leading-8 text-[#f6f1e8]/85">

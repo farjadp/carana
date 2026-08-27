@@ -209,7 +209,7 @@ async function write(post: SourcePost, kind: SnippetKind) {
     schema: snippetSchema,
     temperature: 0.85,
     providerOptions: { openai: { strictJsonSchema: false } },
-    prompt: `You write the Telegram channel of GOPLAZA (گوپلازا), the Persian-language directory of Iranian-owned businesses in Canada.
+    prompt: `You write the Telegram channel of GOPLAZA (پلازا), the Persian-language directory of Iranian-owned businesses in Canada.
 
 Write ONE short card, in Persian, of this kind:
 ${spec.fa} — ${spec.brief}
@@ -217,12 +217,12 @@ ${spec.fa} — ${spec.brief}
 It is lifted from the article below. Everything in the card must already be in that article: every number, name, place, date and claim. You are choosing and sharpening, never adding. If the article does not contain something worth a card of this kind, set usable: false and say why in one sentence — a weak card is worse than no card, and there are 74 other articles.
 
 SCOPE — the rule that matters most, and the one the first draft of this feature broke:
-- A number from GOPLAZA's directory is a fact about OUR LISTINGS, never about Canada. "۳ کسب‌وکار تأییدشده در گوپلازا" is true; "تنها ۳ کسب‌وکار ایرانی کانادا تأیید رسمی دارند" is a different and false claim. Always carry the scope in the sentence: «در گوپلازا ثبت شده», «از کسب‌وکارهایی که در گوپلازا فهرست شده‌اند», «در تورنتو، در فهرست ما».
+- A number from GOPLAZA's directory is a fact about OUR LISTINGS, never about Canada. "۳ کسب‌وکار تأییدشده در پلازا" is true; "تنها ۳ کسب‌وکار ایرانی کانادا تأیید رسمی دارند" is a different and false claim. Always carry the scope in the sentence: «در پلازا ثبت شده», «از کسب‌وکارهایی که در پلازا فهرست شده‌اند», «در تورنتو، در فهرست ما».
 - Never turn "we have not listed many of X" into "there are not many X".
 - The words تأییدشده / verified describe our verification badge only. Never use them as a synonym for "listed", and never imply an official or governmental approval — we are a directory, not a regulator.
 - A count of listings is not a count of businesses, a search count is not a demand figure, and a city figure is never a country figure.
 - Write the scope in PERSIAN, inside the sentence, as something a person would say. Never splice an English phrase such as "Canada-wide" into a Persian sentence, and never bolt the scope on at the end as a disclaimer.
-- Do not open with تنها or فقط before a directory count. Those words make the number an assertion about the world; "در گوپلازا ۳ کسب‌وکار ... " states the same figure honestly.
+- Do not open with تنها or فقط before a directory count. Those words make the number an assertion about the world; "در پلازا ۳ کسب‌وکار ... " states the same figure honestly.
 
 How it has to read:
 - The first line earns the second. Telegram is read in a scroll; a card that opens with a throat-clear is a card nobody finishes.
@@ -231,7 +231,7 @@ How it has to read:
 - Vary sentence length. One short sentence somewhere.
 - Written register, plain and direct: می‌رسد not می‌رسه, است not ـه, را not رو. Second-person singular where you address the reader.
 - نیم‌فاصله and Persian digits. English proper nouns (Toronto, CRA, RRSP) stay in Latin.
-- Never first-person singular. "ما در گوپلازا" only about our own directory data, at most once.
+- Never first-person singular. "ما در پلازا" only about our own directory data, at most once.
 - No hashtags in the text; put them in the tags field.
 
 ARTICLE — ${post.title}
@@ -269,7 +269,7 @@ export function renderSnippet(s: { kind: SnippetKind; hook: string; body: string
     "",
     escapeHtml(s.body),
     "",
-    `<a href="${link}">متن کامل در گوپلازا</a>`,
+    `<a href="${link}">متن کامل در پلازا</a>`,
     tags ? `\n${tags}` : "",
   ]
     .join("\n")
@@ -345,12 +345,12 @@ export async function generateSnippets(n: number, opts?: { send?: boolean; dryRu
 
       // The exact shape that got through twice: a verification count stated
       // without saying whose verification it is. "۳ کسب‌وکار تأیید شده‌اند" is
-      // a claim about Canada; "۳ کسب‌وکار در گوپلازا نشان تأیید دارند" is a
+      // a claim about Canada; "۳ کسب‌وکار در پلازا نشان تأیید دارند" is a
       // claim about us. A number plus تأیید therefore requires the scope word.
       const claimsVerification = /تأیید|تایید|verified/i.test(text);
       const hasDigits = /[۰-۹0-9]/.test(text);
-      const hasScope = /گوپلازا|فهرست ما|در فهرست/.test(text);
-      if (claimsVerification && hasDigits && !hasScope) borrowed.push("ادعای تأیید بدون ذکر «گوپلازا»");
+      const hasScope = /پلازا|فهرست ما|در فهرست/.test(text);
+      if (claimsVerification && hasDigits && !hasScope) borrowed.push("ادعای تأیید بدون ذکر «پلازا»");
 
       if (borrowed.length) {
         const reason = `words not in the source article: ${borrowed.join("، ")}`;

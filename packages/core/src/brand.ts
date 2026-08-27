@@ -14,11 +14,11 @@ export const brand = {
   /** Official display form. Always upper-case, never "GoPlaza" or "Go Plaza". */
   name: "GOPLAZA",
   /**
-   * The form used inside Persian sentences ("… در گوپلازا ثبت شده است"),
+   * The form used inside Persian sentences ("… در پلازا ثبت شده است"),
    * where a Latin all-caps token would break the reading line. Decision D1
    * in REBRAND_PLAN.md — change here and it changes everywhere.
    */
-  nameFa: "گوپلازا",
+  nameFa: "پلازا",
   /** Human-facing domain, as it is displayed. */
   domain: "GoPlaza.ca",
   /** Canonical production origin, no trailing slash. */

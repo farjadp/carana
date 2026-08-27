@@ -163,7 +163,7 @@ export default function SignupScreen() {
             <PrimaryButton label="ساخت حساب" onPress={submit} loading={busy} disabled={!valid} />
 
             <Text style={styles.legal}>
-              با ساخت حساب، شرایط استفاده و سیاست حریم خصوصی گوپلازا را می‌پذیرید.
+              با ساخت حساب، شرایط استفاده و سیاست حریم خصوصی پلازا را می‌پذیرید.
             </Text>
           </View>
 

@@ -13,8 +13,15 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-/** Old-brand tokens. Matched case-insensitively. */
-const FORBIDDEN = ["čārana", "charana", "چارانا"];
+/**
+ * Old-brand tokens. Matched case-insensitively.
+ *
+ * `گوپلازا` joined the list on 2026-08-26: the Persian display form was
+ * shortened to `پلازا` (brand.nameFa). The Latin name is still GOPLAZA and
+ * the domain is still goplaza.ca — only Persian prose changed — so the token
+ * banned here is the Persian one alone, never the ASCII "goplaza".
+ */
+const FORBIDDEN = ["\u010d\u0101rana", "charana", "\u0686\u0627\u0631\u0627\u0646\u0627", "\u06af\u0648\u067e\u0644\u0627\u0632\u0627"];
 
 /**
  * Paths where the old token is allowed to remain, each with the reason.
@@ -28,6 +35,7 @@ const ALLOW = [
   { re: /^docs\/06-gotchas\.md$/, why: "narrates the past" },
   { re: /^CHANGELOG\.md$/, why: "release history" },
   { re: /^REBRAND_(AUDIT|PLAN|COMPLETE|EXTERNAL_ACTIONS)\.md$/, why: "the rebrand record itself" },
+  { re: /^docs\//, why: "internal notes; several narrate the گوپلازا → پلازا shortening" },
   { re: /^charana-category-(art|images)\//, why: "AI generation output archive" },
   { re: /^\.claude\//, why: "local tool allowlists" },
   // Live identifiers that must not change (REBRAND_PLAN.md D6)

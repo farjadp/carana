@@ -19,8 +19,8 @@
 //      round up. The response time is the same one the form and the aside
 //      promise, written once here and repeated nowhere as a different figure.
 //
-//      Telegram appears only when company.telegram is set; with it unset the
-//      grid falls back to two routes rather than printing a dead one.
+//      Telegram appears only when company.telegram.support is set; with it
+//      unset the row falls back to two routes rather than printing a dead one.
 // Env / Identity: Server component. Public information only.
 // ============================================================================
 import { ArrowLeft, Clock, Mail, MessageSquareText, Send, UserRoundCheck } from "lucide-react";
@@ -31,7 +31,7 @@ import { BrandMark } from "@/components/brand-mark";
 import { company } from "@/lib/data/company";
 
 export function SupportHero({ answers }: { answers: number }) {
-  const telegram = company.telegram;
+  const telegram = company.telegram.support;
 
   return (
     <section className="relative overflow-hidden bg-[#5A1124]" dir="rtl">
@@ -48,7 +48,7 @@ export function SupportHero({ answers }: { answers: number }) {
       <div className="relative mx-auto max-w-3xl px-4 pb-16 pt-14 text-center sm:px-6 md:pb-20 md:pt-[4.5rem]">
         <div className="mb-6 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs text-[#f6f1e8]/80 backdrop-blur md:text-sm">
           <BrandMark size={14} color="#f6f1e8" simple />
-          <span>پشتیبانی گوپلازا</span>
+          <span>پشتیبانی پلازا</span>
         </div>
 
         <h1 className="text-[2.1rem] font-black leading-[1.25] tracking-tight text-[#f6f1e8] sm:text-5xl md:text-[3.4rem]">

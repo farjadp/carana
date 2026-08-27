@@ -97,7 +97,7 @@ export const NAV: NavEntry[] = [
     label: "راهنما",
     sections: [
       {
-        label: "استفاده از گوپلازا",
+        label: "استفاده از پلازا",
         items: [
           { href: "/features", label: "امکانات" },
           { href: "/pricing", label: "تعرفه‌ها" },

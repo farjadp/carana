@@ -32,16 +32,44 @@ export const company = {
     privacy: "privacy@charana.ca",
     partners: "partners@charana.ca",
     noreply: "noreply@charana.ca",
+    /**
+     * Real, monitored mailboxes on domains we already control, added
+     * 2026-08-26. The five above stay because the legal pages name them and
+     * they still receive; these two are the human escalation route and are
+     * what a complaint is copied to.
+     */
+    management: "farjad@ashavid.ca",
+    technical: "its@farjadp.com",
   },
 
   /**
-   * Direct Telegram for support, without the `@`. Rendered by /support.
+   * Telegram handles, without the `@`.
    *
-   * An empty string hides the whole Telegram block rather than printing a
-   * dead handle — a contact route that does not answer is the same class of
-   * lie as a badge nothing backs. Set it here only; nothing hard-codes it.
+   * An empty string hides that route wherever it is rendered rather than
+   * printing a dead handle — a contact route that does not answer is the same
+   * class of lie as a badge nothing backs. Set them here only.
    */
-  telegram: "",
+  telegram: {
+    /** Public support account: https://t.me/ashavidsupport */
+    support: "ashavidsupport",
+    /** Farjad direct. Published on the management row only. */
+    personal: "FaerjadTalks",
+  },
+
+  /**
+   * Phone numbers in E.164, LATIN DIGITS ONLY.
+   *
+   * Given in Persian digits (+۱۶۴۷…) and converted here on purpose: a `tel:`
+   * href built from Persian digits does not dial, and this is the same trap
+   * that has already broken sign-in and verification twice. Display them
+   * dir="ltr" so RTL does not reorder the +1.
+   */
+  phone: {
+    /** Support line. */
+    support: "+16476611839",
+    /** Management / escalation. */
+    management: "+14376611674",
+  },
 
   social: {
     linkedin: "https://www.linkedin.com/company/ashavid/",

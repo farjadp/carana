@@ -99,7 +99,7 @@ export default function ClaimClient({
         <p className="text-sm text-emerald-900/80 mt-1 leading-relaxed">نشان تایید همین حالا روی پروفایل است و شش ماه اعتبار دارد. سی روز قبل از پایان، برای تمدید ایمیل می‌فرستیم.</p>
         <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
           <Link href="/dashboard/business" className="rounded-xl bg-[#7A1831] px-4 py-2.5 font-bold text-[#f6f1e8]">ویرایش پروفایل کسب‌وکار</Link>
-          <button onClick={() => router.push("/")} className="rounded-xl bg-white border border-emerald-200 px-4 py-2.5 font-bold text-emerald-900">بازگشت به گوپلازا</button>
+          <button onClick={() => router.push("/")} className="rounded-xl bg-white border border-emerald-200 px-4 py-2.5 font-bold text-emerald-900">بازگشت به پلازا</button>
         </div>
       </div>
     );

@@ -78,7 +78,7 @@ export function ReportSheet({ businessId, businessName }: { businessId: string; 
               <View style={styles.doneWrap}>
                 <CheckCircle2 size={38} color={colors.success} />
                 <Text style={styles.doneTitle}>گزارش ثبت شد</Text>
-                <Text style={styles.doneBody}>در صف بررسی تیم گوپلازاست. اگر تغییری لازم باشد اعمال می‌کنیم.</Text>
+                <Text style={styles.doneBody}>در صف بررسی تیم پلازاست. اگر تغییری لازم باشد اعمال می‌کنیم.</Text>
                 <Pressable onPress={close} style={styles.doneBtn}><Text style={styles.doneBtnText}>بستن</Text></Pressable>
               </View>
             ) : (

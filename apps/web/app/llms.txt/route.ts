@@ -32,7 +32,7 @@ export async function GET() {
     }
   }
 
-  const body = `# GOPLAZA (گوپلازا)
+  const body = `# GOPLAZA (پلازا)
 
 > The Persian-language directory of Iranian-owned businesses in Canada. ${total ?? 0} public listings, ${verified ?? 0} verified (owner proved control of the published phone or email; badge expires after six months). Data is live and maintained by the GOPLAZA team (Ashavid Inc., Toronto). Last generated: ${now}.
 
