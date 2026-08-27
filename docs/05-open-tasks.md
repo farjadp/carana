@@ -6,6 +6,29 @@ Google is live**, enabled by Farjad the same evening. Two things still need a
 human and are listed in the next section. Everything below it is
 unchanged.
 
+## Migration status, checked against the database on 26 Aug
+
+Probed with the service key rather than read from the folder — a file in
+`supabase/migrations/` says somebody wrote it, not that anybody ran it.
+
+| Migration | State |
+|---|---|
+| `20260830410000_channels` | applied |
+| `20260830420000_standing` | applied |
+| `20260830430000_channel_ownership` | applied |
+| `20260830440000_channel_views_are_public` | applied, and the scoping proved with the anon key |
+| `20260830450000_platinum_waitlist` | **NOT APPLIED** |
+| `20260830460000_business_corrections` | applied |
+| `20260830470000_profile_contacts` | applied |
+
+**`platinum_waitlist` is the one outstanding paste.** It is on `main`, so the
+code that reads it is deployed. Two things touch it, and they fail differently:
+`/admin/loyalty` already checks whether the table answers and says so on the
+page, which is the right shape; the Stripe checkout route writes to it with no
+such guard, so a Platinum checkout would throw. That path is not reachable in
+production yet — live-mode Stripe is still unconfigured — but the migration
+should land before it is.
+
 ## Sign-in: Google, magic link, extra contacts — built 26 Aug; Google is live, two steps left
 
 Built this session (`components/auth-form.tsx`, `lib/auth/providers.ts`,
@@ -278,18 +301,16 @@ letter failed its insert as a generic «ثبت کانال ناموفق بود».
 the database both ways before and after the fix. The link field also asks for
 an **id** now rather than a URL. See `06-gotchas`.
 
-**FARJAD — one more SQL paste, and this one is NOT ordering-sensitive:**
+**~~Run the channel-views policy migration~~ — applied 26 Aug and verified
+with the anon key**, which is the only check that means anything for an RLS
+policy. `analytics_daily` had no anon SELECT, so every channel view count read
+zero to every visitor: not an error and not a log, an empty result that renders
+as zero and is indistinguishable from a channel nobody opened.
 
-Run **`supabase/migrations/20260830440000_channel_views_are_public.sql`**.
-`analytics_daily` has no anon SELECT policy — right for bio pages, wrong for
-channels, whose view counts are published on their own public page. Until it
-runs, every channel view count reads **zero** to every visitor: not an error,
-not a log, an empty result that renders as zero and is indistinguishable from
-a channel nobody opened. `channel_view_count()` was affected the same way; it
-is a plain SQL function and runs with the caller's privileges.
-
-Safe to merge before or after — without it the strip shows no numbers, which
-is exactly what it shows for an unvisited channel.
+The scoping was proved rather than assumed: a `link_page` rollup row was
+inserted with the service key, confirmed invisible to anon, and deleted. "No
+link_page rows returned" on its own proved nothing — there were none in the
+table to begin with.
 
 **Us, in order:**
 
@@ -382,12 +403,36 @@ inside phase 1" — has one now.
   quoted as «حدوداً» because `docs/16` is explicit that they are guesses which
   have never met real data.
 
-**Neither surface has been seen rendered.** `user_standing` is empty and there
-are **no published reviews at all**, so the public badge has no surface today;
-the profile block needs a session. The branching logic was checked instead —
-nine cases through `levelFor` + `privilegesFor`, including the ones that must
+- **The owner block on a business profile** — added 26 Aug (`debac42`) and the
+  one that matters, because there are no published reviews, so the review badge
+  had no surface at all. `PublicOwner` carries the LEVEL and never the xp: a
+  visitor cannot judge «۴۲۰ امتیاز» and can judge «معتمد», and shipping the
+  score would put our bookkeeping on a public page for nobody's benefit.
+
+**Seen rendered on `/businesses/ashavid`**, reading «نگهبان» — and that was not
+test data. The account carries `level_grant: 3` with the admin note «خودمم
+دیگه», and `levelFor()` returns a grant as-is, bypassing both the thresholds
+and the maintenance window exactly as `docs/16` says a granted role should. So
+the grant path is verified end to end.
+
+The other two surfaces are still unseen: `user_standing` has one row and there
+are **no published reviews at all**, so the review badge has nowhere to appear,
+and the profile block needs a session. The branching was checked instead — nine
+cases through `levelFor` + `privilegesFor`, including the ones that must
 suppress the badge: frozen, idle past the maintenance window, and null accuracy
 with high XP.
+
+**One wording bug only the render caught.** The level-3 sentence began «نقش
+نگهبانی در گوپلازا دارد», which the owner section printed straight after «سطح
+«نگهبان» دارد» — the same sentence twice. A string written for a tooltip does
+not automatically compose into a sentence.
+
+**A live row was overwritten during that check and restored.** Seeding test
+aggregates onto that account clobbered its real ones; `recompute_standing()`
+put them back from the (empty) event ledger, so they are the truth rather than
+a guess. `peak_level` is the exception — its original was destroyed before it
+could be read, so it sits at 0 and `recomputeUser()` raises it again on the
+next run. `level_grant` and the admin note were never touched.
 
 `getStandingMany()` was added beside `getStanding()` so a review list resolves
 every author in two reads rather than two per author — and it reads the same
