@@ -277,7 +277,10 @@ export async function confirmBusinessClaim(
   );
 
   revalidatePath(`/businesses/${business.slug}`);
+  // `/dashboard` alone never covered this: the owner's cards render on
+  // `/dashboard/business`, and revalidatePath matches the exact path.
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/business");
 
   return { success: true, message: "مالکیت شما با موفقیت احراز شد." };
 }
@@ -366,7 +369,10 @@ export async function verifyOwnListing(businessId: string): Promise<Result> {
   );
 
   revalidatePath(`/businesses/${business.slug}`);
+  // `/dashboard` alone never covered this: the owner's cards render on
+  // `/dashboard/business`, and revalidatePath matches the exact path.
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/business");
 
   return { success: true, message: "کسب‌وکار شما تایید شد." };
 }

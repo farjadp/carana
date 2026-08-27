@@ -92,7 +92,7 @@ export function VerificationRenewalBanner({
   // oldest listings on the directory sat unverified for that reason alone.
   if (status.state === "unverified") {
     return (
-      <div className="rounded-2xl border border-[rgba(20,33,61,0.10)] bg-white p-4 text-[#14213d]" dir="rtl">
+      <div className="rounded-2xl border border-[#c9a24b]/40 bg-[#c9a24b]/10 p-4 text-[#14213d]" dir="rtl">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-start gap-2.5">
             <ShieldAlert size={20} className="mt-0.5 shrink-0 text-[#c9a24b]" />
@@ -134,7 +134,11 @@ export function VerificationRenewalBanner({
         ? "border-amber-200 bg-amber-50 text-amber-900"
         : status.state === "expiring"
           ? "border-[#c9a24b] bg-[#c9a24b]/10 text-[#14213d]"
-          : "border-[rgba(20,33,61,0.10)] bg-white text-[#14213d]";
+          // Green, not white. Every other state had a colour and this one did
+          // not, so after a successful verification the card kept a box of the
+          // same size, shape and colour in the same place — which reads as
+          // "nothing happened", and was reported as exactly that.
+          : "border-emerald-200 bg-emerald-50 text-emerald-900";
 
   const Icon =
     status.state === "expired"
