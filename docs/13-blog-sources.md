@@ -191,7 +191,12 @@ and never click.
 card must pass* rather than a topic, because "write a fun fact" produces a fun
 fact about nothing.
 
-Three things keep it from becoming slop:
+**No link.** A card carries no "متن کامل در…" line. It was always written to
+stand alone, and a link underneath reframes a finished thought as a teaser. The
+brief is stricter for it: nothing is appended, so the last sentence written is
+the last thing anyone reads, and whatever is left out is lost.
+
+Four things keep it from becoming slop:
 
 - **Nothing is invented.** The writer gets one published article and must lift
   something already in it; then `inventedNumbers()` — the same guard the
@@ -204,6 +209,20 @@ Three things keep it from becoming slop:
   the one used least recently across the channel.
 - **The writer may refuse.** `usable: false` on an article with nothing worth
   saying in that format. There are 74 others; a weak card is worse than none.
+- **It cannot claim what we are not.** Three checks, each written after a real
+  card failed it: a verification count must name the brand (`brand.nameFa`, not
+  a literal — see `06-gotchas`) or it is a claim about Canada rather than about
+  us; a capability the card names (فیلتر، ابزار، قابلیت، نقشه، اعلان) must
+  already appear in the source article, because a card once offered readers a
+  product filter that does not exist; and a card may never claim to have
+  observed anything (`دیده‌ایم`, `متوجه شده‌ایم`) — a listings table does not
+  know what customers choose.
+
+**Acceptance rate so far: about half.** Of the first five cards read by a human,
+two were publishable and three invented something — an official approval, a
+"second largest hub" ranking, a product feature. Each failure produced a check.
+Whether that is now good enough for unattended nightly publishing is the open
+question in `05-open-tasks`.
 
 Rejected cards are kept and shown in the admin queue. "The writer keeps making
 up figures about this post" should be readable, not inferred from silence.

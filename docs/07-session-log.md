@@ -1,3 +1,53 @@
+# 2026-08-26 (blog) — the blog reads the news, publishes itself, and talks to Telegram
+
+Shipped: a second writer that takes topics from atash.ca and writes our own
+article against an originality gate; `key_takeaway` and citations so answer
+engines can quote a post; view counts fed by the website and the app through
+one RPC; the whole 74-article archive syndicated to `@GoPlaza`; and a daily
+standalone card for the channel with four mechanical honesty checks.
+
+## What was got wrong, in order
+
+- **The originality gate started at zero tolerance** and would have rejected a
+  real article over two shared ten-word runs that were a restated statistic.
+  Calibrated to six on measurements (a verbatim copy scores 386).
+- **A refusal could not satisfy the schema.** A model correctly rejecting an
+  article had to invent a whole brief to say no, and `.default()` did not help
+  because a rejecting model sends `null` rather than omitting the field.
+- **The link gate only understood hrefs starting with `/`,** so `[/search](search)`
+  shipped a link resolving to `/blog/search` — the exact self-404 the gate
+  existed to prevent.
+- **The humanising pass invented figures** and slipped into first-person
+  singular; now guarded by comparing digits before and after every creative
+  pass.
+- **The brand-fix script's own URL guard would have corrupted articles** — it
+  stashed URLs as ` ${i} ` and restored on `/ (\d+) /`, which would have
+  overwritten any bare " 5 " in a post. Caught by reading the dry run.
+- **PostgREST answers 204 for an RLS-filtered UPDATE,** which for a moment
+  looked like anon could rewrite blog posts. `return=representation` said `[]`.
+- **Telegram refused a valid cover** twice and never said why; covers are
+  uploaded as bytes now, with a text fallback so an image can never cost us the
+  post.
+- **Snippets had no scope rule** and the first card said "تنها ۳ کسب‌وکار
+  ایرانی کانادا تأیید رسمی دارند" from a number that counts our own badges.
+- **A gate that never fired.** تنها/فقط/بهترین were "loaded words" a card could
+  not introduce unless its article had — but words that common appear
+  everywhere, so the test always passed and the list read like coverage.
+- **A card offered readers a product filter we do not have.**
+- **The brand fix went stale in six hours** — see `06-gotchas`.
+- **Three commits went to the wrong branch.** Another session switched
+  `channels-directory` under this one; `git push origin main` pushed an
+  unchanged main, the "missing deploy" was imaginary, and a retry loop spent 27
+  model calls against old code. Fixed with a separate `git worktree`.
+- **A card was published unreviewed** because a request was made to a
+  send-capable endpoint assuming a query param was already deployed.
+
+## What was said wrongly
+
+That the table styling was verified visually — screenshots below the fold came
+back blank and the check was actually computed styles plus rendered HTML. Said
+so at the time rather than implying otherwise.
+
 # 2026-08-26 (later still) — sign-in: a magic link, extra contacts, and a Google button that had never worked
 
 Asked for three things: Gmail sign-up, two or three emails and phone numbers

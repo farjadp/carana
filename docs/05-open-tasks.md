@@ -6,6 +6,43 @@ Google is live**, enabled by Farjad the same evening. Two things still need a
 human and are listed in the next section. Everything below it is
 unchanged.
 
+## Blog + Telegram — LIVE 26 Aug; one decision is yours
+
+Everything below is applied, deployed and verified. What is left is a judgement
+call and two chores.
+
+**DECISION — nightly cards: auto-publish, or queue for one click?**
+The daily snippet cron (17:30 / 22:30 UTC) currently **writes and sends**. Of
+the first five cards a human read, two were publishable and three invented
+something: an "official approval" that was really our own verification badge,
+a "second largest hub" ranking nowhere in the article, and a product filter
+that does not exist. Each produced a mechanical check and the checks should now
+catch those three shapes — but nobody has yet watched several clean cards in a
+row. Until then, unattended publishing means a false claim about GOPLAZA can
+reach the channel with nobody having read it.
+Switching to queue-only is one flag: `?send=0` on the two cron paths in
+`apps/web/vercel.json`. The admin desk already shows the queue with a publish
+button. **Farjad's call.**
+
+**CHORE — LinkedIn.** Written, inert, 74 posts of backlog. Needs
+`LINKEDIN_ACCESS_TOKEN` + `LINKEDIN_ORG_ID` (Community Management API app with
+`w_organization_social`, a company-page token, the numeric page id). See
+`13-blog-sources.md`.
+
+**CHORE — delete two Telegram messages.** `t.me/GoPlaza/3` went out before the
+brand fix and still says چارانا; the corrected version was re-sent later, so it
+is a duplicate. `t.me/GoPlaza/78` is a card that was published unreviewed by
+mistake — it reads correctly, so this one is optional. A bot cannot delete
+either; it takes a tap.
+
+**Done and verified today:** source-driven writer from atash.ca with an
+originality gate; `key_takeaway` + citations for AIO/GEO; view counts on web
+and app from one counter; all 74 articles shared to `@GoPlaza`; the daily card
+with its four guards; and the database brand sweep — twice, see below.
+
+**Watch:** `blog_snippets` rejections. Every skipped row carries its reason. If
+the same reason repeats for a week, the guard is in the wrong place.
+
 ## Migration status, checked against the database on 26 Aug
 
 Probed with the service key rather than read from the folder — a file in
