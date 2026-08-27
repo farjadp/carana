@@ -616,6 +616,35 @@ its own breakpoint (`06-gotchas`, the 900→960px move).
 «درباره ما») over an opaque white panel. Not yet checked at 960–1100px or on
 mobile, where the bar has overflowed before.
 
+## Soft 404s across the whole site — found 27 Aug, not fixed
+
+Every route that calls `notFound()` from a dynamic segment answers **HTTP
+200** with the not-found page in the body. Checked against production:
+
+| URL | Status |
+|---|---|
+| `goplaza.ca/businesses/definitely-not-real-xyz` | **200** |
+| `goplaza.ca/blog/no-such-post-xyz` | **200** |
+| `gplz.link/<unknown-handle>` | **200** |
+| `goplaza.ca/no-such-page-xyz` (no route at all) | 404, correct |
+
+So the framework's own unmatched-path 404 is right and every `notFound()` we
+call is not. Reproduced locally on `/link/<handle>`, where line 270 of
+`app/link/[handle]/page.tsx` does call `notFound()` — the status is already
+flushed by the time it runs, which is what streaming SSR does to a late
+`notFound()`.
+
+Why it matters here more than usual: this directory's whole SEO case is tens
+of thousands of city × category × business URLs. A soft 404 tells Google a
+dead listing is a live page, and Google's own guidance is that soft 404s get
+crawled less and can drag neighbouring URLs with them. It also means any
+client checking `res.ok` — ours or someone else's — believes a deleted
+listing still exists.
+
+Not fixed in the session that found it: it is a change to how every dynamic
+route resolves, it belongs with the SEO work in `docs/14`, and it was found
+while verifying a DNS change. Found by checking, not by reading.
+
 ## GPLZ Link — BUILT 25 Aug; two on Farjad, three on us
 
 A bio page per business on `gplz.link`, served by this same app. Nine
@@ -631,20 +660,24 @@ below — nothing here is half-shipped, it is simply not started.
    done the pages render only at `goplaza.ca/link/<handle>` in development —
    in production that path 301s away, by design.
 
-   **The domain was registered at GoDaddy on 26 Aug — DNS is the remaining
-   half, and the redirect is already live and dead-ending.** Checked the same
-   evening: `https://goplaza.ca/link/kababsara` answers **301 →
-   `https://gplz.link/kababsara`**, and `gplz.link` has **no NS delegation at
-   all** (the `.link` registry returns SOA with no nameservers), so it does not
-   resolve. Every bio link on the live site is a dead end until this is wired.
-   `goplaza.ca` already runs on Vercel nameservers (`ns1/ns2.vercel-dns.com`),
-   so the same route is the obvious one for the short domain.
+   ~~**Registered at GoDaddy and wired 26–27 Aug.**~~ **Done.** Nameservers
+   moved to `ns1/ns2.vercel-dns.com`, both `gplz.link` and `www.gplz.link`
+   added to the Vercel project, certificates issued. Verified from outside:
+   `robots.txt` on the short host answers `User-agent: * / Disallow: /`, a real
+   handle serves, `/b/1` forwards to `goplaza.ca/b/1`, and the bare root 302s
+   to the canonical host — all four are what `proxy.ts` intends. Not GoDaddy
+   forwarding, which was the trap: that would have 301'd
+   `gplz.link/<handle>` to `goplaza.ca` and the product would never have
+   served a page.
 
-   **It must not be GoDaddy domain forwarding.** GoDaddy's own flow offers to
-   "connect" the domain to a site, which forwards it — that would 301
-   `gplz.link/kababsara` to `goplaza.ca` and the product would never serve a
-   single page. The domain has to point at the Vercel deployment, which then
-   serves it through the `SHORT_HOSTS` branch in `proxy.ts`.
+   **One thing is backwards.** Vercel has the apex redirecting to www —
+   `https://gplz.link/x` → 308 → `https://www.gplz.link/x`. Everything this
+   repo prints is the APEX (`brand.shortUrl = "https://gplz.link"`,
+   `bioUrlDisplay` → `gplz.link/<handle>`), so every short link now takes an
+   extra hop and shows `www.` in the address bar — on a domain whose whole
+   point is being short. Swap it in Vercel: make `gplz.link` the production
+   domain and redirect `www.gplz.link` → `gplz.link`. `SHORT_HOSTS` already
+   contains both, so nothing in the code changes either way.
 2. **Create the Stripe product for «لینک حرفه‌ای»** — $13/mo and $130/yr, CAD,
    following the existing `STRIPE_PRICE_*` env-var naming so `priceIdFor`
    keeps working. Until then nobody can buy the paid tier; the entitlement

@@ -279,6 +279,28 @@ autocorrect. Numeric input runs through `toLatinDigits()` before parsing.
 **This will happen again** on any new field parsed as ASCII digits — postal
 code, OTP entry, card, year. Test with Persian digits explicitly.
 
+**It did, three more times, and they were found by reading rather than by
+anyone reporting them (27 Aug):**
+
+- `/dashboard/verify-contact` passed the OTP straight through, and
+  `checkContactCode` tests `/^\d{6}$/` — so the code arrived as six Persian
+  digits and came back «کد باید ۶ رقم باشد». This is the page that has to
+  pass before a listing can be verified at all, so the trap sat on the
+  prerequisite step of the whole verification path.
+- The renewal banner stripped the OTP with `.replace(/\D/g, "")`, which
+  deletes Persian digits rather than folding them — the box simply stayed
+  empty and the confirm button never enabled. **`\D` is not a fold.** Any
+  strip of non-digits must run `toLatinDigits()` first; `/claim` already did,
+  which is why only two of the three OTP boxes were broken.
+- `phone`, `whatsapp` and `branches[].phone` were stored exactly as typed and
+  the public page renders them inside `tel:${value}`. A number typed on a
+  Persian keyboard produced a dead link that looks perfectly correct on the
+  page. Folding now happens **server-side** in the onboarding and edit
+  actions, not in the input, so the mobile app and any future client get it
+  too. Note the asymmetry that hid this: `normaliseContact()` folds when
+  *comparing* for verification, so the badge logic was right while the stored
+  value was wrong.
+
 ---
 
 ## supabase-js deadlocks if you query from inside onAuthStateChange
@@ -1982,3 +2004,93 @@ branch mid-task. Three commits landed on `channels-directory` while
 waited on never existed, and a retry loop spent 27 model calls against the old
 code. Check `git status -sb` before pushing, and use `git worktree` to commit
 to a branch you are not standing on.
+
+---
+
+## A server action that nothing calls is a feature the product does not have
+
+**Symptom.** Farjad asked why his own three listings had never been verified,
+eight days after the verification system shipped and was signed off as working.
+
+**Cause.** `verifyOwnListing()` in `lib/verification/actions.ts` — the function
+that grants the badge to a listing whose owner registered it themselves — had
+**no caller anywhere**, not in `apps/web`, not in `apps/mobile`. The renewal
+banner returned `null` for an unverified listing with a comment saying "the
+onboarding flow is the right prompt, not this banner", and onboarding never
+called it either. So the only listings that could ever be verified were
+imported ones claimed through `/claim` by SMS. Every self-registered listing
+was unverifiable by any route in the product.
+
+The same day, the same shape twice more: `suspendLinkPage()` and
+`restoreLinkPage()` — admin-only DB functions, a required reason, a whole
+migration arguing for them ("gplz.link/free-bitcoin needs an off switch") —
+also had zero callers, so a reported bio page could not be taken down from
+inside the product.
+
+**Fix.** Wire them to a screen. The unverified state now renders in the owner's
+dashboard card; `/admin/reports` grew the link-page controls.
+
+**How to find the next one.** This is greppable, and the sweep takes a minute:
+
+```bash
+for f in $(grep -rl '"use server"' --include='*.ts' lib app); do
+  for fn in $(grep -o "^export async function [a-zA-Z0-9_]*" "$f" | awk '{print $4}'); do
+    n=$(grep -rl --include='*.tsx' --include='*.ts' "\b$fn\b" app components lib | grep -v "^$f$" | wc -l)
+    [ "$n" = "0" ] && echo "ZERO CALLERS: $fn ($f)"
+  done
+done
+```
+
+**Lesson.** Typecheck, lint, RLS round-trips and a green migration all pass on
+a function nobody can reach — every one of them tested the half that existed.
+The house rule says no UI element may claim something real state does not back;
+this is its mirror image, and it is harder to see: real state, backed by
+working code, with no UI at all. Neither review nor tests found any of the
+three. A question from the person using the product did.
+
+---
+
+## RLS is not a status filter — it shows a row to its own owner
+
+**Symptom.** None visible to a visitor, which is why it survived. On
+`/categories/[slug]` the counter «کسب‌وکار فعال» and the list itself included
+unpublished listings — but only for the person who owned them.
+
+**Cause.** `businesses_public_read` is
+`status in ('PUBLISHED','APPROVED') or is_admin(auth.uid()) or auth.uid() = created_by`.
+The last two disjuncts are the point: an owner sees their own drafts, an admin
+sees everything. A public list that omits `.in("status", PUBLIC_STATUSES)` and
+leans on RLS is therefore correct for anonymous traffic and wrong for exactly
+the people most likely to look — the owner, and `imports@charana.ca`, which
+owns thousands of rows. Verified: the same page served an identical count to
+anonymous curl before and after adding the filter, which is what makes this
+invisible to any check that is not signed in as an owner.
+
+**Fix.** Every public list filters status explicitly. Fixed on
+`/categories/[slug]` and on the two "related businesses" queries on
+`/businesses/[slug]`.
+
+**Lesson.** RLS is a floor, not the query. "The database will handle it" is
+true for the visitor and false for the author.
+
+---
+
+## An untrimmed `city` makes a listing invisible on its own city page
+
+**Symptom.** `/cities/toronto` said «راهنمای ۶۱۵۴ کسب‌وکار» in the tab title
+and `6153` in its own hero counter, three lines of HTML apart.
+
+**Cause.** One row in 10,684 held `city = "Toronto "`. The city page matches
+with `city.ilike.Toronto` (exact, untrimmed); the geo index that generates the
+title normalises with `key()`, which trims. Both were "right" — they simply
+did not agree, and the listing appeared on neither the list nor the count while
+still being counted by the title.
+
+**Fix.** `update public.businesses set city = btrim(city) where city <> btrim(city);`
+(one row), and the owner edit action now trims every string it writes.
+
+**Lesson.** Two code paths that answer "which listings are in this city?" with
+different normalisation will disagree eventually; the disagreement shows up as
+a number, not an error. A page that states the same quantity twice from two
+sources is a cheap, permanent consistency check — this was found by reading a
+screenshot, not by any test.
