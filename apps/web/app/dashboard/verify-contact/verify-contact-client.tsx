@@ -13,6 +13,8 @@ import { useRouter } from "next/navigation";
 import { ShieldAlert, Mail, Phone, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { toLatinDigits } from "@goplaza/core";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { sendVerificationCode, verifyCode } from "./actions";
@@ -151,7 +153,9 @@ export function VerifyContactClient() {
                         </label>
                         <Input
                           value={code}
-                          onChange={(e) => setCode(e.target.value)}
+                          // Same trap as the claim page: the server checks /^\d{6}$/, so a
+                          // code typed on a Persian keyboard was refused as «کد باید ۶ رقم باشد».
+                          onChange={(e) => setCode(toLatinDigits(e.target.value))}
                           dir="ltr"
                           maxLength={6}
                           placeholder="------"

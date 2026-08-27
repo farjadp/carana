@@ -49,6 +49,17 @@ export default async function BusinessDashboardPage() {
     .or(`created_by.eq.${user.id},owner_user_id.eq.${user.id}`)
     .order("created_at", { ascending: false });
 
+  // The badge for a self-registered listing is granted off these two flags
+  // (verifyOwnListing reads them itself and refuses without both). Read once
+  // here so the card can say which step is actually next, instead of offering
+  // a button that would only come back with an error.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("email_verified_at, phone_verified_at")
+    .eq("id", user.id)
+    .maybeSingle();
+  const contactVerified = !!profile?.email_verified_at && !!profile?.phone_verified_at;
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleString("fa-IR", {
       year: "numeric", month: "long", day: "numeric"
@@ -103,7 +114,7 @@ export default async function BusinessDashboardPage() {
                   </div>
 
                   {/* The six-month rule, owner side: countdown from day one. */}
-                  <VerificationRenewalBanner business={b} />
+                  <VerificationRenewalBanner business={b} contactVerified={contactVerified} />
 
                   <div className="space-y-3 mt-6">
                     <div className="flex items-center gap-2 text-sm text-[color:var(--muted-text)]">

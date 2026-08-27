@@ -10,18 +10,28 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BadgeCheck, Clock, ShieldX, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
-import { startRenewal, confirmBusinessClaim } from "@/lib/verification/actions";
+import { toLatinDigits } from "@goplaza/core";
+
+import { startRenewal, confirmBusinessClaim, verifyOwnListing } from "@/lib/verification/actions";
 import { getVerificationStatus, type VerifiableBusiness } from "@/lib/verification/status";
 import { faNumber } from "@/components/verification-badge";
 
 export function VerificationRenewalBanner({
   business,
+  contactVerified,
 }: {
   business: VerifiableBusiness & { id: string; name: string };
+  /**
+   * Whether this account has already proven its own email AND mobile.
+   * Passed in rather than discovered by clicking: `verifyOwnListing` refuses
+   * without both, and a button that can only fail is not an offer.
+   */
+  contactVerified?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -63,9 +73,59 @@ export function VerificationRenewalBanner({
     });
   };
 
-  // Not verified at all — nothing to renew, and the onboarding flow is the
-  // right prompt, not this banner.
-  if (status.state === "unverified") return null;
+  const selfVerify = () => {
+    startTransition(async () => {
+      const result = await verifyOwnListing(business.id);
+      if (!result.success) {
+        toast.error(result.error ?? "خطایی رخ داد.");
+        return;
+      }
+      toast.success(result.message ?? "کسب‌وکار شما تایید شد.");
+      router.refresh();
+    });
+  };
+
+  // Never verified. This branch used to return null on the assumption that
+  // onboarding had already granted the badge — it never did: `verifyOwnListing`
+  // existed on the server with no caller anywhere in the app, so a listing the
+  // owner registered themselves could not be verified by any route. The three
+  // oldest listings on the directory sat unverified for that reason alone.
+  if (status.state === "unverified") {
+    return (
+      <div className="rounded-2xl border border-[rgba(20,33,61,0.10)] bg-white p-4 text-[#14213d]" dir="rtl">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-start gap-2.5">
+            <ShieldAlert size={20} className="mt-0.5 shrink-0 text-[#c9a24b]" />
+            <div>
+              <p className="font-bold">این کسب‌وکار هنوز تایید نشده است</p>
+              <p className="mt-0.5 text-sm opacity-80">
+                {contactVerified === false
+                  ? "برای گرفتن نشان تایید، اول باید ایمیل و شماره موبایل حساب خودت تایید شده باشد."
+                  : "نشان تایید یعنی ایمیل و شماره موبایل صاحب این کسب‌وکار تایید شده است. هر شش ماه باید تمدید شود."}
+              </p>
+            </div>
+          </div>
+
+          {contactVerified === false ? (
+            <Link
+              href="/dashboard/verify-contact"
+              className="rounded-lg border border-[rgba(20,33,61,0.15)] px-4 py-2 text-sm font-bold"
+            >
+              تایید ایمیل و موبایل
+            </Link>
+          ) : (
+            <button
+              onClick={selfVerify}
+              disabled={pending}
+              className="rounded-lg bg-[#7A1831] px-4 py-2 text-sm font-bold text-[#f6f1e8] disabled:opacity-60"
+            >
+              {pending ? "در حال بررسی…" : "تایید این کسب‌وکار"}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const tone =
     status.state === "expired"
@@ -130,7 +190,10 @@ export function VerificationRenewalBanner({
           </span>
           <input
             value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            // toLatinDigits first. The app forces RTL, so the code arrives in
+            // Persian digits, and \D would strip every one of them — the box
+            // stays empty and the server answers «کد باید ۶ رقم باشد».
+            onChange={(e) => setCode(toLatinDigits(e.target.value).replace(/\D/g, "").slice(0, 6))}
             inputMode="numeric"
             autoComplete="one-time-code"
             dir="ltr"
