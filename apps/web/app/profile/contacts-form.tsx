@@ -85,11 +85,16 @@ export function ContactsForm({
     <section className="rounded-3xl border border-[color:var(--line)] bg-white p-6" dir="rtl">
       <div className="mb-2 border-b border-[color:var(--line)] pb-4">
         <h2 className="text-lg font-black text-[color:var(--text)]">راه‌های تماس بیشتر</h2>
+        {/* The old sentence promised «تا ۳ ایمیل و ۳ شماره» flat. That is only
+            true when the profile HAS a mobile number: the extra rows are
+            capped at two per kind, so someone with no mobile number reached
+            «۲ از ۳» and was told they were at the cap. Say the rule instead of
+            the best case. */}
         <p className="mt-1 text-xs leading-6 text-[color:var(--muted-text)]">
-          تا {fa(MAX_EXTRA_CONTACTS + 1)} ایمیل و {fa(MAX_EXTRA_CONTACTS + 1)} شماره می‌توانی داشته
-          باشی. این‌ها فقط راه تماس‌اند: <b className="text-[color:var(--text)]">با آن‌ها نمی‌شود
-          وارد حساب شد</b> و هیچ‌کدام تأیید نمی‌شوند. ورود و بازیابی رمز همیشه از ایمیل حساب انجام
-          می‌شود.
+          ایمیل حساب و شماره‌ی موبایل پروفایل، به‌علاوه‌ی حداکثر{" "}
+          {fa(MAX_EXTRA_CONTACTS)} ایمیل و {fa(MAX_EXTRA_CONTACTS)} شماره‌ی دیگر. این‌ها فقط راه
+          تماس‌اند: <b className="text-[color:var(--text)]">با آن‌ها نمی‌شود وارد حساب شد</b> و
+          هیچ‌کدام تأیید نمی‌شوند. ورود و بازیابی رمز همیشه از ایمیل حساب انجام می‌شود.
         </p>
       </div>
 
@@ -124,6 +129,10 @@ function ContactList({
   const [label, setLabel] = useState("");
   const [pending, startTransition] = useTransition();
 
+  // The denominator is what THIS person can actually reach, not the best
+  // case: two extras plus the account's own row when it has one. Printing a 3
+  // that the cap refuses is the same defect as any other unbacked number.
+  const capacity = (primary ? 1 : 0) + MAX_EXTRA_CONTACTS;
   const used = (primary ? 1 : 0) + rows.length;
   const full = rows.length >= MAX_EXTRA_CONTACTS;
 
@@ -167,7 +176,7 @@ function ContactList({
           <Icon size={15} /> {meta.title}
         </Label>
         <span className="text-[11px] text-[color:var(--muted-text)]">
-          {fa(used)} از {fa(MAX_EXTRA_CONTACTS + 1)}
+          {fa(used)} از {fa(capacity)}
         </span>
       </div>
 
@@ -211,6 +220,14 @@ function ContactList({
           </li>
         ))}
       </ul>
+
+      {/* Without a mobile number on the profile this list tops out at two, and
+          the way to a third is a field further up the page — so name it. */}
+      {kind === "phone" && !primary ? (
+        <p className="mt-2 text-[11px] leading-6 text-[color:var(--muted-text)]">
+          شماره‌ی موبایل اصلی‌ات را در «اطلاعات من» بالاتر بنویس تا یکی به این‌ها اضافه شود.
+        </p>
+      ) : null}
 
       {adding ? (
         <form onSubmit={submit} className="mt-3 flex flex-wrap items-center gap-2">

@@ -55,12 +55,26 @@ page — HTTP 200, `/v3/signin/identifier`, "goplaza" named on it, no
 unproven; it needs a real Google account and nobody signed in. The client
 secret passed through a chat transcript on the way, so it wants rotating.
 
-**Blocked on a human:** the migration. `pnpm db:push` refuses on this project
-(`LegacyDbPushMissingRemoteError` from the duplicate `20260830330000`/`340000`
-pair), and reading the CLI's own access token from the keychain was refused by
-the permission classifier — the same refusal as the 26 Aug session. So the
-contacts panel has never been seen with rows in it, and no magic link has
-actually been mailed.
+**The migration ran the same evening, and the panel was finally seen.** Round-
+tripped with a disposable user: two extra emails in, the third refused by the
+trigger, phone counted separately, another user's `user_id` refused by RLS,
+`kind='fax'` refused by the constraint, rows cascaded away with the user.
+Then signed in as that user in a browser — and the FIRST screenshot of the
+panel with rows in it showed «۲ از ۳» next to «به سقف رسیده‌ای» in the same
+box. The `+ 1` in the label is the profile's own value, which exists for
+email (every account has one) and not for a profile with no mobile number.
+New `06-gotchas` entry. Nothing was wrong with the data, so none of the DB
+round-trip and none of the typechecking could have found it; a screenshot did,
+in about four seconds.
+
+**Why it had to wait for a human at all:** `pnpm db:push` refuses on this
+project (`LegacyDbPushMissingRemoteError` from the duplicate
+`20260830330000`/`340000` pair), and reading the CLI's own access token from
+the keychain was refused by the permission classifier — the same refusal as
+earlier the same day. Farjad pasted it into the SQL Editor.
+
+**Still unmailed:** no magic link has actually been sent, and nobody has
+completed a Google sign-in. Both need a real inbox / a real Google account.
 
 ---
 

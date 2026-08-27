@@ -4,6 +4,34 @@ Every one of these cost real time. Read before debugging anything similar.
 
 ---
 
+## A count that promised a slot the cap refused
+
+**Symptom.** On `/profile`, «شماره‌های تماس» read «۲ از ۳» while the add
+button in the same box read «به سقف رسیده‌ای». Both were rendered by the same
+component, three lines apart.
+
+**Cause.** Two numbers with different meanings. `MAX_EXTRA_CONTACTS` is 2 —
+the rows in `profile_contacts` — and the "3" in the label was
+`MAX_EXTRA_CONTACTS + 1`, where the `+ 1` is the profile's OWN value: the
+account email, or `profiles.mobile_number`. Every account has an email, so the
+email list always reached 3 and looked right. A profile with no mobile number
+has no third phone to count, so the phone list topped out at 2 while still
+advertising 3.
+
+**Fix.** The denominator is now `(primary ? 1 : 0) + MAX_EXTRA_CONTACTS`, the
+panel header states the rule («ایمیل حساب و شماره‌ی موبایل پروفایل، به‌علاوه‌ی
+حداکثر ۲ و ۲ دیگر») rather than the best case, and the phone list names the
+field further up the page that would earn the third slot.
+
+**Lesson.** `N + 1` in a label is a claim that the `+ 1` exists. It did for one
+of the two lists and not the other, so every test with a fully-filled profile
+would have passed. Found in the first screenshot of the panel with rows in it,
+after the DDL, the RLS, the trigger and the server actions had all been
+round-tripped clean against the live database — none of which could see it,
+because nothing was wrong with the data.
+
+---
+
 ## A Google sign-in button shipped for a provider that was never enabled
 
 **Symptom.** «ادامه با حساب گوگل» sat on `/auth/login` and `/auth/signup` from

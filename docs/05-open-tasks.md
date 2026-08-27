@@ -27,16 +27,25 @@ Built this session (`components/auth-form.tsx`, `lib/auth/providers.ts`,
   each. Contact details only: they cannot sign anyone in (Supabase Auth holds
   one email per user) and nothing verifies them. The panel says both.
 
-**What Farjad has to do — item 2 is done; 1 and 3 are outstanding:**
+**What Farjad has to do — 1 and 2 are done; only 3 is left:**
 
-1. **Run `supabase/migrations/20260830470000_profile_contacts.sql`** in the
-   Supabase SQL Editor. `pnpm db:push` still refuses on this project
+1. ~~**Run `supabase/migrations/20260830470000_profile_contacts.sql`**~~ —
+   **done, 26 Aug (Farjad).** Round-tripped against the live database with a
+   disposable user: two extra emails accepted, the third refused by the
+   trigger (`profile_contacts cap reached for kind email`), a phone counted
+   separately, a row for someone else's `user_id` refused by RLS (`42501`),
+   `kind = 'fax'` refused by the check constraint, and deleting the user took
+   its rows with it. Then signed in as that user in a browser: the panel
+   renders, a phone typed as «۶۴۷۵۵۵۰۱۹۹» folded to ASCII *as it was typed*,
+   the save toasted and the row appeared with its label. **One bug found by
+   looking at it** — see below.
+   *(Original note, kept because it explains why this had to be pasted:* `pnpm db:push` still refuses on this project
    (`LegacyDbPushMissingRemoteError` — two `20260830330000`/`340000`
    duplicates sit before the last remote migration), and the CLI's own token
    is not readable from this session. Until it runs, `/profile` simply does
    not show the panel — the page reads the table separately and hides the
    section when it is missing, which was verified against the live database
-   with a disposable signed-in user.
+   with a disposable signed-in user.)*
 2. ~~**Enable Google**~~ — **done, 26 Aug (Farjad).** OAuth client created in
    the `Charana` Google Cloud project, consent screen published to
    production, provider enabled in Supabase. Verified without signing in:
@@ -56,12 +65,24 @@ Built this session (`components/auth-form.tsx`, `lib/auth/providers.ts`,
    URLs. Without the template the mail goes out in Supabase's English
    default; without the URL the link bounces to `/auth/error`.
 
+**The bug the screenshot found.** The panel's header promised «تا ۳ ایمیل و ۳
+شماره» flat, and each list printed «{used} از ۳». But the extra rows are
+capped at two per kind, and the third slot is the profile's OWN value — the
+account email, or `profiles.mobile_number`. A user with no mobile number
+therefore reached «۲ از ۳» and was told in the same breath «به سقف رسیده‌ای».
+The count promised a slot the cap refused. Fixed: the denominator is now
+`(primary ? 1 : 0) + MAX_EXTRA_CONTACTS`, the header states the rule instead
+of the best case, and when the phone list has no primary it names the field
+further up the page that would earn the third slot. Nothing in the database
+changed — this was only ever a number on a screen, which is exactly the class
+the house rule is about, and typechecking could never have caught it.
+
 **Not verified, and honestly so:** no magic link has actually been sent. The
 unknown-address path was checked against the live auth API (422
-`otp_disabled`, mapped to a Persian sentence), but sending a real link needs a
-real inbox and would have meant mailing a working sign-in link to someone.
-The contacts panel has never rendered with rows, because the table does not
-exist yet.
+`otp_disabled`, mapped to a Persian sentence) and the Persian error was seen
+in the browser, but sending a real link needs a real inbox and would have
+meant mailing a working sign-in link to someone. On Google, the token exchange
+is likewise unproven — nobody has signed in with a real Google account.
 
 **Mobile has none of this.** `apps/mobile` still has password-only sign-in and
 no contacts panel. The validators and caps live in `@goplaza/core`
