@@ -36,6 +36,7 @@ import { Briefcase,
 } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
+import { BrandMark } from "@/components/brand-mark";
 import { JsonLd } from "@/components/json-ld";
 import { breadcrumbLd } from "@/lib/seo/local";
 import { ANNOUNCEMENT_LIMITS, GALLERY_LIMITS, PLANS } from "@/lib/billing/plans";
@@ -236,112 +237,161 @@ export default function FeaturesPage() {
   return (
     <PageShell currentPath="/features" currentSection="business">
       <JsonLd data={breadcrumbLd([{ name: "خانه", url: "/" }, { name: "امکانات", url: "/features" }])} />
-      <main className="min-h-screen bg-[color:var(--bg)]" dir="rtl">
-        {/* Hero */}
-        <section className="mx-auto max-w-5xl px-4 pt-12 text-center md:pt-16">
-          <p className="mb-2 text-xs font-bold tracking-wide text-[color:var(--annabi)]">امکانات</p>
-          <h1 className="text-3xl font-black leading-tight text-[color:var(--text)] md:text-5xl">
-            دقیقاً چه چیزی می‌گیری.
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-8 text-[color:var(--muted-text)] md:text-base">
-            این صفحه فقط چیزهایی را می‌نویسد که همین حالا کار می‌کنند. چیزهایی که هنوز نساخته‌ایم
-            هم پایین همین صفحه آمده‌اند — چون اگر پنهانشان می‌کردیم، بقیه‌ی این فهرست هم قابل
-            اعتماد نبود.
-          </p>
-        </section>
+      {/* `section { margin-bottom: 72px }` is a global rule in globals.css.
+          It is right for pages built out of separate slabs and wrong here:
+          it opened a 72px cream gap under every band, so each `border-t`
+          drew a line that touched nothing and the page read as ten
+          disconnected panels. Neutralised for this page only; the rhythm
+          below is the section padding.
 
-        {/* ── Visitor ─────────────────────────────────────────────── */}
-        <Band
-          eyebrow="برای تو که دنبال کسب‌وکار می‌گردی"
-          title="بدون حساب، بدون هزینه"
-          note="هیچ‌کدام از این‌ها ثبت‌نام نمی‌خواهد."
-        >
-          <Grid items={VISITOR_FREE} />
-        </Band>
+          The `!` is not laziness: that rule is unlayered, and unlayered CSS
+          outranks every Tailwind utility no matter how specific, because
+          utilities live in @layer utilities. globals.css documents the same
+          trap for `a { color }` at the top of the file. */}
+      <main className="bg-[color:var(--bg)] [&>section]:mb-0!" dir="rtl">
+        {/* ── Hero ────────────────────────────────────────────────────
+            The page's own wash, in the same language as the home hero:
+            annabi → navy, the mark bleeding off the corner, two rings for
+            depth. It used to open on a plain cream box, which made the
+            longest page on the site look like its least considered. */}
+        <section className="relative overflow-hidden bg-[#5A1124]">
+          <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_85%_10%,#7A1831_0%,#5A1124_38%,#14213d_100%)]" />
+          <div className="pointer-events-none absolute -left-28 -top-28 select-none opacity-[0.06]" aria-hidden>
+            <BrandMark size={480} color="#f6f1e8" simple />
+          </div>
+          <div className="pointer-events-none absolute bottom-[-46%] right-[-8%] h-[52vw] max-h-[720px] w-[52vw] max-w-[720px] rounded-full border border-white/5" aria-hidden />
+          <div className="pointer-events-none absolute bottom-[-40%] right-[-2%] h-[42vw] max-h-[580px] w-[42vw] max-w-[580px] rounded-full border border-white/5" aria-hidden />
 
-        <Band
-          eyebrow="اگر حساب رایگان بسازی"
-          title="چهار چیز اضافه"
-          note="حساب رایگان است و همیشه رایگان می‌ماند."
-          alt
-        >
-          <Grid items={VISITOR_ACCOUNT} />
-        </Band>
-
-        {/* ── Owner ───────────────────────────────────────────────── */}
-        <section className="border-t border-[color:var(--line)] bg-white px-4 py-14">
-          <div className="mx-auto max-w-5xl text-center">
-            <p className="mb-2 text-xs font-bold tracking-wide text-[color:var(--annabi)]">
-              برای صاحب کسب‌وکار
+          <div className="relative mx-auto max-w-3xl px-4 pb-12 pt-14 text-center md:pb-16 md:pt-20">
+            <h1 className="text-balance text-[2.1rem] font-black leading-[1.2] tracking-tight text-[#f6f1e8] sm:text-5xl md:text-[3.2rem]">
+              دقیقاً چه چیزی می‌گیری.
+            </h1>
+            <p className="mx-auto mt-5 max-w-2xl text-sm leading-8 text-[#f6f1e8]/75 md:text-[15px]">
+              این صفحه فقط چیزهایی را می‌نویسد که همین حالا کار می‌کنند. چیزهایی که هنوز نساخته‌ایم
+              هم پایین همین صفحه آمده‌اند — چون اگر پنهانشان می‌کردیم، بقیه‌ی این فهرست هم قابل
+              اعتماد نبود.
             </p>
-            <h2 className="text-2xl font-black text-[color:var(--text)] md:text-3xl">
-              سه پلن، و مرزهای صریحشان
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-8 text-[color:var(--muted-text)]">
-              عددهای این جدول همان عددهایی هستند که سرور اعمال می‌کند — از یک جا خوانده می‌شوند،
-              پس نمی‌توانند با هم فرق کنند.
-            </p>
+
+            {/* A spine for a long page: four stops, always reachable. */}
+            <nav className="mt-8 flex flex-wrap items-center justify-center gap-2">
+              {[
+                { href: "#visitor", label: "برای بازدیدکننده" },
+                { href: "#owner", label: "برای صاحب کسب‌وکار" },
+                { href: "#promises", label: "دو قولی که نمی‌شکنیم" },
+                { href: "#coming", label: "چیزهایی که نداریم" },
+              ].map((s) => (
+                <a
+                  key={s.href}
+                  href={s.href}
+                  className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold text-[#f6f1e8]/90 backdrop-blur transition hover:border-white/35 hover:bg-white/15 md:text-[13px]"
+                >
+                  {s.label}
+                </a>
+              ))}
+            </nav>
           </div>
         </section>
 
-        <Band eyebrow={PLANS.free.name} title="رایگان، برای همیشه" note={PLANS.free.tagline}>
-          <Grid items={[...OWNER_FREE, OWNER_JOBS]} />
-        </Band>
+        {/* ── Act one: the visitor ────────────────────────────────── */}
+        <ActHeader id="visitor" title="برای تو که دنبال کسب‌وکار می‌گردی" accent="lajvard" />
 
-        <Band
-          eyebrow={PLANS.pro.name}
-          title="هر چیزی که در رایگان هست، به‌علاوه‌ی این‌ها"
-          note={PLANS.pro.tagline}
+        <Section
+          title="بدون حساب، بدون هزینه"
+          note="هیچ‌کدام از این‌ها ثبت‌نام نمی‌خواهد."
+          accent="lajvard"
+          items={VISITOR_FREE}
+        />
+
+        <Section
+          title="اگر حساب رایگان بسازی، چهار چیز اضافه"
+          note="حساب رایگان است و همیشه رایگان می‌ماند."
+          accent="lajvard"
+          items={VISITOR_ACCOUNT}
           alt
-        >
-          <Grid items={OWNER_STARTER} />
-        </Band>
+        />
 
-        <Band
-          eyebrow={PLANS.featured.name}
+        {/* ── Act two: the owner ──────────────────────────────────── */}
+        <ActHeader
+          id="owner"
+          title="برای صاحب کسب‌وکار"
+          subtitle="سه پلن، و مرزهای صریحشان"
+          note="عددهای زیر همان عددهایی هستند که سرور اعمال می‌کند — از یک جا خوانده می‌شوند، پس نمی‌توانند با هم فرق کنند."
+          accent="annabi"
+        />
+
+        <Section
+          plan={PLANS.free.name}
+          title="رایگان، برای همیشه"
+          note={PLANS.free.tagline}
+          accent="lajvard"
+          items={[...OWNER_FREE, OWNER_JOBS]}
+        />
+
+        <Section
+          plan={PLANS.pro.name}
+          title={`هر چیزی که در ${PLANS.free.name} هست، به‌علاوه‌ی این‌ها`}
+          note={PLANS.pro.tagline}
+          accent="mesi"
+          items={OWNER_STARTER}
+          alt
+        />
+
+        <Section
+          plan={PLANS.featured.name}
           title={`هر چیزی که در ${PLANS.pro.name} هست، به‌علاوه‌ی این‌ها`}
           note={PLANS.featured.tagline}
-        >
-          <Grid items={OWNER_PREMIUM} />
-        </Band>
+          accent="annabi"
+          items={OWNER_PREMIUM}
+        />
 
-        {/* Two promises — the rules that shape every row above */}
-        <section className="border-t border-[color:var(--line)] bg-white px-4 py-14">
-          <div className="mx-auto grid max-w-4xl gap-3 sm:grid-cols-2">
-            <div className="flex items-start gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--bg)] p-5">
-              <BadgeCheck className="mt-0.5 h-5 w-5 flex-none text-[color:var(--success,#0f7b4f)]" />
-              <p className="text-sm leading-7 text-[color:var(--text)]">
-                <strong className="font-black">نشان تأیید فروشی نیست.</strong> در هر پلنی، حتی
-                رایگان، فقط با اثبات شماره یا ایمیل به دست می‌آید.
-              </p>
-            </div>
-            <div className="flex items-start gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--bg)] p-5">
-              <Sparkles className="mt-0.5 h-5 w-5 flex-none text-[color:var(--gold)]" />
-              <p className="text-sm leading-7 text-[color:var(--text)]">
-                <strong className="font-black">«ویژه» همیشه برچسب دارد.</strong> آگهی پولی بالای
-                فهرست می‌آید، ولی با نشانه‌ی صریح — نه پنهانی.
-              </p>
+        {/* ── The two rules that shape every row above ─────────────
+            Inverted on purpose: these are not features, they are the
+            constraints the feature list is written under, and they were
+            rendered as the quietest thing on the page. */}
+        <section id="promises" className="scroll-mt-20 border-t border-[color:var(--line)] bg-[color:var(--bg)] px-4 py-16">
+          <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[28px] bg-[#14213d] p-7 md:p-10">
+            <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_10%_0%,rgba(122,24,49,0.55)_0%,transparent_55%)]" aria-hidden />
+            <div className="relative">
+              <h2 className="text-xl font-black text-[#f6f1e8] md:text-2xl">دو قولی که نمی‌شکنیم</h2>
+              <div className="mt-6 grid gap-5 sm:grid-cols-2">
+                <div className="border-t border-white/15 pt-5">
+                  <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-400/15 text-emerald-300">
+                    <BadgeCheck size={17} />
+                  </div>
+                  <p className="text-sm leading-8 text-[#f6f1e8]/80">
+                    <strong className="block font-black text-[#f6f1e8]">نشان تأیید فروشی نیست.</strong>
+                    در هر پلنی، حتی رایگان، فقط با اثبات شماره یا ایمیل به دست می‌آید.
+                  </p>
+                </div>
+                <div className="border-t border-white/15 pt-5">
+                  <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[color:var(--gold)]/20 text-[color:var(--gold)]">
+                    <Sparkles size={17} />
+                  </div>
+                  <p className="text-sm leading-8 text-[#f6f1e8]/80">
+                    <strong className="block font-black text-[#f6f1e8]">«ویژه» همیشه برچسب دارد.</strong>
+                    آگهی پولی بالای فهرست می‌آید، ولی با نشانه‌ی صریح — نه پنهانی.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         {/* ── Not built yet ───────────────────────────────────────── */}
-        <section className="border-t border-[color:var(--line)] bg-[color:var(--bg)] px-4 py-14">
-          <div className="mx-auto max-w-3xl">
-            <h2 className="text-xl font-black text-[color:var(--text)] md:text-2xl">
-              چیزهایی که هنوز نداریم
-            </h2>
-            <p className="mt-2 text-sm leading-7 text-[color:var(--muted-text)]">
+        <section id="coming" className="scroll-mt-20 border-t border-[color:var(--line)] bg-white px-4 py-16">
+          <div className="mx-auto max-w-5xl">
+            <h2 className="text-xl font-black text-[color:var(--text)] md:text-2xl">چیزهایی که هنوز نداریم</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-7 text-[color:var(--muted-text)]">
               این‌ها ساخته نشده‌اند. اگر جایی در پلازا خلافش را دیدی، آن یک اشتباه است و
               می‌خواهیم بدانیم.
             </p>
-            <ul className="mt-5 space-y-2">
+            <ul className="mt-7 grid gap-x-10 sm:grid-cols-2">
               {COMING.map((c) => (
                 <li
                   key={c}
-                  className="flex items-start gap-2.5 rounded-xl border border-dashed border-[color:var(--line)] bg-white px-4 py-3 text-sm leading-7 text-[color:var(--text)]/75"
+                  className="flex items-start gap-3 border-t border-[color:var(--line)] py-3.5 text-[13px] leading-7 text-[color:var(--muted-text)]"
                 >
-                  <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-[color:var(--muted-text)]/40" />
+                  <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full border border-[color:var(--muted-text)]/50" aria-hidden />
                   {c}
                 </li>
               ))}
@@ -350,17 +400,19 @@ export default function FeaturesPage() {
         </section>
 
         {/* Where to go next — links, not restated content */}
-        <section className="border-t border-[color:var(--line)] bg-white px-4 py-14">
-          <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-3 text-sm">
-            <NextLink href="/pricing" label="قیمت‌ها و پرداخت" />
-            <NextLink href="/trust" label="چطور تأیید می‌کنیم" />
-            <NextLink href="/how-it-works" label="چطور کار می‌کند" />
+        <section className="border-t border-[color:var(--line)] bg-[color:var(--bg)] px-4 py-14">
+          <div className="mx-auto flex max-w-3xl flex-col items-center gap-5">
             <Link
               href="/dashboard/business/new"
-              className="inline-flex h-11 items-center gap-2 rounded-full bg-[color:var(--annabi)] px-6 font-black text-[#f6f1e8] transition hover:bg-[#5A1124]"
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-[color:var(--annabi)] px-7 text-[15px] font-black text-[#f6f1e8] shadow-[0_14px_34px_rgba(122,24,49,0.24)] transition hover:bg-[#5A1124]"
             >
-              ثبت رایگان کسب‌وکار <ArrowLeft size={15} />
+              ثبت رایگان کسب‌وکار <ArrowLeft size={16} />
             </Link>
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
+              <NextLink href="/pricing" label="قیمت‌ها و پرداخت" />
+              <NextLink href="/trust" label="چطور تأیید می‌کنیم" />
+              <NextLink href="/how-it-works" label="چطور کار می‌کند" />
+            </div>
           </div>
         </section>
       </main>
@@ -368,35 +420,125 @@ export default function FeaturesPage() {
   );
 }
 
-function Band({
-  eyebrow, title, note, alt, children,
+/** Accent per act/tier. Full literal class strings: Tailwind only ships a
+ *  class it can see, so these cannot be built by interpolation. */
+const ACCENT = {
+  lajvard: {
+    rule: "bg-[color:var(--lajvard)]",
+    chipBg: "bg-[color:var(--lajvard)]/8",
+    chipText: "text-[color:var(--lajvard)]",
+    planChip: "bg-[color:var(--lajvard)] text-[#f6f1e8]",
+  },
+  annabi: {
+    rule: "bg-[color:var(--annabi)]",
+    chipBg: "bg-[color:var(--annabi)]/8",
+    chipText: "text-[color:var(--annabi)]",
+    planChip: "bg-[color:var(--annabi)] text-[#f6f1e8]",
+  },
+  mesi: {
+    rule: "bg-[color:var(--mesi)]",
+    chipBg: "bg-[color:var(--mesi)]/10",
+    chipText: "text-[color:var(--mesi)]",
+    planChip: "bg-[color:var(--mesi)] text-[#f6f1e8]",
+  },
+} as const;
+
+type Accent = keyof typeof ACCENT;
+
+/** Opens an act. Two of these are the only full-width breaks on the page,
+ *  so «برای بازدیدکننده» and «برای صاحب کسب‌وکار» stop looking like two
+ *  more feature sections. */
+function ActHeader({
+  id, title, subtitle, note, accent,
 }: {
-  eyebrow: string; title: string; note: string; alt?: boolean; children: React.ReactNode;
+  id: string; title: string; subtitle?: string; note?: string; accent: Accent;
 }) {
   return (
-    <section className={`border-t border-[color:var(--line)] px-4 py-14 ${alt ? "bg-[color:var(--bg)]" : "bg-white"}`}>
+    <section id={id} className="scroll-mt-20 border-t border-[color:var(--line)] bg-white px-4 pb-2 pt-14 md:pt-16">
       <div className="mx-auto max-w-5xl">
-        <p className="mb-1.5 text-xs font-bold text-[color:var(--lajvard)]">{eyebrow}</p>
-        <h2 className="text-2xl font-black text-[color:var(--text)] md:text-3xl">{title}</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-7 text-[color:var(--muted-text)]">{note}</p>
-        <div className="mt-7">{children}</div>
+        <span className={`block h-1 w-12 rounded-full ${ACCENT[accent].rule}`} aria-hidden />
+        <h2 className="mt-5 text-balance text-[1.6rem] font-black leading-tight text-[color:var(--text)] md:text-4xl">
+          {title}
+          {subtitle ? (
+            <span className="mt-2 block text-lg font-bold text-[color:var(--muted-text)] md:text-xl">
+              {subtitle}
+            </span>
+          ) : null}
+        </h2>
+        {note ? (
+          <p className="mt-3 max-w-2xl text-sm leading-8 text-[color:var(--muted-text)]">{note}</p>
+        ) : null}
       </div>
     </section>
   );
 }
 
-function Grid({ items }: { items: Item[] }) {
+/**
+ * One list of features.
+ *
+ * Not cards: the page had 22 identically-sized bordered boxes, which is the
+ * structure that made it read as a wall rather than a specification. Rows on
+ * hairlines, with the first item of each list given the full width and a
+ * larger size, so every section has something to land on.
+ */
+function Section({
+  plan, title, note, items, accent, alt,
+}: {
+  plan?: string; title: string; note: string; items: Item[]; accent: Accent; alt?: boolean;
+}) {
+  const [lead, ...rest] = items;
+  const a = ACCENT[accent];
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {items.map((it) => (
-        <div key={it.title} className="rounded-2xl border border-[color:var(--line)] bg-white p-5">
-          <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--annabi)]/8 text-[color:var(--annabi)]">
-            {it.icon}
-          </div>
-          <h3 className="text-[15px] font-black leading-6 text-[color:var(--text)]">{it.title}</h3>
-          <p className="mt-1.5 text-[13px] leading-7 text-[color:var(--muted-text)]">{it.body}</p>
+    <section className={`px-4 py-12 md:py-14 ${alt ? "bg-[color:var(--bg)]" : "bg-white"}`}>
+      <div className="mx-auto max-w-5xl">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+          {plan ? (
+            <span className={`rounded-full px-3 py-1 text-[11px] font-black ${a.planChip}`}>{plan}</span>
+          ) : null}
+          <h3 className="text-lg font-black text-[color:var(--text)] md:text-xl">{title}</h3>
         </div>
-      ))}
+        <p className="mt-2 max-w-2xl text-[13px] leading-7 text-[color:var(--muted-text)]">{note}</p>
+
+        {/* A long body in a half-width column leaves a hole beside it, so
+            anything substantially longer than a normal row takes the full
+            width. Measured from the copy, not tuned by eye: the two that
+            qualify today are the jobs rules and the owner-name rule, both
+            of which are policy rather than a feature line. */}
+        <div className="mt-8 grid gap-x-10 md:grid-cols-2">
+          <Row item={lead} accent={accent} lead />
+          {rest.map((it) => (
+            <Row key={it.title} item={it} accent={accent} wide={it.body.length > 200} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Row({
+  item, accent, lead, wide,
+}: {
+  item: Item; accent: Accent; lead?: boolean; wide?: boolean;
+}) {
+  const a = ACCENT[accent];
+  return (
+    <div
+      className={`group flex items-start gap-4 border-t border-[color:var(--line)] py-5 ${lead || wide ? "md:col-span-2" : ""}`}
+    >
+      <span
+        className={`mt-0.5 inline-flex flex-none items-center justify-center rounded-xl transition group-hover:scale-105 ${a.chipBg} ${a.chipText} ${lead ? "h-12 w-12" : "h-10 w-10"}`}
+        aria-hidden
+      >
+        {item.icon}
+      </span>
+      <div className="min-w-0">
+        <h4 className={`font-black leading-6 text-[color:var(--text)] ${lead ? "text-[17px] md:text-lg" : "text-[15px]"}`}>
+          {item.title}
+        </h4>
+        <p className={`mt-1.5 leading-8 text-[color:var(--muted-text)] ${lead ? "max-w-3xl text-sm" : wide ? "max-w-3xl text-[13px]" : "text-[13px]"}`}>
+          {item.body}
+        </p>
+      </div>
     </div>
   );
 }
@@ -405,7 +547,7 @@ function NextLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex h-11 items-center gap-1.5 rounded-full border border-[color:var(--line)] bg-white px-5 font-bold text-[color:var(--text)] transition hover:border-[color:var(--annabi)]/40"
+      className="inline-flex items-center gap-1.5 font-bold text-[color:var(--text)] underline decoration-[color:var(--line)] decoration-2 underline-offset-8 transition hover:decoration-[color:var(--annabi)]"
     >
       {label} <ArrowLeft size={14} className="text-[color:var(--muted-text)]" />
     </Link>
