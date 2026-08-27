@@ -15,33 +15,67 @@ import "server-only";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
-/** Anything that failed but did not throw. */
-export type QuietFailure =
-  | "email_not_configured"
-  | "email_send_failed"
-  | "sms_not_configured"
-  | "sms_send_failed"
-  | "sms_carrier_rejected"
-  | "verification_write_failed"
-  | "reminder_send_failed"
-  | "job_reminder_send_failed"
-  | "job_reminder_no_address"
-  | "cron_run_failed"
-  | "request_error"
-  | "exchange_rates_http"
-  | "exchange_rates_shape"
-  | "exchange_rates_fetch_failed"
+/**
+ * Anything that failed but did not throw.
+ *
+ * A list, not a bare union, because the admin health page needs to enumerate
+ * the kinds to count them — and a union that only exists in the type system
+ * cannot be iterated at runtime. Adding a kind here is what makes it appear
+ * in that page's breakdown.
+ */
+export const QUIET_FAILURE_KINDS = [
+  "email_not_configured",
+  "email_send_failed",
+  "sms_not_configured",
+  "sms_send_failed",
+  "sms_carrier_rejected",
+  "verification_write_failed",
+  "reminder_send_failed",
+  "job_reminder_send_failed",
+  "job_reminder_no_address",
+  "cron_run_failed",
+  "request_error",
+  // Sign-up and contact-code failures. Both were invisible before 27 Aug:
+  // the routes returned the error straight to the browser and wrote nothing,
+  // so "I can't register" and "the email code errors" could only ever be
+  // investigated by asking the person to try again while someone watched.
+  "signup_failed",
+  "contact_code_failed",
+  "exchange_rates_http",
+  "exchange_rates_shape",
+  "exchange_rates_fetch_failed",
   // GPLZ Link analytics. A rollup that fails is not an outage — the raw
   // events are still there and the next run retries the day — but it must
   // leave a trace, because the symptom otherwise is a customer's chart
   // missing a day months later with nothing to explain it.
-  | "link_rollup_day"
-  | "link_rollup_backlog"
+  "link_rollup_day",
+  "link_rollup_backlog",
   // The channel rollup, on the same cron and for the same reason: a view
   // count that quietly stays at zero looks identical to a channel nobody
   // opened.
-  | "channel_rollup_day"
-  | "link_prune";
+  "channel_rollup_day",
+  "link_prune",
+] as const;
+
+export type QuietFailure = (typeof QUIET_FAILURE_KINDS)[number];
+
+/**
+ * `peiman@gmail.com` → `pe•••@gmail.com`.
+ *
+ * system_errors is diagnosis, not a copy of the data that failed — but a
+ * support report always arrives as "someone says X is broken", and a row that
+ * cannot be tied to a person answers nothing. The masked form plus the
+ * timestamp is enough to match a complaint without turning this table into an
+ * address book.
+ */
+export function maskEmail(email: string | null | undefined): string | null {
+  if (!email) return null;
+  const at = email.indexOf("@");
+  if (at < 1) return "•••";
+  const local = email.slice(0, at);
+  const head = local.slice(0, Math.min(2, local.length));
+  return `${head}•••${email.slice(at)}`;
+}
 
 /**
  * Record a failure the product deliberately swallowed.

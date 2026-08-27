@@ -10,6 +10,7 @@
 // ============================================================================
 import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 
+import { maskEmail, reportQuietFailure } from "@/lib/observability/report";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/send";
 import { verificationCodeEmail } from "@/lib/email/templates";
@@ -38,6 +39,29 @@ function safeEquals(a: string, b: string) {
  * for the email channel); the phone number is always read from the profile
  * so a caller can never point a code at an arbitrary handset.
  */
+/**
+ * Every reason this function can refuse, recorded.
+ *
+ * sendEmail/sendSms already report their own transport failures, but those
+ * are only one of six ways a person sees «خطا» after asking for a code — and
+ * the other five (cooldown, missing address, missing handset, a failed insert)
+ * wrote nothing at all. A support report of "the email code errors" could not
+ * be told apart from a code that was sent and never arrived.
+ */
+function reportCodeFailure(
+  userId: string,
+  type: ContactType,
+  reason: string,
+  email?: string | null
+) {
+  reportQuietFailure("contact_code_failed", {
+    channel: type,
+    reason,
+    user_id: userId,
+    email: type === "email" ? maskEmail(email) : undefined,
+  });
+}
+
 export async function issueContactCode(
   userId: string,
   type: ContactType,
@@ -57,6 +81,9 @@ export async function issueContactCode(
   if (recent?.created_at) {
     const elapsed = (Date.now() - new Date(recent.created_at).getTime()) / 1000;
     if (elapsed < RESEND_COOLDOWN_SECONDS) {
+      // Not a fault — but it is what most people are looking at when they say
+      // the code request "errors", so it has to be visible next to the faults.
+      reportCodeFailure(userId, type, "cooldown", email);
       return {
         success: false,
         error: `لطفاً ${Math.ceil(RESEND_COOLDOWN_SECONDS - elapsed)} ثانیه دیگر دوباره تلاش کنید.`,
@@ -77,14 +104,19 @@ export async function issueContactCode(
   });
   if (dbError) {
     console.error("Verification code insert error:", dbError);
+    reportCodeFailure(userId, type, `insert_failed: ${dbError.message}`, email);
     return { success: false, error: "خطا در ایجاد کد تایید." };
   }
 
   if (type === "email") {
-    if (!email) return { success: false, error: "ایمیلی برای این حساب ثبت نشده است." };
+    if (!email) {
+      reportCodeFailure(userId, type, "no_email_on_account");
+      return { success: false, error: "ایمیلی برای این حساب ثبت نشده است." };
+    }
     const { subject, html, text } = verificationCodeEmail(code);
     const result = await sendEmail({ to: email, subject, html, text });
     if (!result.sent && process.env.NODE_ENV === "production") {
+      reportCodeFailure(userId, type, `send_failed: ${result.error ?? "unknown"}`, email);
       return { success: false, error: "ارسال ایمیل انجام نشد. دوباره تلاش کنید." };
     }
     return { success: true, message: "کد تایید به ایمیل شما ارسال شد." };
@@ -97,6 +129,7 @@ export async function issueContactCode(
     .maybeSingle();
   const mobile = profile?.mobile_number?.trim();
   if (!mobile) {
+    reportCodeFailure(userId, type, "no_mobile_on_profile");
     return { success: false, error: "ابتدا شماره موبایل خود را در پروفایل ثبت کنید." };
   }
 
@@ -104,7 +137,10 @@ export async function issueContactCode(
     mobile,
     `کد تایید پلازا: ${code}\n\nاین کد تا ۱۵ دقیقه معتبر است. آن را با کسی به اشتراک نگذارید.`
   );
-  if (!result.sent) return { success: false, error: result.error ?? "ارسال پیامک انجام نشد." };
+  if (!result.sent) {
+    reportCodeFailure(userId, type, `send_failed: ${result.error ?? "unknown"}`);
+    return { success: false, error: result.error ?? "ارسال پیامک انجام نشد." };
+  }
   return { success: true, message: "کد تایید به موبایل شما پیامک شد." };
 }
 
