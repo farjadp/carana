@@ -62,7 +62,7 @@ export default function InteractionsClient({ interactions, publicReviews, follow
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
                   {item.business?.logo_url ? (
-                    <img src={item.business.logo_url} alt={item.business.name} className="w-full h-full object-cover" />
+                    <img loading="lazy" decoding="async" src={item.business.logo_url} alt={item.business.name} className="w-full h-full object-cover" />
                   ) : (
                     <Building2 size={20} className="text-gray-400" />
                   )}
@@ -143,7 +143,7 @@ export default function InteractionsClient({ interactions, publicReviews, follow
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
                     {review.business?.logo_url ? (
-                      <img src={review.business.logo_url} alt={review.business.name} className="w-full h-full object-cover" />
+                      <img loading="lazy" decoding="async" src={review.business.logo_url} alt={review.business.name} className="w-full h-full object-cover" />
                     ) : (
                       <Building2 size={16} className="text-gray-400" />
                     )}
@@ -213,7 +213,7 @@ export default function InteractionsClient({ interactions, publicReviews, follow
             <div className="mb-3 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
                 {a.business?.logo_url ? (
-                  <img src={a.business.logo_url} alt={a.business.name} className="w-full h-full object-cover" />
+                  <img loading="lazy" decoding="async" src={a.business.logo_url} alt={a.business.name} className="w-full h-full object-cover" />
                 ) : (
                   <Building2 size={16} className="text-gray-400" />
                 )}

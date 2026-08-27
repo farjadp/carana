@@ -14,7 +14,7 @@ import { VerificationBadge } from "@/components/verification-badge";
 import { getVerificationStatus } from "@/lib/verification/status";
 import { CategoryDetailConfig } from "@/lib/data/category-details";
 
-interface BusinessItem {
+export interface BusinessItem {
   id: string;
   slug: string;
   name: string;
@@ -183,7 +183,7 @@ export default function CategoryClientPage({
 
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/10 text-center min-w-[140px]">
-                <div className="text-2xl font-bold text-emerald-400">{filteredBusinesses.length}</div>
+                <div className="text-2xl font-bold text-emerald-400">{filteredBusinesses.length.toLocaleString("fa-IR")}</div>
                 <div className="text-xs text-gray-300">کسب‌وکار فعال</div>
               </div>
               <Button asChild className="bg-[color:var(--lajvard)] hover:bg-[color:var(--lajvard)]/90 text-white rounded-2xl h-full py-3">
@@ -360,7 +360,7 @@ export default function CategoryClientPage({
         {/* Sorting Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div className="text-sm text-gray-500">
-            نمایش <span className="font-bold text-gray-900">{filteredBusinesses.length}</span> کسب‌وکار
+            نمایش <span className="font-bold text-gray-900">{filteredBusinesses.length.toLocaleString("fa-IR")}</span> کسب‌وکار
           </div>
 
           <div className="flex items-center gap-2 text-xs">
@@ -388,7 +388,7 @@ export default function CategoryClientPage({
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">نمای نقشه تعاملی</h3>
               <p className="text-gray-500 text-sm mb-6">
-                موقعیت مکانی {filteredBusinesses.length} کسب‌وکار در شهرها و استان‌های کانادا بر روی نقشه.
+                موقعیت مکانی {filteredBusinesses.length.toLocaleString("fa-IR")} کسب‌وکار در شهرها و استان‌های کانادا بر روی نقشه.
               </p>
               <div className="bg-gray-100 rounded-xl h-64 flex items-center justify-center text-gray-400 text-sm border border-dashed border-gray-300">
                 نقشه آنلاین گوگل مپ پس از دریافت کواوردینات بارگذاری می‌شود
@@ -431,7 +431,7 @@ export default function CategoryClientPage({
                 {/* Card Banner / Header Image */}
                 <div className="relative h-40 bg-gray-100 overflow-hidden">
                   {b.cover_url || categoryConfig.imageUrl ? (
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={b.cover_url || categoryConfig.imageUrl}
                       alt={b.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

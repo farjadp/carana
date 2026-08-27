@@ -58,7 +58,13 @@ function pickOwnerFields(formData: Record<string, unknown>, existing: Record<str
 
   for (const key of OWNER_EDITABLE_COLUMNS) {
     if (!(key in formData)) continue;
-    payload[key] = formData[key];
+    const value = formData[key];
+    // Trim every text field. `city` is the one that bites: the city pages
+    // match it with ilike against an exact name, so a single trailing space
+    // makes a listing invisible on its own city page while it still counts
+    // in the geo index — the page's title and its own counter then disagree.
+    // One live row was in exactly that state ("Toronto ").
+    payload[key] = typeof value === "string" ? value.trim() : value;
   }
 
   const year = payload.established_year;

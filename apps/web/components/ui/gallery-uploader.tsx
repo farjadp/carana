@@ -133,7 +133,7 @@ export function GalleryUploader({
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
           {photos.map((url, i) => (
             <div key={url} className="group relative aspect-square overflow-hidden rounded-xl border border-gray-200">
-              <img src={url} alt="" className="h-full w-full object-cover" />
+              <img loading="lazy" decoding="async" src={url} alt="" className="h-full w-full object-cover" />
               <button
                 type="button"
                 onClick={() => onPhotosChange(photos.filter((_, j) => j !== i))}

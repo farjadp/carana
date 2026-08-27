@@ -177,15 +177,15 @@ export default async function CityDetailPage({ params }: CityPageParams) {
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-2xl border border-white/10 bg-white/10 p-4 text-center">
-                  <strong className="block text-2xl font-black">{totalCount}</strong>
+                  <strong className="block text-2xl font-black">{totalCount.toLocaleString("fa-IR")}</strong>
                   <span className="text-xs text-white/60">کسب‌وکار</span>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/10 p-4 text-center">
-                  <strong className="block text-2xl font-black">{verifiedCount}</strong>
+                  <strong className="block text-2xl font-black">{verifiedCount.toLocaleString("fa-IR")}</strong>
                   <span className="text-xs text-white/60">تایید شده</span>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/10 p-4 text-center">
-                  <strong className="block text-2xl font-black">{categoryCount}</strong>
+                  <strong className="block text-2xl font-black">{categoryCount.toLocaleString("fa-IR")}</strong>
                   <span className="text-xs text-white/60">دسته فعال</span>
                 </div>
               </div>
@@ -303,7 +303,7 @@ export default async function CityDetailPage({ params }: CityPageParams) {
                     <Card key={business.id} className="bg-white border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow">
                       <div className="h-36 bg-gray-100 relative overflow-hidden">
                         {business.cover_url || business.logo_url ? (
-                          <img
+                          <img loading="lazy" decoding="async"
                             src={business.cover_url || business.logo_url || ""}
                             alt={business.name}
                             className="h-full w-full object-cover"

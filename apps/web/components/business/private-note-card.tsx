@@ -93,7 +93,7 @@ export function PrivateNoteCard({ note, title, mediaUrls = [], mediaTypes = [] }
                 if (type === "image") {
                   return (
                     <div key={url} className="relative group bg-white rounded-lg p-1 border border-emerald-100 shadow-sm">
-                      <img src={signedUrl} alt="پیوست" className="w-24 h-24 object-cover rounded-md" />
+                      <img loading="lazy" decoding="async" src={signedUrl} alt="پیوست" className="w-24 h-24 object-cover rounded-md" />
                       <div className="absolute top-2 right-2 bg-white/80 rounded p-0.5 text-purple-600 shadow-sm backdrop-blur">
                         <ImageIcon size={12} />
                       </div>

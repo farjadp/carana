@@ -95,7 +95,7 @@ export default function CategoriesClient({ initialCategories }: { initialCategor
               <tr key={c.id} className="hover:bg-gray-50 transition-colors">
                 <td className="p-4">
                   {c.image_url ? (
-                    <img src={c.image_url} alt={c.name} className="w-16 h-9 object-cover rounded shadow-sm" />
+                    <img loading="lazy" decoding="async" src={c.image_url} alt={c.name} className="w-16 h-9 object-cover rounded shadow-sm" />
                   ) : (
                     <div className="w-16 h-9 bg-gray-100 rounded flex items-center justify-center text-gray-400">
                       <ImageIcon size={16} />

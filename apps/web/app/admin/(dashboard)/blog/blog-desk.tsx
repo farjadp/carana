@@ -119,7 +119,7 @@ export function BlogDesk({ posts, runs, categories, shares, channels, backlog, a
             <li key={p.id} className="flex flex-col gap-3 rounded-2xl border border-[color:var(--line)] bg-white p-4 md:flex-row md:items-center">
               <div className="h-20 w-32 flex-none overflow-hidden rounded-xl bg-[color:var(--bg)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {p.cover_url ? <img src={p.cover_url} alt="" className="h-full w-full object-cover" /> : null}
+                {p.cover_url ? <img loading="lazy" decoding="async" src={p.cover_url} alt="" className="h-full w-full object-cover" /> : null}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2 text-[11px] text-[color:var(--muted-text)]">

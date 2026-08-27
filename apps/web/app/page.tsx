@@ -185,6 +185,8 @@ export default async function HomePage() {
                     <img
                       src={category.image_url}
                       alt=""
+                      loading="lazy"
+                      decoding="async"
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (

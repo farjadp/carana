@@ -31,10 +31,15 @@ export default async function CategoriesPage() {
       description="این دایرکتوری طوری طراحی شده است که بتوانید سریع پزشک، وکیل، رستوران، مشاور، فروشگاه یا سرویس موردنیاز خود را در کانادا پیدا کنید."
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-        {categories && categories.map((category) => (
+        {categories && categories.map((category, i) => (
           <Link key={category.id} href={`/categories/${category.slug}`} className="group block h-48 md:h-56 rounded-xl overflow-hidden relative shadow-sm hover:shadow-lg transition-all border border-gray-100">
             {category.image_url ? (
-              <img 
+              <img
+                // The first row is above the fold on a desktop viewport;
+                // lazy-loading it would push the page's own LCP candidate
+                // behind everything else the browser is fetching.
+                loading={i < 3 ? "eager" : "lazy"}
+                decoding="async"
                 src={category.image_url} 
                 alt={category.name} 
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

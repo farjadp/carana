@@ -217,7 +217,7 @@ export default function StoryPage() {
                   <a href={`/brand/${f.file}`} download className="group flex items-center gap-4 rounded-2xl border border-[color:var(--line)] p-4 transition hover:border-[color:var(--lajvard)]/40 hover:bg-[color:var(--bg)]">
                     <span className="flex h-14 w-14 flex-none items-center justify-center rounded-xl border border-[color:var(--line)] bg-[color:var(--bg)]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={`/brand/${f.file}`} alt="" className="h-9 w-9 object-contain" />
+                      <img loading="lazy" decoding="async" src={`/brand/${f.file}`} alt="" className="h-9 w-9 object-contain" />
                     </span>
                     <span className="flex-1">
                       <strong className="block text-sm text-[color:var(--text)]">{f.label}</strong>
