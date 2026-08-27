@@ -7,15 +7,19 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Check, ExternalLink, Eye, Pencil, ShieldAlert, X } from "lucide-react";
 
 import { updateReport } from "./actions";
+import { restoreLinkPage, suspendLinkPage } from "@/lib/actions/link-page";
 
 export type ReportRow = {
-  id: string; business_id: string; reporter_id: string | null; reason: string; details: string | null;
+  id: string; business_id: string | null; reporter_id: string | null; reason: string; details: string | null;
   contact: string | null; status: "new" | "reviewing" | "resolved" | "rejected"; admin_note: string | null;
   source: string; created_at: string;
   business: { id: string; name: string; slug: string | null; city: string | null; status: string } | null;
+  /** Set instead of `business` when the report is about a GPLZ Link bio page. */
+  link_page: { id: string; handle: string; title: string | null; status: string; suspended_reason: string | null } | null;
   reporter?: { email: string | null; full_name: string | null } | null;
 };
 
@@ -30,7 +34,9 @@ export function ReportsClient({ rows }: { rows: ReportRow[] }) {
   const [filter, setFilter] = useState<"new" | "reviewing" | "resolved" | "all">("new");
   const [pending, start] = useTransition();
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [suspendReasons, setSuspendReasons] = useState<Record<string, string>>({});
   const [msg, setMsg] = useState<string | null>(null);
+  const router = useRouter();
 
   const counts = {
     new: rows.filter((r) => r.status === "new").length,
@@ -43,6 +49,20 @@ export function ReportsClient({ rows }: { rows: ReportRow[] }) {
     start(async () => {
       const r = await updateReport(id, status, notes[id]);
       if (!r.success) setMsg(r.error ?? "خطا");
+    });
+
+  const suspend = (pageId: string) =>
+    start(async () => {
+      const r = await suspendLinkPage(pageId, suspendReasons[pageId] ?? "");
+      if (!r.success) setMsg(r.error ?? "خطا");
+      else router.refresh();
+    });
+
+  const restore = (pageId: string) =>
+    start(async () => {
+      const r = await restoreLinkPage(pageId);
+      if (!r.success) setMsg(r.error ?? "خطا");
+      else router.refresh();
     });
 
   return (
@@ -77,6 +97,43 @@ export function ReportsClient({ rows }: { rows: ReportRow[] }) {
                 {r.contact ? <span dir="ltr">· {r.contact}</span> : null}
               </div>
 
+              {r.link_page ? (
+                <div className="mb-2 space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <strong className="text-[color:var(--text)]">{r.link_page.title || `gplz.link/${r.link_page.handle}`}</strong>
+                    <span className="rounded-full bg-[color:var(--lajvard)]/8 px-2 py-0.5 text-[11px] font-bold text-[color:var(--lajvard)]">صفحه‌ی لینک</span>
+                    <span dir="ltr" className="text-xs text-[color:var(--muted-text)]">/{r.link_page.handle}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${r.link_page.status === "live" ? "bg-emerald-50 text-emerald-700" : r.link_page.status === "suspended" ? "bg-red-50 text-red-700" : "bg-gray-100 text-gray-600"}`}>
+                      {r.link_page.status === "live" ? "منتشر" : r.link_page.status === "suspended" ? "تعلیق" : "پیش‌نویس"}
+                    </span>
+                    <Link href={`/link/${r.link_page.handle}`} target="_blank" className="inline-flex items-center gap-1 text-xs font-bold text-[color:var(--lajvard)]">مشاهده <ExternalLink size={11} /></Link>
+                  </div>
+                  {r.link_page.status === "suspended" ? (
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="text-[color:var(--muted-text)]">دلیل تعلیق: {r.link_page.suspended_reason}</span>
+                      <button type="button" disabled={pending} onClick={() => restore(r.link_page!.id)} className="rounded-lg border border-[color:var(--line)] bg-white px-2.5 py-1 font-bold">
+                        رفع تعلیق (بازگشت به پیش‌نویس)
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <input
+                        type="text"
+                        value={suspendReasons[r.link_page.id] ?? ""}
+                        onChange={(e) => setSuspendReasons((m) => ({ ...m, [r.link_page!.id]: e.target.value }))}
+                        placeholder="دلیل تعلیق (صاحب صفحه آن را می‌بیند)…"
+                        className="h-8 min-w-[220px] rounded-lg border border-[color:var(--line)] bg-[color:var(--bg)] px-2.5 text-xs outline-none focus:bg-white"
+                      />
+                      {/* Disabled until a reason is typed: the database refuses
+                          a reasonless suspension anyway, so an enabled button
+                          would only ever produce an error. */}
+                      <button type="button" disabled={pending || !(suspendReasons[r.link_page.id] ?? "").trim()} onClick={() => suspend(r.link_page!.id)} className="rounded-lg bg-red-600 px-2.5 py-1 text-xs font-bold text-white disabled:opacity-40">
+                        تعلیق صفحه
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 <strong className="text-[color:var(--text)]">{r.business?.name ?? "کسب‌وکار حذف‌شده"}</strong>
                 {r.business?.city ? <span className="text-xs text-[color:var(--muted-text)]">{r.business.city}</span> : null}
@@ -87,6 +144,7 @@ export function ReportsClient({ rows }: { rows: ReportRow[] }) {
                   </>
                 ) : null}
               </div>
+              )}
 
               {r.details ? <p className="whitespace-pre-wrap text-sm leading-7 text-[color:var(--text)]">{r.details}</p> : null}
 

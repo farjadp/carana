@@ -33,7 +33,13 @@ export default async function AdminReportsPage({
   const from = (page - 1) * ADMIN_PAGE_SIZE;
   const { data, count } = await supabase
     .from("business_reports")
-    .select("*, business:businesses(id, name, slug, city, status)", { count: "exact" })
+    .select(
+      // Both possible subjects — a report is about a listing OR a bio page
+      // (business_reports_has_subject). Without the second join, a link-page
+      // report rendered as «کسب‌وکار حذف‌شده» with nothing to act on.
+      "*, business:businesses(id, name, slug, city, status), link_page:link_pages(id, handle, title, status, suspended_reason)",
+      { count: "exact" }
+    )
     .order("created_at", { ascending: false })
     .range(from, from + ADMIN_PAGE_SIZE - 1);
 
