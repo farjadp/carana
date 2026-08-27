@@ -1355,7 +1355,7 @@ export default function BusinessOnboardingForm({
                   <div className="space-y-3 mt-6 p-5 bg-blue-50/70 rounded-xl border border-blue-100">
                     <TermsCheckbox id="terms1" label="تایید می‌کنم که تمام اطلاعات وارد شده صحیح و واقعی است." />
                     <TermsCheckbox id="terms2" label="می‌پذیرم که انتشار نهایی در دایرکتوری، پس از بررسی و تایید تیم گوپلازا انجام خواهد شد." />
-                    <TermsCheckbox id="terms3" label={<>با <a href="/terms" target="_blank" className="underline text-[color:var(--lajvard)]">شرایط استفاده</a> و <a href="/privacy" target="_blank" className="underline text-[color:var(--lajvard)]">حریم خصوصی</a> گوپلازا موافقم.</>} />
+                    <TermsCheckbox id="terms3" label={<>با <a href="/terms" target="_blank" className="underline text-[color:var(--lajvard)]">قوانین و مقررات</a> و <a href="/privacy" target="_blank" className="underline text-[color:var(--lajvard)]">حریم خصوصی</a> گوپلازا موافقم.</>} />
                   </div>
                 </StepWrapper>
               )}

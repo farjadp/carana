@@ -1929,6 +1929,82 @@ section {
   border-bottom: none;
 }
 
+/* Table of contents for the long legal documents. */
+.legal-toc {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.25rem 1.4rem;
+  margin-bottom: 2.5rem;
+  background: rgba(20, 33, 61, 0.02);
+}
+
+.legal-toc-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+}
+
+.legal-toc-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.35rem 1.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: legal-toc;
+}
+
+.legal-toc-list li {
+  font-size: 0.88rem;
+  line-height: 1.9;
+}
+
+.legal-toc-list a {
+  color: var(--muted-text);
+  text-decoration: none;
+}
+
+.legal-toc-list a:hover {
+  color: var(--lajvard);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Reserved for the few statements that carry the most weight. */
+.legal-callout {
+  border: 1px solid var(--line);
+  border-inline-start: 3px solid var(--annabi);
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  margin: 0 0 1.25rem;
+  background: rgba(150, 27, 45, 0.035);
+}
+
+.legal-callout-title {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+
+.legal-callout-body p {
+  margin-bottom: 0.5rem;
+}
+
+.legal-callout-body p:last-child,
+.legal-callout-body .legal-list {
+  margin-bottom: 0;
+}
+
+.legal-section h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 1.25rem 0 0.5rem;
+}
+
 .faq-list {
   display: grid;
   gap: 1rem;

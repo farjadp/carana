@@ -9,7 +9,7 @@ export type NavSection = "home" | "business" | "brand";
 export const legalLinks = [
   { href: "/privacy", label: "حریم خصوصی" },
   { href: "/disclaimer", label: "سلب مسئولیت" },
-  { href: "/terms", label: "شرایط استفاده" },
+  { href: "/terms", label: "قوانین و مقررات" },
 ] as const;
 
 export const footerCopy =

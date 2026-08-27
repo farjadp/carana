@@ -45,5 +45,5 @@ export const company = {
   parentSite: "https://www.ashavid.ca",
 
   /** Keep in step with the legal pages below whenever they are revised. */
-  legalLastUpdated: "2026-08-18",
+  legalLastUpdated: "2026-08-26",
 } as const;
