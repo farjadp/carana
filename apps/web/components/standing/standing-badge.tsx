@@ -25,12 +25,25 @@ import { Award, ShieldCheck, Sparkles } from "lucide-react";
 
 import { LEVEL_LABELS_FA, privilegesFor, type StandingLevel } from "@goplaza/core";
 
-/** What each level actually means to a reader, in one sentence. */
-const MEANING_FA: Record<StandingLevel, string> = {
+/**
+ * What each level actually means to a reader, in one sentence — and never a
+ * number. «۴۲۰ امتیاز» is our bookkeeping, not something a visitor to a
+ * business page can judge; the sentence is what they can.
+ *
+ * Exported because the owner section on a business profile prints the same
+ * sentence beside the badge. Two copies of this wording would drift, and the
+ * drift would be two different claims about the same person.
+ */
+export const STANDING_MEANING_FA: Record<StandingLevel, string> = {
   0: "",
   1: "مشارکت‌هایی داشته که بررسی و تأیید شده‌اند.",
   2: "سابقه‌ی طولانی و دقیقی از مشارکت‌های تأییدشده دارد.",
-  3: "نقش نگهبانی در گوپلازا دارد — این سطح را تیم گوپلازا می‌دهد، به‌دست نمی‌آید.",
+  // Says only what the level MEANS, never restates its name. The owner
+  // section prints «سطح «نگهبان» دارد — {this}», and the first draft of this
+  // string began «نقش نگهبانی در گوپلازا دارد», which read back as the same
+  // sentence twice. A string written for a tooltip does not automatically
+  // compose into a sentence.
+  3: "این سطح را تیم گوپلازا می‌دهد و به‌دست نمی‌آید.",
 };
 
 const STYLE: Record<StandingLevel, string> = {
@@ -57,7 +70,7 @@ export function StandingBadge({ level, size = "sm" }: { level: StandingLevel; si
 
   return (
     <span
-      title={`${LEVEL_LABELS_FA[level]} — ${MEANING_FA[level]}`}
+      title={`${LEVEL_LABELS_FA[level]} — ${STANDING_MEANING_FA[level]}`}
       className={`inline-flex shrink-0 items-center gap-1 rounded-full border font-bold ${pad} ${STYLE[level]}`}
     >
       <Icon size={size === "md" ? 12 : 10} />

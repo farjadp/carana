@@ -39,6 +39,16 @@ export type PublicOwner = {
   avatar_url: string | null;
   /** Profile creation date, shown as "با گوپلازا از …". */
   member_since: string | null;
+  /**
+   * «اعتبار مشارکت» level, 0–3. Resolved on the server like everything else
+   * here, and 0 for almost everybody — StandingBadge renders nothing below 1,
+   * so most owner sections carry no badge at all.
+   *
+   * The LEVEL travels, never the xp. A visitor to a business page cannot
+   * judge «۴۲۰ امتیاز»; they can judge «معتمد», and sending the number would
+   * put our bookkeeping on a public page for no one's benefit.
+   */
+  standing_level?: 0 | 1 | 2 | 3;
 };
 
 /**

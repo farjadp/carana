@@ -25,7 +25,7 @@ import { VerificationBadge, VerificationDetail, faNumber } from "@/components/ve
 import { ViewCounter } from "@/components/business/view-counter";
 import { CorrectionDialog } from "@/components/business/correction-dialog";
 import { ReportDialog } from "@/components/business/report-dialog";
-import { StandingBadge } from "@/components/standing/standing-badge";
+import { StandingBadge, STANDING_MEANING_FA } from "@/components/standing/standing-badge";
 import { ShortLinkBox } from "@/components/business/short-link-box";
 import { trackEvent } from "@/lib/analytics/track";
 import { BrandMark } from "@/components/brand-mark";
@@ -35,7 +35,7 @@ import { PLANS } from "@/lib/billing/plans";
 import { activeBusyStatus } from "@/lib/business/live-status";
 import { replyToReview } from "@/lib/actions/interactions";
 import {
-  EMPLOYMENT_TYPE_LABELS_FA, OWNER_SECTION_NOTE, OWNER_SECTION_TITLE, PROVINCES,
+  EMPLOYMENT_TYPE_LABELS_FA, LEVEL_LABELS_FA, OWNER_SECTION_NOTE, OWNER_SECTION_TITLE, PROVINCES,
   WORKPLACE_TYPE_LABELS_FA, formatSalaryFa,
   type EmploymentType, type PublicOwner, type SalaryPeriod, type WorkplaceType,
   type StandingLevel,
@@ -585,8 +585,12 @@ export default function BusinessProfileClient({
                     </div>
                   )}
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-black text-[color:var(--text)]">
-                      {publicOwner.full_name}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="truncate text-sm font-black text-[color:var(--text)]">
+                        {publicOwner.full_name}
+                      </span>
+                      {/* Nothing below level 1, which is almost everybody. */}
+                      <StandingBadge level={(publicOwner.standing_level ?? 0) as StandingLevel} />
                     </div>
                     {publicOwner.member_since ? (
                       <div className="text-[11px] text-[color:var(--muted-text)]">
@@ -599,6 +603,17 @@ export default function BusinessProfileClient({
                   <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-[color:var(--muted-text)]">
                     <BadgeCheck size={13} className="mt-px shrink-0 text-[color:var(--annabi)]" />
                     {OWNER_SECTION_NOTE[verification.method]}
+                  </p>
+                ) : null}
+                {/* The level in a sentence, and deliberately never the score:
+                    a visitor cannot judge «۴۲۰ امتیاز», they can judge
+                    «معتمد». Absent below level 1, like the badge — the two are
+                    driven by the same number so they cannot disagree. */}
+                {(publicOwner.standing_level ?? 0) >= 1 ? (
+                  <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-relaxed text-[color:var(--muted-text)]">
+                    <Sparkles size={13} className="mt-px shrink-0 text-[color:var(--muted-text)]" />
+                    در گوپلازا سطح «{LEVEL_LABELS_FA[(publicOwner.standing_level ?? 0) as StandingLevel]}» دارد —{" "}
+                    {STANDING_MEANING_FA[(publicOwner.standing_level ?? 0) as StandingLevel]}
                   </p>
                 ) : null}
               </Section>
