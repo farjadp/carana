@@ -630,6 +630,21 @@ below — nothing here is half-shipped, it is simply not started.
    canonical, and traffic is recorded from the first visitor. Until this is
    done the pages render only at `goplaza.ca/link/<handle>` in development —
    in production that path 301s away, by design.
+
+   **The domain was registered at GoDaddy on 26 Aug — DNS is the remaining
+   half, and the redirect is already live and dead-ending.** Checked the same
+   evening: `https://goplaza.ca/link/kababsara` answers **301 →
+   `https://gplz.link/kababsara`**, and `gplz.link` has **no NS delegation at
+   all** (the `.link` registry returns SOA with no nameservers), so it does not
+   resolve. Every bio link on the live site is a dead end until this is wired.
+   `goplaza.ca` already runs on Vercel nameservers (`ns1/ns2.vercel-dns.com`),
+   so the same route is the obvious one for the short domain.
+
+   **It must not be GoDaddy domain forwarding.** GoDaddy's own flow offers to
+   "connect" the domain to a site, which forwards it — that would 301
+   `gplz.link/kababsara` to `goplaza.ca` and the product would never serve a
+   single page. The domain has to point at the Vercel deployment, which then
+   serves it through the `SHORT_HOSTS` branch in `proxy.ts`.
 2. **Create the Stripe product for «لینک حرفه‌ای»** — $13/mo and $130/yr, CAD,
    following the existing `STRIPE_PRICE_*` env-var naming so `priceIdFor`
    keeps working. Until then nobody can buy the paid tier; the entitlement
