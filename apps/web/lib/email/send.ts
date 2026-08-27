@@ -18,8 +18,8 @@ const DEFAULT_FROM = `${company.brand} <${company.email.noreply}>`;
 /**
  * The sender header, repaired if it has to be.
  *
- * Found on 27 Aug: EMAIL_FROM carried one orphaned byte of the `č` from the
- * old čārana name, left behind by the rebrand, and Resend rejected every send
+ * Found on 27 Aug: EMAIL_FROM carried one orphaned byte of an accented letter
+ * from the pre-rebrand name, and Resend rejected every send
  * with "Invalid `from` field" — silently, because sendEmail returns
  * { sent: false } by design. Verification codes and listing decisions had been
  * failing for real users for days, and the only trace was 17 rows in
