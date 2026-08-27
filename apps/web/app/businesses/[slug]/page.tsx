@@ -13,7 +13,7 @@ import { notFound } from "next/navigation";
 
 import { listingOgImage } from "@/lib/seo/entity";
 import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
-import { getStandingMany } from "@/lib/standing/ledger";
+import { getStanding, getStandingMany } from "@/lib/standing/ledger";
 import { PageShell } from "@/components/page-shell";
 import BusinessProfileClient from "./business-profile-client";
 import { JsonLd } from "@/components/json-ld";
@@ -200,10 +200,13 @@ export default async function BusinessProfilePage({
       .maybeSingle();
 
     if (ownerProfile) {
+      // The level, not the score. See the note on PublicOwner.standing_level.
+      const ownerStanding = await getStanding(ownerId);
       publicOwner = {
         full_name: ownerProfile.full_name,
         avatar_url: ownerProfile.avatar_url,
         member_since: ownerProfile.created_at,
+        standing_level: ownerStanding?.level ?? 0,
       };
     }
   }

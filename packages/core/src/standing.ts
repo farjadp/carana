@@ -147,12 +147,9 @@ export function levelFor(
  * What a level permits. This map is the ONLY place level numbers turn into
  * capabilities; call sites gate on these booleans, never on `level >= n`.
  *
- * PHASE 1 HONESTY NOTE: in phase 1 nothing consumes autoPublishLowRisk or
- * canSeeQueue — no code path auto-publishes an edit and no queue view exists
- * for non-admins. They are declared so phase 2 implements against a name
- * instead of inventing one, and so this comment (not absence of code) is
- * what says the feature is not live. queuePriority and showsContributions
- * gain consumers inside phase 1 itself.
+ * As of phase 2 (26 Aug) all four have consumers: `autoPublishLowRisk` is read
+ * by the corrections API, `canSeeQueue` by /corrections/queue, and the other
+ * two by the corrections admin ordering and the public standing page.
  */
 export interface StandingPrivileges {
   /** Their queue items sort ahead of anonymous ones. */
@@ -175,18 +172,139 @@ export function privilegesFor(level: StandingLevel): StandingPrivileges {
 }
 
 /**
- * The fields a معتمد (level 2) contributor's edit may publish without the
- * queue — phase 2's safety boundary, declared here so it is reviewed in a
- * diff and never edited from the admin UI (docs/16, red list). UNUSED in
- * phase 1: nothing auto-publishes yet.
+ * What a contributor may PROPOSE a correction to at all.
  *
- * The judgement is the mirror image of the critical_fields list that
- * business_change_reviews already records — a change to either list should
- * make the reviewer look at the other. The test is: what does a WRONG value
- * cost the business? Wrong hours or a stale busy flag embarrass; a wrong
- * phone, website or social handle DIVERTS the visitor to whoever wrote it,
- * which makes every contact field an attack surface against a rival and
- * keeps all of them out of this list — deliberately narrower than the
- * brainstorm's "hours, phone, temporary closure".
+ * Everything here is operational: a wrong value is annoying or misleading,
+ * never an identity claim. Name, category, city, address, ownership and the
+ * licence fields are deliberately absent — changing those turns an approved
+ * listing into a different business, which is why
+ * lib/moderation/change-review.ts sends them to a human even when the OWNER
+ * changes them. A stranger may not propose them at all.
+ *
+ * Column names, not friendly names: these strings are written straight into
+ * an update, so they must match `businesses` exactly.
  */
-export const LOW_RISK_FIELDS = ["hours", "busy_status"] as const;
+export const CORRECTABLE_FIELDS = [
+  "working_hours",
+  "busy_status",
+  "phone",
+  "contact_email",
+  "website",
+  "instagram",
+  "telegram",
+  "booking_url",
+  "google_maps_url",
+  "postal_code",
+] as const;
+
+export type CorrectableField = (typeof CORRECTABLE_FIELDS)[number];
+
+/**
+ * The subset a معتمد (level 2) may publish WITHOUT the queue — phase 2's
+ * safety boundary, in code so it is reviewed in a diff and never editable
+ * from the admin UI (docs/16, red list).
+ *
+ * The test is: what does a WRONG value cost the business? Wrong hours or a
+ * stale busy flag embarrass. A wrong phone, website or social handle DIVERTS
+ * the visitor to whoever wrote it, which makes every contact field an attack
+ * surface against a rival — so a contributor may propose those, and an admin
+ * still looks. Deliberately narrower than the brainstorm's "hours, phone,
+ * temporary closure".
+ */
+export const LOW_RISK_FIELDS = ["working_hours", "busy_status"] as const;
+
+export const isLowRisk = (field: string): boolean =>
+  (LOW_RISK_FIELDS as readonly string[]).includes(field);
+
+export const isCorrectable = (field: string): boolean =>
+  (CORRECTABLE_FIELDS as readonly string[]).includes(field);
+
+export const CORRECTABLE_LABELS_FA: Record<CorrectableField, string> = {
+  working_hours: "ساعت کاری",
+  busy_status: "وضعیت شلوغی",
+  phone: "تلفن",
+  contact_email: "ایمیل تماس",
+  website: "وب‌سایت",
+  instagram: "اینستاگرام",
+  telegram: "تلگرام",
+  booking_url: "لینک رزرو",
+  google_maps_url: "گوگل مپ",
+  postal_code: "کد پستی",
+};
+
+// ---------------------------------------------------------------- badges
+
+/**
+ * Badges — phase 3.
+ *
+ * A badge is a VIEW OF HISTORY, not a record. `badgesFor` is a pure function
+ * over counts the ledger already holds, and there is deliberately no badge
+ * table: a stored badge is a second copy of the truth that can disagree with
+ * the ledger, and re-tiering a family would then need a data migration
+ * instead of a code change.
+ *
+ * BADGES UNLOCK NOTHING. Levels are permissions, badges are memory. The
+ * moment a badge grants something it becomes a second permission system with
+ * its own farming incentive — which is the whole reason the ladder was kept
+ * to four rungs.
+ */
+export interface BadgeFamily {
+  key: string;
+  labelFa: string;
+  emoji: string;
+  /** Which confirmed `kind` counts toward it. */
+  kind: string;
+  /** Thresholds for tiers I..V. */
+  tiers: readonly number[];
+}
+
+export const BADGE_FAMILIES: readonly BadgeFamily[] = [
+  { key: "explorer", labelFa: "کاشف", emoji: "🧭", kind: "channel_submit", tiers: [1, 3, 10, 25, 100] },
+  { key: "editor", labelFa: "اصلاح‌گر", emoji: "✏️", kind: "business_edit", tiers: [1, 5, 20, 50, 200] },
+  { key: "reviewer", labelFa: "نظردهنده", emoji: "⭐", kind: "review_publish", tiers: [1, 3, 10, 25, 100] },
+  { key: "guardian", labelFa: "دیده‌بان", emoji: "🛡", kind: "report_upheld", tiers: [1, 3, 10, 25, 100] },
+  { key: "founder", labelFa: "بنیان‌گذار", emoji: "🏛", kind: "business_submit", tiers: [1, 3, 10, 25, 100] },
+] as const;
+
+export interface EarnedBadge {
+  key: string;
+  labelFa: string;
+  emoji: string;
+  /** 1..5 */
+  tier: number;
+  /** Confirmed contributions of this kind. */
+  count: number;
+  /** What the next tier needs, or null at the top. */
+  nextAt: number | null;
+}
+
+export const ROMAN = ["", "I", "II", "III", "IV", "V"] as const;
+
+/**
+ * Badges from a map of kind → confirmed count.
+ *
+ * Counts must come from CONFIRMED events only. Feeding it pending or reversed
+ * counts would hand out a badge for work that never held up, which is the one
+ * thing the settled-not-granted design exists to prevent.
+ */
+export function badgesFor(
+  confirmedByKind: Record<string, number>,
+  families: readonly BadgeFamily[] = BADGE_FAMILIES
+): EarnedBadge[] {
+  const out: EarnedBadge[] = [];
+  for (const f of families) {
+    const count = confirmedByKind[f.kind] ?? 0;
+    let tier = 0;
+    for (let i = 0; i < f.tiers.length; i++) if (count >= f.tiers[i]) tier = i + 1;
+    if (tier === 0) continue;
+    out.push({
+      key: f.key,
+      labelFa: f.labelFa,
+      emoji: f.emoji,
+      tier,
+      count,
+      nextAt: tier < f.tiers.length ? f.tiers[tier] : null,
+    });
+  }
+  return out.sort((a, b) => b.tier - a.tier || b.count - a.count);
+}

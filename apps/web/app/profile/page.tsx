@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/profile/page.tsx
-// Version: 2.1.0 — 2026-08-26 (standing)
+// Version: 2.2.0 — 2026-08-26 (standing, extra contacts)
 // Why: The signed-in home. v1 called itself «داشبورد کاربری» and was a
 //      settings form with four identical cards stacked under it — two of
 //      which restated things the page already showed (the email in a card of
@@ -27,7 +27,7 @@
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
+import { Award,
   ArrowLeft,
   BadgeCheck,
   Bell,
@@ -43,6 +43,7 @@ import {
 
 import { PageShell } from "@/components/page-shell";
 import { requireUser } from "@/lib/auth/session";
+import { getStandingSettings } from "@/lib/standing/rules";
 import { ensureUserProfile } from "@/lib/profiles/ensure-profile";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -51,6 +52,8 @@ import { getStanding } from "@/lib/standing/ledger";
 import { DEFAULT_THRESHOLDS, LEVEL_LABELS_FA } from "@goplaza/core";
 
 import { AccountActions } from "./account-actions";
+import { ContactsForm } from "./contacts-form";
+import type { ContactRow } from "./contacts-actions";
 import { ProfileForm } from "./profile-form";
 
 export const metadata: Metadata = {
@@ -91,6 +94,27 @@ export default async function ProfilePage() {
     ),
     n(supabase.from("channels").select("id", { count: "exact", head: true }).eq("submitted_by", user.id)),
   ]);
+
+  // «راه‌های تماس بیشتر». The table is read separately from the counts above
+  // because a missing table must not take the whole page down: until the
+  // migration is applied the panel simply does not render, which is the
+  // honest degrade — nothing on screen offers a feature the database cannot
+  // hold. `contactsReady` is false in exactly that case.
+  const contactsQuery = await supabase
+    .from("profile_contacts")
+    .select("id, kind, value, label")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: true });
+
+  if (contactsQuery.error) {
+    console.error("profile_contacts unavailable:", contactsQuery.error.message);
+  }
+  const contactsReady = !contactsQuery.error;
+  const contacts = (contactsQuery.data ?? []) as ContactRow[];
+
+  // Both switches, because /profile/standing 404s unless both are on.
+  const standingSettings = await getStandingSettings();
+  const standingPublic = standingSettings.enabled && standingSettings.public_display;
 
   // Own page, so level 0 IS shown here with what is missing — that is the
   // difference from the public badge, which renders nothing below level 1.
@@ -133,6 +157,20 @@ export default async function ProfilePage() {
       href: channels > 0 ? "/dashboard/channels" : "/channels/submit",
       badge: channels > 0 ? fa(channels) : null,
     },
+    // Only when the programme is BOTH running and publicly displayed. A card
+    // pointing at a 404 is worse than no card, and the page it links to
+    // notFound()s under exactly these conditions.
+    ...(standingPublic
+      ? [
+          {
+            icon: Award,
+            title: "اعتبار مشارکت من",
+            hint: "سطح، نشان‌ها و دفترچه‌ی مشارکت",
+            href: "/profile/standing",
+            badge: null as string | null,
+          },
+        ]
+      : []),
     ...(isStaff
       ? [
           {
@@ -299,6 +337,16 @@ export default async function ProfilePage() {
           <section className="mt-8">
             <ProfileForm profile={profile} email={user.email || ""} />
           </section>
+
+          {contactsReady ? (
+            <section className="mt-4">
+              <ContactsForm
+                contacts={contacts}
+                accountEmail={user.email || ""}
+                mobileNumber={profile?.mobile_number ?? null}
+              />
+            </section>
+          ) : null}
 
           {/* 5. The account itself, kept quiet at the bottom where it belongs. */}
           <AccountActions />

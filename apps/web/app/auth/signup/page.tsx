@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/auth/signup/page.tsx
-// Version: 1.3.1 — 2026-08-11
+// Version: 1.4.0 — 2026-08-26
 // Why: Provide the signup entry point for business-owner onboarding.
 // Env / Identity: Redirects authenticated users and strips unsafe auth query params.
 // ============================================================================
@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth-form";
 import { PageShell } from "@/components/page-shell";
 import { getDirectoryStats } from "@/lib/data/directory-stats";
+import { getEnabledAuthProviders } from "@/lib/auth/providers";
 import { redirectIfAuthenticated } from "@/lib/auth/session";
 import { sanitizeAuthSearchParams } from "@/lib/auth/sanitize";
 
@@ -24,12 +25,12 @@ export default async function SignupPage({
   await sanitizeAuthSearchParams("/auth/signup", searchParams);
   await redirectIfAuthenticated("/profile");
 
-  const stats = await getDirectoryStats();
+  const [stats, providers] = await Promise.all([getDirectoryStats(), getEnabledAuthProviders()]);
 
   return (
     <PageShell currentPath="/auth/signup" currentSection="business">
       <main className="page-main">
-        <AuthForm mode="signup" stats={stats} />
+        <AuthForm mode="signup" stats={stats} googleEnabled={providers.google} />
       </main>
     </PageShell>
   );

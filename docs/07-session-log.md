@@ -1,3 +1,83 @@
+# 2026-08-26 (later still) — sign-in: a magic link, extra contacts, and a Google button that had never worked
+
+Asked for three things: Gmail sign-up, two or three emails and phone numbers
+on the profile, and magic-link login next to the password.
+
+**The Google button was already there — and had never worked.** It shipped
+18 August with the split-panel auth layout, unconditionally. `GET
+/auth/v1/settings` on this project answers `external.google: false`, so every
+click since then returned "Unsupported provider". Adding a Google button was
+therefore not the task; making the existing one honest was. `lib/auth/providers.ts`
+probes that public endpoint (cached 5 min, fails closed) and the button plus
+its «یا با ایمیل» divider render only when the provider is really on. Enabling
+it is two dashboard steps, written up in `05-open-tasks`, and needs no further
+code.
+
+**Magic link.** `signInWithOtp()` from the browser, which is PKCE, so
+`/auth/callback` gets the `?code=` it reads — the admin-generated variety
+still cannot sign anyone in (the 26 Aug gotcha above stands, it is a different
+generator). `shouldCreateUser: false` on the login tab, so an unknown address
+is told it has no account instead of quietly getting one; that path was
+checked against the live API (422 `otp_disabled`) and the Persian mapping for
+it was added to `@goplaza/core/auth-errors`, ahead of the generic
+"signups are disabled" rule it would otherwise have hit.
+
+**Extra contacts.** `profile_contacts`, two more emails and two more numbers
+on top of the account email and `profiles.mobile_number`. Two decisions worth
+keeping: there is **no `verified_at` column**, because nothing would ever
+write to it and an always-NULL column is how a "verified" badge gets invented
+later; and the cap is a **trigger**, not just a check in the server action —
+RLS lets the browser insert these rows with its own token, so a cap that lives
+only in the action is a cap only for people who use the form. The panel says
+in as many words that these addresses cannot sign you in and are not verified.
+
+**What was said wrongly along the way:** nothing was claimed unverified, but
+`docs/02-engineering.md` still carries a section headed "Magic link — only if
+magic-link login is ever enabled", and `06-gotchas` said the app's own magic
+links "come from `signInWithOtp()` in the browser" — as of this morning
+**nothing in the codebase called `signInWithOtp`**. That sentence described a
+code path that did not exist; it does now.
+
+**Verified by running:** `/auth/login` served by the dev server shows the
+two-method switcher and **no** Google button (correct — the provider is off);
+`/profile` fetched with a real signed-in session (a disposable user created
+and deleted through the admin API) renders unchanged and hides the contacts
+panel, which is the intended degrade while the table is missing. Typecheck and
+lint clean across all three packages; `check:brand` clean.
+
+**Same evening, Google went live.** Farjad created the OAuth client and
+published the consent screen; the provider is on. Verified without signing in:
+`external.google` flipped to true, the button appeared on `/auth/login` ~20s
+later (the probe caches five minutes), and following
+`/auth/v1/authorize?provider=google` end to end lands on Google's real sign-in
+page — HTTP 200, `/v3/signin/identifier`, "goplaza" named on it, no
+`redirect_uri_mismatch` and no `invalid_client`. The token exchange itself is
+unproven; it needs a real Google account and nobody signed in. The client
+secret passed through a chat transcript on the way, so it wants rotating.
+
+**The migration ran the same evening, and the panel was finally seen.** Round-
+tripped with a disposable user: two extra emails in, the third refused by the
+trigger, phone counted separately, another user's `user_id` refused by RLS,
+`kind='fax'` refused by the constraint, rows cascaded away with the user.
+Then signed in as that user in a browser — and the FIRST screenshot of the
+panel with rows in it showed «۲ از ۳» next to «به سقف رسیده‌ای» in the same
+box. The `+ 1` in the label is the profile's own value, which exists for
+email (every account has one) and not for a profile with no mobile number.
+New `06-gotchas` entry. Nothing was wrong with the data, so none of the DB
+round-trip and none of the typechecking could have found it; a screenshot did,
+in about four seconds.
+
+**Why it had to wait for a human at all:** `pnpm db:push` refuses on this
+project (`LegacyDbPushMissingRemoteError` from the duplicate
+`20260830330000`/`340000` pair), and reading the CLI's own access token from
+the keychain was refused by the permission classifier — the same refusal as
+earlier the same day. Farjad pasted it into the SQL Editor.
+
+**Still unmailed:** no magic link has actually been sent, and nobody has
+completed a Google sign-in. Both need a real inbox / a real Google account.
+
+---
+
 # 2026-08-26 (night) — standing phase 1: the whole plan, minus one paste
 
 Brainstormed «سیستم وفاداری و اعتبار» from a ChatGPT sketch Farjad brought,

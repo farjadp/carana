@@ -1,7 +1,22 @@
 // ============================================================================
 // Source: components/auth-form.tsx
-// Version: 2.1.0 — 2026-08-18
+// Version: 2.2.0 — 2026-08-26
 // Why: Premium, user-friendly split-panel auth layout with lazy env and password show/hide.
+//      v2.2 — two things, one of them a correction:
+//
+//      · MAGIC LINK. Login now has two methods: a password, or a one-time
+//        link mailed to the address. The link comes from signInWithOtp() in
+//        the browser, which is PKCE, so /auth/callback gets the `?code=` it
+//        reads. `shouldCreateUser: false` on purpose — this is the LOGIN tab,
+//        and an unknown address gets told it has no account rather than
+//        silently getting one. Resend is held for 60s because that is
+//        Supabase's own per-address send interval; asking sooner just earns a
+//        rate-limit error with no mail behind it.
+//      · THE GOOGLE BUTTON WAS A LIE FROM 18 AUGUST. It rendered
+//        unconditionally while `external.google` is false on this project, so
+//        every click returned "Unsupported provider". It is now rendered only
+//        when the project really has the provider on — the caller passes
+//        `googleEnabled` from lib/auth/providers.ts.
 //      v2.1: the brand panel's stats box read "۲۰,۰۰۰+ کسب‌وکارهای ثبت‌شده"
 //      and "پوشش سراسری کانادا" — neither was backed by anything. It now shows
 //      the counts the caller passes from getDirectoryStats(), and shows
@@ -15,7 +30,7 @@ import Link from "next/link";
 
 import { BrandMark } from "@/components/brand-mark";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Mail,
   Lock,
@@ -26,6 +41,8 @@ import {
   AlertCircle,
   Search,
   Award,
+  KeyRound,
+  Send,
   ShieldCheck,
   ChevronLeft
 } from "lucide-react";
@@ -78,7 +95,16 @@ const modeCopy: Record<
   },
 };
 
-export function AuthForm({ mode, stats }: { mode: AuthMode; stats?: AuthPanelStats }) {
+export function AuthForm({
+  mode,
+  stats,
+  googleEnabled = false,
+}: {
+  mode: AuthMode;
+  stats?: AuthPanelStats;
+  /** Google OAuth is really on for this project — see lib/auth/providers.ts. */
+  googleEnabled?: boolean;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -89,6 +115,20 @@ export function AuthForm({ mode, stats }: { mode: AuthMode; stats?: AuthPanelSta
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  /** Login only: password, or a one-time link mailed to the address. */
+  const [useMagicLink, setUseMagicLink] = useState(false);
+  /** The address the last link actually went to — not whatever is typed now. */
+  const [magicSentTo, setMagicSentTo] = useState<string | null>(null);
+  const [resendIn, setResendIn] = useState(0);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const id = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(id);
+  }, [resendIn]);
+
+  /** The login form is in link mode. Read in three places, so it is named. */
+  const magicLinkMode = mode === "login" && useMagicLink;
 
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const copy = useMemo(() => modeCopy[mode], [mode]);
@@ -105,6 +145,23 @@ export function AuthForm({ mode, stats }: { mode: AuthMode; stats?: AuthPanelSta
     setSuccess(null);
 
     try {
+      if (mode === "login" && useMagicLink) {
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            // No account, no link. The login tab does not create people.
+            shouldCreateUser: false,
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+          },
+        });
+
+        if (otpError) throw otpError;
+
+        setMagicSentTo(email);
+        setResendIn(60);
+        return;
+      }
+
       if (mode === "login") {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -312,7 +369,11 @@ export function AuthForm({ mode, stats }: { mode: AuthMode; stats?: AuthPanelSta
             </div>
           ) : null}
 
-          {mode === "login" || mode === "signup" ? (
+          {/* Only when the project really has the provider on. `googleEnabled`
+              is probed from /auth/v1/settings; while it is false this block —
+              button AND divider — renders nothing at all, because "یا با
+              ایمیل" under no alternative is its own small lie. */}
+          {googleEnabled && (mode === "login" || mode === "signup") ? (
             <div className="flex flex-col gap-4 mb-6">
               <Button
                 type="button"
@@ -339,6 +400,52 @@ export function AuthForm({ mode, stats }: { mode: AuthMode; stats?: AuthPanelSta
                   <span className="bg-white/80 backdrop-blur px-3 rounded-full text-gray-500 font-bold">یا با ایمیل</span>
                 </div>
               </div>
+            </div>
+          ) : null}
+
+          {mode === "login" ? (
+            <div className="mb-5 grid grid-cols-2 gap-1 rounded-2xl bg-black/[0.04] p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setUseMagicLink(false);
+                  setError(null);
+                }}
+                className={cn(
+                  "flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition",
+                  !useMagicLink ? "bg-white shadow-sm text-[color:var(--text)]" : "text-gray-500"
+                )}
+                aria-pressed={!useMagicLink}
+              >
+                <KeyRound size={14} /> رمز عبور
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setUseMagicLink(true);
+                  setError(null);
+                }}
+                className={cn(
+                  "flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition",
+                  useMagicLink ? "bg-white shadow-sm text-[color:var(--text)]" : "text-gray-500"
+                )}
+                aria-pressed={useMagicLink}
+              >
+                <Send size={14} /> لینک ورود با ایمیل
+              </button>
+            </div>
+          ) : null}
+
+          {/* Says what was done, to which address, and what it costs to ask
+              again. `magicSentTo` is the address the mail actually went to —
+              not whatever is in the box now. */}
+          {magicSentTo ? (
+            <div className="auth-alert is-success mb-4">
+              <CheckCircle2 size={18} className="flex-shrink-0" />
+              <span>
+                لینک ورود به <b dir="ltr">{magicSentTo}</b> فرستاده شد. روی لینک همان ایمیل بزن تا
+                وارد شوی؛ لینک یک‌بار مصرف است. اگر نرسید، پوشه‌ی هرزنامه را هم ببین.
+              </span>
             </div>
           ) : null}
 
@@ -380,7 +487,7 @@ export function AuthForm({ mode, stats }: { mode: AuthMode; stats?: AuthPanelSta
               </div>
             ) : null}
 
-            {mode !== "forgot" ? (
+            {mode !== "forgot" && !(mode === "login" && useMagicLink) ? (
               <div className="form-group">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="password">
@@ -432,9 +539,29 @@ export function AuthForm({ mode, stats }: { mode: AuthMode; stats?: AuthPanelSta
               </div>
             ) : null}
 
-            <Button type="submit" disabled={loading} className="w-full mt-2">
-              {loading ? "در حال پردازش..." : copy.submit}
+            <Button
+              type="submit"
+              disabled={loading || (magicLinkMode && resendIn > 0 && email === magicSentTo)}
+              className="w-full mt-2"
+            >
+              {loading
+                ? "در حال پردازش..."
+                : magicLinkMode
+                  ? magicSentTo
+                    ? email === magicSentTo
+                      ? resendIn > 0
+                        ? `ارسال دوباره تا ${fa(resendIn)} ثانیه‌ی دیگر`
+                        : "ارسال دوباره‌ی لینک"
+                      : "ارسال لینک به این نشانی"
+                    : "ارسال لینک ورود"
+                  : copy.submit}
             </Button>
+
+            {magicLinkMode ? (
+              <p className="mt-3 text-center text-[11px] leading-6 text-gray-500">
+                رمزی لازم نیست. لینک فقط به نشانی‌ای فرستاده می‌شود که قبلاً با آن ثبت‌نام شده باشد.
+              </p>
+            ) : null}
           </form>
 
           {mode === "login" ? (

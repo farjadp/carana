@@ -4,6 +4,67 @@ Every one of these cost real time. Read before debugging anything similar.
 
 ---
 
+## A count that promised a slot the cap refused
+
+**Symptom.** On `/profile`, «شماره‌های تماس» read «۲ از ۳» while the add
+button in the same box read «به سقف رسیده‌ای». Both were rendered by the same
+component, three lines apart.
+
+**Cause.** Two numbers with different meanings. `MAX_EXTRA_CONTACTS` is 2 —
+the rows in `profile_contacts` — and the "3" in the label was
+`MAX_EXTRA_CONTACTS + 1`, where the `+ 1` is the profile's OWN value: the
+account email, or `profiles.mobile_number`. Every account has an email, so the
+email list always reached 3 and looked right. A profile with no mobile number
+has no third phone to count, so the phone list topped out at 2 while still
+advertising 3.
+
+**Fix.** The denominator is now `(primary ? 1 : 0) + MAX_EXTRA_CONTACTS`, the
+panel header states the rule («ایمیل حساب و شماره‌ی موبایل پروفایل، به‌علاوه‌ی
+حداکثر ۲ و ۲ دیگر») rather than the best case, and the phone list names the
+field further up the page that would earn the third slot.
+
+**Lesson.** `N + 1` in a label is a claim that the `+ 1` exists. It did for one
+of the two lists and not the other, so every test with a fully-filled profile
+would have passed. Found in the first screenshot of the panel with rows in it,
+after the DDL, the RLS, the trigger and the server actions had all been
+round-tripped clean against the live database — none of which could see it,
+because nothing was wrong with the data.
+
+---
+
+## A Google sign-in button shipped for a provider that was never enabled
+
+**Symptom.** «ادامه با حساب گوگل» sat on `/auth/login` and `/auth/signup` from
+18 August. Clicking it did nothing useful — `signInWithOAuth({provider:'google'})`
+returns "Unsupported provider: provider is not enabled" and the person is left
+on the same page.
+
+**Cause.** The button was written in the same commit as the layout, ahead of
+the dashboard work. Nobody enabled Google on the Supabase project, and nothing
+in the app ever asks whether a provider is on:
+
+```
+curl -s "$SUPABASE_URL/auth/v1/settings" -H "apikey: $PUBLISHABLE_KEY"
+→ "external": { ..., "google": false, ... }
+```
+
+That endpoint is public and unauthenticated. One request would have settled it
+at any point in the eight days.
+
+**Fix.** `lib/auth/providers.ts` reads `/auth/v1/settings` (cached 5 min, fails
+closed) and the auth pages pass `googleEnabled` into `AuthForm`. The button —
+and the «یا با ایمیل» divider under it, which is itself a claim that there is
+an alternative — render only when the project really has the provider. Turn it
+on in the dashboard and the button appears on its own within five minutes.
+
+**Lesson.** Auth providers are configuration, not code, so a button for one is
+a claim about a system this repo cannot see. Every other "honesty in the UI"
+case here was a claim about a *row*; this is the same class one level up, and
+the same answer applies — ask the system, do not assume. When the answer is
+one public GET, there is no excuse for a static button.
+
+---
+
 ## Turborepo strips environment variables it does not know about
 
 **Symptom:** Variables set correctly on Vercel never reach the build. A warning
@@ -1576,7 +1637,10 @@ anyway.
 
 **Fix.** None applied yet. The app's own magic links are unaffected: they come
 from `signInWithOtp()` in the browser, which uses PKCE and does return a
-`code`. What does not work is the admin path — so today nobody can hand a user
+`code`. (Written 26 Aug when **nothing** in the codebase called
+`signInWithOtp` — it described the path the login form would take if it had
+one. The login form got one the same day; the sentence is true now, and was
+not when it was written.) What does not work is the admin path — so today nobody can hand a user
 a working sign-in link out of band, and no automated check can drive a signed-in
 page without a typed password.
 
@@ -1856,3 +1920,32 @@ for `imports@charana.ca` before asking what it returns for a person.
 
 Found 26 Aug 2026 while adding four columns to `/admin/users`, by running the
 query against the database instead of reading it.
+
+## A parity list is not a screen: the app sold a feature it did not have
+
+**Symptom.** The signed-out «حساب من» tab in the mobile app offered a free
+account for three reasons, the third being «ثبت نظر — به بقیه کمک کنید
+کسب‌وکار درست را پیدا کنند». There is no way to post a review in the app.
+
+**Cause.** `submitReview()` and `getMyReview()` were written into
+`apps/mobile/src/lib/interactions.ts` and never called from anywhere. The
+screen that would call them was not built. The only rating the app writes is
+`personal_rating`, which lives on the user's own interaction row and is shown
+only inside the private-note sheet — private by design, and not a review.
+Meanwhile the sales copy on the account tab had been written against the
+*intended* feature set.
+
+**Fix.** The card is now «باخبرم کن» (announcement mail), which the interaction
+bar really does on every business, and the subtitle above it lists saving,
+private notes and ratings, and announcement mail. The unused functions stay:
+they are the write path a future review screen needs, and removing them would
+hide that the screen is missing rather than record it.
+
+**Lesson.** The 24 Aug parity audit had «Reviews» on the "mobile has it" side
+and was not wrong — mobile *reads* reviews. Read and write are separate claims
+and a parity table with one row for a feature will hide the missing half. And
+the audit never opened the signed-out account screen, because a parity list
+directs you to features, not to screens. **When auditing parity, open the
+screens a signed-out visitor sees first** — that is where the promises live,
+and promises are the thing the house rule is about. Grepping for a function's
+definition proves nothing; grep for its *call sites*.

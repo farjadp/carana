@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
+  Bell,
   Bookmark,
   ChevronLeft,
   FileText,
@@ -87,14 +88,21 @@ export default function ProfileScreen() {
 
           <Text style={styles.guestTitle}>حساب کاربری</Text>
           <Text style={styles.guestSubtitle}>
-            با یک حساب رایگان می‌توانید کسب‌وکارها را ذخیره کنید، یادداشت خصوصی
-            بگذارید و تجربه‌تان را با بقیه به اشتراک بگذارید.
+            با یک حساب رایگان می‌توانید کسب‌وکارها را ذخیره کنید، یادداشت و
+            امتیاز خصوصی بگذارید و از اعلان‌هایشان باخبر شوید.
           </Text>
 
           <View style={styles.benefits}>
             <Benefit icon={<Bookmark size={18} color={colors.lajvard} />} title="ذخیره کسب‌وکارها" body="هر کسب‌وکاری را نشان کنید تا بعداً راحت پیدایش کنید." />
             <Benefit icon={<FileText size={18} color={colors.lajvard} />} title="یادداشت خصوصی" body="تجربه‌تان را بنویسید. فقط خودتان می‌بینید." />
-            <Benefit icon={<Shield size={18} color={colors.lajvard} />} title="ثبت نظر" body="به بقیه کمک کنید کسب‌وکار درست را پیدا کنند." />
+            {/* This said «ثبت نظر — به بقیه کمک کنید کسب‌وکار درست را پیدا
+                کنند» and the app has no public review writing: submitReview()
+                exists in lib/interactions.ts with zero call sites, and the
+                only rating here is `personal_rating`, which is private. It
+                was asking people to open an account for a feature that is
+                not in this binary. Replaced with «باخبرم کن», which is real
+                and sits in the interaction bar on every business. */}
+            <Benefit icon={<Bell size={18} color={colors.lajvard} />} title="باخبرم کن" body="وقتی کسب‌وکاری اعلان تازه‌ای می‌گذارد، به شما ایمیل می‌زنیم." />
           </View>
 
           <View style={styles.guestActions}>

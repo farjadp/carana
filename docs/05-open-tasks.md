@@ -1,5 +1,94 @@
 # Open tasks
 
+**Updated:** 2026-08-26 (later still) — **sign-in work**: magic-link login and
+«راه‌های تماس بیشتر» are built, and the Google button is now honest — **and
+Google is live**, enabled by Farjad the same evening. Two things still need a
+human and are listed in the next section. Everything below it is
+unchanged.
+
+## Sign-in: Google, magic link, extra contacts — built 26 Aug; Google is live, two steps left
+
+Built this session (`components/auth-form.tsx`, `lib/auth/providers.ts`,
+`app/profile/contacts-*.tsx`, `packages/core/src/contacts.ts`, migration
+`20260830470000_profile_contacts.sql`):
+
+- **Magic link.** `/auth/login` now has two methods — password, or a one-time
+  link mailed to the address. `signInWithOtp()` in the browser, so it is PKCE
+  and `/auth/callback` gets the `?code=` it reads. `shouldCreateUser: false`:
+  the login tab does not silently create accounts, and an address with no
+  account is told so. Resend is held 60 seconds.
+- **Google.** The button that had been rendering since 18 August was for a
+  provider that is **off** on this project — `/auth/v1/settings` answers
+  `external.google: false`, so every click returned "Unsupported provider".
+  It now renders only when the provider is really on. See the new
+  `06-gotchas` entry.
+- **Extra contacts.** Up to two more emails and two more phone numbers per
+  profile, next to the account email and `profiles.mobile_number` — three of
+  each. Contact details only: they cannot sign anyone in (Supabase Auth holds
+  one email per user) and nothing verifies them. The panel says both.
+
+**What Farjad has to do — 1 and 2 are done; only 3 is left:**
+
+1. ~~**Run `supabase/migrations/20260830470000_profile_contacts.sql`**~~ —
+   **done, 26 Aug (Farjad).** Round-tripped against the live database with a
+   disposable user: two extra emails accepted, the third refused by the
+   trigger (`profile_contacts cap reached for kind email`), a phone counted
+   separately, a row for someone else's `user_id` refused by RLS (`42501`),
+   `kind = 'fax'` refused by the check constraint, and deleting the user took
+   its rows with it. Then signed in as that user in a browser: the panel
+   renders, a phone typed as «۶۴۷۵۵۵۰۱۹۹» folded to ASCII *as it was typed*,
+   the save toasted and the row appeared with its label. **One bug found by
+   looking at it** — see below.
+   *(Original note, kept because it explains why this had to be pasted:* `pnpm db:push` still refuses on this project
+   (`LegacyDbPushMissingRemoteError` — two `20260830330000`/`340000`
+   duplicates sit before the last remote migration), and the CLI's own token
+   is not readable from this session. Until it runs, `/profile` simply does
+   not show the panel — the page reads the table separately and hides the
+   section when it is missing, which was verified against the live database
+   with a disposable signed-in user.)*
+2. ~~**Enable Google**~~ — **done, 26 Aug (Farjad).** OAuth client created in
+   the `Charana` Google Cloud project, consent screen published to
+   production, provider enabled in Supabase. Verified without signing in:
+   `external.google` is now `true`; the button appeared on `/auth/login`
+   about 20s later (the probe caches 5 min); and following
+   `/auth/v1/authorize?provider=google` all the way through lands on Google's
+   real sign-in page (HTTP 200, `/v3/signin/identifier`, "goplaza" named on
+   it) — no `redirect_uri_mismatch`, no `invalid_client`. The final token
+   exchange is the one step still unproven, because it needs a real Google
+   account. **One follow-up:** the client secret was pasted into a chat
+   transcript while setting this up — rotate it in Clients → Add secret,
+   swap it in Supabase, delete the old one.
+3. **The magic-link email template and redirect URLs.** Auth → Email
+   Templates → Magic Link: the Persian shell is already written in
+   `docs/02-engineering.md` («ورود به گوپلازا» / «ورود»). Auth → URL
+   Configuration: `https://goplaza.ca/auth/callback` must be in Redirect
+   URLs. Without the template the mail goes out in Supabase's English
+   default; without the URL the link bounces to `/auth/error`.
+
+**The bug the screenshot found.** The panel's header promised «تا ۳ ایمیل و ۳
+شماره» flat, and each list printed «{used} از ۳». But the extra rows are
+capped at two per kind, and the third slot is the profile's OWN value — the
+account email, or `profiles.mobile_number`. A user with no mobile number
+therefore reached «۲ از ۳» and was told in the same breath «به سقف رسیده‌ای».
+The count promised a slot the cap refused. Fixed: the denominator is now
+`(primary ? 1 : 0) + MAX_EXTRA_CONTACTS`, the header states the rule instead
+of the best case, and when the phone list has no primary it names the field
+further up the page that would earn the third slot. Nothing in the database
+changed — this was only ever a number on a screen, which is exactly the class
+the house rule is about, and typechecking could never have caught it.
+
+**Not verified, and honestly so:** no magic link has actually been sent. The
+unknown-address path was checked against the live auth API (422
+`otp_disabled`, mapped to a Persian sentence) and the Persian error was seen
+in the browser, but sending a real link needs a real inbox and would have
+meant mailing a working sign-in link to someone. On Google, the token exchange
+is likewise unproven — nobody has signed in with a real Google account.
+
+**Mobile has none of this.** `apps/mobile` still has password-only sign-in and
+no contacts panel. The validators and caps live in `@goplaza/core`
+(`contacts.ts`), so that gap is screens, not rules — the same shape as the
+three products already listed in the mobile section.
+
 **Updated:** 2026-08-26 (late) — the **channels directory** «کانال‌ها و
 گروه‌ها» is **built and live**; the migration turned out to be applied
 already. It now owns the home-page slot the «چرا گوپلازا؟» card grid held
@@ -15,11 +104,75 @@ below. Everything from 24 Aug follows unchanged.
 
 **Updated:** 2026-08-24 — gooyalisting.ca is **imported**; the directory
 nearly doubled (5,802 → 10,680) and the three follow-ups it left are the
-first section below. The mobile gap is **closed**, including one bug the audit
-did not predict. What is still open on mobile is owner controls and push,
-both long-standing.
+first section below. The mobile gap was **closed** on that date, including one
+bug the audit did not predict — but it **reopened by 26 Aug**; see the
+reopened section below. What has been open on mobile throughout is owner
+controls and push, both long-standing.
 
 The live board is Notion → 🧿 Charana → Mission Control; this is the narrative.
+
+## Standing phases 2 and 3 — BUILT 26 Aug, one migration outstanding
+
+Design and the phase-2 surprise: `docs/16`, section "Phases 2 and 3". Phase 2
+turned out to require building the contributor correction flow first, because
+`business_edit` had a rule and no emitter and «معتمد» had nothing to unlock.
+
+**The migration is applied** (Farjad, 26 Aug) and the full round-trip ran the
+same night against the real database with two disposable users and a
+disposable listing:
+
+- تازه‌وارد proposes → refused auto-publish (`level_too_low`), queued
+- admin applies → the listing's `working_hours` actually changed, ledger settled
+- three confirmed kinds → **معتمد, and the low-risk grant went through**: a
+  second correction wrote to the listing with `decided_by = null`
+- the audit list contains exactly that one row and no other
+- `phone` still refused as `field_not_low_risk`
+- rejection with an empty reason refused; a real rejection left the phone
+  unchanged and reversed the ledger (accuracy 0.8, one reversed)
+- a second open proposal on the same field refused by the partial unique index
+
+**All three admin pages have now been seen**, signed in as an admin:
+`/admin/corrections` (empty queue + the audit section), `/admin/standing`
+(**both probes green**, counts, switches off) and `/admin/loyalty` (amber
+money warning, the three-rung ladder, programme off).
+
+**Verified by running** (a disposable user, real functions, real database):
+level 0 → auto-publish refused `level_too_low`; three confirmed
+contributions across three kinds → معتمد and the low-risk grant went
+through; `phone` still refused as `field_not_low_risk`; one reversal took
+accuracy to 0.75 and the privilege vanished on the next read while
+`peak_level` stayed 2; programme off → `programme_disabled`. Badges counted
+the reversed contribution as zero. 13 more boundaries on `badgesFor` and the
+field gates with a throwaway script.
+
+**One bug found by seeing it:** the correction dialog was gated on
+`isOwnerOrAdmin` while the API refuses owners and nobody else — the UI and
+the API disagreed, and the feature was invisible to staff, who are the people
+most likely to go looking for it. Now gated on ownership alone (`fe2efea`).
+
+**The public explainer is live at `/standing`** (`7466a12`) — in the header's
+راهنما menu and the sitemap. It reads the point values from `standing_rules`
+and the thresholds from `site_settings`, so it cannot drift from the admin.
+Seen rendered: the "not active yet" banner, the live rules table, the four
+levels, badges, and the refusals list. The "my ledger" button appears only
+once `public_display` is on.
+
+**Your test values are what the public page prints.** The rules table
+currently reads 8 / 89 / 3 / 34 / 55 / 13 and the levels 377 / 987 xp with a
+2,584-day (~7 year) maintenance window — Fibonacci numbers, evidently typed
+to prove the admin form saves. That is fine while the programme is off and
+the banner says so, but they are the numbers the page will show the day it is
+turned on. Seeded defaults were 25/30/10/15/20/5, 100/500 xp, 180 days.
+
+**Still not seen:** `/profile/standing`. It 404s unless both switches are on,
+and turning `public_display` on is a product decision, not a test.
+
+**Live state worth knowing:** `user_standing` holds one row for
+`farjad@ashavid.ca` with `level_grant = 3` and the note «خودمم دیگه» — you
+granted yourself نگهبان from `/admin/standing`. Its `user_activity_logs`
+row exists, which incidentally verifies the amber path in the real app. With
+the programme off the grant unlocks nothing; `/admin/standing` still counts
+it under «نگهبان ۱», which is the true computed level.
 
 ## Owner loyalty (phase 4) — BUILT 26 Aug, switched off
 
@@ -485,7 +638,15 @@ Open questions worth a decision, not blockers:
   If real runs start getting skipped for overlap, the reason is in the ledger —
   raise it on evidence, not on impatience.
 
-## ~~Mobile is behind the web~~ — closed 24 Aug
+## Mobile is behind the web — closed 24 Aug, **reopened 26 Aug**
+
+**Reopened 26 Aug.** The close below was true for two days. Since then the
+channels directory, standing & loyalty and GPLZ Link all shipped on the web
+with nothing on native, and 59 web commits landed against 2 mobile ones. See
+the parity table in `04-mobile` (rewritten 26 Aug) for the full list. The
+lesson is the one already in `charana-mobile-lags-web`: this gap reopens by
+default every time the web ships, so "mobile is caught up" is a statement
+with an expiry date and needs a date attached whenever it is written.
 
 Everything below was the audit as written before the work. All five code gaps
 are fixed and APK **1.3.0** is built and linked (EAS `7efff12a`), with

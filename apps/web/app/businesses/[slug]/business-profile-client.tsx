@@ -23,8 +23,9 @@ import InteractionBar from "@/components/business/interaction-bar";
 import { PrivateNoteCard } from "@/components/business/private-note-card";
 import { VerificationBadge, VerificationDetail, faNumber } from "@/components/verification-badge";
 import { ViewCounter } from "@/components/business/view-counter";
+import { CorrectionDialog } from "@/components/business/correction-dialog";
 import { ReportDialog } from "@/components/business/report-dialog";
-import { StandingBadge } from "@/components/standing/standing-badge";
+import { StandingBadge, STANDING_MEANING_FA } from "@/components/standing/standing-badge";
 import { ShortLinkBox } from "@/components/business/short-link-box";
 import { trackEvent } from "@/lib/analytics/track";
 import { BrandMark } from "@/components/brand-mark";
@@ -34,7 +35,7 @@ import { PLANS } from "@/lib/billing/plans";
 import { activeBusyStatus } from "@/lib/business/live-status";
 import { replyToReview } from "@/lib/actions/interactions";
 import {
-  EMPLOYMENT_TYPE_LABELS_FA, OWNER_SECTION_NOTE, OWNER_SECTION_TITLE, PROVINCES,
+  EMPLOYMENT_TYPE_LABELS_FA, LEVEL_LABELS_FA, OWNER_SECTION_NOTE, OWNER_SECTION_TITLE, PROVINCES,
   WORKPLACE_TYPE_LABELS_FA, formatSalaryFa,
   type EmploymentType, type PublicOwner, type SalaryPeriod, type WorkplaceType,
   type StandingLevel,
@@ -153,6 +154,11 @@ export default function BusinessProfileClient({
   // review_replies is a Starter+ feature — entitlementsFor recomputes it
   // from plan/plan_until every render, same expiry rule as the server
   // action that actually writes the reply.
+  // Ownership alone, unlike isOwnerOrAdmin: staff are not owners.
+  const isOwner =
+    !!user &&
+    ((business as { owner_user_id?: string | null }).owner_user_id === user.id ||
+      (business as { created_by?: string | null }).created_by === user.id);
   const canReplyToReviews = isOwnerOrAdmin && entitlementsFor(business).has("review_replies");
   const ownerSeesUpsell = isOwnerOrAdmin && !canReplyToReviews;
   const busyStatus = activeBusyStatus(business);
@@ -579,8 +585,12 @@ export default function BusinessProfileClient({
                     </div>
                   )}
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-black text-[color:var(--text)]">
-                      {publicOwner.full_name}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="truncate text-sm font-black text-[color:var(--text)]">
+                        {publicOwner.full_name}
+                      </span>
+                      {/* Nothing below level 1, which is almost everybody. */}
+                      <StandingBadge level={(publicOwner.standing_level ?? 0) as StandingLevel} />
                     </div>
                     {publicOwner.member_since ? (
                       <div className="text-[11px] text-[color:var(--muted-text)]">
@@ -593,6 +603,17 @@ export default function BusinessProfileClient({
                   <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-[color:var(--muted-text)]">
                     <BadgeCheck size={13} className="mt-px shrink-0 text-[color:var(--annabi)]" />
                     {OWNER_SECTION_NOTE[verification.method]}
+                  </p>
+                ) : null}
+                {/* The level in a sentence, and deliberately never the score:
+                    a visitor cannot judge «۴۲۰ امتیاز», they can judge
+                    «معتمد». Absent below level 1, like the badge — the two are
+                    driven by the same number so they cannot disagree. */}
+                {(publicOwner.standing_level ?? 0) >= 1 ? (
+                  <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-relaxed text-[color:var(--muted-text)]">
+                    <Sparkles size={13} className="mt-px shrink-0 text-[color:var(--muted-text)]" />
+                    در گوپلازا سطح «{LEVEL_LABELS_FA[(publicOwner.standing_level ?? 0) as StandingLevel]}» دارد —{" "}
+                    {STANDING_MEANING_FA[(publicOwner.standing_level ?? 0) as StandingLevel]}
                   </p>
                 ) : null}
               </Section>
@@ -630,7 +651,20 @@ export default function BusinessProfileClient({
                 {business.ref_no ? <p className="text-[11px] text-[color:var(--muted-text)]">در تماس با پشتیبانی یا احراز مالکیت، این شماره را بگویید.</p> : null}
                 {/* A real report: posts to /api/reports and lands in the admin
                     queue. The old button raised a toast and wrote nothing. */}
-                <div className="pt-3 mt-1 border-t border-[color:var(--line)]">
+                <div className="pt-3 mt-1 border-t border-[color:var(--line)] space-y-3">
+                  {/* Propose a VALUE, not a complaint. The report dialog below
+                      takes prose an admin has to retype; this takes the correct
+                      value, which is what makes the contribution checkable —
+                      and checkable is the whole basis of «اعتبار مشارکت».
+                      Hidden from the OWNER only, not from staff: the API
+                      refuses owners and nobody else, and an admin viewing a
+                      listing they do not own is an ordinary contributor there.
+                      Gating this on isOwnerOrAdmin (as it first did) made the
+                      UI and the API disagree — and hid the whole feature from
+                      the one person most likely to look for it. */}
+                  {!isOwner ? (
+                    <CorrectionDialog businessId={business.id} signedIn={!!user} />
+                  ) : null}
                   <ReportDialog subject={{ kind: "business", id: business.id, name: business.name }} />
                 </div>
               </div>

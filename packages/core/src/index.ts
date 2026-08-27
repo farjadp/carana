@@ -83,3 +83,8 @@ export * from "./standing";
 // «وفاداری مالک»: tenure derived from paid periods, the discount ladder, and
 // the capacity bump — which is zero on plans that are already unlimited.
 export * from "./loyalty";
+
+// «راه‌های تماس بیشتر»: the up-to-two extra emails and phone numbers a
+// profile may carry, with the one rule for what may be stored. Shared because
+// the cap and the digit fold must not differ between the site and the app.
+export * from "./contacts";
