@@ -6,11 +6,13 @@
 // ============================================================================
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, MapPin, Phone, Mail, Globe, CheckCircle2, XCircle, Clock, Info, User, ShieldAlert } from "lucide-react";
+import { ArrowRight, MapPin, Phone, Mail, Globe, CheckCircle2, XCircle, Clock, Info, User, ShieldAlert, ShieldCheck } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { updateBusinessStatus } from "../actions";
+import { OwnershipPanel } from "./ownership-panel";
+import { getVerificationStatus, isTrusted } from "@/lib/verification/status";
 
 interface ReviewBusinessPageProps {
   params: Promise<{ id: string }>;
@@ -34,6 +36,20 @@ export default async function ReviewBusinessPage({ params }: ReviewBusinessPageP
   }
 
   const profile = Array.isArray(business.profiles) ? business.profiles[0] : business.profiles;
+
+  // `created_by` is who typed the listing in — for an imported row that is the
+  // imports account, not a person who runs the business. `owner_user_id` is
+  // who owns it. This page showed only the first and called it «اطلاعات
+  // سازنده», which is accurate but was the only ownership fact on the screen.
+  const { data: ownerProfile } = business.owner_user_id
+    ? await supabase
+        .from("profiles")
+        .select("id, email, full_name")
+        .eq("id", business.owner_user_id)
+        .maybeSingle()
+    : { data: null };
+
+  const verified = isTrusted(getVerificationStatus(business as never));
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleString("fa-IR", {
@@ -168,6 +184,20 @@ export default async function ReviewBusinessPage({ params }: ReviewBusinessPageP
 
         {/* Sidebar */}
         <div className="md:col-span-1 space-y-6">
+          <Card className="admin-panel-card">
+            <div className="panel-header px-6 pt-6 flex items-center gap-2 border-b border-[color:var(--line)] pb-4">
+              <ShieldCheck size={18} className="text-[color:var(--annabi)]" />
+              <h2 className="text-lg font-bold">مالکیت</h2>
+            </div>
+            <CardContent className="pt-6">
+              <OwnershipPanel
+                businessId={business.id}
+                currentOwner={ownerProfile as { id: string; email: string | null; full_name: string | null } | null}
+                verified={verified}
+              />
+            </CardContent>
+          </Card>
+
           <Card className="admin-panel-card">
             <div className="panel-header px-6 pt-6 flex items-center gap-2 border-b border-[color:var(--line)] pb-4">
               <User size={18} className="text-[color:var(--lajvard)]" />
