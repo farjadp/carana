@@ -15,6 +15,7 @@ import BusinessEditForm from "./edit-form";
 import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { getVerificationStatus, isTrusted } from "@/lib/verification/status";
 import { ownerProfileId } from "@goplaza/core";
+import { syncEmailVerifiedFromAuth } from "@/lib/profiles/sync-email-verified";
 
 export const metadata: Metadata = {
   title: "ویرایش کسب‌وکار",
@@ -31,6 +32,10 @@ export default async function BusinessEditPage({ params }: EditPageProps) {
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
+    // Same reconciliation as /dashboard/business/new: a confirmed address must
+    // not be asked to prove itself again before an edit.
+    await syncEmailVerifiedFromAuth(user);
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("phone_verified_at, email_verified_at")

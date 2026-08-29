@@ -12,6 +12,7 @@ import { PageShell } from "@/components/page-shell";
 import { ShieldCheck, Sparkles, Building2, CheckCircle2, HelpCircle, PhoneCall } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { syncEmailVerifiedFromAuth } from "@/lib/profiles/sync-email-verified";
 
 export const metadata: Metadata = {
   title: "ثبت کسب‌وکار جدید",
@@ -28,6 +29,11 @@ export default async function NewBusinessPage({
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
+
+  // Before judging the gate: if Supabase has confirmed this address and the
+  // profile has not caught up, catch it up. Otherwise the person is sent to
+  // verify an address they already proved by clicking the link we mailed them.
+  await syncEmailVerifiedFromAuth(user);
 
   const { data: profile } = await supabase
     .from("profiles")

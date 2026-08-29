@@ -17,6 +17,7 @@ import { calculateBusinessProfileProgress } from "@/lib/utils/progress";
 import { Progress } from "@/components/ui/progress";
 import { VerificationRenewalBanner } from "@/components/verification-renewal-banner";
 import { BusyStatusToggle } from "@/components/business/busy-status-toggle";
+import { syncEmailVerifiedFromAuth } from "@/lib/profiles/sync-email-verified";
 
 export const metadata: Metadata = {
   title: "پنل صاحب کسب‌وکار",
@@ -36,6 +37,10 @@ const getStatusBadge = (status: string) => {
 export default async function BusinessDashboardPage() {
   const user = await requireUser("/dashboard/business");
   const supabase = await createSupabaseServerClient();
+
+  // Reconcile before reading `contactVerified` below, or the card offers the
+  // "verify your email first" link to someone whose email is already verified.
+  await syncEmailVerifiedFromAuth(user);
 
   // Both routes to ownership. `created_by` covers listings this account built
   // through onboarding; `owner_user_id` covers ones it claimed, where the row

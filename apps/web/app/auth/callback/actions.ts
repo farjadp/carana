@@ -14,6 +14,7 @@
 import { headers } from "next/headers";
 
 import { createSupabaseActionClient } from "@/lib/supabase/server";
+import { syncEmailVerifiedFromAuth } from "@/lib/profiles/sync-email-verified";
 
 type Result = { ok: true } | { ok: false; code: string; reason?: string };
 
@@ -34,6 +35,9 @@ export async function completeCodeExchange(code: string): Promise<Result> {
     };
   }
 
+  // Supabase has just confirmed this address; the profile column that gates
+  // business registration has to hear about it.
+  await syncEmailVerifiedFromAuth(data.user);
   await recordLogin(data.user?.id, "code_exchange");
   return { ok: true };
 }
@@ -46,7 +50,10 @@ export async function completeCodeExchange(code: string): Promise<Result> {
  * within the same request cycle and can log the sign-in.
  */
 export async function recordFragmentLogin(userId: string | null) {
-  await recordLogin(userId, "fragment");
+  const supabase = await createSupabaseActionClient();
+  const { data } = await supabase.auth.getUser();
+  await syncEmailVerifiedFromAuth(data.user);
+  await recordLogin(userId ?? data.user?.id ?? null, "fragment");
 }
 
 async function recordLogin(userId: string | null | undefined, method: string) {
