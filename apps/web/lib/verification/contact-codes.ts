@@ -21,7 +21,15 @@ export const MAX_ATTEMPTS = 5;
 export const RESEND_COOLDOWN_SECONDS = 60;
 
 export type ContactType = "email" | "phone";
-export type CodeResult = { success: true; message?: string; error?: undefined } | { success: false; error: string; message?: undefined };
+export type CodeResult =
+  | { success: true; message?: string; error?: undefined; needsMobile?: undefined }
+  | {
+      success: false;
+      error: string;
+      message?: undefined;
+      /** The caller should show a field to enter a mobile number, not just the error. */
+      needsMobile?: boolean;
+    };
 
 function hashCode(code: string) {
   return createHash("sha256").update(code).digest("hex");
@@ -95,6 +103,39 @@ export async function issueContactCode(
     }
   }
 
+  // ── Everything that can refuse, before anything is written ──────────────
+  //
+  // These checks used to sit AFTER the code row was inserted, which meant a
+  // request that sent nothing still started the 60-second cooldown: the next
+  // attempt was told to wait for a code that had never been sent. Three real
+  // users hit exactly that between 5 and 7 Shahrivar — a
+  // `no_mobile_on_profile` row followed by a `cooldown` row a minute later.
+  let destination: string | null = null;
+
+  if (type === "email") {
+    if (!email) {
+      reportCodeFailure(userId, type, "no_email_on_account");
+      return { success: false, error: "ایمیلی برای این حساب ثبت نشده است." };
+    }
+    destination = email;
+  } else {
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("mobile_number")
+      .eq("id", userId)
+      .maybeSingle();
+    const mobile = profile?.mobile_number?.trim();
+    if (!mobile) {
+      reportCodeFailure(userId, type, "no_mobile_on_profile");
+      return {
+        success: false,
+        error: "هنوز شماره موبایلی ثبت نکرده‌ای. شماره‌ات را در همین صفحه وارد کن تا کد را بفرستیم.",
+        needsMobile: true,
+      };
+    }
+    destination = mobile;
+  }
+
   const code = randomInt(0, 1_000_000).toString().padStart(6, "0");
   const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60_000);
 
@@ -113,12 +154,8 @@ export async function issueContactCode(
   }
 
   if (type === "email") {
-    if (!email) {
-      reportCodeFailure(userId, type, "no_email_on_account");
-      return { success: false, error: "ایمیلی برای این حساب ثبت نشده است." };
-    }
     const { subject, html, text } = verificationCodeEmail(code);
-    const result = await sendEmail({ to: email, subject, html, text });
+    const result = await sendEmail({ to: destination!, subject, html, text });
     if (!result.sent && process.env.NODE_ENV === "production") {
       reportCodeFailure(userId, type, `send_failed: ${result.error ?? "unknown"}`, email);
       return { success: false, error: "ارسال ایمیل انجام نشد. دوباره تلاش کنید." };
@@ -126,19 +163,8 @@ export async function issueContactCode(
     return { success: true, message: "کد تایید به ایمیل شما ارسال شد." };
   }
 
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("mobile_number")
-    .eq("id", userId)
-    .maybeSingle();
-  const mobile = profile?.mobile_number?.trim();
-  if (!mobile) {
-    reportCodeFailure(userId, type, "no_mobile_on_profile");
-    return { success: false, error: "ابتدا شماره موبایل خود را در پروفایل ثبت کنید." };
-  }
-
   const result = await sendSms(
-    mobile,
+    destination!,
     `کد تایید پلازا: ${code}\n\nاین کد تا ۱۵ دقیقه معتبر است. آن را با کسی به اشتراک نگذارید.`
   );
   if (!result.sent) {
