@@ -38,11 +38,14 @@ export function BusinessCard({
   business,
   showViews = false,
   categoryLabel,
+  className = "",
 }: {
   business: BusinessCardData;
   showViews?: boolean;
   /** Human label for business.category; falls back to the raw slug. */
   categoryLabel?: string | null;
+  /** For a rail, where every card in the row has to be the same height. */
+  className?: string;
 }) {
   const status = getVerificationStatus(business);
   // Recomputed here, not read off `business.plan` directly — a late downgrade
@@ -60,7 +63,7 @@ export function BusinessCard({
     // wastes the largest tap target on the screen, which matters most on mobile.
     <Link
       href={href}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-[rgba(20,33,61,0.10)] bg-white transition hover:-translate-y-0.5 hover:border-[#7A1831]/30 hover:shadow-lg"
+      className={`group flex flex-col overflow-hidden rounded-2xl border border-[rgba(20,33,61,0.10)] bg-white transition hover:-translate-y-0.5 hover:border-[#7A1831]/30 hover:shadow-lg ${className}`}
     >
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-4 flex items-start gap-3">

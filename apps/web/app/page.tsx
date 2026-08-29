@@ -46,6 +46,7 @@ import { plansWith } from "@goplaza/core";
 import { getDirectoryStats } from "@/lib/data/directory-stats";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BusinessCard } from "@/components/business/business-card";
+import { Rail } from "@/components/ui/rail";
 import { HomeHero } from "@/components/home-hero";
 import { SuggestionBox } from "@/components/suggestion-box";
 import { HomeLatestPosts } from "@/components/blog/latest-posts";
@@ -268,14 +269,27 @@ export default async function HomePage() {
               <div className="mb-8 flex items-end justify-between gap-4">
                 <SectionHead title="جدیدترین کسب‌وکارها" subtitle="تازه‌ترین کسب‌وکارهایی که در پلازا منتشر شده‌اند" bare />
                 <Button asChild variant="ghost" className="hidden shrink-0 text-[color:var(--lajvard)] sm:inline-flex">
-                  <Link href="/businesses">مشاهده همه <ArrowLeft className="mr-1 h-4 w-4" /></Link>
+                  <Link href="/businesses?sort=new">مشاهده همه <ArrowLeft className="mr-1 h-4 w-4" /></Link>
                 </Button>
               </div>
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {/* One scrolling row instead of a two-row grid. Six cards in a
+                  3-column grid is two rows ≈ 740px, and this section plus the
+                  one below it were 1,500px of the home page's 8,554. */}
+              <Rail prevLabel="کسب‌وکارهای قبلی" nextLabel="کسب‌وکارهای بیشتر">
                 {latestBusinesses.map((biz) => (
-                  <BusinessCard key={biz.id} business={biz} categoryLabel={catLabel.get(biz.category)} />
+                  <div key={biz.id} className="w-[78vw] shrink-0 snap-start sm:w-[340px] lg:w-[300px]">
+                    <BusinessCard business={biz} categoryLabel={catLabel.get(biz.category)} className="h-full" />
+                  </div>
                 ))}
-              </div>
+              </Rail>
+              {/* The arrows are desktop-only and the rail is not obviously
+                  scrollable on a phone, so the way in is a link, not a hint. */}
+              <Link
+                href="/businesses?sort=new"
+                className="mt-6 inline-flex h-11 items-center gap-2 rounded-full border border-[color:var(--line)] bg-white px-5 text-sm font-bold text-[color:var(--text)] transition hover:border-[color:var(--annabi)]/40 sm:hidden"
+              >
+                همه‌ی کسب‌وکارها <ArrowLeft className="h-4 w-4" />
+              </Link>
             </div>
           </section>
         )}
@@ -285,12 +299,25 @@ export default async function HomePage() {
         {popularBusinesses.length > 0 && (
           <section className="border-t border-gray-100 bg-gray-50/70 px-4 py-16">
             <div className="mx-auto max-w-7xl">
-              <SectionHead title="پربازدیدترین کسب‌وکارها" subtitle="بیشترین بازدید در پلازا" />
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {popularBusinesses.map((biz) => (
-                  <BusinessCard key={biz.id} business={biz} showViews categoryLabel={catLabel.get(biz.category)} />
-                ))}
+              <div className="mb-8 flex items-end justify-between gap-4">
+                <SectionHead title="پربازدیدترین کسب‌وکارها" subtitle="بیشترین بازدید در پلازا" bare />
+                <Button asChild variant="ghost" className="hidden shrink-0 text-[color:var(--lajvard)] sm:inline-flex">
+                  <Link href="/businesses?sort=views">مشاهده همه <ArrowLeft className="mr-1 h-4 w-4" /></Link>
+                </Button>
               </div>
+              <Rail prevLabel="کسب‌وکارهای قبلی" nextLabel="کسب‌وکارهای بیشتر">
+                {popularBusinesses.map((biz) => (
+                  <div key={biz.id} className="w-[78vw] shrink-0 snap-start sm:w-[340px] lg:w-[300px]">
+                    <BusinessCard business={biz} showViews categoryLabel={catLabel.get(biz.category)} className="h-full" />
+                  </div>
+                ))}
+              </Rail>
+              <Link
+                href="/businesses?sort=views"
+                className="mt-6 inline-flex h-11 items-center gap-2 rounded-full border border-[color:var(--line)] bg-white px-5 text-sm font-bold text-[color:var(--text)] transition hover:border-[color:var(--annabi)]/40 sm:hidden"
+              >
+                همه‌ی کسب‌وکارها <ArrowLeft className="h-4 w-4" />
+              </Link>
             </div>
           </section>
         )}
