@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ایرانیان کانادا در اعداد</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --blue:#0047AB;
+    --blue-soft:#3D77C9;
+    --navy:#14213D;
+    --burgundy:#7A1831;
+    --gold:#C9A24B;
+
+    --bg:#F6F1E8;
+    --surface:#FFFCF6;
+    --surface-2:#FDF9F1;
+    --ink:#14213D;
+    --ink-muted:#5F6472;
+    --ink-faint:#8A8F9C;
+    --line:#E2DACB;
+    --line-strong:#CFC5B2;
+    --grid:#EAE3D6;
+    --accent:var(--blue);
+    --warn:#8F4A10;
+    --good:#126963;
+
+    --f:"Vazirmatn",-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif;
+    --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --maxw:1000px;
+    --r:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --blue:#6FA0F0; --blue-soft:#4C7BC4; --navy:#EDE7DA; --burgundy:#D9748C; --gold:#D9B871;
+      --bg:#0E1524; --surface:#151E31; --surface-2:#1A2438;
+      --ink:#EDE7DA; --ink-muted:#A2A9BA; --ink-faint:#798091;
+      --line:#27324A; --line-strong:#3A4762; --grid:#222D44;
+      --accent:#6FA0F0; --warn:#D9A05B; --good:#5CBFAF;
+    }
+  }
+  :root[data-theme="dark"]{
+    --blue:#6FA0F0; --blue-soft:#4C7BC4; --navy:#EDE7DA; --burgundy:#D9748C; --gold:#D9B871;
+    --bg:#0E1524; --surface:#151E31; --surface-2:#1A2438;
+    --ink:#EDE7DA; --ink-muted:#A2A9BA; --ink-faint:#798091;
+    --line:#27324A; --line-strong:#3A4762; --grid:#222D44;
+    --accent:#6FA0F0; --warn:#D9A05B; --good:#5CBFAF;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;direction:rtl;background:var(--bg);color:var(--ink);
+    font-family:var(--f);font-size:15px;line-height:1.95;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px 90px}
+  section{padding-top:54px}
+  h1,h2,h3{margin:0;text-wrap:balance}
+  h2{font-weight:700;font-size:25px;line-height:1.6;margin:6px 0 10px}
+  h3{font-weight:700;font-size:15px;line-height:1.7}
+  p{margin:0 0 14px}
+  .lede{color:var(--ink-muted);max-width:64ch;margin:0}
+  .eyebrow{font-size:12px;font-weight:600;color:var(--ink-faint);letter-spacing:.02em}
+  a{color:var(--accent)}
+  .num{font-variant-numeric:tabular-nums}
+
+  header.mast{border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--surface),var(--bg))}
+  .mast-inner{max-width:var(--maxw);margin:0 auto;padding:46px 24px 34px}
+  .mast h1{font-weight:800;font-size:clamp(28px,4.6vw,44px);line-height:1.45;letter-spacing:-.02em;margin:12px 0 16px}
+  .mast .lede{font-size:16.5px;max-width:60ch}
+
+  /* hero pair */
+  .heropair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px}
+  .hero{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:22px;position:relative;overflow:hidden;
+  }
+  .hero::before{content:"";position:absolute;inset:0 0 0 auto;width:3px;background:var(--tone,var(--blue))}
+  .hero .k{font-size:12.5px;color:var(--ink-muted);font-weight:500}
+  .hero .v{font-size:40px;font-weight:800;line-height:1.25;margin-top:8px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .hero .u{font-size:12.5px;color:var(--ink-faint);margin-top:2px}
+  .hero .d{font-size:12.5px;color:var(--ink-muted);margin-top:14px;padding-top:12px;border-top:1px solid var(--line);line-height:1.85}
+  .h-b{--tone:var(--blue)} .h-g{--tone:var(--gold)}
+
+  /* charts */
+  .fig{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin-top:20px}
+  .fig .cap{font-size:13px;font-weight:700;margin-bottom:2px}
+  .fig .sub{font-size:12.5px;color:var(--ink-faint);margin-bottom:18px;line-height:1.8}
+  .fig .foot{font-size:12px;color:var(--ink-faint);margin-top:16px;padding-top:12px;border-top:1px solid var(--line);line-height:1.85}
+
+  .rows{display:flex;flex-direction:column;gap:10px}
+  .row{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center}
+  .row .rl{font-size:13px;color:var(--ink-muted);text-align:left;font-weight:500}
+  .track{display:flex;align-items:center;gap:10px;min-width:0}
+  .fill{
+    height:26px;border-radius:0 4px 4px 0;background:var(--c,var(--blue));min-width:3px;
+    transition:width .5s cubic-bezier(.4,0,.2,1);cursor:default;
+  }
+  .row:hover .fill{filter:brightness(1.08)}
+  .rv{font-size:13px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .rv small{font-weight:400;color:var(--ink-faint);font-size:12px}
+
+  /* paired bars */
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .col{display:flex;flex-direction:column;gap:8px}
+  .colhead{font-size:12.5px;font-weight:600;color:var(--ink-muted);display:flex;align-items:center;gap:7px}
+  .swatch{width:11px;height:11px;border-radius:3px;background:var(--c);flex:0 0 auto}
+  .vbars{display:flex;align-items:flex-end;gap:12px;height:150px;border-bottom:1px solid var(--line-strong);padding-bottom:0}
+  .vbar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:7px;height:100%}
+  .vbar .b{width:100%;background:var(--c,var(--blue));border-radius:4px 4px 0 0;min-height:3px}
+  .vbar .t{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums}
+  .vlabels{display:flex;gap:12px;margin-top:8px}
+  .vlabels span{flex:1;text-align:center;font-size:12px;color:var(--ink-faint)}
+
+  .legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-bottom:16px;font-size:12.5px;color:var(--ink-muted)}
+  .legend .li{display:flex;align-items:center;gap:7px}
+
+  /* callouts */
+  .call{border-right:3px solid var(--warn);background:var(--surface);padding:16px 20px;border-radius:var(--r) 0 0 var(--r);margin-top:20px}
+  .call.blue{border-right-color:var(--blue)}
+  .call.bad{border-right-color:var(--burgundy)}
+  .call h3{margin-bottom:6px}
+  .call p:last-child{margin-bottom:0}
+  .call p{font-size:14px;color:var(--ink-muted)}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+  .card h3{margin-bottom:6px}
+  .card p{font-size:13px;color:var(--ink-muted);margin:0;line-height:1.9}
+  .tagline{font-size:11.5px;font-weight:700;display:block;margin-bottom:7px}
+  .t-src{color:var(--blue)} .t-drv{color:var(--warn)} .t-ext{color:var(--good)}
+
+  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);margin-top:20px}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px}
+  th,td{padding:11px 16px;text-align:right;border-bottom:1px solid var(--line);line-height:1.85}
+  thead th{font-size:12px;color:var(--ink-faint);font-weight:600;background:var(--surface-2);white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  ol.sources{font-size:13px;color:var(--ink-muted);padding-right:20px;padding-left:0;margin:14px 0 0}
+  ol.sources li{margin-bottom:9px;line-height:1.9}
+  footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-faint);line-height:1.95}
+
+  @media (max-width:760px){
+    .heropair,.pair,.grid2{grid-template-columns:1fr}
+    .row{grid-template-columns:92px 1fr;gap:10px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="mast-inner">
+    <div class="eyebrow">تحلیل داده · بر پایه‌ی canadaimmigrants.com و سرشماری کانادا · ۷ شهریور ۱۴۰۵</div>
+    <h1>ایرانیان کانادا در اعداد</h1>
+    <p class="lede">صفحه‌ی منبع شش عدد دارد. این‌جا آن شش عدد را می‌بینی، به‌علاوه‌ی چیزی که خودِ آن صفحه نگفته: این اعداد وقتی کنار هم گذاشته شوند چه چیزی را نشان می‌دهند و کجا باید با احتیاط خوانده شوند.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section id="two-numbers">
+  <div class="eyebrow">اول از همه</div>
+  <h2>دو عدد که مدام با هم اشتباه گرفته می‌شوند</h2>
+  <p class="lede">وقتی می‌پرسی «چند ایرانی در کانادا هست؟» دو جواب درست وجود دارد و اختلافشان تقریباً صد هزار نفر است. هر تحلیلی که این دو را قاطی کند، از همان اول غلط است.</p>
+
+  <div class="heropair">
+    <div class="hero h-b">
+      <div class="k">متولدان ایران، ساکن کانادا</div>
+      <div class="v num">۱۸۲٬۹۴۰</div>
+      <div class="u">سرشماری ۲۰۲۱ · بر پایه‌ی محل تولد</div>
+      <div class="d">یعنی کسی که خودش از ایران آمده. فرزند متولد کانادا در این عدد نیست. این عددی است که صفحه‌ی منبع گزارش می‌کند.</div>
+    </div>
+    <div class="hero h-g">
+      <div class="k">دارای تبار ایرانی</div>
+      <div class="v num">۲۸۰٬۸۰۵</div>
+      <div class="u">سرشماری ۲۰۲۱ · بر پایه‌ی تبار قومی یا فرهنگی</div>
+      <div class="d">نسل دوم و سوم را هم می‌شمارد. برای بازار مصرف فارسی‌زبان این عدد مرتبط‌تر است، اما زبان فارسی همه‌شان تضمین‌شده نیست.</div>
+    </div>
+  </div>
+
+  <div class="call blue">
+    <h3>کدام را کجا استفاده کن</h3>
+    <p>برای بازار کسب‌وکار (چند نفر ممکن است صاحب کسب‌وکار باشند) عدد تبار، یعنی ۲۸۰٬۸۰۵، پایه‌ی درست‌تری است — چون نسل دوم هم کسب‌وکار می‌سازد. برای برآورد مخاطبِ محتوای فارسی، عدد متولدان ایران، یعنی ۱۸۲٬۹۴۰، محافظه‌کارانه‌تر و امن‌تر است. فاصله‌ی این دو ۹۷٬۸۶۵ نفر است — یعنی ۳۵٪ اختلاف.</p>
+  </div>
+</section>
+
+<section id="growth">
+  <div class="eyebrow">رشد جمعیت</div>
+  <h2>پنج سال، ۲۸٬۵۱۵ نفر بیشتر</h2>
+  <p class="lede">تنها روند زمانی‌ای که صفحه‌ی منبع می‌دهد: مقایسه‌ی دو سرشماری متوالی روی مبنای محل تولد.</p>
+
+  <div class="fig">
+    <div class="cap">جمعیت متولد ایران ساکن کانادا</div>
+    <div class="sub">سرشماری ۲۰۱۶ در برابر سرشماری ۲۰۲۱ · نفر</div>
+    <div class="rows">
+      <div class="row">
+        <div class="rl">سرشماری ۲۰۱۶</div>
+        <div class="track"><div class="fill" style="width:84.4%;--c:var(--blue-soft)"></div><span class="rv num">۱۵۴٬۴۲۵</span></div>
+      </div>
+      <div class="row">
+        <div class="rl">سرشماری ۲۰۲۱</div>
+        <div class="track"><div class="fill" style="width:100%;--c:var(--blue)"></div><span class="rv num">۱۸۲٬۹۴۰ <small>‎+۱۸٫۵٪</small></span></div>
+      </div>
+    </div>
+    <div class="foot">رشد خالص در پنج سال: ۲۸٬۵۱۵ نفر، یعنی حدود ۵٬۷۰۳ نفر در سال. این عدد را به خاطر بسپار — در بخش بعد به آن برمی‌گردیم، چون با آمار پذیرش نمی‌خواند.</div>
+  </div>
+</section>
+
+<section id="admissions">
+  <div class="eyebrow">پذیرش اقامت دائم</div>
+  <h2>سال ۲۰۲۵ ریزش کرد — اما بیشتر از آنچه منبع می‌گوید</h2>
+  <p class="lede">صفحه‌ی منبع می‌گوید ۲۰۲۵ نسبت به میانگین پنج‌ساله ۳۳٫۳٪ افت کرده. این عدد درست است ولی گمراه‌کننده، چون آن «میانگین پنج‌ساله» خودِ سال ۲۰۲۵ ضعیف را هم در خودش دارد.</p>
+
+  <div class="fig">
+    <div class="cap">پذیرش اقامت دائم شهروندان ایرانی</div>
+    <div class="sub">دو خوانش از یک داده‌ی واحد · نفر در سال</div>
+    <div class="legend">
+      <span class="li"><span class="swatch" style="--c:var(--blue)"></span> میانگین سال‌های پیش از ۲۰۲۵ (محاسبه‌شده)</span>
+      <span class="li"><span class="swatch" style="--c:var(--burgundy)"></span> سال ۲۰۲۵ (اعلام‌شده)</span>
+    </div>
+    <div class="pair">
+      <div class="col">
+        <div class="colhead">خوانشِ منبع</div>
+        <div class="vbars">
+          <div class="vbar"><span class="t num">۱۱٬۰۹۹</span><div class="b" style="height:100%;--c:var(--blue)"></div></div>
+          <div class="vbar"><span class="t num">۷٬۴۳۵</span><div class="b" style="height:67%;--c:var(--burgundy)"></div></div>
+        </div>
+        <div class="vlabels"><span>میانگین ۵ ساله</span><span>سال ۲۰۲۵</span></div>
+        <p style="font-size:12.5px;color:var(--ink-muted);margin:10px 0 0">افت ۳۳٫۳٪ — اما مخرج کسر شامل خود ۲۰۲۵ است.</p>
+      </div>
+      <div class="col">
+        <div class="colhead">خوانشِ دقیق‌تر</div>
+        <div class="vbars">
+          <div class="vbar"><span class="t num">۱۲٬۰۱۵</span><div class="b" style="height:100%;--c:var(--blue)"></div></div>
+          <div class="vbar"><span class="t num">۷٬۴۳۵</span><div class="b" style="height:62%;--c:var(--burgundy)"></div></div>
+        </div>
+        <div class="vlabels"><span>میانگین ۴ سال قبل</span><span>سال ۲۰۲۵</span></div>
+        <p style="font-size:12.5px;color:var(--ink-muted);margin:10px 0 0">افت واقعی <b>۳۸٫۱٪</b> — نسبت به سال‌هایی که ۲۰۲۵ باید با آن‌ها مقایسه شود.</p>
+      </div>
+    </div>
+    <div class="foot">محاسبه: مجموع ۲۰۲۰ تا ۲۰۲۵ برابر ۵۵٬۴۹۵ نفر است. اگر ۷٬۴۳۵ نفرِ سال ۲۰۲۵ را کم کنیم، ۴۸٬۰۶۰ نفر برای چهار سال باقی می‌ماند، یعنی میانگین ۱۲٬۰۱۵ نفر در سال. مقایسه‌ی سال ضعیف با میانگینی که خودش را هم شامل می‌شود، همیشه شدت افت را کمتر نشان می‌دهد.</div>
+  </div>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>سنجه</th><th class="n">مقدار</th><th>وضعیت</th></tr></thead>
+      <tbody>
+        <tr><td>مجموع پذیرش ۲۰۲۰ تا ۲۰۲۵</td><td class="n">۵۵٬۴۹۵</td><td>عدد منبع</td></tr>
+        <tr><td>پذیرش سال ۲۰۲۵</td><td class="n">۷٬۴۳۵</td><td>عدد منبع</td></tr>
+        <tr><td>سهم ایران از کل پذیرش کانادا در ۲۰۲۵</td><td class="n">۱٫۹٪</td><td>عدد منبع</td></tr>
+        <tr><td>مجموع چهار سال پیش از ۲۰۲۵</td><td class="n">۴۸٬۰۶۰</td><td>محاسبه‌شده</td></tr>
+        <tr><td>میانگین سالانه‌ی آن چهار سال</td><td class="n">۱۲٬۰۱۵</td><td>محاسبه‌شده</td></tr>
+        <tr><td>افت واقعی سال ۲۰۲۵</td><td class="n">۳۸٫۱٪−</td><td>محاسبه‌شده</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="gap">
+  <div class="eyebrow">تناقضی که باید ببینی</div>
+  <h2>پذیرش دو برابر رشد جمعیت است</h2>
+  <p class="lede">این مهم‌ترین چیزی است که از کنار هم گذاشتن دو بخش قبل بیرون می‌آید، و در هیچ‌کدام از منابع به آن اشاره نشده.</p>
+
+  <div class="fig">
+    <div class="cap">پذیرش سالانه در برابر رشد سالانه‌ی جمعیت شمرده‌شده</div>
+    <div class="sub">دوره‌ی بین دو سرشماری · نفر در سال</div>
+    <div class="rows">
+      <div class="row">
+        <div class="rl">پذیرش سالانه</div>
+        <div class="track"><div class="fill" style="width:100%;--c:var(--blue)"></div><span class="rv num">حدود ۱۱٬۰۰۰</span></div>
+      </div>
+      <div class="row">
+        <div class="rl">رشد شمرده‌شده</div>
+        <div class="track"><div class="fill" style="width:52%;--c:var(--burgundy)"></div><span class="rv num">۵٬۷۰۳ <small>‎≈۵۲٪</small></span></div>
+      </div>
+    </div>
+    <div class="foot">یعنی تقریباً نیمی از کسانی که پذیرش می‌گیرند، در سرشماری بعدی به‌عنوان افزوده‌ی جمعیت دیده نمی‌شوند.</div>
+  </div>
+
+  <div class="call bad">
+    <h3>چرا این برای هر برآورد بازاری مهم است</h3>
+    <p>چند توضیح محتمل کنار هم کار می‌کنند: مهاجرت ثانویه به آمریکا و اروپا، بازگشت، فوت، و کم‌شماری سرشماری. علتش هرچه باشد، نتیجه‌ی عملی یکی است — <b>نمی‌توانی آمار پذیرش را مستقیم به جمعیت سرشماری اضافه کنی.</b> هر مدلی که این کار را بکند، جمعیت امروز را زیادی برآورد می‌کند.</p>
+    <p>اثرش روی مدل بازار پلازا: برآورد ۳۲۵٬۰۰۰ نفری برای ۲۰۲۶ اگر با ضریب ۵۲٪ اصلاح شود، به حدود <b>۳۱۰٬۰۰۰ نفر</b> می‌رسد و TAM از ۲۱٬۰۰۰ کسب‌وکار به حدود <b>۲۰٬۱۰۰</b> کاهش پیدا می‌کند. حدود ۴٪ کمتر — کوچک، ولی در جهت پایین، و بهتر است خودت بدانی تا اینکه کسی سر جلسه به رویت بیاورد.</p>
+  </div>
+</section>
+
+<section id="provinces">
+  <div class="eyebrow">پراکندگی جغرافیایی</div>
+  <h2>دو استان، ۸۰٪ جمعیت</h2>
+  <p class="lede">صفحه‌ی منبع فقط می‌گوید «بیشترشان در انتاریو هستند». تفکیک واقعی از سرشماری ۲۰۲۱ بیرون آمده و تصویر خیلی دقیق‌تری می‌دهد.</p>
+
+  <div class="fig">
+    <div class="cap">جمعیت دارای تبار ایرانی به تفکیک استان</div>
+    <div class="sub">سرشماری ۲۰۲۱ · مجموع ۲۸۰٬۸۰۵ نفر</div>
+    <div class="rows">
+      <div class="row">
+        <div class="rl">انتاریو</div>
+        <div class="track"><div class="fill" style="width:100%;--c:var(--blue)"></div><span class="rv num">۱۵۵٬۸۵۵ <small>‎۵۵٫۵٪</small></span></div>
+      </div>
+      <div class="row">
+        <div class="rl">بریتیش کلمبیا</div>
+        <div class="track"><div class="fill" style="width:44%;--c:var(--blue)"></div><span class="rv num">۶۸٬۵۴۵ <small>‎۲۴٫۴٪</small></span></div>
+      </div>
+      <div class="row">
+        <div class="rl">کبک</div>
+        <div class="track"><div class="fill" style="width:21.8%;--c:var(--blue-soft)"></div><span class="rv num">۳۴٬۰۱۰ <small>‎۱۲٫۱٪</small></span></div>
+      </div>
+      <div class="row">
+        <div class="rl">آلبرتا</div>
+        <div class="track"><div class="fill" style="width:9.7%;--c:var(--blue-soft)"></div><span class="rv num">۱۵٬۱۸۵ <small>‎۵٫۴٪</small></span></div>
+      </div>
+      <div class="row">
+        <div class="rl">باقی کانادا</div>
+        <div class="track"><div class="fill" style="width:4.6%;--c:var(--line-strong)"></div><span class="rv num">۷٬۲۱۰ <small>‎۲٫۶٪</small></span></div>
+      </div>
+    </div>
+    <div class="foot">تراکم نسبی هم مهم است: در بریتیش کلمبیا ایرانی‌تبارها ۱٫۳۹٪ جمعیت استان‌اند، در انتاریو ۱٫۱۱٪. یعنی ونکوور از نظر نسبت جمعیتی از تورنتو ایرانی‌تر است، هرچند از نظر عدد مطلق کوچک‌تر.</div>
+  </div>
+</section>
+
+<section id="quality">
+  <div class="eyebrow">کیفیت منبع</div>
+  <h2>چه چیزی از کجا آمد</h2>
+  <p class="lede">صفحه‌ای که فرستادی یک صفحه‌ی جمع‌بندی است، نه یک منبع اولیه. بخش زیادی از چیزی که این‌جا می‌بینی از آن نیامده و باید بدانی کدام کدام است.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <span class="tagline t-src">از خود صفحه‌ی منبع</span>
+      <h3>شش عدد، بدون تفکیک</h3>
+      <p>سرشماری ۲۰۱۶ (۱۵۴٬۴۲۵)، سرشماری ۲۰۲۱ (۱۸۲٬۹۴۰)، مجموع پذیرش ۲۰۲۰ تا ۲۰۲۵ (۵۵٬۴۹۵)، پذیرش ۲۰۲۵ (۷٬۴۳۵)، سهم ۱٫۹٪ و افت ۳۳٫۳٪. همین. صفحه تفکیک سال‌به‌سال، تفکیک دسته‌ی پذیرش، شهر مقصد، سن، تحصیلات یا شغل ندارد.</p>
+    </div>
+    <div class="card">
+      <span class="tagline t-drv">محاسبه‌ی من روی همان اعداد</span>
+      <h3>سه عدد استخراجی</h3>
+      <p>میانگین چهار سال پیش از ۲۰۲۵ (۱۲٬۰۱۵)، افت واقعی ۲۰۲۵ (۳۸٫۱٪) و شکاف بین پذیرش و رشد شمرده‌شده (۵۲٪). این‌ها در صفحه نیستند؛ از ترکیب اعدادش بیرون آمده‌اند.</p>
+    </div>
+    <div class="card">
+      <span class="tagline t-ext">از سرشماری و آمار کانادا</span>
+      <h3>تبار و تفکیک استانی</h3>
+      <p>عدد ۲۸۰٬۸۰۵ و تفکیک انتاریو، بریتیش کلمبیا، کبک و آلبرتا مستقیم از سرشماری ۲۰۲۱ گرفته شده، نه از صفحه‌ی منبع. صفحه‌ی منبع فقط جمله‌ی «بیشترشان در انتاریو» را دارد.</p>
+    </div>
+    <div class="card">
+      <span class="tagline t-drv">هشدار</span>
+      <h3>یک عدد که جا نمی‌افتد</h3>
+      <p>در متن صفحه رقم «حدود ۱۰٬۶۹۰ اقامت دائم در اوایل ۲۰۲۵» هم دیده می‌شود که با رقم ۷٬۴۳۵ برای کل سال ۲۰۲۵ جور درنمی‌آید. احتمالاً دو دوره‌ی متفاوت یا دو تعریف متفاوت‌اند. قبل از استفاده در هر سندی، باید مستقیم با داده‌ی IRCC بررسی شود. من در محاسبات این صفحه از آن استفاده نکردم.</p>
+    </div>
+  </div>
+
+  <div class="call">
+    <h3>توصیه‌ی روشن</h3>
+    <p>برای هر سندی که قرار است جلوی سرمایه‌گذار یا شریک برود، این صفحه را به‌عنوان منبع ذکر نکن. به سرشماری کانادا و داده‌ی باز IRCC ارجاع بده — هم دقیق‌ترند، هم تفکیک سال‌به‌سال دارند، هم کسی درباره‌ی اعتبارشان سؤال نمی‌کند. صفحه‌ی جمع‌بندی برای شروع کار خوب است، برای استناد نه.</p>
+  </div>
+</section>
+
+<section id="sources">
+  <div class="eyebrow">منابع</div>
+  <h2>مراجع</h2>
+  <ol class="sources">
+    <li><a href="https://canadaimmigrants.com/iranian-immigrants-canada/">مهاجران ایرانی به کانادا — canadaimmigrants.com</a> — صفحه‌ی اصلی درخواست‌شده؛ منبع شش عدد پایه</li>
+    <li><a href="https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/sip/details/page.cfm?Dguid=2021A000011124&Lang=E&PoiId=2&TId=12">سرشماری ۲۰۲۱ کانادا — تبار قومی یا فرهنگی</a> — عدد ۲۸۰٬۸۰۵</li>
+    <li><a href="https://en.wikipedia.org/wiki/Iranian_Canadians">ایرانیان کانادا — تفکیک استانی سرشماری ۲۰۲۱</a></li>
+    <li><a href="https://www150.statcan.gc.ca/n1/pub/36-28-0001/2021009/article/00001-eng.htm">آمار کانادا — کارآفرینان مهاجر</a> — برای اتصال این اعداد به مدل بازار</li>
+  </ol>
+</section>
+
+<footer>
+  ایرانیان کانادا در اعداد · نسخه‌ی ۱ · ۷ شهریور ۱۴۰۵ (۲۹ اوت ۲۰۲۶) · اعداد منبع دست‌نخورده نقل شده‌اند؛ هر عدد محاسبه‌شده در متن برچسب خورده است.
+</footer>
+
+</div>
+</body>
+</html>

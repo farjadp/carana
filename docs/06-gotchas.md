@@ -2171,3 +2171,63 @@ takes two minutes and is the only way to see a screen that needs a session
 nobody in the session can establish. And note what this cost: the person
 reported it as a broken write, and it would have been easy to go hunting in the
 action, the RLS and the cache. Check what the data actually says first.
+
+---
+
+## An unlayered rule in globals.css beats every Tailwind utility
+
+**Symptom.** `[&>section]:mb-0` on a page's `<main>` changed nothing. The
+computed `margin-bottom` stayed 72px on every section, and the DOM confirmed
+the class was applied.
+
+**Cause.** `globals.css` line 971 has a bare `section { margin-bottom: 72px }`
+written outside any `@layer`. Tailwind v4 emits utilities inside
+`@layer utilities`, and **unlayered CSS wins over layered CSS regardless of
+specificity** — that is the cascade's layer rule, not a specificity fight the
+utility can win by being more specific.
+
+The file documents this exact trap at its own line 74, for `a { color }`:
+"an unlayered `a { color }` outranks every Tailwind text-* utility". Second
+instance, found the hard way anyway.
+
+**Fix.** Locally, the important modifier (`mb-0!` in v4's suffix syntax).
+Globally, the honest fix would be moving those bare element rules into
+`@layer base` — deliberately not done in passing, because seventeen pages
+inherit them and letting utilities suddenly win could change any of them.
+
+**Lesson.** When a utility "does nothing" and the class is definitely present,
+check whether an element selector in the global stylesheet is unlayered before
+reaching for a bigger hammer. Also worth knowing what that rule was doing to
+the design: it opened a 72px gap under every `<section>`, so pages built out
+of bands had a trough under each one and every `border-t` drew a line that
+touched nothing.
+
+---
+
+## `unique (business_id, user_id)` makes the obvious insert fail on the main case
+
+**Symptom.** None yet — caught by a harness before shipping. A new
+admin-initiated ownership assignment wrote its audit row with a plain
+`insert`, which raised 23505 the moment the target user already had a claim.
+
+**Cause.** `business_claims` carries `unique (business_id, user_id)` from
+`20260811_auth_roles.sql`. The person most likely to be handed a listing by
+hand is exactly the one who already tried the self-service path and failed —
+so they already have a `pending` row. The failing case was not an edge case,
+it was **the** case the feature existed for. The SMS path had always upserted
+for the same reason; the new code did not copy that detail.
+
+Worse than the constraint: the insert's error was not captured. Ownership
+would have transferred and the audit row would have gone missing with nobody
+told — the exact "silent failure" shape this codebase keeps finding.
+
+**Fix.** `upsert` with `onConflict: "business_id,user_id"`, and the audit
+failure surfaced in the returned message instead of swallowed, because an
+unrecorded hand-made ownership change is the one thing that action promised
+not to do.
+
+**Lesson.** Before writing a row, read the table's DDL for its unique
+constraints — the type definitions do not carry them, so a clean typecheck
+proves nothing here. And when the write is an audit trail, a swallowed error
+is worse than a thrown one: the operation looks like it succeeded and the
+record of it is gone.

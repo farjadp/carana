@@ -85,6 +85,39 @@ caching. Reading the three rows out of the database first turned a suspected
 write bug into a five-minute CSS fix. **Farjad's three listings are the first
 `self_onboarded` badges the product has ever issued.**
 
+## Later the same day — design, and one feature that did not exist
+
+`/features`, then six more inner pages, then admin-side ownership.
+
+- **`/features`** (`a51afa3`) — ten bands that read as ten disconnected
+  slabs, and the cause was not the page: `globals.css` has an unlayered
+  `section { margin-bottom: 72px }`. New `06-gotchas` entry. 22 identical
+  cards became rows on hairlines; nothing was removed and a script proved it
+  (29 items, 27 bodies, 10 lines, byte-identical).
+- **Six inner pages** (`18a2b72`) — `InnerPage` gained an opt-in wash hero.
+  **And two of them were lying:** `/trust` said verification «باید به مرور
+  اضافه شود» and filed the badge and reviews under «فازهای بعد»;
+  `/how-it-works` listed reviews, saving, badges and the app as future work.
+  All of it ships. `/features` links to `/trust` as «چطور تأیید می‌کنیم», so
+  the page someone opens to ask "can I trust this" told them the trust
+  machinery was unbuilt. Copy corrected against code, not memory.
+- **Admin ownership assignment** (`0ca3023`) — asked for, and checked first:
+  it did not exist. `/admin/claims` was reactive only. The new panel on
+  `/admin/listings/[id]` assigns a listing to any registered user, records
+  every assignment as an approved `business_claims` row with a required
+  reason, and keeps the verified badge as a separate opt-in switch.
+
+**What running it caught, again.** The ownership harness (two disposable
+users, a listing shaped like an imported row, a failed `pending` claim
+already on file) hit 23505 on the audit insert — `unique (business_id,
+user_id)` — on precisely the main scenario, with the error unread. Reading
+the code and a green typecheck had both said fine. Second `06-gotchas` entry.
+
+**What was got wrong here.** In the first pass at `/features` I dropped
+«سه پلن، و مرزهای صریحشان» and added a sentence of my own invention. On a
+page whose whole argument is not over-claiming, adding copy is the same
+error as cutting it. Both reverted before the commit.
+
 ## Not verified, and honestly so
 
 - The unverified-listing banner and the link-page suspend controls have

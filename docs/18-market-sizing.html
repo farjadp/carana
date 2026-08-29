@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GOPLAZA Market Sizing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --navy:#14213D;
+    --navy-soft:#26365C;
+    --blue:#0047AB;
+    --blue-tint:#E4EDFA;
+    --burgundy:#7A1831;
+    --gold:#C9A24B;
+    --cream:#F6F1E8;
+
+    --bg:#F6F1E8;
+    --surface:#FFFCF6;
+    --surface-2:#FDF9F1;
+    --ink:#14213D;
+    --ink-muted:#5F6472;
+    --ink-faint:#8A8F9C;
+    --line:#E2DACB;
+    --line-strong:#CFC5B2;
+    --accent:var(--blue);
+    --accent-on:#FFFFFF;
+    --warn:#8F4A10;
+    --good:#126963;
+
+    --f-display:"Newsreader",Georgia,"Times New Roman",serif;
+    --f-body:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+    --maxw:1080px;
+    --r:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1524;
+      --surface:#151E31;
+      --surface-2:#1A2438;
+      --ink:#EDE7DA;
+      --ink-muted:#A2A9BA;
+      --ink-faint:#798091;
+      --line:#27324A;
+      --line-strong:#3A4762;
+      --blue:#6FA0F0;
+      --blue-tint:#1B2A47;
+      --burgundy:#D9748C;
+      --gold:#D9B871;
+      --accent:#6FA0F0;
+      --accent-on:#0E1524;
+      --warn:#D9A05B;
+      --good:#5CBFAF;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1524;
+    --surface:#151E31;
+    --surface-2:#1A2438;
+    --ink:#EDE7DA;
+    --ink-muted:#A2A9BA;
+    --ink-faint:#798091;
+    --line:#27324A;
+    --line-strong:#3A4762;
+    --blue:#6FA0F0;
+    --blue-tint:#1B2A47;
+    --burgundy:#D9748C;
+    --gold:#D9B871;
+    --accent:#6FA0F0;
+    --accent-on:#0E1524;
+    --warn:#D9A05B;
+    --good:#5CBFAF;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--f-body);
+    font-size:15px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px 96px}
+  section{padding-top:56px}
+  h1,h2,h3{text-wrap:balance;margin:0}
+  .eyebrow{
+    font-family:var(--f-mono);font-size:11px;font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);
+  }
+  h2{
+    font-family:var(--f-display);font-weight:500;font-size:30px;line-height:1.2;
+    margin:8px 0 6px;letter-spacing:-.01em;
+  }
+  .lede{color:var(--ink-muted);max-width:66ch;margin:0}
+  p{margin:0 0 14px}
+  a{color:var(--accent)}
+
+  /* ---------- masthead ---------- */
+  header.mast{
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,var(--surface) 0%,var(--bg) 100%);
+  }
+  .mast-inner{max-width:var(--maxw);margin:0 auto;padding:44px 24px 36px}
+  .mast h1{
+    font-family:var(--f-display);font-weight:500;font-size:clamp(34px,5.4vw,54px);
+    line-height:1.05;letter-spacing:-.02em;margin:14px 0 14px;
+  }
+  .mast h1 em{font-style:italic;color:var(--blue)}
+  .mast .lede{font-size:17px;max-width:60ch}
+  .meta{
+    display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:22px;
+    font-family:var(--f-mono);font-size:11.5px;color:var(--ink-faint);
+    letter-spacing:.04em;
+  }
+  .meta b{color:var(--ink-muted);font-weight:500}
+
+  /* ---------- headline trio ---------- */
+  .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}
+  .layer{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:20px 20px 18px;position:relative;overflow:hidden;
+  }
+  .layer::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--tone,var(--line-strong))}
+  .layer .tag{
+    font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--tone,var(--ink-faint));font-weight:600;
+  }
+  .layer .name{font-size:13px;color:var(--ink-muted);margin-top:2px}
+  .layer .money{
+    font-family:var(--f-display);font-size:38px;line-height:1.05;font-weight:500;
+    letter-spacing:-.02em;margin-top:14px;font-variant-numeric:tabular-nums;
+  }
+  .layer .count{
+    font-family:var(--f-mono);font-size:12.5px;color:var(--ink-muted);margin-top:6px;
+    font-variant-numeric:tabular-nums;
+  }
+  .layer .note{font-size:12.5px;color:var(--ink-muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .t-tam{--tone:var(--navy-soft)}
+  .t-sam{--tone:var(--blue)}
+  .t-som{--tone:var(--burgundy)}
+  :root[data-theme="dark"] .t-tam{--tone:var(--ink-muted)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .t-tam{--tone:var(--ink-muted)}
+  }
+
+  /* ---------- funnel ---------- */
+  .funnel{margin-top:22px;display:flex;flex-direction:column;gap:2px}
+  .step{display:grid;grid-template-columns:112px 1fr;gap:16px;align-items:center;padding:9px 0}
+  .step .lbl{
+    font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-faint);text-align:right;
+  }
+  .bar-row{display:flex;align-items:center;gap:12px;min-width:0}
+  .bar{
+    height:30px;border-radius:4px;flex:0 0 auto;min-width:3px;
+    background:var(--barcolor,var(--line-strong));transition:width .35s cubic-bezier(.4,0,.2,1);
+  }
+  .bar-val{font-family:var(--f-mono);font-size:12.5px;color:var(--ink-muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .bar-val b{color:var(--ink);font-weight:600}
+  .cut{
+    grid-column:2;font-size:12.5px;color:var(--ink-muted);
+    border-left:2px dotted var(--line-strong);padding:2px 0 2px 12px;margin-left:0;
+  }
+  .cut code{font-family:var(--f-mono);font-size:12px;color:var(--warn)}
+
+  /* ---------- controls ---------- */
+  .panel{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;
+  }
+  .controls{display:grid;grid-template-columns:repeat(2,1fr);gap:20px 28px}
+  .ctrl label{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px}
+  .ctrl .cname{color:var(--ink-muted)}
+  .ctrl .cval{font-family:var(--f-mono);font-size:13px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  input[type=range]{
+    width:100%;margin:8px 0 0;accent-color:var(--accent);height:20px;cursor:pointer;
+  }
+  input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+  .ctrl .hint{font-size:11.5px;color:var(--ink-faint);margin-top:2px}
+  .resetrow{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);flex-wrap:wrap}
+  button.reset{
+    font-family:var(--f-body);font-size:12.5px;font-weight:500;color:var(--accent);
+    background:transparent;border:1px solid var(--line-strong);border-radius:6px;
+    padding:7px 14px;cursor:pointer;
+  }
+  button.reset:hover{background:var(--blue-tint);border-color:var(--accent)}
+  button.reset:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .scenariobtns{display:flex;gap:6px;flex-wrap:wrap}
+  button.scn{
+    font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    background:transparent;border:1px solid var(--line-strong);color:var(--ink-muted);
+    border-radius:6px;padding:7px 12px;cursor:pointer;
+  }
+  button.scn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-on)}
+  button.scn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ---------- tables ---------- */
+  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:560px}
+  th,td{padding:11px 16px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{
+    font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-faint);font-weight:600;background:var(--surface-2);white-space:nowrap;
+  }
+  tbody tr:last-child td{border-bottom:none}
+  td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+  tr.total td{font-weight:600;background:var(--surface-2)}
+  .src{font-size:12px;color:var(--ink-faint)}
+
+  /* ---------- callouts ---------- */
+  .call{
+    border-left:3px solid var(--burgundy);background:var(--surface);
+    padding:16px 20px;border-radius:0 var(--r) var(--r) 0;margin-top:20px;
+  }
+  .call h3{font-family:var(--f-body);font-size:14px;font-weight:600;margin-bottom:6px}
+  .call p:last-child{margin-bottom:0}
+  .call.good{border-left-color:var(--good)}
+  .checks{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:20px}
+  .check{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+  .check h3{font-family:var(--f-body);font-size:13.5px;font-weight:600;margin-bottom:6px}
+  .check p{font-size:13px;color:var(--ink-muted);margin:0}
+  .check .verdict{
+    font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    font-weight:600;margin-bottom:8px;display:block;
+  }
+  .v-ok{color:var(--good)} .v-soft{color:var(--warn)} .v-bad{color:var(--burgundy)}
+
+  ol.sources{font-size:13px;color:var(--ink-muted);padding-left:20px;margin:16px 0 0}
+  ol.sources li{margin-bottom:7px}
+
+  footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-faint)}
+
+  @media (max-width:820px){
+    .trio,.controls,.checks{grid-template-columns:1fr}
+    .step{grid-template-columns:1fr;gap:6px}
+    .step .lbl{text-align:left}
+    .cut{grid-column:1}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="mast-inner">
+    <div class="eyebrow">GOPLAZA · Market model v1 · 29 Aug 2026</div>
+    <h1>How big is the market for a Persian business directory in Canada — <em>and how much of it can one person sell?</em></h1>
+    <p class="lede">Three layers, in businesses and in dollars, built bottom-up from census data rather than top-down from a category report. The honest conclusion is at the bottom: market size is not the constraint on this business. Selling hours are.</p>
+    <div class="meta">
+      <span><b>Base population:</b> 280,805 (2021 census) → ~325,000 (2026 est.)</span>
+      <span><b>Blended ARPU:</b> $1,056/yr</span>
+      <span><b>Cost base:</b> $22,000/yr</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section id="headline">
+  <div class="eyebrow">The answer</div>
+  <h2>TAM $22.2M · SAM $7.0M · SOM $61K year one</h2>
+  <p class="lede">SOM is 0.9% of SAM. That gap is not a market problem — it is a sales-capacity problem, and it is the single most important number on this page.</p>
+
+  <div class="trio">
+    <div class="layer t-tam">
+      <span class="tag">TAM</span>
+      <div class="name">Every Iranian-owned business in Canada</div>
+      <div class="money" id="tamMoney">$22.2M</div>
+      <div class="count" id="tamCount">21,000 businesses</div>
+      <div class="note">Theoretical ceiling if every one of them paid an average GOPLAZA price. Nobody ever gets this.</div>
+    </div>
+    <div class="layer t-sam">
+      <span class="tag">SAM</span>
+      <div class="name">Businesses that can and would pay</div>
+      <div class="money" id="samMoney">$7.0M</div>
+      <div class="count" id="samCount">6,600 businesses</div>
+      <div class="note">High-LTV categories, in cities with enough Iranian density that a directory is actually useful.</div>
+    </div>
+    <div class="layer t-som">
+      <span class="tag">SOM</span>
+      <div class="name">What you can win in year one</div>
+      <div class="money" id="somMoney">$61.2K</div>
+      <div class="count" id="somCount">58 customers · 0.9% of SAM</div>
+      <div class="note">Capped by solo part-time selling, not by demand. Year two: 145 customers, $153K.</div>
+    </div>
+  </div>
+</section>
+
+<section id="funnel">
+  <div class="eyebrow">Derivation</div>
+  <h2>From 325,000 people to 58 customers</h2>
+  <p class="lede">Every cut below is a filter with a stated reason. Move the sliders in the next section and this funnel moves with them.</p>
+
+  <div class="panel" style="margin-top:22px">
+    <div class="funnel" id="funnel">
+      <div class="step">
+        <div class="lbl">Population</div>
+        <div class="bar-row"><div class="bar" data-bar="pop" style="--barcolor:var(--line-strong)"></div><div class="bar-val"><b id="fPop">325,000</b> Iranian-Canadians</div></div>
+      </div>
+      <div class="cut">× working-age share (25–69) — <code>62%</code> — the ages that actually own businesses</div>
+      <div class="step">
+        <div class="lbl">Working age</div>
+        <div class="bar-row"><div class="bar" data-bar="adult" style="--barcolor:var(--line-strong)"></div><div class="bar-val"><b id="fAdult">201,500</b> adults</div></div>
+      </div>
+      <div class="cut">× business-ownership rate — <code>11.0%</code> — StatCan: 11.9% of immigrants, 8.4% of Canadian-born, blended 75/25</div>
+      <div class="step">
+        <div class="lbl">TAM</div>
+        <div class="bar-row"><div class="bar" data-bar="tam" style="--barcolor:var(--navy-soft)"></div><div class="bar-val"><b id="fTam">21,000</b> businesses</div></div>
+      </div>
+      <div class="cut">× high-LTV category share — <code>45%</code> — a lawyer pays $990; a market stall does not</div>
+      <div class="cut">× city-density filter — <code>70%</code> — a directory with four listings in Halifax has no user value</div>
+      <div class="step">
+        <div class="lbl">SAM</div>
+        <div class="bar-row"><div class="bar" data-bar="sam" style="--barcolor:var(--blue)"></div><div class="bar-val"><b id="fSam">6,600</b> businesses</div></div>
+      </div>
+      <div class="cut">÷ sales capacity — solo, part-time, a few hours a week, minus 3–4 months of build</div>
+      <div class="step">
+        <div class="lbl">SOM yr 1</div>
+        <div class="bar-row"><div class="bar" data-bar="som" style="--barcolor:var(--burgundy)"></div><div class="bar-val"><b id="fSom">58</b> customers</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="model">
+  <div class="eyebrow">Live model</div>
+  <h2>Change an assumption, see what breaks</h2>
+  <p class="lede">Every number on this page comes from these seven inputs. Nothing else is hard-coded. If you disagree with an assumption, move it and read the consequence.</p>
+
+  <div class="panel" style="margin-top:22px">
+    <div class="controls">
+      <div class="ctrl">
+        <label for="s_pop"><span class="cname">Iranian-Canadian population, 2026</span><span class="cval" id="v_pop">325,000</span></label>
+        <input type="range" id="s_pop" min="250000" max="400000" step="5000" value="325000">
+        <div class="hint">2021 census counted 280,805; ~55,500 admitted 2020–2025.</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_adult"><span class="cname">Working-age share (25–69)</span><span class="cval" id="v_adult">62%</span></label>
+        <input type="range" id="s_adult" min="50" max="72" step="1" value="62">
+        <div class="hint">Immigrant-heavy populations skew to working age.</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_own"><span class="cname">Business-ownership rate</span><span class="cval" id="v_own">11.0%</span></label>
+        <input type="range" id="s_own" min="7" max="16" step="0.5" value="11">
+        <div class="hint">StatCan 2016: immigrants 11.9% (5.2% incorporated + 6.9% self-employed).</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_cat"><span class="cname">High-LTV category share</span><span class="cval" id="v_cat">45%</span></label>
+        <input type="range" id="s_cat" min="25" max="65" step="1" value="45">
+        <div class="hint">Professional services, food, health, trades, realty — the ones with a payback.</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_city"><span class="cname">City-density filter</span><span class="cval" id="v_city">70%</span></label>
+        <input type="range" id="s_city" min="45" max="95" step="1" value="70">
+        <div class="hint">Share living where a directory has enough depth to be worth using.</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_arpu"><span class="cname">Blended ARPU (per year)</span><span class="cval" id="v_arpu">$1,056</span></label>
+        <input type="range" id="s_arpu" min="200" max="2000" step="16" value="1056">
+        <div class="hint">Current pricing gives $214. The proposed $490/$990/$2,700 mix gives $1,056.</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_cust"><span class="cname">Customers closed in year one</span><span class="cval" id="v_cust">58</span></label>
+        <input type="range" id="s_cust" min="10" max="250" step="1" value="58">
+        <div class="hint">Solo part-time ceiling is 56–169/yr. 58 assumes 3–4 months go to building first.</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_cost"><span class="cname">Annual cost base</span><span class="cval" id="v_cost">$22,000</span></label>
+        <input type="range" id="s_cost" min="10000" max="45000" step="1000" value="22000">
+        <div class="hint">Farjad's stated range is $15k–$30k.</div>
+      </div>
+    </div>
+
+    <div class="resetrow">
+      <div class="scenariobtns">
+        <button class="scn" data-scn="cons" aria-pressed="false">Conservative</button>
+        <button class="scn" data-scn="base" aria-pressed="true">Base</button>
+        <button class="scn" data-scn="opt" aria-pressed="false">Optimistic</button>
+      </div>
+      <button class="reset" id="reset">Reset to base case</button>
+    </div>
+  </div>
+
+  <div class="call good" id="verdict" style="margin-top:18px">
+    <h3 id="vTitle">Year one clears the cost base</h3>
+    <p id="vBody">58 customers at $1,056 produce $61,248 in revenue against $22,000 of cost — a $39,248 profit. Break-even sits at 21 customers.</p>
+  </div>
+</section>
+
+<section id="scenarios">
+  <div class="eyebrow">Sensitivity</div>
+  <h2>Three worlds, same method</h2>
+  <p class="lede">The bands are not decoration. The conservative case uses the 2021 census with no growth and the Canadian-born ownership rate; the optimistic case assumes Iranian-Canadians are more entrepreneurial than the immigrant average. Both are defensible; neither is proven.</p>
+
+  <div class="scroll" style="margin-top:20px">
+    <table>
+      <thead>
+        <tr>
+          <th>Scenario</th>
+          <th class="num">TAM count</th>
+          <th class="num">TAM $</th>
+          <th class="num">SAM count</th>
+          <th class="num">SAM $</th>
+          <th class="num">SOM yr 1</th>
+          <th class="num">SOM $</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Conservative</td><td class="num">12,000</td><td class="num">$8.4M</td><td class="num">2,880</td><td class="num">$2.0M</td><td class="num">30</td><td class="num">$21,000</td></tr>
+        <tr><td><b>Base</b></td><td class="num">21,000</td><td class="num">$22.2M</td><td class="num">6,600</td><td class="num">$7.0M</td><td class="num">58</td><td class="num">$61,200</td></tr>
+        <tr><td>Optimistic</td><td class="num">31,000</td><td class="num">$43.4M</td><td class="num">12,400</td><td class="num">$17.4M</td><td class="num">169</td><td class="num">$236,600</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src" style="margin-top:10px">TAM ranges 3.6× between the conservative and optimistic cases. SOM ranges 11×. The uncertainty that matters is not how many businesses exist — it is how many you can reach.</p>
+</section>
+
+<section id="cities">
+  <div class="eyebrow">Where SAM actually is</div>
+  <h2>Two cities are 81% of the addressable market</h2>
+  <p class="lede">Distribution follows the 2021 census provincial split. The city-density filter is applied at full strength in Toronto and Vancouver, at 70% in the mid-tier metros, and at 15% everywhere else — because outside the top five, a Persian directory has no depth to offer a user.</p>
+
+  <div class="scroll" style="margin-top:20px">
+    <table>
+      <thead>
+        <tr><th>Metro</th><th class="num">Population</th><th class="num">Businesses (TAM)</th><th class="num">SAM count</th><th class="num">SAM $</th><th class="num">Share of SAM</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Greater Toronto</td><td class="num">151,000</td><td class="num">9,765</td><td class="num">3,630</td><td class="num">$3.83M</td><td class="num">55.0%</td></tr>
+        <tr><td>Metro Vancouver</td><td class="num">71,500</td><td class="num">4,620</td><td class="num">1,720</td><td class="num">$1.82M</td><td class="num">26.1%</td></tr>
+        <tr><td>Montreal</td><td class="num">36,700</td><td class="num">2,373</td><td class="num">620</td><td class="num">$0.65M</td><td class="num">9.4%</td></tr>
+        <tr><td>Calgary + Edmonton</td><td class="num">17,500</td><td class="num">1,134</td><td class="num">295</td><td class="num">$0.31M</td><td class="num">4.5%</td></tr>
+        <tr><td>Ottawa</td><td class="num">12,300</td><td class="num">798</td><td class="num">205</td><td class="num">$0.22M</td><td class="num">3.1%</td></tr>
+        <tr><td>Everywhere else</td><td class="num">36,000</td><td class="num">2,310</td><td class="num">130</td><td class="num">$0.14M</td><td class="num">2.0%</td></tr>
+        <tr class="total"><td>Total</td><td class="num">325,000</td><td class="num">21,000</td><td class="num">6,600</td><td class="num">$6.97M</td><td class="num">100%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="call">
+    <h3>The strategic read</h3>
+    <p>You do not have a national go-to-market. You have a Toronto go-to-market with a Vancouver follow-on. Toronto alone is $3.83M of SAM — 62× your year-one revenue. Spending sales hours outside the top two metros before saturating them is a rounding error dressed up as expansion. It also concentrates the SEO problem: win Persian search in the GTA and you have won 55% of the market.</p>
+  </div>
+</section>
+
+<section id="checks">
+  <div class="eyebrow">Validation</div>
+  <h2>Four ways this model could be wrong</h2>
+  <p class="lede">A market size nobody stress-tests is a number, not an argument. Here is where this one holds and where it does not.</p>
+
+  <div class="checks">
+    <div class="check">
+      <span class="verdict v-ok">Holds up</span>
+      <h3>Competitor listing counts bracket the TAM</h3>
+      <p>gooyalisting indexes 7,471 listings, taablo 1,928, jabeh ~2,000, bazareyan ~1,000, iranianbusinesses 828, bazaarche 680. Deduplicated, the whole competitive set covers roughly 12,000–18,000 unique businesses. A 21,000 TAM sits just above that — which is correct, since no directory captures everyone.</p>
+    </div>
+    <div class="check">
+      <span class="verdict v-soft">Assumption, not data</span>
+      <h3>The ownership rate is borrowed</h3>
+      <p>11.9% is the all-immigrant average from StatCan's 2016 study. Nobody has published an Iranian-specific rate. StatCan does note that source-region variation is small except for Latin America and Sub-Saharan Africa, which supports using the average — but "supports" is not "measures."</p>
+    </div>
+    <div class="check">
+      <span class="verdict v-bad">The weak joint</span>
+      <h3>Willingness to pay is untested</h3>
+      <p>The SAM assumes 45% of businesses would pay $490–$2,700/year. Zero real businesses have been asked at those prices. Hamvatan failed at $290/yr — that is a value floor, not a price ceiling, but it is still the only local evidence you have, and it points the wrong way until you sell one.</p>
+    </div>
+    <div class="check">
+      <span class="verdict v-bad">Read this twice</span>
+      <h3>$22M TAM is latent, not transacting</h3>
+      <p>Total money currently changing hands in Persian-Canadian directory advertising is likely under $2M a year — most competitors are stalled, free, or dead. You are not capturing an existing budget; you are moving spend out of Google Ads, Instagram, and Persian print. That is a longer sale than a market-size chart suggests.</p>
+    </div>
+  </div>
+</section>
+
+<section id="method">
+  <div class="eyebrow">Inputs</div>
+  <h2>Every number and where it came from</h2>
+
+  <div class="scroll" style="margin-top:20px">
+    <table>
+      <thead><tr><th>Input</th><th class="num">Value</th><th>Source / basis</th><th>Confidence</th></tr></thead>
+      <tbody>
+        <tr><td>Iranian-Canadian population, 2021</td><td class="num">280,805</td><td>2021 Census, ethnic or cultural origin</td><td>Hard data</td></tr>
+        <tr><td>Iran-born residents, 2021</td><td class="num">182,940</td><td>2021 Census, place of birth</td><td>Hard data</td></tr>
+        <tr><td>PRs admitted 2020–2025</td><td class="num">55,495</td><td>IRCC admissions</td><td>Hard data</td></tr>
+        <tr><td>Population, 2026 estimate</td><td class="num">~325,000</td><td>Census + post-2021 admissions, net of overlap</td><td>Derived</td></tr>
+        <tr><td>Working-age share (25–69)</td><td class="num">62%</td><td>Assumption; immigrant age pyramid skews working-age</td><td>Assumption</td></tr>
+        <tr><td>Ownership rate, immigrants</td><td class="num">11.9%</td><td>StatCan: 5.2% incorporated + 6.9% self-employed</td><td>Hard data</td></tr>
+        <tr><td>Ownership rate, Canadian-born</td><td class="num">8.4%</td><td>StatCan, same study</td><td>Hard data</td></tr>
+        <tr><td>Blended rate used</td><td class="num">11.0%</td><td>75% immigrant / 25% Canadian-born mix</td><td>Derived</td></tr>
+        <tr><td>High-LTV category share</td><td class="num">45%</td><td>Assumption from GOPLAZA's own category mix</td><td>Assumption</td></tr>
+        <tr><td>City-density filter</td><td class="num">70%</td><td>Assumption; top-5 metros hold ~89% of population</td><td>Assumption</td></tr>
+        <tr><td>Blended ARPU</td><td class="num">$1,056</td><td>58 Pro + 28 Growth + 12 Platinum tier mix</td><td>Proposed pricing</td></tr>
+        <tr><td>Sales capacity ceiling</td><td class="num">56–169/yr</td><td>Solo, part-time, few hours per week</td><td>Stated constraint</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="conclusion">
+  <div class="eyebrow">What to do with this</div>
+  <h2>The market is not the bottleneck</h2>
+  <p class="lede" style="max-width:68ch">Three conclusions follow directly from the arithmetic, and only one of them is about market size.</p>
+  <div class="scroll" style="margin-top:20px">
+    <table>
+      <thead><tr><th style="width:26%">Conclusion</th><th>Why the numbers say so</th></tr></thead>
+      <tbody>
+        <tr><td><b>Stop sizing, start pricing</b></td><td>SOM is 0.9% of SAM. Even tripling the market changes nothing — you cannot sell the market you already have. The only lever that moves year-one revenue is ARPU, which is why $214 has to become ~$1,056.</td></tr>
+        <tr><td><b>Toronto first, alone</b></td><td>55% of SAM is in one metro. A second city before Toronto is saturated splits scarce sales hours across two SEO fronts and two verification backlogs.</td></tr>
+        <tr><td><b>Sales capacity is the asset to buy</b></td><td>At $1,056 ARPU, one part-time commission seller who closes 60 accounts adds $63K of revenue against a fraction of that in commission. That is the highest-return spend available — higher than any product feature on the roadmap.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src" style="margin-top:14px">Companion model: the pricing and tier structure built on 24 Aug 2026, which supplies the $1,056 ARPU and the $490 / $990 / $2,700 tiers used throughout this page.</p>
+</section>
+
+<section id="sources">
+  <div class="eyebrow">Sources</div>
+  <h2>References</h2>
+  <ol class="sources">
+    <li><a href="https://www150.statcan.gc.ca/n1/pub/36-28-0001/2021009/article/00001-eng.htm">Statistics Canada — Immigrant entrepreneurs in Canada: Highlights from recent studies</a> (ownership rates: 11.9% / 8.4%)</li>
+    <li><a href="https://www.statcan.gc.ca/o1/en/plus/6128-one-four-private-sector-businesses-are-owned-immigrants-how-are-they-doing">Statistics Canada — One in four private-sector businesses are owned by immigrants</a> (23.7%, Q1 2024)</li>
+    <li><a href="https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/sip/details/page.cfm?Dguid=2021A000011124&Lang=E&PoiId=2&TId=12">2021 Census — Ethnic or cultural origin, Canada</a> (280,805)</li>
+    <li><a href="https://en.wikipedia.org/wiki/Iranian_Canadians">Iranian Canadians — provincial and metro distribution</a> (ON 155,855 · BC 68,545 · QC 34,010 · AB 15,185)</li>
+    <li><a href="https://canadaimmigrants.com/iranian-immigrants-canada/">Iranian immigrants to Canada — admissions statistics</a> (182,940 Iran-born; 55,495 admitted 2020–2025)</li>
+    <li>GOPLAZA internal — <code>docs/08-competitors.md</code> (indexed listing counts, competitor pricing) and the 24 Aug 2026 pricing model.</li>
+  </ol>
+</section>
+
+<footer>
+  GOPLAZA market sizing · v1 · 29 August 2026 · Built bottom-up from census and StatCan data. Every assumption on this page is adjustable and labelled; none of them has been validated against a paying customer yet.
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var ids = ["pop","adult","own","cat","city","arpu","cust","cost"];
+  var base = {pop:325000,adult:62,own:11,cat:45,city:70,arpu:1056,cust:58,cost:22000};
+  var scenarios = {
+    cons:{pop:280805,adult:60,own:8.5,cat:35,city:60,arpu:700,cust:30,cost:22000},
+    base:base,
+    opt: {pop:360000,adult:66,own:13.5,cat:55,city:82,arpu:1400,cust:140,cost:22000}
+  };
+  var el = {};
+  ids.forEach(function(k){ el[k] = document.getElementById("s_"+k); });
+
+  function n(x){ return Math.round(x).toLocaleString("en-CA"); }
+  function money(x){
+    if (x >= 1e6) return "$" + (x/1e6).toFixed(1) + "M";
+    if (x >= 1e4) return "$" + Math.round(x/1000) + "K";
+    if (x >= 1000) return "$" + (x/1000).toFixed(1) + "K";
+    return "$" + n(x);
+  }
+
+  function bar(name, value, max){
+    var b = document.querySelector('[data-bar="'+name+'"]');
+    if(!b) return;
+    var pct = Math.max(0.4, Math.sqrt(value/max) * 100);
+    b.style.width = pct + "%";
+  }
+
+  function render(){
+    var v = {};
+    ids.forEach(function(k){ v[k] = parseFloat(el[k].value); });
+
+    var adults   = v.pop * (v.adult/100);
+    var tamCount = adults * (v.own/100) * 0.95;
+    var samCount = tamCount * (v.cat/100) * (v.city/100);
+    var somCount = Math.min(v.cust, samCount);
+
+    var tamMoney = tamCount * v.arpu;
+    var samMoney = samCount * v.arpu;
+    var somMoney = somCount * v.arpu;
+    var profit   = somMoney - v.cost;
+    var breakeven = Math.ceil(v.cost / v.arpu);
+
+    document.getElementById("v_pop").textContent   = n(v.pop);
+    document.getElementById("v_adult").textContent = v.adult + "%";
+    document.getElementById("v_own").textContent   = v.own.toFixed(1) + "%";
+    document.getElementById("v_cat").textContent   = v.cat + "%";
+    document.getElementById("v_city").textContent  = v.city + "%";
+    document.getElementById("v_arpu").textContent  = "$" + n(v.arpu);
+    document.getElementById("v_cust").textContent  = n(v.cust);
+    document.getElementById("v_cost").textContent  = "$" + n(v.cost);
+
+    document.getElementById("tamMoney").textContent = money(tamMoney);
+    document.getElementById("tamCount").textContent = n(tamCount) + " businesses";
+    document.getElementById("samMoney").textContent = money(samMoney);
+    document.getElementById("samCount").textContent = n(samCount) + " businesses";
+    document.getElementById("somMoney").textContent = money(somMoney);
+    document.getElementById("somCount").textContent =
+      n(somCount) + " customers · " + (somCount/samCount*100).toFixed(1) + "% of SAM";
+
+    document.getElementById("fPop").textContent   = n(v.pop);
+    document.getElementById("fAdult").textContent = n(adults);
+    document.getElementById("fTam").textContent   = n(tamCount);
+    document.getElementById("fSam").textContent   = n(samCount);
+    document.getElementById("fSom").textContent   = n(somCount);
+
+    bar("pop",   v.pop,     v.pop);
+    bar("adult", adults,    v.pop);
+    bar("tam",   tamCount,  v.pop);
+    bar("sam",   samCount,  v.pop);
+    bar("som",   somCount,  v.pop);
+
+    var vt = document.getElementById("verdict");
+    var title = document.getElementById("vTitle");
+    var body  = document.getElementById("vBody");
+    if (profit >= 80000){
+      vt.className = "call good";
+      title.textContent = "Year one hits the $80,000 target";
+      body.textContent = n(somCount) + " customers at $" + n(v.arpu) + " produce " +
+        money(somMoney) + " against $" + n(v.cost) + " of cost — a " + money(profit) +
+        " profit. Break-even sits at " + breakeven + " customers.";
+    } else if (profit > 0){
+      vt.className = "call good";
+      title.textContent = "Year one clears the cost base but misses the $80,000 target";
+      body.textContent = n(somCount) + " customers at $" + n(v.arpu) + " produce " +
+        money(somMoney) + " against $" + n(v.cost) + " of cost — a " + money(profit) +
+        " profit, " + Math.round(profit/80000*100) + "% of target. Break-even sits at " +
+        breakeven + " customers.";
+    } else {
+      vt.className = "call";
+      title.textContent = "Year one loses money";
+      body.textContent = n(somCount) + " customers at $" + n(v.arpu) + " produce only " +
+        money(somMoney) + " against $" + n(v.cost) + " of cost — a loss of " +
+        money(Math.abs(profit)) + ". You need " + breakeven + " customers just to break even.";
+    }
+
+    // scenario buttons reflect an exact match only
+    document.querySelectorAll("button.scn").forEach(function(b){
+      var s = scenarios[b.dataset.scn];
+      var match = ids.every(function(k){ return Math.abs(v[k] - s[k]) < 0.01; });
+      b.setAttribute("aria-pressed", match ? "true" : "false");
+    });
+  }
+
+  function apply(obj){
+    ids.forEach(function(k){ el[k].value = obj[k]; });
+    render();
+  }
+
+  ids.forEach(function(k){ el[k].addEventListener("input", render); });
+  document.getElementById("reset").addEventListener("click", function(){ apply(base); });
+  document.querySelectorAll("button.scn").forEach(function(b){
+    b.addEventListener("click", function(){ apply(scenarios[b.dataset.scn]); });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

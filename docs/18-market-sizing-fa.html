@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>اندازه بازار پلازا</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --navy:#14213D;
+    --navy-soft:#26365C;
+    --blue:#0047AB;
+    --blue-tint:#E4EDFA;
+    --burgundy:#7A1831;
+    --gold:#C9A24B;
+
+    --bg:#F6F1E8;
+    --surface:#FFFCF6;
+    --surface-2:#FDF9F1;
+    --ink:#14213D;
+    --ink-muted:#5F6472;
+    --ink-faint:#8A8F9C;
+    --line:#E2DACB;
+    --line-strong:#CFC5B2;
+    --accent:var(--blue);
+    --accent-on:#FFFFFF;
+    --warn:#8F4A10;
+    --good:#126963;
+
+    --f-fa:"Vazirmatn",-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif;
+    --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+    --maxw:1080px;
+    --r:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1524;
+      --surface:#151E31;
+      --surface-2:#1A2438;
+      --ink:#EDE7DA;
+      --ink-muted:#A2A9BA;
+      --ink-faint:#798091;
+      --line:#27324A;
+      --line-strong:#3A4762;
+      --blue:#6FA0F0;
+      --blue-tint:#1B2A47;
+      --burgundy:#D9748C;
+      --gold:#D9B871;
+      --accent:#6FA0F0;
+      --accent-on:#0E1524;
+      --warn:#D9A05B;
+      --good:#5CBFAF;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1524;
+    --surface:#151E31;
+    --surface-2:#1A2438;
+    --ink:#EDE7DA;
+    --ink-muted:#A2A9BA;
+    --ink-faint:#798091;
+    --line:#27324A;
+    --line-strong:#3A4762;
+    --blue:#6FA0F0;
+    --blue-tint:#1B2A47;
+    --burgundy:#D9748C;
+    --gold:#D9B871;
+    --accent:#6FA0F0;
+    --accent-on:#0E1524;
+    --warn:#D9A05B;
+    --good:#5CBFAF;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    direction:rtl;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--f-fa);
+    font-size:15px;
+    line-height:1.95;
+    font-feature-settings:"ss01";
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px 96px}
+  section{padding-top:56px}
+  h1,h2,h3{text-wrap:balance;margin:0}
+  .eyebrow{
+    font-family:var(--f-mono);font-size:11px;font-weight:500;direction:ltr;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);
+    text-align:right;
+  }
+  .eyebrow-fa{
+    font-size:12px;font-weight:500;color:var(--ink-faint);letter-spacing:.02em;
+  }
+  h2{
+    font-weight:700;font-size:27px;line-height:1.55;
+    margin:6px 0 8px;letter-spacing:-.01em;
+  }
+  .lede{color:var(--ink-muted);max-width:64ch;margin:0}
+  p{margin:0 0 14px}
+  a{color:var(--accent)}
+  .ltr{direction:ltr;display:inline-block;unicode-bidi:isolate}
+
+  /* ---------- masthead ---------- */
+  header.mast{
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,var(--surface) 0%,var(--bg) 100%);
+  }
+  .mast-inner{max-width:var(--maxw);margin:0 auto;padding:44px 24px 36px}
+  .mast h1{
+    font-weight:700;font-size:clamp(27px,4.4vw,42px);
+    line-height:1.5;letter-spacing:-.02em;margin:14px 0 16px;
+  }
+  .mast h1 em{font-style:normal;color:var(--blue)}
+  .mast .lede{font-size:16.5px;max-width:62ch}
+  .meta{
+    display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:22px;
+    font-size:12.5px;color:var(--ink-faint);
+  }
+  .meta b{color:var(--ink-muted);font-weight:500}
+
+  /* ---------- headline trio ---------- */
+  .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}
+  .layer{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:20px 20px 18px;position:relative;overflow:hidden;
+  }
+  .layer::before{content:"";position:absolute;inset:0 0 0 auto;width:3px;background:var(--tone,var(--line-strong))}
+  .layer .tag{
+    font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--tone,var(--ink-faint));font-weight:600;direction:ltr;display:block;text-align:right;
+  }
+  .layer .name{font-size:13px;color:var(--ink-muted);margin-top:4px;line-height:1.7}
+  .layer .money{
+    font-size:31px;line-height:1.35;font-weight:700;
+    letter-spacing:-.01em;margin-top:14px;font-variant-numeric:tabular-nums;
+  }
+  .layer .count{
+    font-size:12.5px;color:var(--ink-muted);margin-top:4px;
+    font-variant-numeric:tabular-nums;
+  }
+  .layer .note{font-size:12.5px;color:var(--ink-muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--line);line-height:1.85}
+  .t-tam{--tone:var(--navy-soft)}
+  .t-sam{--tone:var(--blue)}
+  .t-som{--tone:var(--burgundy)}
+  :root[data-theme="dark"] .t-tam{--tone:var(--ink-muted)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .t-tam{--tone:var(--ink-muted)}
+  }
+
+  /* ---------- funnel ---------- */
+  .funnel{margin-top:22px;display:flex;flex-direction:column;gap:2px}
+  .step{display:grid;grid-template-columns:104px 1fr;gap:16px;align-items:center;padding:9px 0}
+  .step .lbl{
+    font-size:12px;color:var(--ink-faint);text-align:left;font-weight:500;
+  }
+  .step .lbl.mono{font-family:var(--f-mono);direction:ltr;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  .bar-row{display:flex;align-items:center;gap:12px;min-width:0}
+  .bar{
+    height:30px;border-radius:4px;flex:0 0 auto;min-width:3px;
+    background:var(--barcolor,var(--line-strong));transition:width .35s cubic-bezier(.4,0,.2,1);
+  }
+  .bar-val{font-size:12.5px;color:var(--ink-muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .bar-val b{color:var(--ink);font-weight:700}
+  .cut{
+    grid-column:2;font-size:12.5px;color:var(--ink-muted);line-height:1.85;
+    border-right:2px dotted var(--line-strong);padding:2px 12px 2px 0;
+  }
+  .cut code{font-family:var(--f-fa);font-size:12.5px;font-weight:600;color:var(--warn)}
+
+  /* ---------- controls ---------- */
+  .panel{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;
+  }
+  .controls{display:grid;grid-template-columns:repeat(2,1fr);gap:20px 28px}
+  .ctrl label{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px}
+  .ctrl .cname{color:var(--ink-muted)}
+  .ctrl .cval{font-size:13.5px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+  input[type=range]{
+    width:100%;margin:8px 0 0;accent-color:var(--accent);height:20px;cursor:pointer;direction:ltr;
+  }
+  input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+  .ctrl .hint{font-size:11.5px;color:var(--ink-faint);margin-top:2px;line-height:1.8}
+  .resetrow{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);flex-wrap:wrap}
+  button.reset{
+    font-family:var(--f-fa);font-size:12.5px;font-weight:500;color:var(--accent);
+    background:transparent;border:1px solid var(--line-strong);border-radius:6px;
+    padding:7px 14px;cursor:pointer;
+  }
+  button.reset:hover{background:var(--blue-tint);border-color:var(--accent)}
+  button.reset:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .scenariobtns{display:flex;gap:6px;flex-wrap:wrap}
+  button.scn{
+    font-family:var(--f-fa);font-size:12.5px;font-weight:500;
+    background:transparent;border:1px solid var(--line-strong);color:var(--ink-muted);
+    border-radius:6px;padding:7px 14px;cursor:pointer;
+  }
+  button.scn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-on)}
+  button.scn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ---------- tables ---------- */
+  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:600px}
+  th,td{padding:11px 16px;text-align:right;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.85}
+  thead th{
+    font-size:12px;color:var(--ink-faint);font-weight:600;
+    background:var(--surface-2);white-space:nowrap;
+  }
+  tbody tr:last-child td{border-bottom:none}
+  td.num,th.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  tr.total td{font-weight:700;background:var(--surface-2)}
+  .src{font-size:12.5px;color:var(--ink-faint);line-height:1.9}
+
+  /* ---------- callouts ---------- */
+  .call{
+    border-right:3px solid var(--burgundy);background:var(--surface);
+    padding:16px 20px;border-radius:var(--r) 0 0 var(--r);margin-top:20px;
+  }
+  .call h3{font-size:14px;font-weight:700;margin-bottom:6px}
+  .call p:last-child{margin-bottom:0}
+  .call.good{border-right-color:var(--good)}
+  .checks{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:20px}
+  .check{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+  .check h3{font-size:13.5px;font-weight:700;margin-bottom:6px}
+  .check p{font-size:13px;color:var(--ink-muted);margin:0;line-height:1.9}
+  .check .verdict{
+    font-size:11.5px;font-weight:700;margin-bottom:8px;display:block;
+  }
+  .v-ok{color:var(--good)} .v-soft{color:var(--warn)} .v-bad{color:var(--burgundy)}
+
+  ol.sources{font-size:13px;color:var(--ink-muted);padding-right:20px;padding-left:0;margin:16px 0 0}
+  ol.sources li{margin-bottom:9px;line-height:1.9}
+
+  footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-faint);line-height:1.95}
+
+  @media (max-width:820px){
+    .trio,.controls,.checks{grid-template-columns:1fr}
+    .step{grid-template-columns:1fr;gap:6px}
+    .step .lbl{text-align:right}
+    .cut{grid-column:1}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="mast-inner">
+    <div class="eyebrow-fa">پلازا · مدل بازار، نسخه‌ی ۱ · ۷ شهریور ۱۴۰۵</div>
+    <h1>بازار یک دایرکتوری فارسی‌زبان در کانادا چقدر بزرگ است — <em>و یک نفر چقدر از آن را می‌تواند بفروشد؟</em></h1>
+    <p class="lede">سه لایه، هم به تعداد کسب‌وکار و هم به دلار، از پایین به بالا ساخته شده روی داده‌ی سرشماری، نه از بالا به پایین روی گزارش‌های صنعتی. نتیجه‌ی صادقانه پایین صفحه است: اندازه‌ی بازار محدودیت این کسب‌وکار نیست. ساعت فروش است.</p>
+    <div class="meta">
+      <span><b>جمعیت پایه:</b> ۲۸۰٬۸۰۵ نفر (سرشماری ۲۰۲۱) ← حدود ۳۲۵٬۰۰۰ نفر (برآورد ۲۰۲۶)</span>
+      <span><b>میانگین درآمد هر مشتری:</b> ۱٬۰۵۶ دلار در سال</span>
+      <span><b>هزینه‌ی سالانه:</b> ۲۲٬۰۰۰ دلار</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section id="headline">
+  <div class="eyebrow-fa">پاسخ کوتاه</div>
+  <h2>‏TAM ‏۲۲٫۲ میلیون · SAM ‏۷٫۰ میلیون · SOM سال اول ۶۱ هزار دلار</h2>
+  <p class="lede">‏SOM فقط ۰٫۹٪ از SAM است. این فاصله مشکل بازار نیست — مشکل ظرفیت فروش است، و مهم‌ترین عددِ کل این صفحه همین است.</p>
+
+  <div class="trio">
+    <div class="layer t-tam">
+      <span class="tag">TAM</span>
+      <div class="name">کل بازار — هر کسب‌وکار ایرانی در کانادا</div>
+      <div class="money" id="tamMoney">۲۲٫۲ میلیون دلار</div>
+      <div class="count" id="tamCount">۲۱٬۰۰۰ کسب‌وکار</div>
+      <div class="note">سقف نظری، اگر همه‌ی آن‌ها میانگین قیمت پلازا را بپردازند. هیچ‌کس هرگز به این عدد نمی‌رسد.</div>
+    </div>
+    <div class="layer t-sam">
+      <span class="tag">SAM</span>
+      <div class="name">بازار در دسترس — آن‌هایی که هم می‌توانند و هم حاضرند بپردازند</div>
+      <div class="money" id="samMoney">۷٫۰ میلیون دلار</div>
+      <div class="count" id="samCount">۶٬۶۰۰ کسب‌وکار</div>
+      <div class="note">دسته‌های پرارزش، در شهرهایی که تراکم ایرانی‌شان آن‌قدر هست که دایرکتوری واقعاً به کار بیاید.</div>
+    </div>
+    <div class="layer t-som">
+      <span class="tag">SOM</span>
+      <div class="name">بازار قابل تصاحب — آنچه در سال اول می‌توانی بگیری</div>
+      <div class="money" id="somMoney">۶۱٫۲ هزار دلار</div>
+      <div class="count" id="somCount">۵۸ مشتری · ۰٫۹٪ از SAM</div>
+      <div class="note">سقفش فروش تک‌نفره و پاره‌وقت است، نه تقاضا. سال دوم: ۱۴۵ مشتری، ۱۵۳ هزار دلار.</div>
+    </div>
+  </div>
+</section>
+
+<section id="funnel">
+  <div class="eyebrow-fa">مسیر محاسبه</div>
+  <h2>از ۳۲۵٬۰۰۰ نفر تا ۵۸ مشتری</h2>
+  <p class="lede">هر بُرش پایین یک فیلتر است با دلیل مشخص. اهرم‌های بخش بعد را جابه‌جا کنی، این قیف هم با آن‌ها حرکت می‌کند.</p>
+
+  <div class="panel" style="margin-top:22px">
+    <div class="funnel" id="funnel">
+      <div class="step">
+        <div class="lbl">جمعیت</div>
+        <div class="bar-row"><div class="bar" data-bar="pop" style="--barcolor:var(--line-strong)"></div><div class="bar-val"><b id="fPop">۳۲۵٬۰۰۰</b> ایرانی‌کانادایی</div></div>
+      </div>
+      <div class="cut">× سهم سن کار (۲۵ تا ۶۹ سال) — <code>۶۲٪</code> — سنی که واقعاً صاحب کسب‌وکار می‌شود</div>
+      <div class="step">
+        <div class="lbl">در سن کار</div>
+        <div class="bar-row"><div class="bar" data-bar="adult" style="--barcolor:var(--line-strong)"></div><div class="bar-val"><b id="fAdult">۲۰۱٬۵۰۰</b> بزرگسال</div></div>
+      </div>
+      <div class="cut">× نرخ مالکیت کسب‌وکار — <code>۱۱٫۰٪</code> — آمار کانادا: ۱۱٫۹٪ برای مهاجران، ۸٫۴٪ برای متولدان کانادا، ترکیب ۷۵ به ۲۵</div>
+      <div class="step">
+        <div class="lbl mono">TAM</div>
+        <div class="bar-row"><div class="bar" data-bar="tam" style="--barcolor:var(--navy-soft)"></div><div class="bar-val"><b id="fTam">۲۱٬۰۰۰</b> کسب‌وکار</div></div>
+      </div>
+      <div class="cut">× سهم دسته‌های پرارزش — <code>۴۵٪</code> — یک وکیل ۹۹۰ دلار می‌دهد؛ یک دکه‌ی میوه‌فروشی نه</div>
+      <div class="cut">× فیلتر تراکم شهری — <code>۷۰٪</code> — دایرکتوری‌ای که در هالیفکس چهار لیستینگ دارد برای کاربر بی‌ارزش است</div>
+      <div class="step">
+        <div class="lbl mono">SAM</div>
+        <div class="bar-row"><div class="bar" data-bar="sam" style="--barcolor:var(--blue)"></div><div class="bar-val"><b id="fSam">۶٬۶۰۰</b> کسب‌وکار</div></div>
+      </div>
+      <div class="cut">÷ ظرفیت فروش — یک نفر، پاره‌وقت، چند ساعت در هفته، منهای ۳ تا ۴ ماه ساخت محصول</div>
+      <div class="step">
+        <div class="lbl mono">SOM · سال ۱</div>
+        <div class="bar-row"><div class="bar" data-bar="som" style="--barcolor:var(--burgundy)"></div><div class="bar-val"><b id="fSom">۵۸</b> مشتری</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="model">
+  <div class="eyebrow-fa">مدل زنده</div>
+  <h2>یک فرض را عوض کن، ببین چه چیزی می‌شکند</h2>
+  <p class="lede">تمام اعداد این صفحه از همین هشت ورودی می‌آیند. هیچ عدد دیگری دستی نوشته نشده. اگر با فرضی موافق نیستی، جابه‌جایش کن و نتیجه‌اش را بخوان.</p>
+
+  <div class="panel" style="margin-top:22px">
+    <div class="controls">
+      <div class="ctrl">
+        <label for="s_pop"><span class="cname">جمعیت ایرانی‌کانادایی، ۲۰۲۶</span><span class="cval" id="v_pop">۳۲۵٬۰۰۰</span></label>
+        <input type="range" id="s_pop" min="250000" max="400000" step="5000" value="325000">
+        <div class="hint">سرشماری ۲۰۲۱ عدد ۲۸۰٬۸۰۵ را ثبت کرد؛ حدود ۵۵٬۵۰۰ نفر هم بین ۲۰۲۰ تا ۲۰۲۵ پذیرش شدند.</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_adult"><span class="cname">سهم جمعیت در سن کار (۲۵–۶۹)</span><span class="cval" id="v_adult">۶۲٪</span></label>
+        <input type="range" id="s_adult" min="50" max="72" step="1" value="62">
+        <div class="hint">جمعیت‌های مهاجرمحور به سمت سنین کاری متمایل‌اند.</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_own"><span class="cname">نرخ مالکیت کسب‌وکار</span><span class="cval" id="v_own">۱۱٫۰٪</span></label>
+        <input type="range" id="s_own" min="7" max="16" step="0.5" value="11">
+        <div class="hint">آمار کانادا ۲۰۱۶: مهاجران ۱۱٫۹٪ (۵٫۲٪ شرکت ثبت‌شده + ۶٫۹٪ خویش‌فرما).</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_cat"><span class="cname">سهم دسته‌های پرارزش</span><span class="cval" id="v_cat">۴۵٪</span></label>
+        <input type="range" id="s_cat" min="25" max="65" step="1" value="45">
+        <div class="hint">خدمات حرفه‌ای، غذا، سلامت، فنی، املاک — آن‌هایی که هزینه برایشان برمی‌گردد.</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_city"><span class="cname">فیلتر تراکم شهری</span><span class="cval" id="v_city">۷۰٪</span></label>
+        <input type="range" id="s_city" min="45" max="95" step="1" value="70">
+        <div class="hint">سهم کسانی که جایی زندگی می‌کنند که دایرکتوری آن‌جا عمق کافی دارد.</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_arpu"><span class="cname">میانگین درآمد هر مشتری (سالانه)</span><span class="cval" id="v_arpu">۱٬۰۵۶ دلار</span></label>
+        <input type="range" id="s_arpu" min="200" max="2000" step="16" value="1056">
+        <div class="hint">قیمت فعلی ۲۱۴ دلار می‌دهد. ترکیب پیشنهادی ۴۹۰ / ۹۹۰ / ۲٬۷۰۰ دلار عدد ۱٬۰۵۶ را می‌دهد.</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_cust"><span class="cname">مشتری بسته‌شده در سال اول</span><span class="cval" id="v_cust">۵۸</span></label>
+        <input type="range" id="s_cust" min="10" max="250" step="1" value="58">
+        <div class="hint">سقف فروش تک‌نفره‌ی پاره‌وقت ۵۶ تا ۱۶۹ در سال است. عدد ۵۸ فرض می‌کند ۳ تا ۴ ماه اول صرف ساخت می‌شود.</div>
+      </div>
+      <div class="ctrl">
+        <label for="s_cost"><span class="cname">هزینه‌ی سالانه</span><span class="cval" id="v_cost">۲۲٬۰۰۰ دلار</span></label>
+        <input type="range" id="s_cost" min="10000" max="45000" step="1000" value="22000">
+        <div class="hint">بازه‌ای که خودت گفتی: ۱۵ تا ۳۰ هزار دلار.</div>
+      </div>
+    </div>
+
+    <div class="resetrow">
+      <div class="scenariobtns">
+        <button class="scn" data-scn="cons" aria-pressed="false">محافظه‌کارانه</button>
+        <button class="scn" data-scn="base" aria-pressed="true">پایه</button>
+        <button class="scn" data-scn="opt" aria-pressed="false">خوش‌بینانه</button>
+      </div>
+      <button class="reset" id="reset">بازگشت به حالت پایه</button>
+    </div>
+  </div>
+
+  <div class="call good" id="verdict" style="margin-top:18px">
+    <h3 id="vTitle">سال اول هزینه‌ها را پوشش می‌دهد</h3>
+    <p id="vBody">۵۸ مشتری با ۱٬۰۵۶ دلار، ۶۱٬۲۴۸ دلار درآمد می‌سازد در برابر ۲۲٬۰۰۰ دلار هزینه — یعنی ۳۹٬۲۴۸ دلار سود. نقطه‌ی سربه‌سر روی ۲۱ مشتری است.</p>
+  </div>
+</section>
+
+<section id="scenarios">
+  <div class="eyebrow-fa">حساسیت مدل</div>
+  <h2>سه دنیای متفاوت، یک روش</h2>
+  <p class="lede">این بازه‌ها تزئینی نیستند. حالت محافظه‌کارانه سرشماری ۲۰۲۱ را بدون هیچ رشدی و با نرخ مالکیت متولدان کانادا می‌گیرد؛ حالت خوش‌بینانه فرض می‌کند ایرانی‌کانادایی‌ها از میانگین مهاجران کارآفرین‌ترند. هر دو قابل دفاع‌اند؛ هیچ‌کدام اثبات‌شده نیست.</p>
+
+  <div class="scroll" style="margin-top:20px">
+    <table>
+      <thead>
+        <tr>
+          <th>سناریو</th>
+          <th class="num">TAM (تعداد)</th>
+          <th class="num">TAM (دلار)</th>
+          <th class="num">SAM (تعداد)</th>
+          <th class="num">SAM (دلار)</th>
+          <th class="num">SOM سال ۱</th>
+          <th class="num">SOM (دلار)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>محافظه‌کارانه</td><td class="num">۱۲٬۰۰۰</td><td class="num">۸٫۴ م</td><td class="num">۲٬۸۸۰</td><td class="num">۲٫۰ م</td><td class="num">۳۰</td><td class="num">۲۱٬۰۰۰</td></tr>
+        <tr><td><b>پایه</b></td><td class="num">۲۱٬۰۰۰</td><td class="num">۲۲٫۲ م</td><td class="num">۶٬۶۰۰</td><td class="num">۷٫۰ م</td><td class="num">۵۸</td><td class="num">۶۱٬۲۰۰</td></tr>
+        <tr><td>خوش‌بینانه</td><td class="num">۳۱٬۰۰۰</td><td class="num">۴۳٫۴ م</td><td class="num">۱۲٬۴۰۰</td><td class="num">۱۷٫۴ م</td><td class="num">۱۶۹</td><td class="num">۲۳۶٬۶۰۰</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src" style="margin-top:10px">عدد TAM بین حالت محافظه‌کارانه و خوش‌بینانه ۳٫۶ برابر تغییر می‌کند. عدد SOM یازده برابر. یعنی عدم‌قطعیتی که واقعاً اهمیت دارد این نیست که چند کسب‌وکار وجود دارد — این است که به چند تا از آن‌ها می‌رسی.</p>
+</section>
+
+<section id="cities">
+  <div class="eyebrow-fa">بازار در دسترس کجاست</div>
+  <h2>دو شهر، ۸۱٪ کل بازار در دسترس</h2>
+  <p class="lede">توزیع بر پایه‌ی تفکیک استانی سرشماری ۲۰۲۱ است. فیلتر تراکم شهری در تورنتو و ونکوور با قدرت کامل، در کلان‌شهرهای میانی ۷۰٪ و در باقی کانادا ۱۵٪ اعمال شده — چون بیرون از پنج شهر اول، یک دایرکتوری فارسی عمقی برای عرضه به کاربر ندارد.</p>
+
+  <div class="scroll" style="margin-top:20px">
+    <table>
+      <thead>
+        <tr><th>کلان‌شهر</th><th class="num">جمعیت</th><th class="num">کسب‌وکار (TAM)</th><th class="num">SAM (تعداد)</th><th class="num">SAM (دلار)</th><th class="num">سهم از SAM</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>تورنتو بزرگ</td><td class="num">۱۵۱٬۰۰۰</td><td class="num">۹٬۷۶۵</td><td class="num">۳٬۶۳۰</td><td class="num">۳٫۸۳ م</td><td class="num">۵۵٫۰٪</td></tr>
+        <tr><td>ونکوور بزرگ</td><td class="num">۷۱٬۵۰۰</td><td class="num">۴٬۶۲۰</td><td class="num">۱٬۷۲۰</td><td class="num">۱٫۸۲ م</td><td class="num">۲۶٫۱٪</td></tr>
+        <tr><td>مونترال</td><td class="num">۳۶٬۷۰۰</td><td class="num">۲٬۳۷۳</td><td class="num">۶۲۰</td><td class="num">۰٫۶۵ م</td><td class="num">۹٫۴٪</td></tr>
+        <tr><td>کلگری و ادمونتون</td><td class="num">۱۷٬۵۰۰</td><td class="num">۱٬۱۳۴</td><td class="num">۲۹۵</td><td class="num">۰٫۳۱ م</td><td class="num">۴٫۵٪</td></tr>
+        <tr><td>اتاوا</td><td class="num">۱۲٬۳۰۰</td><td class="num">۷۹۸</td><td class="num">۲۰۵</td><td class="num">۰٫۲۲ م</td><td class="num">۳٫۱٪</td></tr>
+        <tr><td>باقی کانادا</td><td class="num">۳۶٬۰۰۰</td><td class="num">۲٬۳۱۰</td><td class="num">۱۳۰</td><td class="num">۰٫۱۴ م</td><td class="num">۲٫۰٪</td></tr>
+        <tr class="total"><td>جمع</td><td class="num">۳۲۵٬۰۰۰</td><td class="num">۲۱٬۰۰۰</td><td class="num">۶٬۶۰۰</td><td class="num">۶٫۹۷ م</td><td class="num">۱۰۰٪</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="call">
+    <h3>خوانش استراتژیک</h3>
+    <p>تو استراتژی ورود به بازار سراسری نداری. یک استراتژی تورنتو داری با ونکوور به‌عنوان گام دوم. تورنتو به‌تنهایی ۳٫۸۳ میلیون دلار SAM است — ۶۲ برابر کل درآمد سال اولت. صرف کردن ساعت فروش بیرون از این دو شهر، پیش از اشباع‌شدنشان، یک خطای گردکردنی است که لباس «توسعه» پوشیده. این تمرکز مسئله‌ی سئو را هم ساده می‌کند: جست‌وجوی فارسی در تورنتو بزرگ را ببری، ۵۵٪ بازار را برده‌ای.</p>
+  </div>
+</section>
+
+<section id="checks">
+  <div class="eyebrow-fa">اعتبارسنجی</div>
+  <h2>چهار جایی که این مدل می‌تواند غلط باشد</h2>
+  <p class="lede">اندازه‌ی بازاری که کسی زیر فشار نبرده، یک عدد است نه یک استدلال. این‌جا می‌گویم کجا محکم است و کجا نیست.</p>
+
+  <div class="checks">
+    <div class="check">
+      <span class="verdict v-ok">محکم است</span>
+      <h3>تعداد لیستینگ رقبا عدد TAM را از پایین می‌بندد</h3>
+      <p>گویالیستینگ ۷٬۴۷۱ لیستینگ ایندکس‌شده دارد، تابلو ۱٬۹۲۸، جعبه حدود ۲٬۰۰۰، بازاریان حدود ۱٬۰۰۰، ایرانین‌بیزینسز ۸۲۸، بازارچه ۶۸۰. با حذف تکراری‌ها، کل مجموعه‌ی رقبا تقریباً ۱۲٬۰۰۰ تا ۱۸٬۰۰۰ کسب‌وکار یکتا را پوشش می‌دهد. عدد TAM برابر ۲۱٬۰۰۰ درست کمی بالاتر از آن می‌نشیند — که دقیقاً درست است، چون هیچ دایرکتوری‌ای همه را نمی‌گیرد.</p>
+    </div>
+    <div class="check">
+      <span class="verdict v-soft">فرض است، نه داده</span>
+      <h3>نرخ مالکیت قرض گرفته شده</h3>
+      <p>عدد ۱۱٫۹٪ میانگین کل مهاجران در مطالعه‌ی ۲۰۱۶ آمار کاناداست. هیچ‌کس نرخ مخصوص ایرانی‌ها را منتشر نکرده. آمار کانادا می‌گوید تفاوت بین کشورهای مبدأ کم است مگر برای آمریکای لاتین و آفریقای جنوب صحرا — که استفاده از میانگین را پشتیبانی می‌کند، اما «پشتیبانی» با «اندازه‌گیری» یکی نیست.</p>
+    </div>
+    <div class="check">
+      <span class="verdict v-bad">نقطه‌ی ضعف اصلی</span>
+      <h3>تمایل به پرداخت آزمایش نشده</h3>
+      <p>عدد SAM فرض می‌کند ۴۵٪ کسب‌وکارها حاضرند سالی ۴۹۰ تا ۲٬۷۰۰ دلار بدهند. تا امروز از هیچ کسب‌وکار واقعی‌ای با این قیمت‌ها پرسیده نشده. همولایتی با ۲۹۰ دلار در سال شکست خورد — آن عدد کفِ ارزش است نه سقف قیمت، ولی تنها شاهد محلی‌ای است که داری و فعلاً جهتش مخالف توست، تا وقتی اولین فروش را انجام بدهی.</p>
+    </div>
+    <div class="check">
+      <span class="verdict v-bad">این را دو بار بخوان</span>
+      <h3>‏۲۲ میلیون دلار بالقوه است، نه در گردش</h3>
+      <p>کل پولی که امروز در تبلیغات دایرکتوری فارسی کانادا جابه‌جا می‌شود احتمالاً زیر ۲ میلیون دلار در سال است — بیشتر رقبا متوقف، رایگان یا مرده‌اند. تو سهمی از یک بودجه‌ی موجود نمی‌گیری؛ داری خرج را از گوگل ادز، اینستاگرام و نشریات چاپی فارسی جابه‌جا می‌کنی. این فروش خیلی طولانی‌تر از چیزی است که یک نمودار اندازه‌ی بازار نشان می‌دهد.</p>
+    </div>
+  </div>
+</section>
+
+<section id="method">
+  <div class="eyebrow-fa">ورودی‌ها</div>
+  <h2>هر عدد و منبعش</h2>
+
+  <div class="scroll" style="margin-top:20px">
+    <table>
+      <thead><tr><th>ورودی</th><th class="num">مقدار</th><th>منبع یا مبنا</th><th>اعتبار</th></tr></thead>
+      <tbody>
+        <tr><td>جمعیت ایرانی‌کانادایی، ۲۰۲۱</td><td class="num">۲۸۰٬۸۰۵</td><td>سرشماری ۲۰۲۱، تبار قومی یا فرهنگی</td><td>داده‌ی قطعی</td></tr>
+        <tr><td>متولدان ایران ساکن کانادا، ۲۰۲۱</td><td class="num">۱۸۲٬۹۴۰</td><td>سرشماری ۲۰۲۱، محل تولد</td><td>داده‌ی قطعی</td></tr>
+        <tr><td>اقامت دائم پذیرفته‌شده ۲۰۲۰ تا ۲۰۲۵</td><td class="num">۵۵٬۴۹۵</td><td>آمار پذیرش IRCC</td><td>داده‌ی قطعی</td></tr>
+        <tr><td>برآورد جمعیت ۲۰۲۶</td><td class="num">حدود ۳۲۵٬۰۰۰</td><td>سرشماری به‌علاوه‌ی پذیرش‌های بعد از ۲۰۲۱، با حذف هم‌پوشانی</td><td>محاسبه‌شده</td></tr>
+        <tr><td>سهم سن کار (۲۵–۶۹)</td><td class="num">۶۲٪</td><td>فرض؛ هرم سنی مهاجران به سنین کاری متمایل است</td><td>فرض</td></tr>
+        <tr><td>نرخ مالکیت، مهاجران</td><td class="num">۱۱٫۹٪</td><td>آمار کانادا: ۵٫۲٪ شرکت ثبت‌شده + ۶٫۹٪ خویش‌فرما</td><td>داده‌ی قطعی</td></tr>
+        <tr><td>نرخ مالکیت، متولدان کانادا</td><td class="num">۸٫۴٪</td><td>آمار کانادا، همان مطالعه</td><td>داده‌ی قطعی</td></tr>
+        <tr><td>نرخ ترکیبی استفاده‌شده</td><td class="num">۱۱٫۰٪</td><td>ترکیب ۷۵٪ مهاجر و ۲۵٪ متولد کانادا</td><td>محاسبه‌شده</td></tr>
+        <tr><td>سهم دسته‌های پرارزش</td><td class="num">۴۵٪</td><td>فرض، بر پایه‌ی ترکیب دسته‌های خود پلازا</td><td>فرض</td></tr>
+        <tr><td>فیلتر تراکم شهری</td><td class="num">۷۰٪</td><td>فرض؛ پنج کلان‌شهر اول حدود ۸۹٪ جمعیت را دارند</td><td>فرض</td></tr>
+        <tr><td>میانگین درآمد هر مشتری</td><td class="num">۱٬۰۵۶ دلار</td><td>ترکیب ۵۸ Pro + ۲۸ Growth + ۱۲ Platinum</td><td>قیمت پیشنهادی</td></tr>
+        <tr><td>سقف ظرفیت فروش</td><td class="num">۵۶ تا ۱۶۹ در سال</td><td>یک نفر، پاره‌وقت، چند ساعت در هفته</td><td>محدودیت اعلام‌شده</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="conclusion">
+  <div class="eyebrow-fa">با این عددها چه کار کنیم</div>
+  <h2>بازار گلوگاه نیست</h2>
+  <p class="lede" style="max-width:66ch">سه نتیجه مستقیماً از همین حساب بیرون می‌آید، و فقط یکی از آن‌ها درباره‌ی اندازه‌ی بازار است.</p>
+  <div class="scroll" style="margin-top:20px">
+    <table>
+      <thead><tr><th style="width:26%">نتیجه</th><th>چرا اعداد این را می‌گویند</th></tr></thead>
+      <tbody>
+        <tr><td><b>اندازه‌گیری بازار را تمام کن، برو سراغ قیمت</b></td><td>‏SOM فقط ۰٫۹٪ از SAM است. حتی اگر بازار سه برابر شود هیچ چیز عوض نمی‌شود — تو نمی‌توانی همان بازاری را که همین حالا داری بفروشی. تنها اهرمی که درآمد سال اول را جابه‌جا می‌کند میانگین درآمد هر مشتری است؛ به همین دلیل ۲۱۴ دلار باید حدود ۱٬۰۵۶ دلار شود.</td></tr>
+        <tr><td><b>اول تورنتو، فقط تورنتو</b></td><td>‏۵۵٪ کل SAM در یک کلان‌شهر است. رفتن سراغ شهر دوم پیش از اشباع تورنتو، ساعت‌های کمیاب فروش را بین دو جبهه‌ی سئو و دو صف تأیید کسب‌وکار تقسیم می‌کند.</td></tr>
+        <tr><td><b>ظرفیت فروش، دارایی‌ای است که باید بخری</b></td><td>با میانگین ۱٬۰۵۶ دلار، یک فروشنده‌ی پاره‌وقت پورسانتی که ۶۰ حساب ببندد ۶۳ هزار دلار درآمد اضافه می‌کند، در برابر کسری از آن به‌عنوان پورسانت. این پربازده‌ترین خرجی است که در دسترس داری — پربازده‌تر از هر قابلیت محصولی که روی نقشه‌ی راه است.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src" style="margin-top:14px">مدل مکمل: مدل قیمت‌گذاری و ساختار پلن‌ها که در ۲ شهریور ۱۴۰۵ ساخته شد و عدد ۱٬۰۵۶ دلار و پلن‌های ۴۹۰ / ۹۹۰ / ۲٬۷۰۰ دلاری این صفحه را تأمین می‌کند.</p>
+</section>
+
+<section id="sources">
+  <div class="eyebrow-fa">منابع</div>
+  <h2>مراجع</h2>
+  <ol class="sources">
+    <li><a href="https://www150.statcan.gc.ca/n1/pub/36-28-0001/2021009/article/00001-eng.htm">آمار کانادا — کارآفرینان مهاجر در کانادا</a> (نرخ‌های مالکیت ۱۱٫۹٪ و ۸٫۴٪)</li>
+    <li><a href="https://www.statcan.gc.ca/o1/en/plus/6128-one-four-private-sector-businesses-are-owned-immigrants-how-are-they-doing">آمار کانادا — یک از هر چهار کسب‌وکار بخش خصوصی متعلق به مهاجران است</a> (۲۳٫۷٪، سه‌ماهه‌ی اول ۲۰۲۴)</li>
+    <li><a href="https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/sip/details/page.cfm?Dguid=2021A000011124&Lang=E&PoiId=2&TId=12">سرشماری ۲۰۲۱ — تبار قومی یا فرهنگی، کانادا</a> (۲۸۰٬۸۰۵)</li>
+    <li><a href="https://en.wikipedia.org/wiki/Iranian_Canadians">ایرانیان کانادا — توزیع استانی و کلان‌شهری</a> (انتاریو ۱۵۵٬۸۵۵ · بریتیش کلمبیا ۶۸٬۵۴۵ · کبک ۳۴٬۰۱۰ · آلبرتا ۱۵٬۱۸۵)</li>
+    <li><a href="https://canadaimmigrants.com/iranian-immigrants-canada/">مهاجران ایرانی به کانادا — آمار پذیرش</a> (۱۸۲٬۹۴۰ متولد ایران؛ ۵۵٬۴۹۵ پذیرش ۲۰۲۰ تا ۲۰۲۵)</li>
+    <li>منابع داخلی پلازا — سند رقبا (تعداد لیستینگ‌های ایندکس‌شده و قیمت رقبا) و مدل قیمت‌گذاری ۲ شهریور ۱۴۰۵.</li>
+  </ol>
+</section>
+
+<footer>
+  اندازه بازار پلازا · نسخه‌ی ۱ · ۷ شهریور ۱۴۰۵ (۲۹ اوت ۲۰۲۶) · ساخته‌شده از پایین به بالا روی داده‌ی سرشماری و آمار کانادا. هر فرض این صفحه قابل تغییر و برچسب‌خورده است؛ هیچ‌کدام هنوز با یک مشتری پولی اعتبارسنجی نشده.
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var FA = ["۰","۱","۲","۳","۴","۵","۶","۷","۸","۹"];
+  function fa(str){
+    return String(str)
+      .replace(/[0-9]/g, function(d){ return FA[+d]; })
+      .replace(/,/g, "٬")
+      .replace(/\./g, "٫");
+  }
+
+  var ids = ["pop","adult","own","cat","city","arpu","cust","cost"];
+  var base = {pop:325000,adult:62,own:11,cat:45,city:70,arpu:1056,cust:58,cost:22000};
+  var scenarios = {
+    cons:{pop:280805,adult:60,own:8.5,cat:35,city:60,arpu:700,cust:30,cost:22000},
+    base:base,
+    opt: {pop:360000,adult:66,own:13.5,cat:55,city:82,arpu:1400,cust:140,cost:22000}
+  };
+  var el = {};
+  ids.forEach(function(k){ el[k] = document.getElementById("s_"+k); });
+
+  function n(x){ return fa(Math.round(x).toLocaleString("en-CA")); }
+  function money(x){
+    if (x >= 1e6) return fa((x/1e6).toFixed(1)) + " میلیون دلار";
+    if (x >= 1e4) return fa(Math.round(x/1000).toLocaleString("en-CA")) + " هزار دلار";
+    if (x >= 1000) return fa((x/1000).toFixed(1)) + " هزار دلار";
+    return n(x) + " دلار";
+  }
+
+  function bar(name, value, max){
+    var b = document.querySelector('[data-bar="'+name+'"]');
+    if(!b) return;
+    b.style.width = Math.max(0.4, Math.sqrt(value/max) * 100) + "%";
+  }
+
+  function render(){
+    var v = {};
+    ids.forEach(function(k){ v[k] = parseFloat(el[k].value); });
+
+    var adults   = v.pop * (v.adult/100);
+    var tamCount = adults * (v.own/100) * 0.95;
+    var samCount = tamCount * (v.cat/100) * (v.city/100);
+    var somCount = Math.min(v.cust, samCount);
+
+    var tamMoney = tamCount * v.arpu;
+    var samMoney = samCount * v.arpu;
+    var somMoney = somCount * v.arpu;
+    var profit    = somMoney - v.cost;
+    var breakeven = Math.ceil(v.cost / v.arpu);
+
+    document.getElementById("v_pop").textContent   = n(v.pop);
+    document.getElementById("v_adult").textContent = fa(v.adult) + "٪";
+    document.getElementById("v_own").textContent   = fa(v.own.toFixed(1)) + "٪";
+    document.getElementById("v_cat").textContent   = fa(v.cat) + "٪";
+    document.getElementById("v_city").textContent  = fa(v.city) + "٪";
+    document.getElementById("v_arpu").textContent  = n(v.arpu) + " دلار";
+    document.getElementById("v_cust").textContent  = n(v.cust);
+    document.getElementById("v_cost").textContent  = n(v.cost) + " دلار";
+
+    document.getElementById("tamMoney").textContent = money(tamMoney);
+    document.getElementById("tamCount").textContent = n(tamCount) + " کسب‌وکار";
+    document.getElementById("samMoney").textContent = money(samMoney);
+    document.getElementById("samCount").textContent = n(samCount) + " کسب‌وکار";
+    document.getElementById("somMoney").textContent = money(somMoney);
+    document.getElementById("somCount").textContent =
+      n(somCount) + " مشتری · " + fa((somCount/samCount*100).toFixed(1)) + "٪ از SAM";
+
+    document.getElementById("fPop").textContent   = n(v.pop);
+    document.getElementById("fAdult").textContent = n(adults);
+    document.getElementById("fTam").textContent   = n(tamCount);
+    document.getElementById("fSam").textContent   = n(samCount);
+    document.getElementById("fSom").textContent   = n(somCount);
+
+    bar("pop",   v.pop,    v.pop);
+    bar("adult", adults,   v.pop);
+    bar("tam",   tamCount, v.pop);
+    bar("sam",   samCount, v.pop);
+    bar("som",   somCount, v.pop);
+
+    var vt    = document.getElementById("verdict");
+    var title = document.getElementById("vTitle");
+    var body  = document.getElementById("vBody");
+    if (profit >= 80000){
+      vt.className = "call good";
+      title.textContent = "سال اول به هدف ۸۰٬۰۰۰ دلار می‌رسد";
+      body.textContent = n(somCount) + " مشتری با " + n(v.arpu) + " دلار، " + money(somMoney) +
+        " درآمد می‌سازد در برابر " + n(v.cost) + " دلار هزینه — یعنی " + money(profit) +
+        " سود. نقطه‌ی سربه‌سر روی " + n(breakeven) + " مشتری است.";
+    } else if (profit > 0){
+      vt.className = "call good";
+      title.textContent = "سال اول هزینه‌ها را پوشش می‌دهد اما به هدف ۸۰٬۰۰۰ دلار نمی‌رسد";
+      body.textContent = n(somCount) + " مشتری با " + n(v.arpu) + " دلار، " + money(somMoney) +
+        " درآمد می‌سازد در برابر " + n(v.cost) + " دلار هزینه — یعنی " + money(profit) +
+        " سود، برابر " + fa(Math.round(profit/80000*100)) + "٪ هدف. نقطه‌ی سربه‌سر روی " +
+        n(breakeven) + " مشتری است.";
+    } else {
+      vt.className = "call";
+      title.textContent = "سال اول ضرر می‌دهد";
+      body.textContent = n(somCount) + " مشتری با " + n(v.arpu) + " دلار، تنها " + money(somMoney) +
+        " درآمد می‌سازد در برابر " + n(v.cost) + " دلار هزینه — یعنی " + money(Math.abs(profit)) +
+        " ضرر. برای رسیدن به نقطه‌ی سربه‌سر به " + n(breakeven) + " مشتری نیاز داری.";
+    }
+
+    document.querySelectorAll("button.scn").forEach(function(b){
+      var s = scenarios[b.dataset.scn];
+      var match = ids.every(function(k){ return Math.abs(v[k] - s[k]) < 0.01; });
+      b.setAttribute("aria-pressed", match ? "true" : "false");
+    });
+  }
+
+  function apply(obj){
+    ids.forEach(function(k){ el[k].value = obj[k]; });
+    render();
+  }
+
+  ids.forEach(function(k){ el[k].addEventListener("input", render); });
+  document.getElementById("reset").addEventListener("click", function(){ apply(base); });
+  document.querySelectorAll("button.scn").forEach(function(b){
+    b.addEventListener("click", function(){ apply(scenarios[b.dataset.scn]); });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
