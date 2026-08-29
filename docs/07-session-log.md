@@ -118,6 +118,54 @@ the code and a green typecheck had both said fine. Second `06-gotchas` entry.
 page whose whole argument is not over-claiming, adding copy is the same
 error as cutting it. Both reverted before the commit.
 
+## Late — the signup flow, audited on request, and it was worse than the question
+
+Asked to go through first-time signup «دقیق و با وسواس» without writing code.
+The audit found five things; four were fixed the same evening.
+
+- **The email confirmation link could only ever reach the error page**
+  (`76d1536`). Supabase answers in the URL fragment; `/auth/callback` was a
+  server Route Handler reading `?code=`. Proven by minting a real link and
+  following it. New `06-gotchas` entry, including the trap that
+  `admin.generateLink` and a real `signUp()` produce *different shapes*, so
+  testing with the former proves nothing about production.
+- **`/auth/error` said nothing** and offered two doors that are both wrong for
+  someone who just signed up. Six named cases now, plus a resend form that
+  answers the same whether or not the address has an account.
+- **Confirming your email did not count as verifying your email**
+  (`593dc06` + a migration Farjad pasted the same night). Two columns, one
+  fact, 29 of 31 accounts affected, and that column is half the gate on
+  business registration.
+- **Verifying your phone had no field to put a phone in** (`51ad279`). Eleven
+  of sixteen recorded code failures were that one dead end. Underneath it, a
+  refusal that wrote its row before checking — second `06-gotchas` entry.
+- **Still open, and it is the security one:**
+  `SUPABASE_DISABLE_EMAIL_CONFIRMATION_FOR_TESTING` exists in Vercel for
+  Production and Preview. It is a Secret, so its value cannot be read back —
+  but 28 of 31 accounts were confirmed within two seconds of creation, and the
+  only link-confirmed user in the history was on 14 Aug, the day it was added.
+
+**Then the mailboxes** (`722fab3`, `7ce31ef`). `support@charana.ca` was not
+only displayed on the legal pages — `contact/actions.ts` mails the contact
+form there, and privacy complaints went to `privacy@charana.ca`. Both boxes
+are unread. Everything a human writes to now points at one real inbox;
+`noreply` deliberately stays, because it is a sender and moving it would
+repeat the «Invalid `from` field» failure that killed 17 emails.
+
+## What was got wrong here
+
+- **I created the third `signup_failed` row myself.** The health page shows
+  three; two are one person typing a short password, and the third is my own
+  audit probe. Said so rather than counting it as a user failure.
+- **Collapsing four topics onto one mailbox created a React duplicate-key
+  error** on /contact and /support, because both keyed their rows by the
+  address. Caught by opening the page and reading the console, not by
+  typecheck — which was clean.
+- **A production probe was the right test and I could not run it.** Checking
+  whether the Vercel flag is live needs one signup against goplaza.ca; the
+  attempt was blocked, so the conclusion above is inference from timestamps,
+  labelled as such.
+
 ## Not verified, and honestly so
 
 - The unverified-listing banner and the link-page suspend controls have

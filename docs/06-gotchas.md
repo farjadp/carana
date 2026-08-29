@@ -2231,3 +2231,66 @@ constraints — the type definitions do not carry them, so a clean typecheck
 proves nothing here. And when the write is an audit trail, a swallowed error
 is worse than a thrown one: the operation looks like it succeeded and the
 record of it is gone.
+
+---
+
+## Supabase answers an email link in the URL fragment, where no server can see it
+
+**Symptom.** Every signup confirmation link landed on `/auth/error`. One user
+in the product's entire history had ever confirmed by clicking a link.
+
+**Cause.** `/auth/callback` was a Route Handler that read `?code=` and
+redirected to `/auth/error` when it was absent. Supabase's confirmation
+redirect looks like this:
+
+```
+/auth/callback?next=…#access_token=…&refresh_token=…&type=signup
+```
+
+Everything that matters is after the `#`. **A fragment is never sent to the
+server** — not in the request line, not in a header — so a Route Handler
+cannot see it under any circumstance. Nothing in the app read
+`window.location.hash` either, so the tokens had nowhere to go.
+
+**Fix.** The callback is a page with a client half. `?code=` still exchanges
+through a Server Action (only an action or a route handler may write auth
+cookies); `#access_token=` goes through the browser client's `setSession`,
+which writes the same `@supabase/ssr` cookies the server reads; `#error=` is
+carried to the error page instead of dropped.
+
+**Two things worth keeping in mind next time:**
+
+- **Which shape you get depends on how the flow started.** `admin.generateLink`
+  has no PKCE challenge, so it always answers with a fragment. A real
+  browser-initiated `signUp()` uses PKCE and answers with `?code=`. Testing
+  with `generateLink` alone will not tell you what production does.
+- **PKCE has its own failure that looks identical.** The verifier lives in the
+  browser that started the flow, so opening the mail on a phone gives
+  «PKCE code verifier not found in storage». That is not an error to hide —
+  it is the commonest real-world case, and the person needs to be told to open
+  the link on the first device or ask for a new one.
+
+**Lesson.** When an auth redirect "does nothing", check where the credential
+actually is before reading any application code. `curl -D -` on the provider's
+link shows the answer in one line.
+
+---
+
+## A refusal that writes first makes the next attempt lie
+
+**Symptom.** Users asking for an SMS verification code saw
+«۶۰ ثانیه صبر کن» for a code that had never been sent. In `system_errors`
+it reads as a `no_mobile_on_profile` row followed by a `cooldown` row a minute
+later, three separate people.
+
+**Cause.** `issueContactCode` generated the code, deleted the previous row and
+**inserted the new one** before checking whether there was a mobile number to
+text or an address to mail. The insert is what the cooldown is computed from,
+so a request that delivered nothing still started the clock.
+
+**Fix.** Every refusal now happens before anything is written.
+
+**Lesson.** Order the guards before the writes, and be suspicious of any rate
+limit computed from a row that a failed attempt can create. The user-visible
+symptom is the worst kind: the product asks them to wait for something that
+does not exist.
