@@ -20,22 +20,30 @@ export const company = {
   address: "Toronto, Ontario, Canada",
 
   /**
-   * Mailboxes. Still on the old domain on purpose: goplaza.ca is not yet a
-   * verified sending domain in Resend and no goplaza.ca mailboxes exist.
-   * Flip these four lines (and EMAIL_FROM in Vercel) once
-   * REBRAND_EXTERNAL_ACTIONS.md §Resend is done. Displaying an address that
-   * does not receive mail would break the honesty rule.
+   * Mailboxes. Mostly still on the old domain on purpose: goplaza.ca is not
+   * yet a verified sending domain in Resend and no goplaza.ca mailboxes
+   * exist. Flip the remaining charana.ca lines (and EMAIL_FROM in Vercel)
+   * once REBRAND_EXTERNAL_ACTIONS.md §Resend is done. Displaying an address
+   * that does not receive mail would break the honesty rule.
    */
   email: {
     general: "hello@charana.ca",
-    support: "support@charana.ca",
+    /**
+     * Moved off charana.ca on 2026-08-27 at Farjad's word that the old box is
+     * no longer read. This one is not only displayed — `contact/actions.ts`
+     * MAILS THE CONTACT FORM HERE, so a dead address meant every message sent
+     * through /contact went nowhere, silently. It is also what the terms,
+     * privacy and disclaimer pages name as the way to reach us, and what the
+     * verification screen offers when someone cannot get a code.
+     */
+    support: "its@farjadp.com",
     privacy: "privacy@charana.ca",
     partners: "partners@charana.ca",
     noreply: "noreply@charana.ca",
     /**
      * Real, monitored mailboxes on domains we already control, added
-     * 2026-08-26. The five above stay because the legal pages name them and
-     * they still receive; these two are the human escalation route and are
+     * 2026-08-26. The remaining charana.ca addresses above stay because the
+     * legal pages name them; these two are the human escalation route and are
      * what a complaint is copied to.
      */
     management: "farjad@ashavid.ca",
