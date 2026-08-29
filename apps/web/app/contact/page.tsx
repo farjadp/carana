@@ -97,17 +97,23 @@ export default function ContactPage() {
 
           <div className="rounded-3xl bg-white border border-[color:var(--line)] p-6">
             <div className="flex items-center gap-2 text-xs text-[color:var(--muted-text)] mb-3"><Mail size={14} /> ایمیل‌ها</div>
+            {/* Grouped by address, not listed per topic. Several topics now
+                share one inbox, and printing the same address five times
+                under five labels reads as a bug — it also WAS one: the row
+                key was the address, so React saw duplicate keys. If the
+                topics get separate mailboxes again this splits back on its
+                own. */}
             <ul className="space-y-2.5 text-sm">
-              {[
+              {groupByAddress([
                 ["عمومی", company.email.general],
                 ["پشتیبانی", company.email.support],
                 ["همکاری و تبلیغات", company.email.partners],
                 ["حریم خصوصی", company.email.privacy],
                 ["مدیریت", company.email.management],
-              ].map(([l, e]) => (
-                <li key={e} className="flex items-center justify-between gap-3">
-                  <span className="text-[color:var(--muted-text)]">{l}</span>
-                  <a href={`mailto:${e}`} className="font-bold text-[color:var(--lajvard)] [font-family:var(--font-latin)]" dir="ltr">{e}</a>
+              ]).map(([e, labels]) => (
+                <li key={e} className="flex items-start justify-between gap-3">
+                  <span className="text-[color:var(--muted-text)]">{labels.join("، ")}</span>
+                  <a href={`mailto:${e}`} className="shrink-0 font-bold text-[color:var(--lajvard)] [font-family:var(--font-latin)]" dir="ltr">{e}</a>
                 </li>
               ))}
             </ul>
@@ -159,4 +165,13 @@ function IntentLink({ href, className, children }: { href: string; className: st
 
 function Merlon() {
   return <svg viewBox="0 0 18 18" width="12" height="12" aria-hidden><path fill="#c9a24b" d="M0,18 V12 H6 V6 H12 V0 H18 V18 Z" /></svg>;
+}
+
+/** One row per mailbox, with every topic it answers. */
+function groupByAddress(pairs: string[][]): [string, string[]][] {
+  const byAddress = new Map<string, string[]>();
+  for (const [label, address] of pairs) {
+    byAddress.set(address, [...(byAddress.get(address) ?? []), label]);
+  }
+  return [...byAddress.entries()];
 }

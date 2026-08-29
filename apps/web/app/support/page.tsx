@@ -178,13 +178,13 @@ export default function SupportPage() {
               <Mail size={14} /> بقیه‌ی نشانی‌ها
             </div>
             <ul className="space-y-2.5 text-sm">
-              {[
+              {groupByAddress([
                 ["عمومی", company.email.general],
                 ["همکاری و تبلیغات", company.email.partners],
                 ["حریم خصوصی", company.email.privacy],
-              ].map(([label, address]) => (
-                <li key={address} className="flex items-center justify-between gap-3">
-                  <span className="text-[color:var(--muted-text)]">{label}</span>
+              ]).map(([address, labels]) => (
+                <li key={address} className="flex items-start justify-between gap-3">
+                  <span className="text-[color:var(--muted-text)]">{labels.join("، ")}</span>
                   <a
                     href={`mailto:${address}`}
                     className="font-bold text-[color:var(--lajvard)] [font-family:var(--font-latin)]"
@@ -241,4 +241,15 @@ export default function SupportPage() {
 
 function Merlon() {
   return <svg viewBox="0 0 18 18" width="12" height="12" aria-hidden><path fill="#c9a24b" d="M0,18 V12 H6 V6 H12 V0 H18 V18 Z" /></svg>;
+}
+
+/** One row per mailbox, with every topic it answers. Several of these share
+ *  an inbox now; five identical rows read as a bug, and the duplicate React
+ *  key it produced actually was one. */
+function groupByAddress(pairs: string[][]): [string, string[]][] {
+  const byAddress = new Map<string, string[]>();
+  for (const [label, address] of pairs) {
+    byAddress.set(address, [...(byAddress.get(address) ?? []), label]);
+  }
+  return [...byAddress.entries()];
 }

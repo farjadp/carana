@@ -20,14 +20,20 @@ export const company = {
   address: "Toronto, Ontario, Canada",
 
   /**
-   * Mailboxes. Mostly still on the old domain on purpose: goplaza.ca is not
-   * yet a verified sending domain in Resend and no goplaza.ca mailboxes
-   * exist. Flip the remaining charana.ca lines (and EMAIL_FROM in Vercel)
-   * once REBRAND_EXTERNAL_ACTIONS.md §Resend is done. Displaying an address
-   * that does not receive mail would break the honesty rule.
+   * Mailboxes.
+   *
+   * Every address a human is asked to write to now points at one real,
+   * monitored inbox. They were charana.ca boxes that stopped being read, and
+   * the file's own rule is that displaying an address which does not receive
+   * mail breaks the honesty rule — worse here than usual, because two of them
+   * were not only displayed but were the actual recipients of the contact
+   * form and of privacy-category complaints.
+   *
+   * One address is deliberately still on the old domain: `noreply`, which is
+   * a sender rather than an inbox. See its own note.
    */
   email: {
-    general: "hello@charana.ca",
+    general: "its@farjadp.com",
     /**
      * Moved off charana.ca on 2026-08-27 at Farjad's word that the old box is
      * no longer read. This one is not only displayed — `contact/actions.ts`
@@ -37,8 +43,22 @@ export const company = {
      * verification screen offers when someone cannot get a code.
      */
     support: "its@farjadp.com",
-    privacy: "privacy@charana.ca",
-    partners: "partners@charana.ca",
+    privacy: "its@farjadp.com",
+    partners: "its@farjadp.com",
+    /**
+     * NOT moved, and it is the one that must not be.
+     *
+     * This is a FROM address, not an inbox: lib/email/send.ts builds
+     * DEFAULT_FROM out of it, and /support tells people password-reset mail
+     * arrives from it. A From address only works on a domain verified for
+     * sending in Resend, and farjadp.com is not one. Pointing it there would
+     * reproduce the exact failure that silently killed 17 verification emails
+     * between 5 and 7 Shahrivar — «Invalid `from` field», returned as
+     * { sent: false } with nobody told.
+     *
+     * Move it when goplaza.ca is verified in Resend
+     * (REBRAND_EXTERNAL_ACTIONS.md §Resend), not before.
+     */
     noreply: "noreply@charana.ca",
     /**
      * Real, monitored mailboxes on domains we already control, added
