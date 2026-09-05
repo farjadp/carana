@@ -1,9 +1,16 @@
 // ============================================================================
 // Source: app/api/cron/blog-generate/route.ts
-// Version: 1.0.0 — 2026-08-16
+// Version: 1.1.0 — 2026-09-05
 // Why: Daily writer. Vercel cron calls it with `Authorization: Bearer
 //      $CRON_SECRET`; an admin can call it manually with `?n=` to write more
 //      or `?dry=1` to see briefs without spending on images.
+//
+//      The schedule in vercel.json calls this as `?n=1&publish=1` (Farjad,
+//      5 Sep): one article a day, straight live. The query string wins over
+//      BLOG_POSTS_PER_DAY and BLOG_AUTO_PUBLISH, so changing either env var
+//      will NOT change what the cron does — edit the path in vercel.json.
+//      Called without those params it still writes five into the review
+//      queue, which is what a manual run should do.
 // Env / Identity: Server only. Same auth shape as verification-reminders.
 // ============================================================================
 import { timingSafeEqual } from "node:crypto";

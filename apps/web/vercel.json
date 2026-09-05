@@ -6,11 +6,11 @@
       "schedule": "0 13 * * *"
     },
     {
-      "path": "/api/cron/blog-generate",
+      "path": "/api/cron/blog-generate?n=1&publish=1",
       "schedule": "0 11 * * *"
     },
     {
-      "path": "/api/cron/blog-source",
+      "path": "/api/cron/blog-source?n=2&publish=1",
       "schedule": "0 12 * * *"
     },
     {

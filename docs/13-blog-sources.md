@@ -239,12 +239,21 @@ up figures about this post" should be readable, not inferred from silence.
 
 | | |
 |---|---|
-| Cron | `/api/cron/blog-source`, 12:00 UTC daily (data-driven writer stays at 11:00) |
-| Count | `BLOG_SOURCE_PER_DAY`, default 5, hard max 10 per run |
-| By hand | `/api/cron/blog-source?n=3&dry=1` — `dry=1` skips the image spend, `publish=1` goes live instead of into the review queue |
+| Cron | `/api/cron/blog-source?n=2&publish=1`, 12:00 UTC daily (data-driven writer at 11:00, `?n=1&publish=1`) |
+| Count | The cron passes `?n=`, which **overrides** `BLOG_SOURCE_PER_DAY`. Changing the env var will not change what the cron does — edit the path in `vercel.json`. Hard max stays 10 per run |
+| Review | **None since 5 Sep.** Both writers publish straight live on Farjad's instruction. The mechanical gates all run before the insert, so a post that exists has already passed them; the human step was the only one left, and over 149 posts it had never rejected anything |
+| By hand | `/api/cron/blog-source?n=3&dry=1` — `dry=1` skips the image spend; without `publish=1` a manual run still goes to the review queue |
 | Admin | Blog desk → **از منابع بنویس**. The source panel shows how many unused articles each source still holds. |
 
 Articles are written **sequentially**, not concurrently: three model passes and
 two images each, and ten in parallel would blow the rate limit and the
 serverless budget. A run of ten will not finish inside one invocation; the
 remainder stays in the ledger. That is why the default is five.
+
+**Why the daily three is split 2 + 1.** Measured over the ten days to 5 Sep:
+the data-driven writer delivered exactly 5 every single day, and this one
+delivered 1–4 (25 articles, averaging 2.5) because the originality gate
+refuses more than it passes. So the reliable writer carries one and this one
+carries two. On a thin news day it writes fewer and the day is short — that is
+the gate working, and padding it back to three would mean overriding the one
+check that stops us republishing someone else's article.
