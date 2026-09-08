@@ -27,11 +27,24 @@ per-address ceiling could plausibly collide with. (Iranians *in Canada*, the
 main audience, do not use VPNs — an earlier version of this analysis assumed
 they did and argued for a higher ceiling on that basis. It was wrong.)
 
-**SMALL — `/images/categories/business-placeholder.svg` returns 404.** That is
-the fallback for a listing with no photo, so those cards render a broken
-image. Spotted while load-testing the ceiling; not fixed, because imagery goes
-through the scripts in `scripts/` with their locked art-direction blocks and
-is never hand-drawn.
+**DONE (`c2c1606`) — the placeholder image 404.** It was not small. Both
+importers wrote `/images/categories/business-placeholder.svg` into `logo_url`
+on 3,323 rows and the file has never existed, and the "is this a real image"
+rule had four spellings across the two apps while five surfaces applied none —
+including the web profile logo and the mobile profile screen. One
+`realImageUrl()` in `@goplaza/core` now serves all eleven render sites, and
+the importers write `null`. The missing SVG was deliberately **not** created:
+a shared grey box across two thirds of a grid reads as a page that failed to
+load, which is why `SimilarThumb` and `listingOgImage` had each already
+rejected it. See `06-gotchas`.
+
+**LEFT BEHIND — 3,323 rows still carry the dead string in `logo_url`.** The
+render path no longer trusts it, so nothing is broken, but the column still
+says a listing has a logo when it does not. Cleaning it is a one-line UPDATE
+that needs a human at the SQL editor (`db push` refuses on this project), and
+`import-listings.mts` still reads the constant to know which rows to enrich —
+so if the rows are nulled, that comparison becomes dead code and should go in
+the same change.
 
 ## From the 27 Aug sweep — small-bug and tech-debt sweep (`chore/small-fixes`,
 7 commits). Three of the finds were not small: `verifyOwnListing`,
