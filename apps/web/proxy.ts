@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: proxy.ts
-// Version: 1.5.0 — 2026-08-25
+// Version: 1.6.0 — 2026-09-08
 // Why: Keep Supabase SSR auth cookies fresh across app requests, and make the
 //      legacy charana.ca domain a permanent redirect instead of a second copy
 //      of the site.
@@ -15,6 +15,9 @@
 //      hostname on this same app — one repo, one database, one deploy — and
 //      this is the only place that knows it exists. Removing this branch is
 //      most of what removing the whole link-in-bio product would take.
+//      v1.6 (8 Sep): a per-address scrape ceiling runs here. See
+//      lib/security/throttle.ts for why it cannot live anywhere else and
+//      for what it honestly does and does not catch.
 // Env / Identity: Request-scoped auth refresh; both host branches read only
 //      the request host. No auth cookie is touched on the short domain.
 // ============================================================================
@@ -22,6 +25,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { HANDLE_RE, brand } from "@goplaza/core";
 import { updateSession } from "@/lib/supabase/proxy";
+import { checkThrottle, throttledResponse } from "@/lib/security/throttle";
 
 /** Hosts that must hand every request to the canonical origin, permanently. */
 const LEGACY_HOSTS = new Set(["charana.ca", "www.charana.ca", "www.goplaza.ca"]);
@@ -55,6 +59,16 @@ export async function proxy(request: NextRequest) {
     target.port = "";
     return NextResponse.redirect(target, 301);
   }
+
+  // Scrape ceiling. It sits after the legacy 301 — a redirect costs nothing
+  // to serve and must keep working for everyone — and before every branch
+  // that returns page content, on both hosts.
+  //
+  // This is the only place it can go. /businesses/[slug] is ISR, so a scraper
+  // is answered from the CDN and the page component never runs; the proxy is
+  // the one piece of our code on the path of a cached hit.
+  const throttle = checkThrottle(request);
+  if (throttle.exceeded) return throttledResponse(throttle.retryAfterSeconds);
 
   if (SHORT_HOSTS.has(host)) return shortHost(request);
 

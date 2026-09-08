@@ -2294,3 +2294,39 @@ so a request that delivered nothing still started the clock.
 limit computed from a row that a failed attempt can create. The user-visible
 symptom is the worst kind: the product asks them to wait for something that
 does not exist.
+
+---
+
+## Next strips its own routing headers before the proxy sees them
+
+**Symptom.** The scrape ceiling in `lib/security/throttle.ts` exempts Next's
+link prefetches, because the listings grid renders 48 `<Link>`s and a visitor
+who merely scrolls fires one request per card — a real reader can look like a
+scraper. The exemption read `Next-Router-Prefetch` and was written, typechecked
+and shipped into the proxy. It never fired once. A client that was over the
+ceiling kept getting 429 with the header set on every request.
+
+**Cause.** Next removes `Next-Router-Prefetch` (and `RSC`,
+`Next-Router-State-Tree`) from the incoming request before `proxy.ts` runs. A
+temporary probe that echoed `request.headers.get("next-router-prefetch")` back
+in a response header read `null` for a request curl had demonstrably sent it
+on. Restarting the dev server changed nothing — the first hypothesis, a stale
+middleware bundle, was wrong.
+
+**Fix.** The exemption was deleted rather than repaired: there is no header
+left to key on. The ceiling was raised instead — 600/min, high enough that a
+prefetch storm from one scrolling person stays under it — so correctness no
+longer depends on telling prefetches apart.
+
+**Lesson.** Two, and the second is the expensive one.
+
+1. Do not assume a framework's request headers survive to middleware. Echo the
+   header back in a probe before building anything on it.
+2. **The first two load tests here proved nothing and looked like they had.**
+   130 sequential requests against `next dev` returned 130×200 — not because
+   the limiter was broken but because the dev server answers ~4 req/s, so a
+   one-minute window never accumulated more than ~30. The limiter only showed
+   itself under `xargs -P 30` (100×200 + 50×429, exactly the configured 100).
+   When testing anything with a time window, check that the test can physically
+   reach the threshold inside it, and re-test exemptions *inside the same
+   window* — a follow-up check a minute later passes for the wrong reason.
