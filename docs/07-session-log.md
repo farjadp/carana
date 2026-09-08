@@ -1,3 +1,72 @@
+# 2026-09-08 — a scrape ceiling, and two tests that proved nothing
+
+Asked, in Persian: is there a way to stop bots scraping the site? The honest
+first answer was no — a directory that wants Google to index it is readable by
+anything that can send a request. What is possible is making bulk collection
+expensive.
+
+## What shipped
+
+`lib/security/throttle.ts`, called from `proxy.ts`. 600 requests a minute and
+5000 an hour per address + user-agent from CA/US, 200/1500 from elsewhere.
+Search engines, signed-in users, static files and `/api` are exempt. Over the
+ceiling gets a plain Persian 429 with `Retry-After` and `noindex`.
+
+**Why the proxy and nowhere else.** `/businesses/[slug]` is ISR
+(`revalidate = 60`), so a scraper is answered from the CDN and the page
+component never runs. Middleware is the only code of ours on the path of a
+cached hit. A limiter inside the page would have looked right and counted
+almost nothing.
+
+**Why no CAPTCHA.** Farjad's constraint was that nothing may make the site
+harder to use. On a weighted comparison the two highest-scoring options were
+moving phone numbers behind a click (8.25) and a challenge on breach — both
+were dropped, because a real person feels both. What was left is a ceiling set
+where only a machine reaches it.
+
+## What was said wrongly
+
+**The VPN argument.** The first analysis argued for a higher ceiling because
+"Iranians in Canada use VPNs, so one address can carry many real users."
+Farjad corrected it: they do not. The claim was invented, it inflated the
+recommended threshold, and removing it moved every IP-based option up the
+ranking. The one group that genuinely shares addresses is people browsing from
+inside Iran — a real possibility that has **not been measured**, and is now
+filed as something to check rather than something to assume.
+
+**A protection was written that never ran.** Next prefetches every `<Link>`
+entering the viewport and the listings grid renders 48 cards, so a visitor who
+only scrolls fires ~48 requests per page — the exact false positive the
+constraint forbade. The exemption keyed on `Next-Router-Prefetch` typechecked,
+shipped into the proxy, and fired zero times. Next strips that header before
+the proxy runs; a probe that echoed it back read `null` for a request curl had
+demonstrably sent it on. The first hypothesis — a stale dev bundle — was wrong
+and a restart disproved it. The exemption was **deleted rather than repaired**
+and the ceiling raised 100 → 600, so correctness no longer depends on telling
+prefetches apart. A comment promising protection that does not exist is worse
+than no comment.
+
+**Two load tests passed for the wrong reason.** 130 sequential curls returned
+130×200, which read as "the limiter is broken". It was not: `next dev` answers
+~4 req/s, so a one-minute window never held more than ~30. Under `xargs -P 30`
+it produced exactly 100×200 + 50×429 at a ceiling of 100. The same flaw made
+the first exemption check meaningless — the exemptions were tested a minute
+after the bucket filled, by which time the window had reset and the control
+passed too. Re-run inside one window, Googlebot and a cookie-bearing client
+passed while the control got 429.
+
+## What this is not
+
+An in-memory counter per edge isolate. It catches the crude single-source
+scraper. It does not catch a distributed one, and it does not catch a scraper
+that forges a Googlebot user agent. A Vercel WAF rule is the other half, is
+configuration rather than code, and is in `05-open-tasks` as Farjad's.
+
+Found in passing and not fixed: `/images/categories/business-placeholder.svg`
+returns 404, so listings with no photo render a broken image.
+
+---
+
 # 2026-08-27 — small bugs and technical debt; three of them turned out to be features that were never wired up
 
 Asked for «باگ‌های ریز و بدهی فنی». Seven commits on `chore/small-fixes`. The

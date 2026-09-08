@@ -2,6 +2,49 @@
 
 All notable changes to this project are tracked here.
 
+## 2.2.0 - 2026-09-08
+
+### Security
+
+- Added a per-address scrape ceiling to the proxy (`lib/security/throttle.ts`,
+  called from `apps/web/proxy.ts`). The directory's listings were servable in
+  bulk at whatever rate the CDN would answer: `/businesses/[slug]` is ISR, so
+  a scraper is served from the edge cache and the page component never runs,
+  which is why no per-route limit could see the traffic. Middleware is the
+  only code of ours on the path of a cached hit.
+  - 600 requests/minute and 5000/hour per address+user-agent from CA/US;
+    200/1500 from elsewhere, keyed on the platform's geo header.
+  - Exempt: search engines, signed-in users, static files, and `/api`, which
+    already has per-route limits.
+  - Over the ceiling gets a plain 429 with `Retry-After` and `noindex`. No
+    CAPTCHA and no challenge page, by instruction: nothing may make the site
+    harder to use for a real visitor.
+  - The ceiling is high because Next prefetches every `<Link>` entering the
+    viewport and the listings grid renders 48 cards, so a visitor who only
+    scrolls fires ~48 requests per page. Prefetches cannot be identified in
+    the proxy (see below), so the limit absorbs them instead.
+  - **This is an in-memory counter per edge isolate and does not pretend
+    otherwise.** It stops the crude single-source scraper. It does not stop a
+    distributed one, and it does not stop a forged Googlebot user agent —
+    verifying that needs a reverse DNS lookup the edge runtime cannot do. A
+    Vercel WAF rule is the other half and is configuration, not code.
+
+### Documentation
+
+- `06-gotchas.md`: Next strips `Next-Router-Prefetch` (and `RSC`) from the
+  request before `proxy.ts` runs, so an exemption keyed on that header
+  typechecked and was dead code — deleted rather than repaired. Second lesson
+  in the same entry: a time-windowed limiter cannot be tested by a loop too
+  slow to fill the window. 130 sequential requests against `next dev` (~4
+  req/s) returned all-200 and looked like proof the limiter was broken; 150
+  concurrent ones showed it firing at exactly the configured limit.
+
+**Note on this file.** It was last touched at 2.1.0 on 20 Aug and does not
+cover the blog, the channels directory, GPLZ Link, standing & loyalty or the
+gooya import, all of which shipped in between. `docs/07-session-log.md` is the
+continuous record; this file has gaps and they were not backfilled here
+because doing so from memory would invent detail.
+
 ## 2.1.0 - 2026-08-20
 
 ### Security

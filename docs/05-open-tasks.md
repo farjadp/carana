@@ -1,6 +1,39 @@
 # Open tasks
 
-**Updated:** 2026-08-27 — **small-bug and tech-debt sweep** (`chore/small-fixes`,
+**Updated:** 2026-09-08 — a scrape ceiling shipped in the proxy; **the other
+half of it is a Vercel dashboard rule and is Farjad's**, listed immediately
+below. The 27 Aug sweep follows unchanged.
+
+## Anti-scraping (8 Sep) — one thing needs the dashboard, one needs data
+
+**FARJAD — add a Vercel Firewall rate-limit rule on `/businesses/*`.** The
+ceiling that shipped today (`lib/security/throttle.ts`) is the free half. It
+is an in-memory counter per edge isolate, so it cannot see across isolates,
+and it trusts the Googlebot user agent because verifying one needs a reverse
+DNS lookup the edge runtime cannot do. Vercel resolves bot signals and
+verifies search engines properly. Check what the current plan includes before
+assuming the rule is available. Nothing in the repo can do this.
+
+**LATER — tune the ceiling from real 429s, not from a guess.** 600/min is
+deliberately generous: Next prefetches every `<Link>` entering the viewport
+and the listings grid renders 48 cards, so a visitor who only scrolls fires
+~48 requests per page, and prefetches cannot be identified in the proxy. Once
+the ceiling has been live a while, read the Vercel logs. If no real visitor is
+hitting it, it can come down and the protection gets sharper.
+
+Worth measuring at the same time: **how much traffic comes from inside Iran.**
+Those visitors do share VPN exit addresses and are the one group a
+per-address ceiling could plausibly collide with. (Iranians *in Canada*, the
+main audience, do not use VPNs — an earlier version of this analysis assumed
+they did and argued for a higher ceiling on that basis. It was wrong.)
+
+**SMALL — `/images/categories/business-placeholder.svg` returns 404.** That is
+the fallback for a listing with no photo, so those cards render a broken
+image. Spotted while load-testing the ceiling; not fixed, because imagery goes
+through the scripts in `scripts/` with their locked art-direction blocks and
+is never hand-drawn.
+
+## From the 27 Aug sweep — small-bug and tech-debt sweep (`chore/small-fixes`,
 7 commits). Three of the finds were not small: `verifyOwnListing`,
 `suspendLinkPage` and `restoreLinkPage` all existed on the server with no
 caller anywhere, so a self-registered listing could not be verified and a

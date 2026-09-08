@@ -1,6 +1,6 @@
 # GOPLAZA — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-08-27 (small-bug + tech-debt sweep; three server actions that nothing called are now wired to screens) · **Docs version:** 3.22
+**Written:** 2026-08-24 · **Updated:** 2026-09-08 (a scrape ceiling in the proxy — the listings were servable in bulk at CDN speed) · **Docs version:** 3.23
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://goplaza.ca (**rebranded from čārana on 2026-08-18** — branch `rebrand/goplaza`; the domain, Supabase URLs, Resend and Stripe still need the dashboard steps in `REBRAND_EXTERNAL_ACTIONS.md` before this is true in production. Until then charana.ca is what resolves.)
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`
@@ -35,6 +35,7 @@ D-U-N-S.
 
 | Area | State |
 |---|---|
+| Anti-scraping (8 Sep) | **Live.** A per-address ceiling in `proxy.ts` — 600 req/min + 5000/hr from CA/US, 200/1500 elsewhere; search engines, signed-in users, static files and `/api` exempt; over it gets a 429 with `Retry-After` and no CAPTCHA. It has to live in the proxy because `/businesses/[slug]` is ISR and the page component never runs on a cached hit. **In-memory per edge isolate:** catches the crude single-source scraper, not a distributed one and not a forged Googlebot UA. The other half is a Vercel WAF rule and is Farjad's, see `05-open-tasks`. The ceiling is deliberately generous because Next's link prefetch cannot be told apart from a page view — see `06-gotchas` |
 | Search | Persian-aware RPC, **metro-aware city filter** (Toronto ⊃ North York…), wrong-keyboard forgiving, widen-on-empty; every query logged |
 | SEO / GEO | City × category pages (96 combos, 21 indexable), JSON-LD everywhere, `LocalBusiness` on profiles, `llms.txt` + `llms-full.txt` |
 | Blog | 7 categories, fal.ai brand imagery; live on web **and in the app**. **Two writers:** the data-driven one runs 11:00 UTC, the **source-driven** one (atash.ca → our own article, cited) runs 12:00 UTC — both into the review queue. Posts carry a `key_takeaway` answer block for AIO/GEO. Posts count views (web + app, one counter). **Telegram `@GoPlaza` is LIVE** — all 74 articles shared, and a daily standalone card (آمار/دانستنی/نکته/مقایسه/اشتباه/پرسش/خبر) posts at 17:30 and 22:30 UTC from `blog_snippets`. LinkedIn is written and inert, 74 posts of backlog waiting on credentials. All four blog migrations are applied. See `13-blog-sources.md`. **Discovery (24 Aug):** it is no longer one link in a dropdown — an editorial band on the home page (lead post + three rows + category chips) and a three-card «جدیدترین مقالات» strip above the footer on the business, city, province, category and job pages, both from `components/blog/latest-posts.tsx`, both rendering nothing when no post is published. «مقالات» sits in the header bar; the desktop nav breakpoint moved 900→960px to make room, see `06-gotchas` |
