@@ -51,7 +51,6 @@ const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SECRET_KEY, {
 
 const openai = createOpenAI({ apiKey: env.OPENAI_API_KEY });
 
-const PLACEHOLDER_LOGO = "/images/categories/business-placeholder.svg";
 
 // ---------------------------------------------------------------------------
 function parseCSV(text: string): Record<string, string>[] {
@@ -217,7 +216,7 @@ async function main() {
       contact_email: r.contact_email,
       description: r.description,
       short_description: r.short_description,
-      logo_url: r.logo_url ?? PLACEHOLDER_LOGO,
+      logo_url: r.logo_url ?? null,
       // No city means it cannot appear on a city page, so it waits for an admin.
       status: r.city ? "PUBLISHED" : "DRAFT",
       created_by: adminProfile.id,

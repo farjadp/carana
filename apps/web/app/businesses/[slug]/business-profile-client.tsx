@@ -39,6 +39,7 @@ import {
   WORKPLACE_TYPE_LABELS_FA, formatSalaryFa,
   type EmploymentType, type PublicOwner, type SalaryPeriod, type WorkplaceType,
   type StandingLevel,
+  realImageUrl,
 } from "@goplaza/core";
 
 interface Props {
@@ -163,6 +164,11 @@ export default function BusinessProfileClient({
   const ownerSeesUpsell = isOwnerOrAdmin && !canReplyToReviews;
   const busyStatus = activeBusyStatus(business);
 
+  // The importers wrote a placeholder path that has never existed onto two
+  // thirds of the listings, so `business.logo_url` is truthy and 404s. The
+  // fallback below (the business's initial) is what should show for those.
+  const logo = realImageUrl([business.logo_url]);
+
   const share = async () => {
     const url = window.location.href;
     if (navigator.share) {
@@ -219,8 +225,8 @@ export default function BusinessProfileClient({
           <div className="flex flex-col md:flex-row md:items-end gap-5">
             {/* Logo */}
             <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-[color:var(--bg)] ring-4 ring-white shadow-lg overflow-hidden shrink-0 -mt-16 md:-mt-20 flex items-center justify-center">
-              {business.logo_url ? (
-                <img src={business.logo_url} alt={business.name} className="w-full h-full object-cover" />
+              {logo ? (
+                <img src={logo} alt={business.name} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-4xl md:text-5xl font-black text-[color:var(--annabi)]">{String(business.name).trim().charAt(0)}</span>
               )}
@@ -707,12 +713,12 @@ export default function BusinessProfileClient({
  * row, which reads as a page that failed to load rather than as a business
  * without a photo. A real upload wins; otherwise the card shows the
  * business's own initial on a tinted ground, which is at least particular to
- * it. The same placeholder test as lib/seo/entity.ts, for the same reason.
+ * it. The placeholder test is `realImageUrl` in @goplaza/core — it used to be
+ * a regex copied from lib/seo/entity.ts, which is how the rule ended up with
+ * four spellings and two surfaces that never applied it.
  */
 function SimilarThumb({ name, coverUrl, logoUrl }: { name: string; coverUrl?: string | null; logoUrl?: string | null }) {
-  const real = [coverUrl, logoUrl]
-    .map((u) => u?.trim())
-    .find((u) => u && !/placeholder|\/default[-.]/i.test(u));
+  const real = realImageUrl([coverUrl, logoUrl]);
 
   if (real) {
     return (

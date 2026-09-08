@@ -10,7 +10,7 @@
 //      Google can offer the sitelinks search box.
 // Env / Identity: Public facts only, all of them true.
 // ============================================================================
-import { brand } from "@goplaza/core";
+import { brand, realImageUrl } from "@goplaza/core";
 
 import { company } from "@/lib/data/company";
 import { SITE } from "@/lib/seo/local";
@@ -35,17 +35,14 @@ export const OG_FALLBACK = "/opengraph-image";
  * turn a generic-but-working card into a broken one.
  *
  * So: only a real raster upload wins; everything else gets OG_FALLBACK.
+ *
+ * The two tests moved into `realImageUrl` (@goplaza/core) on 8 Sep — they had
+ * been copied into SimilarThumb and spelled a third and fourth way in the
+ * mobile app, while five other surfaces applied neither. `allowSvg: false` is
+ * the share-card half of the rule and is why the option exists.
  */
 export function listingOgImage(input: { cover_url?: string | null; logo_url?: string | null }): string {
-  const candidates = [input.cover_url, input.logo_url];
-  for (const raw of candidates) {
-    const url = raw?.trim();
-    if (!url) continue;
-    if (/placeholder|\/default[-.]/i.test(url)) continue;
-    if (/\.svg(\?|$)/i.test(url)) continue;
-    return url;
-  }
-  return OG_FALLBACK;
+  return realImageUrl([input.cover_url, input.logo_url], { allowSvg: false }) ?? OG_FALLBACK;
 }
 
 /** Stable @id values, so other nodes can point at these instead of repeating them. */
@@ -88,11 +85,29 @@ export function organizationLd() {
       company.social.facebook,
       company.parentSite,
     ],
+    /**
+     * The registered place of business, at the granularity we can actually
+     * stand behind.
+     *
+     * There is deliberately NO `streetAddress`: GOPLAZA has no public
+     * storefront, and inventing one — or borrowing the parent company's — to
+     * fill the field would be the honesty rule broken in the one place a
+     * machine is most likely to repeat it as fact. Locality, region and
+     * country are true, verifiable, and enough for an answer engine to place
+     * the entity, which is what the field is for.
+     */
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Toronto",
+      addressRegion: "ON",
+      addressCountry: "CA",
+    },
     contactPoint: [
       {
         "@type": "ContactPoint",
         contactType: "customer support",
         email: company.email.support,
+        telephone: company.phone.support,
         areaServed: "CA",
         availableLanguage: ["fa", "en"],
       },

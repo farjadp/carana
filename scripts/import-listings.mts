@@ -69,6 +69,16 @@ const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SECRET_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 const openai = createOpenAI({ apiKey: env.OPENAI_API_KEY });
+/**
+ * The path 3,323 existing rows carry in `logo_url`. **This file has never
+ * existed** — it 404s — so every surface that tested `logo_url ?` rendered a
+ * broken image until 8 Sep, when the check moved to `realImageUrl` in
+ * @goplaza/core.
+ *
+ * Kept as a READ-ONLY sentinel: it is how an already-imported row says "no
+ * logo yet", and the enrichment pass below still has to recognise it. New
+ * rows are written with `null`, which means the same thing and does not lie.
+ */
 const PLACEHOLDER_LOGO = "/images/categories/business-placeholder.svg";
 
 // ---------------------------------------------------------------------------
@@ -561,7 +571,7 @@ ${JSON.stringify(chunk.map((l, k) => ({ rowId: i + k, name: l.name, source_categ
         tagline: normalizeText(l.tagline, 160),
         description,
         short_description: normalizeText(l.tagline ?? rawDesc, 120),
-        logo_url: normalizeImageUrl(l.logo_url) ?? PLACEHOLDER_LOGO,
+        logo_url: normalizeImageUrl(l.logo_url) ?? null,
         status: city ? "PUBLISHED" : "DRAFT",
         created_by: adminProfile.id,
         verification_notes: `imported from ${l.source_url}`,

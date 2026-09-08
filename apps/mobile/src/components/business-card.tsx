@@ -15,7 +15,7 @@
 import { useRouter } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Flame, Moon, Star } from "lucide-react-native";
-import { activeBusyStatus, isFeatured } from "@goplaza/core";
+import { activeBusyStatus, isFeatured , realImageUrl } from "@goplaza/core";
 
 import type { BusinessCard as Business } from "../lib/businesses";
 import { colors, fonts, radius, shadow, space, type } from "../theme";
@@ -33,6 +33,11 @@ export function BusinessCardView({
     .join(" · ");
 
   const initial = business.name.trim().charAt(0);
+  // Two reasons this is not `business.logo_url`: React Native cannot render
+  // SVG in <Image>, and the importers wrote a never-created placeholder .svg
+  // onto two thirds of the listings. The old `endsWith(".svg")` caught both
+  // by accident; the profile screen, which had no test at all, did not.
+  const logo = realImageUrl([business.logo_url], { allowSvg: false });
   const router = useRouter();
   // Self-expiring — activeBusyStatus checks busy_status_until, not just
   // whether the column is set, same as everywhere else this renders.
@@ -48,8 +53,8 @@ export function BusinessCardView({
     >
         <View style={styles.row}>
           <View style={styles.avatar}>
-            {business.logo_url && !business.logo_url.endsWith(".svg") ? (
-              <Image source={{ uri: business.logo_url }} style={styles.avatarImg} />
+            {logo ? (
+              <Image source={{ uri: logo }} style={styles.avatarImg} />
             ) : (
               <Text style={styles.avatarText}>{initial}</Text>
             )}

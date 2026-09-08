@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Bookmark, MapPin, CheckCircle, NotebookPen, MessageSquare, Star, Clock, AlertTriangle, Building2, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { realImageUrl } from "@goplaza/core";
 
 interface InteractionsClientProps {
   interactions: any[];
@@ -61,8 +62,8 @@ export default function InteractionsClient({ interactions, publicReviews, follow
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
-                  {item.business?.logo_url ? (
-                    <img loading="lazy" decoding="async" src={item.business.logo_url} alt={item.business.name} className="w-full h-full object-cover" />
+                  {realImageUrl([item.business?.logo_url]) ? (
+                    <img loading="lazy" decoding="async" src={realImageUrl([item.business?.logo_url])!} alt={item.business!.name} className="w-full h-full object-cover" />
                   ) : (
                     <Building2 size={20} className="text-gray-400" />
                   )}
@@ -142,8 +143,8 @@ export default function InteractionsClient({ interactions, publicReviews, follow
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
-                    {review.business?.logo_url ? (
-                      <img loading="lazy" decoding="async" src={review.business.logo_url} alt={review.business.name} className="w-full h-full object-cover" />
+                    {realImageUrl([review.business?.logo_url]) ? (
+                      <img loading="lazy" decoding="async" src={realImageUrl([review.business?.logo_url])!} alt={review.business!.name} className="w-full h-full object-cover" />
                     ) : (
                       <Building2 size={16} className="text-gray-400" />
                     )}
@@ -212,8 +213,8 @@ export default function InteractionsClient({ interactions, publicReviews, follow
           <div key={a.id} className="bg-white/80 backdrop-blur-sm border border-gray-100/80 rounded-2xl p-6 shadow-[0_2px_15px_rgb(0,0,0,0.03)]">
             <div className="mb-3 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
-                {a.business?.logo_url ? (
-                  <img loading="lazy" decoding="async" src={a.business.logo_url} alt={a.business.name} className="w-full h-full object-cover" />
+                {realImageUrl([a.business?.logo_url]) ? (
+                  <img loading="lazy" decoding="async" src={realImageUrl([a.business?.logo_url])!} alt={a.business!.name} className="w-full h-full object-cover" />
                 ) : (
                   <Building2 size={16} className="text-gray-400" />
                 )}

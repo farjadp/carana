@@ -16,6 +16,7 @@ import {
   formatSalaryFa,
   jobDaysRemaining,
   languageRequirementFa,
+  realImageUrl,
 } from "@goplaza/core";
 
 import type { JobPost } from "../lib/jobs";
@@ -40,8 +41,7 @@ export function JobCard({
   // are .svg (ashavid.ca serves one), so they are treated as absent here and
   // get the same icon as a listing with no logo at all. The web is unaffected;
   // a browser renders them fine.
-  const logoUrl = job.business?.logo_url?.trim();
-  const usableLogo = logoUrl && !/\.svgx?($|\?)/i.test(logoUrl) ? logoUrl : null;
+  const usableLogo = realImageUrl([job.business?.logo_url], { allowSvg: false });
 
   return (
     <Pressable

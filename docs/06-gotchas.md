@@ -2330,3 +2330,54 @@ longer depends on telling prefetches apart.
    When testing anything with a time window, check that the test can physically
    reach the threshold inside it, and re-test exemptions *inside the same
    window* — a follow-up check a minute later passes for the wrong reason.
+
+---
+
+## A placeholder image that was never created, in the database
+
+**Symptom.** `/images/categories/business-placeholder.svg` returns 404 on
+every page that shows a listing — the grid, the business profile, the profile
+interaction lists, the GPLZ Link avatar, and the same two screens in the app.
+
+**Cause.** Both import scripts wrote that path into `logo_url` as their "no
+logo" value, and **the file has never existed in `public/`**. So `logo_url` is
+populated on 3,323 of the imported rows (63 %) and points at a 404 on all of
+them. Every surface that tested `business.logo_url ? <img> : <fallback>` took
+the img branch and rendered a broken image instead of its own empty state.
+
+The 404 is not the interesting part. **The rule for "is this a real image" had
+been written four times and applied at six places out of eleven:**
+
+| Where | Test it used |
+| --- | --- |
+| `lib/seo/entity.ts` | regex on placeholder + reject SVG |
+| `SimilarThumb` | the same regex, copied |
+| mobile `business-card` | `!endsWith(".svg")` — right answer, wrong reason |
+| mobile home rail | the same `endsWith`, copied |
+| mobile `job-card` | a third regex, `/\.svgx?($|\?)/` |
+| listings card, web profile, 3 × interactions, link avatar, **mobile profile** | nothing at all |
+
+The two mobile card tests passed only by accident: they excluded SVG because
+React Native cannot draw one, and the placeholder happens to be an SVG. The
+mobile *profile* screen had no test, so it was broken the same way the web one
+was.
+
+**Fix.** One `realImageUrl()` in `@goplaza/core` (`packages/core/src/images.ts`),
+used by all eleven. It returns `null` rather than a fallback URL, because every
+call site already has a real empty state — an initial on a tinted ground, or an
+icon — and a shared grey box repeated across two thirds of a grid reads as a
+page that failed to load. `allowSvg: false` covers the two cases that need it:
+React Native, and share cards, which Facebook, WhatsApp, Telegram and X all
+refuse to render as SVG. The import scripts now write `null`; the constant
+stays in `import-listings.mts` as a read-only sentinel, because the 3,323
+existing rows still carry the string and the enrichment pass has to recognise
+it.
+
+**Lesson.** The missing file was never worth creating — the codebase had
+already decided twice, in `SimilarThumb` and `listingOgImage`, that a shared
+placeholder is worse than a per-business initial. What made this a bug on nine
+screens is that both of those decisions were made **locally**, as a regex
+inside the component that needed it. A rule with four spellings is a rule that
+will grow a fifth, and the surfaces that never got a copy are invisible until
+someone loads the page. When you find yourself copying a predicate, move it to
+`@goplaza/core` and change the call sites — see also `mobile lags web`.

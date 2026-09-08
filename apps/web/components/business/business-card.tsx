@@ -15,6 +15,7 @@ import { VerificationBadge, faNumber } from "@/components/verification-badge";
 import { entitlementsFor } from "@/lib/billing/entitlements";
 import { activeBusyStatus } from "@/lib/business/live-status";
 import { getVerificationStatus, type VerifiableBusiness } from "@/lib/verification/status";
+import { realImageUrl } from "@goplaza/core";
 
 export interface BusinessCardData extends VerifiableBusiness {
   id: string;
@@ -58,6 +59,12 @@ export function BusinessCard({
   const busy = activeBusyStatus(business);
   const href = `/businesses/${business.slug || business.id}`;
 
+  // Not `business.logo_url` directly: the importers wrote a placeholder path
+  // that has never existed onto two thirds of the listings, so a truthiness
+  // test picks the <img> branch and renders a broken image. See
+  // @goplaza/core/images.
+  const logo = realImageUrl([business.logo_url]);
+
   return (
     // The whole card is the link. A card where only a small button navigates
     // wastes the largest tap target on the screen, which matters most on mobile.
@@ -68,10 +75,10 @@ export function BusinessCard({
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-4 flex items-start gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#f6f1e8]">
-            {business.logo_url ? (
+            {logo ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={business.logo_url}
+                src={logo}
                 alt=""
                 className="h-full w-full object-cover"
                 loading="lazy"

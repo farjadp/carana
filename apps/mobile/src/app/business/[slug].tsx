@@ -30,6 +30,7 @@ import {
 import {
   activeBusyStatus, brand, getVerificationStatus, OWNER_SECTION_NOTE, OWNER_SECTION_TITLE,
   PROVINCES, type PublicOwner,
+  realImageUrl,
 } from "@goplaza/core";
 import { fetchBusinessOwner } from "../../lib/business-owner";
 
@@ -122,6 +123,11 @@ export default function BusinessScreen() {
 
   const verification = getVerificationStatus(business);
   const verified = verification.state === "verified" || verification.state === "expiring";
+  // This screen tested nothing, so it rendered the never-created placeholder
+  // path the importers wrote onto two thirds of the listings — a broken image
+  // where the business's initial belongs. SVG is excluded too: <Image> cannot
+  // draw one.
+  const logo = realImageUrl([business.logo_url], { allowSvg: false });
   const busy = activeBusyStatus(business);
   const provinceName = PROVINCES.find((p) => p.code === business.province)?.name ?? business.province;
   // Category images are stored site-relative; the app must make them absolute.
@@ -159,8 +165,8 @@ export default function BusinessScreen() {
         <View style={styles.identity}>
           <View style={styles.identityTop}>
             <View style={styles.logoWrap}>
-              {business.logo_url ? (
-                <Image source={{ uri: business.logo_url }} style={styles.logo} />
+              {logo ? (
+                <Image source={{ uri: logo }} style={styles.logo} />
               ) : (
                 <Text style={styles.logoLetter}>{business.name.trim().charAt(0)}</Text>
               )}

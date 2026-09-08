@@ -56,6 +56,7 @@ import {
   WEEKDAY_FA,
   WEEK_ORDER_FA,
   type WorkingHours,
+  realImageUrl,
 } from "@goplaza/core";
 import { cityNameFa, getGeoIndex } from "@/lib/seo/geo-index";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -298,7 +299,10 @@ export default async function LinkPage({ params }: { params: Promise<{ handle: s
   const cityFa = business?.city ? cityNameFa(await getGeoIndex(), String(business.city)) : null;
   const provinceFa = provinceLabel(business?.province ?? null);
   const place = [cityFa, provinceFa].filter(Boolean).join("، ") || null;
-  const avatar = page.avatar_url ?? business?.logo_url ?? null;
+  // `business.logo_url` is the never-created placeholder path on two thirds of
+  // imported listings, so taking it raw put a broken image at the top of the
+  // bio page — the one element a QR code in a shop window leads to.
+  const avatar = realImageUrl([page.avatar_url, business?.logo_url]);
 
   return (
     <main className="min-h-screen bg-[#f6f1e8] px-5 py-12">

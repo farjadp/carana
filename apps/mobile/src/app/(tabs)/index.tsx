@@ -38,7 +38,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, BadgeCheck, Briefcase, ChevronLeft, Clock3, Megaphone, Search, Store } from "lucide-react-native";
-import { brand, getVerificationStatus } from "@goplaza/core";
+import { brand, getVerificationStatus , realImageUrl } from "@goplaza/core";
 
 import { BrandLoading, BrandMark, MerlonGlyph, MerlonRow } from "../../components/brand-mark";
 import { BusinessCardView } from "../../components/business-card";
@@ -514,7 +514,7 @@ function MiniCard({
   onPress: () => void;
 }) {
   const initial = business.name.trim().charAt(0);
-  const logo = business.logo_url && !business.logo_url.endsWith(".svg") ? business.logo_url : null;
+  const logo = realImageUrl([business.logo_url], { allowSvg: false });
   return (
     <Pressable style={({ pressed }) => [styles.mini, pressed && styles.pressed]} onPress={onPress}>
       <View style={styles.miniHead}>
