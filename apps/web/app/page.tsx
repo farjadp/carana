@@ -1,44 +1,70 @@
 // ============================================================================
 // Source: app/page.tsx
-// Version: 2.1.0 — 2026-08-24
-// Why: The home page. v2 is a redesign around the one job a directory home
-//      page has — get someone to the right business — after Farjad flagged it
-//      as repetitive and unfocused. What was actually wrong, and what changed:
+// Version: 3.0.0 — 2026-09-09
+// Why: The home page. One job: get someone to the right business.
 //
-//      DUPLICATION (the complaint, and it was real)
-//        • "جدیدترین" and "پربازدیدترین" were two identical 6-card grids run
-//          back to back, and on today's data the *same three* businesses
-//          filled both. Popular is now deduplicated against newest, so the
-//          two sections can never restate each other.
-//        • The owner CTA appeared three times (hero, sticky header, dedicated
-//          section). Removed from the hero; the header carries it everywhere
-//          and the dedicated section explains it properly.
-//        • "چرا GOPLAZA؟" (4 cards) and "اطلاعات قابل اعتماد" (a paragraph)
-//          were the same trust argument told twice. Merged into one section.
-//        • The three legal links were repeated here and in the footer, which
-//          renders directly beneath. Kept the footer's.
+//      v2 (24 Aug) removed the duplication Farjad flagged — two identical
+//      card grids, an owner CTA that appeared three times, a trust argument
+//      told twice, a "مشاهده همه" that 404'd, and a hard-coded business count
+//      beside a live one.
 //
-//      BROKEN LINK
-//        • "مشاهده همه" pointed at /categories/all, which is not a route —
-//          `categories/[slug]` has no "all" case, so it 404s. Now /businesses,
-//          which is the real full paginated listing.
+//      v3 (9 Sep) is a UX pass over the LIVE page, and every item below is
+//      something the rendered HTML was doing on that day, not something the
+//      source suggested it might.
 //
-//      STALE CLAIM
-//        • The app mock's floating chip hard-coded "+۶۷۷ کسب‌وکار" while the
-//          hero counted 680 from the database on the same screen. It takes
-//          the live count now — same rule as every other number here.
+//      HONESTY (the house rule, three fresh violations)
+//        • «دسته‌بندی‌های پرجستجوی پلازا» sat over a list ordered by
+//          `display_order`. Nothing about it was search-derived. Relabelled.
+//        • The hero's «پرجستجو:» chips were a hard-coded array; they now come
+//          from the search log, and relabel themselves «مثلاً:» when the
+//          aggregate is unavailable. See components/home-hero.tsx v3.
+//        • «۱۷ مالکیت احرازشده» in gold beside «۹۶۹۳ کسب‌وکار» — true, and a
+//          worse first impression than the number deserves. `verified` moved
+//          to the search filter that already exists; the hero's fourth stat is
+//          now `updatedThisWeek`.
 //
-//      ORDER
-//        • Categories moved directly under the hero: browsing by category is
-//          the main path for a visitor who does not have a search term ready,
-//          and it used to sit below two conditional sections that are empty
-//          on most days.
+//      A BUG THE PAGE HAD SHIPPED
+//        • The categories query carried `.limit(10)` and its rows were also
+//          the source of `catLabel`. There are 12 active categories, so two of
+//          them had no label and every card in them printed its raw slug:
+//          six cards on the live home page read «digital-it». The query now
+//          fetches all categories for the map and the grid takes the first ten.
+//
+//      SECTIONS THAT ANNOUNCED THEIR OWN EMPTINESS
+//        • «ویژه» rendered two cards into a three-column grid, and
+//          «تازه‌ترین اعلان‌ها» rendered one into another. Both now pick a
+//          layout from their own length, and both live inside one band —
+//          «همین حالا در پلازا» — instead of two.
+//        • «جدیدترین» and «پربازدیدترین» were two headings over two rails of
+//          the same object. One section, two tabs (components/home/business-tabs).
+//
+//      THE DIRECTORY LISTING ITSELF
+//        • Of the eight businesses shown above the fold, three were the
+//          founder's: ویزا رودز and آشاوید held both «ویژه» slots, and آشاوید,
+//          فرجاد پورمحمد and ویزا رودز sat 1st, 3rd and 4th in
+//          «پربازدیدترین». Internal listings are now excluded from the two
+//          promotional slots and unchanged everywhere else — see
+//          lib/data/internal-businesses.ts.
+//
+//      PLACE
+//        • Cities were eight hard-coded cards while `topCities` — real, ranked,
+//          already fetched — was thrown away, so Richmond Hill (763 listings),
+//          North York and Thornhill never appeared. They come from the geo
+//          index now, with Persian names and real counts.
+//        • New: category × city links with real counts, the shape of query
+//          people actually have («دندانپزشک در نورث ونکوور»).
+//
+//      LENGTH
+//        • The page was ~8,550px of twelve sections. The merges above, a
+//          shorter blog rail, and dropping the home page's own suggestion box
+//          — it is already on the zero-result search page, where someone has
+//          just discovered something is missing — bring it to nine.
 // Env / Identity: Server Component. Public reads only.
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, ArrowLeft, Star, ShieldCheck, Bookmark, MessageSquare, Download, Megaphone, Users } from "lucide-react";
+import { ArrowLeft, Bookmark, Download, Megaphone, MessageSquare, Search, ShieldCheck, Star, Users } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
@@ -46,27 +72,27 @@ import { plansWith } from "@goplaza/core";
 import { getDirectoryStats } from "@/lib/data/directory-stats";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BusinessCard } from "@/components/business/business-card";
-import { Rail } from "@/components/ui/rail";
+import { BusinessTabs, type BusinessTab } from "@/components/home/business-tabs";
 import { HomeHero } from "@/components/home-hero";
-import { SuggestionBox } from "@/components/suggestion-box";
 import { HomeLatestPosts } from "@/components/blog/latest-posts";
 import { HomeChannels } from "@/components/channels/home-channels";
+import { withoutInternal } from "@/lib/data/internal-businesses";
+import { detectVisitorCity } from "@/lib/geo/visitor-city";
+import { cityCategoryCount, getGeoIndex } from "@/lib/seo/geo-index";
+import { topSearches } from "@/lib/search";
 import { STORES } from "@/lib/data/releases";
-import { faDigits as fa } from "@goplaza/core";
+import { faDigits as fa, faNumber } from "@goplaza/core";
 
-// The eight cities with generated background art. Kept here rather than read
-// from lib/data/cities.ts because only these have images — a card whose
-// background 404s is worse than no card.
-const CITY_CARDS = [
-  { slug: "toronto", nameFa: "تورنتو", nameEn: "Toronto" },
-  { slug: "vancouver", nameFa: "ونکوور", nameEn: "Vancouver" },
-  { slug: "montreal", nameFa: "مونترال", nameEn: "Montreal" },
-  { slug: "calgary", nameFa: "کلگری", nameEn: "Calgary" },
-  { slug: "ottawa", nameFa: "اتاوا", nameEn: "Ottawa" },
-  { slug: "edmonton", nameFa: "ادمونتون", nameEn: "Edmonton" },
-  { slug: "winnipeg", nameFa: "وینیپگ", nameEn: "Winnipeg" },
-  { slug: "halifax", nameFa: "هلیفکس", nameEn: "Halifax" },
-] as const;
+/**
+ * City slugs with generated background art. A card whose background 404s is
+ * worse than no card, so a city outside this set gets the flat brand tile
+ * instead of a broken image — it still appears, which is the point: the list
+ * is now ranked by real listing counts, not by which eight we drew.
+ */
+const CITY_ART = new Set([
+  "toronto", "vancouver", "montreal", "calgary",
+  "ottawa", "edmonton", "winnipeg", "halifax",
+]);
 
 // The app is built and runs, but is not on either store yet — that path is
 // blocked on the Apple organization account. Store URLs live in
@@ -75,23 +101,35 @@ const APP_LIVE = !!(STORES.appStore || STORES.playStore);
 const APP_STORE_URL = STORES.appStore;
 const PLAY_STORE_URL = STORES.playStore;
 
-
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
   title: "GOPLAZA | دایرکتوری کسب‌وکارهای ایرانیان کانادا",
 };
+
+/**
+ * Grid columns chosen from how many cards there actually are. A three-column
+ * grid holding one card is a section advertising its own emptiness, which is
+ * what «تازه‌ترین اعلان‌ها» was doing on the live page.
+ */
+function gridFor(n: number): string {
+  if (n <= 1) return "grid-cols-1";
+  if (n === 2) return "grid-cols-1 md:grid-cols-2";
+  return "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
+}
 
 export default async function HomePage() {
   const supabase = await createSupabaseServerClient();
 
   const nowIso = new Date().toISOString();
 
+  // No `.limit()`: these rows are the label map for every card on the page,
+  // and a truncated map is how «digital-it» reached the live home page. The
+  // grid below takes the first ten; the map keeps all of them.
   const { data: categories } = await supabase
     .from("categories")
     .select("*")
     .eq("is_active", true)
-    .order("display_order", { ascending: true })
-    .limit(10);
+    .order("display_order", { ascending: true });
 
   // Featured businesses — every plan that holds the `homepage_slot` feature,
   // asked of plans.ts rather than typed here. It used to say
@@ -106,14 +144,14 @@ export default async function HomePage() {
   // label. Section renders only when it actually has something to show: an
   // empty "ویژه" section would be the same broken promise as a search box
   // that doesn't search.
-  const { data: featuredBusinesses } = await supabase
+  const { data: featuredPool } = await supabase
     .from("businesses")
     .select("*")
     .or("status.eq.APPROVED,status.eq.PUBLISHED")
     .in("plan", plansWith("homepage_slot"))
     .or(`plan_until.is.null,plan_until.gte.${nowIso}`)
     .order("plan_until", { ascending: true, nullsFirst: false })
-    .limit(6);
+    .limit(12);
 
   // Newest announcements sitewide — how a visitor who follows no one in
   // particular finds out anything got posted at all. Capped at 10, scoped to
@@ -125,57 +163,125 @@ export default async function HomePage() {
     .in("business.status", ["APPROVED", "PUBLISHED"])
     .or(`expires_at.is.null,expires_at.gte.${nowIso}`)
     .order("created_at", { ascending: false })
-    .limit(10);
+    .limit(6);
 
-  const { data: latestBusinesses } = await supabase
+  const { data: latestPool } = await supabase
     .from("businesses")
     .select("*")
     .or("status.eq.APPROVED,status.eq.PUBLISHED")
     .order("created_at", { ascending: false })
-    .limit(6);
+    .limit(12);
 
-  // Over-fetched on purpose: the six newest are removed below, so asking for
-  // exactly six here would leave the "most visited" row short (or empty) on a
-  // young directory where the newest listings are also the most viewed.
+  // Over-fetched on purpose: the newest rows and our own listings are removed
+  // below, so asking for exactly six here would leave the "most visited" tab
+  // short on a young directory where the newest listings are also the most
+  // viewed.
   const { data: popularPool } = await supabase
     .from("businesses")
     .select("*")
     .or("status.eq.APPROVED,status.eq.PUBLISHED")
     .order("view_count", { ascending: false })
-    .limit(18);
+    .limit(30);
 
   // Live numbers for the hero — every one is a real count, never a claim.
   // Shared with the auth panel through one helper so the two never disagree.
-  const directory = await getDirectoryStats();
-  const catLabel = new Map((categories ?? []).map((c) => [c.slug as string, c.name as string]));
-  const stats = { total: directory.total, verified: directory.verified, cities: directory.cities, categories: directory.categories };
-  const topCities = directory.topCities.slice(0, 12);
+  const [directory, geo, popularTerms] = await Promise.all([
+    getDirectoryStats(),
+    getGeoIndex(),
+    topSearches(supabase, 6),
+  ]);
+  // Must follow getGeoIndex(): a city is only offered once we know we have
+  // listings there.
+  const visitorCity = await detectVisitorCity(geo);
 
-  // The fix for the repetition Farjad saw: a business already shown as "newest"
-  // never appears again as "most visited". Two sections that restate each
-  // other are worse than one.
-  const latestIds = new Set((latestBusinesses ?? []).map((b) => b.id as string));
-  const popularBusinesses = (popularPool ?? [])
+  const catLabel = new Map((categories ?? []).map((c) => [c.slug as string, c.name as string]));
+  const categoryLabels = Object.fromEntries(catLabel);
+  const categoryCards = (categories ?? []).slice(0, 10);
+  const stats = {
+    total: directory.total,
+    cities: directory.cities,
+    categories: directory.categories,
+    updatedThisWeek: directory.updatedThisWeek,
+  };
+
+  // Persian city labels with real counts, ranked by listings — replacing a
+  // dropdown of raw English `businesses.city` values on an RTL Persian page.
+  const cityOptions = geo.cities.slice(0, 40).map(({ config, count }) => ({
+    value: config.nameEn,
+    label: config.nameFa || config.nameEn,
+    count,
+  }));
+  const cityCards = geo.cities.slice(0, 8);
+
+  // Category × city, with the count the destination page will actually show.
+  // Only combos that clear the indexable floor are offered — a quick link to
+  // two listings is a worse answer than the category page it came from.
+  const comboLinks = geo.cities.slice(0, 4).flatMap(({ config }) =>
+    categoryCards.slice(0, 3).map((cat) => ({
+      key: `${config.slug}-${cat.slug}`,
+      label: `${cat.name} در ${config.nameFa || config.nameEn}`,
+      href: `/cities/${config.slug}/${cat.slug}`,
+      count: cityCategoryCount(geo, config.slug, cat.slug as string),
+    }))
+  ).filter((c) => c.count >= 3).sort((a, b) => b.count - a.count).slice(0, 8);
+
+  // Our own listings never take a promotional slot. They stay in search, in
+  // their category, in their city and in the sitemap — see
+  // lib/data/internal-businesses.ts for why that asymmetry is the honest one.
+  const featuredBusinesses = withoutInternal(featuredPool).slice(0, 6);
+  const latestBusinesses = withoutInternal(latestPool).slice(0, 6);
+  const latestIds = new Set(latestBusinesses.map((b) => b.id as string));
+  const popularBusinesses = withoutInternal(popularPool)
     .filter((b) => !latestIds.has(b.id as string) && (b.view_count ?? 0) > 0)
     .slice(0, 6);
+
+  const businessTabs: BusinessTab[] = [];
+  if (latestBusinesses.length) {
+    businessTabs.push({
+      key: "new",
+      label: "جدیدترین",
+      subtitle: "تازه‌ترین کسب‌وکارهایی که در پلازا منتشر شده‌اند",
+      href: "/businesses?sort=new",
+      items: latestBusinesses as never,
+    });
+  }
+  if (popularBusinesses.length) {
+    businessTabs.push({
+      key: "popular",
+      label: "پربازدیدترین",
+      subtitle: "بیشترین بازدید در پلازا",
+      href: "/businesses?sort=views",
+      items: popularBusinesses as never,
+    });
+  }
+
+  const announcements = latestAnnouncements ?? [];
+  const showNowBand = featuredBusinesses.length > 0 || announcements.length > 0;
 
   return (
     <PageShell currentPath="/" currentSection="home">
       <main className="min-h-screen">
-        {/* 1. Hero — search-first, live numbers */}
-        <HomeHero stats={stats} cities={topCities} />
+        {/* 1. Hero — search-first, suggestions, live numbers */}
+        <HomeHero
+          stats={stats}
+          cities={cityOptions}
+          detectedCity={visitorCity?.value ?? null}
+          topSearches={popularTerms ? popularTerms.map((t) => t.term) : null}
+        />
 
         {/* 2. Browse by category — the main path for someone without a search
-            term ready, so it comes first after the hero. */}
+            term ready, so it comes first after the hero. The subtitle used to
+            read «دسته‌بندی‌های پرجستجوی پلازا» over rows ordered by
+            display_order; nothing here is derived from searches. */}
         <section className="bg-white px-4 py-16">
           <div className="mx-auto max-w-7xl">
             <SectionHead
               title="دنبال چه خدمتی می‌گردی؟"
-              subtitle="دسته‌بندی‌های پرجستجوی پلازا"
+              subtitle="دسته‌بندی‌های اصلی پلازا"
               center
             />
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-              {(categories || []).map((category) => (
+              {categoryCards.map((category) => (
                 <Link
                   key={category.id}
                   href={`/categories/${category.slug}`}
@@ -208,153 +314,61 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 3. Featured — the plan's homepage_slot. Only appears when someone
-            actually holds it; see the fetch above for why an empty version of
-            this section is not an option. */}
-        {featuredBusinesses && featuredBusinesses.length > 0 && (
-          <section className="border-t border-gray-100 bg-gradient-to-b from-amber-50/60 to-white px-4 py-16">
-            <div className="mx-auto max-w-7xl">
-              <div className="mb-8">
-                <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1 text-xs font-black text-white">
-                  <Star className="h-3.5 w-3.5" fill="currentColor" /> ویژه
-                </div>
-                <SectionHead
-                  title="کسب‌وکارهای ویژه"
-                  subtitle="این‌ها جایگاه ویژه را خریده‌اند — با برچسب، نه پنهانی."
-                  bare
-                />
-              </div>
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {featuredBusinesses.map((biz) => (
-                  <BusinessCard key={biz.id} business={biz} categoryLabel={catLabel.get(biz.category)} />
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* 4. Newest announcements sitewide — absent when there are none,
-            same rule as the featured section above it. */}
-        {latestAnnouncements && latestAnnouncements.length > 0 && (
-          <section className="border-t border-gray-100 bg-white px-4 py-16">
-            <div className="mx-auto max-w-7xl">
-              <SectionHead title="تازه‌ترین اعلان‌ها" subtitle="تخفیف، رویداد و خبر تازه از کسب‌وکارهای پلازا" />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {latestAnnouncements.map((a: any) => (
-                  <Link
-                    key={a.id}
-                    href={`/businesses/${a.business?.slug}`}
-                    className="flex items-start gap-3 rounded-2xl border border-[color:var(--gold)]/25 bg-[color:var(--gold)]/6 p-4 transition hover:-translate-y-0.5 hover:shadow-md"
-                  >
-                    <Megaphone size={16} className="mt-0.5 shrink-0 text-[color:var(--gold)]" />
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-bold text-[color:var(--lajvard)]">{a.business?.name}</p>
-                      <p className="mt-0.5 line-clamp-1 text-sm font-bold text-gray-900">{a.title}</p>
-                      {a.body ? <p className="mt-0.5 line-clamp-2 text-xs text-gray-500">{a.body}</p> : null}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* 5. Newest businesses. The heading used to read "newest *verified*"
-            and claim each had been reviewed by the team — both asserted over a
-            query that filters on publication status alone, which described 677
-            imported listings as verified. Say what the query actually selects. */}
-        {latestBusinesses && latestBusinesses.length > 0 && (
-          <section className="border-t border-gray-100 bg-white px-4 py-16">
-            <div className="mx-auto max-w-7xl">
-              <div className="mb-8 flex items-end justify-between gap-4">
-                <SectionHead title="جدیدترین کسب‌وکارها" subtitle="تازه‌ترین کسب‌وکارهایی که در پلازا منتشر شده‌اند" bare />
-                <Button asChild variant="ghost" className="hidden shrink-0 text-[color:var(--lajvard)] sm:inline-flex">
-                  <Link href="/businesses?sort=new">مشاهده همه <ArrowLeft className="mr-1 h-4 w-4" /></Link>
-                </Button>
-              </div>
-              {/* One scrolling row instead of a two-row grid. Six cards in a
-                  3-column grid is two rows ≈ 740px, and this section plus the
-                  one below it were 1,500px of the home page's 8,554. */}
-              <Rail prevLabel="کسب‌وکارهای قبلی" nextLabel="کسب‌وکارهای بیشتر">
-                {latestBusinesses.map((biz) => (
-                  <div key={biz.id} className="w-[78vw] shrink-0 snap-start sm:w-[340px] lg:w-[300px]">
-                    <BusinessCard business={biz} categoryLabel={catLabel.get(biz.category)} className="h-full" />
-                  </div>
-                ))}
-              </Rail>
-              {/* The arrows are desktop-only and the rail is not obviously
-                  scrollable on a phone, so the way in is a link, not a hint. */}
-              <Link
-                href="/businesses?sort=new"
-                className="mt-6 inline-flex h-11 items-center gap-2 rounded-full border border-[color:var(--line)] bg-white px-5 text-sm font-bold text-[color:var(--text)] transition hover:border-[color:var(--annabi)]/40 sm:hidden"
-              >
-                همه‌ی کسب‌وکارها <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </div>
-          </section>
-        )}
-
-        {/* 6. Most visited — deduplicated against the section above, and
-            gated on a real view count, so this is never a second copy of it. */}
-        {popularBusinesses.length > 0 && (
-          <section className="border-t border-gray-100 bg-gray-50/70 px-4 py-16">
-            <div className="mx-auto max-w-7xl">
-              <div className="mb-8 flex items-end justify-between gap-4">
-                <SectionHead title="پربازدیدترین کسب‌وکارها" subtitle="بیشترین بازدید در پلازا" bare />
-                <Button asChild variant="ghost" className="hidden shrink-0 text-[color:var(--lajvard)] sm:inline-flex">
-                  <Link href="/businesses?sort=views">مشاهده همه <ArrowLeft className="mr-1 h-4 w-4" /></Link>
-                </Button>
-              </div>
-              <Rail prevLabel="کسب‌وکارهای قبلی" nextLabel="کسب‌وکارهای بیشتر">
-                {popularBusinesses.map((biz) => (
-                  <div key={biz.id} className="w-[78vw] shrink-0 snap-start sm:w-[340px] lg:w-[300px]">
-                    <BusinessCard business={biz} showViews categoryLabel={catLabel.get(biz.category)} className="h-full" />
-                  </div>
-                ))}
-              </Rail>
-              <Link
-                href="/businesses?sort=views"
-                className="mt-6 inline-flex h-11 items-center gap-2 rounded-full border border-[color:var(--line)] bg-white px-5 text-sm font-bold text-[color:var(--text)] transition hover:border-[color:var(--annabi)]/40 sm:hidden"
-              >
-                همه‌ی کسب‌وکارها <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </div>
-          </section>
-        )}
-
-        {/* 7. Explore by city */}
+        {/* 3. Explore by city. Ranked by real listing counts from the geo index
+            — the eight hard-coded cards this replaces left Richmond Hill (763
+            listings), North York and Thornhill off a page that had room. */}
         <section className="border-t border-gray-100 bg-white px-4 py-16">
           <div className="mx-auto max-w-7xl">
             <SectionHead title="کاوش بر اساس شهر" subtitle="کسب‌وکارهای ایرانی را در شهر خودت پیدا کن" center />
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              {CITY_CARDS.map((city) => (
+              {cityCards.map(({ config, count }) => (
                 <Link
-                  key={city.slug}
-                  href={`/cities/${city.slug}`}
+                  key={config.slug}
+                  href={`/cities/${config.slug}`}
                   className="group relative aspect-[4/3] overflow-hidden rounded-2xl"
                 >
-                  <Image
-                    src={`/images/cities/${city.slug}.webp`}
-                    alt=""
-                    fill
-                    sizes="(max-width: 768px) 50vw, 25vw"
-                    className="object-cover transition duration-500 group-hover:scale-105"
-                  />
-
+                  {CITY_ART.has(config.slug) ? (
+                    <Image
+                      src={`/images/cities/${config.slug}.webp`}
+                      alt=""
+                      fill
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-[color:var(--lajvard)]" />
+                  )}
                   {/* Two layers, not one. The flat wash keeps mid-tones off the
-                      text; the bottom-weighted gradient anchors the name. A
-                      single overlay either greys out the photograph or leaves
-                      the name unreadable over a bright window. */}
+                      type; the gradient anchors the bottom edge. */}
                   <div className="absolute inset-0 bg-[#14213d]/45" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#14213d] via-[#14213d]/40 to-transparent" />
-
-                  <div className="absolute inset-x-0 bottom-0 p-4">
-                    <p className="text-lg font-black text-[#f6f1e8] drop-shadow-sm">{city.nameFa}</p>
-                    <p className="text-xs text-[#f6f1e8]/70" dir="ltr">{city.nameEn}</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#14213d]/85 via-transparent to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                    <div className="text-lg font-black drop-shadow-md">{config.nameFa || config.nameEn}</div>
+                    <div className="mt-0.5 text-[11px] text-white/75">{faNumber(count)} کسب‌وکار</div>
                   </div>
                 </Link>
               ))}
             </div>
+
+            {/* Category × city — the shape of the question people actually
+                have. Every count is what the destination page will show. */}
+            {comboLinks.length ? (
+              <div className="mt-8">
+                <p className="mb-3 text-center text-xs text-gray-500">یا مستقیم برو سراغ ترکیب دسته و شهر:</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {comboLinks.map((c) => (
+                    <Link
+                      key={c.key}
+                      href={c.href}
+                      className="inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] bg-white px-4 py-2 text-sm font-bold text-[color:var(--text)] transition hover:border-[color:var(--annabi)]/40 hover:text-[color:var(--annabi)]"
+                    >
+                      {c.label}
+                      <span className="text-[11px] font-normal text-[color:var(--muted-text)]">{faNumber(c.count)}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div className="mt-6 text-center">
               <Button asChild variant="ghost" className="text-[color:var(--lajvard)]">
@@ -364,12 +378,83 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 8. The blog. It used to be reachable from one link inside one
+        {/* 4. «همین حالا در پلازا» — the paid homepage slot and the newest
+            announcements, in one band. They were two sections; on the live
+            page one held two cards in a three-column grid and the other held
+            exactly one, so both mostly rendered empty columns. Each block now
+            picks its layout from its own length, and the band is absent
+            entirely when neither has anything. */}
+        {showNowBand ? (
+          <section className="border-t border-gray-100 bg-gradient-to-b from-amber-50/60 to-white px-4 py-16">
+            <div className="mx-auto max-w-7xl">
+              {/* The subtitle names only the blocks that are actually below
+                  it. A heading promising «جایگاه‌های ویژه» over a band holding
+                  nothing but announcements is the same broken promise this
+                  version is here to remove. */}
+              <SectionHead
+                title="همین حالا در پلازا"
+                subtitle={
+                  featuredBusinesses.length && announcements.length
+                    ? "جایگاه‌های ویژه و تازه‌ترین خبرها از کسب‌وکارها"
+                    : featuredBusinesses.length
+                      ? "کسب‌وکارهایی که جایگاه ویژه را خریده‌اند"
+                      : "تخفیف، رویداد و خبر تازه از کسب‌وکارهای پلازا"
+                }
+              />
+
+              {featuredBusinesses.length ? (
+                <>
+                  <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1 text-xs font-black text-white">
+                    <Star className="h-3.5 w-3.5" fill="currentColor" /> ویژه
+                  </div>
+                  <p className="mb-4 text-sm text-gray-500">این‌ها جایگاه ویژه را خریده‌اند — با برچسب، نه پنهانی.</p>
+                  <div className={`grid gap-5 ${gridFor(featuredBusinesses.length)}`}>
+                    {featuredBusinesses.map((biz: any) => (
+                      <BusinessCard key={biz.id} business={biz} categoryLabel={catLabel.get(biz.category)} />
+                    ))}
+                  </div>
+                </>
+              ) : null}
+
+              {announcements.length ? (
+                <div className={featuredBusinesses.length ? "mt-10" : ""}>
+                  <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-[color:var(--gold)]/20 px-3 py-1 text-xs font-black text-[color:var(--text)]">
+                    <Megaphone className="h-3.5 w-3.5" /> تازه‌ترین اعلان‌ها
+                  </div>
+                  <div className={`grid gap-4 ${gridFor(announcements.length)}`}>
+                    {announcements.map((a: any) => (
+                      <Link
+                        key={a.id}
+                        href={`/businesses/${a.business?.slug}`}
+                        className="flex items-start gap-3 rounded-2xl border border-[color:var(--gold)]/25 bg-[color:var(--gold)]/6 p-4 transition hover:-translate-y-0.5 hover:shadow-md"
+                      >
+                        <Megaphone size={16} className="mt-0.5 shrink-0 text-[color:var(--gold)]" />
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-bold text-[color:var(--lajvard)]">{a.business?.name}</p>
+                          <p className="mt-0.5 line-clamp-1 text-sm font-bold text-gray-900">{a.title}</p>
+                          {a.body ? <p className="mt-0.5 line-clamp-2 text-xs text-gray-500">{a.body}</p> : null}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
+
+        {/* 5. The directory itself — one section, two orderings. Was two
+            sections, two headings, two rails of the same object. */}
+        {businessTabs.length ? (
+          <BusinessTabs tabs={businessTabs} categoryLabels={categoryLabels} />
+        ) : null}
+
+        {/* 6. The blog. It used to be reachable from one link inside one
             dropdown, so nothing written there was ever read. Renders nothing
             when no post is published — see components/blog/latest-posts.tsx. */}
         <HomeLatestPosts />
 
-        {/* 9. Channels and groups, in the slot the «چرا پلازا؟» card grid
+        {/* 7. Channels and groups, in the slot the «چرا پلازا؟» card grid
             held until 26 Aug (Farjad's call). That grid asserted the site was
             trustworthy in four cards; this shows six real channels with the
             date each last posted and the date we checked. One is a claim about
@@ -379,7 +464,7 @@ export default async function HomePage() {
             components/channels/home-channels.tsx. */}
         <HomeChannels />
 
-        {/* 10. Business owner path */}
+        {/* 8. Business owner path */}
         <section className="relative overflow-hidden bg-[color:var(--lajvard)] px-4 py-20 text-white">
           <div className="absolute inset-0 bg-black/10" />
           <div className="relative z-10 mx-auto max-w-4xl text-center">
@@ -408,14 +493,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 11. Ask the visitor what is missing — text or voice */}
-        <section className="border-t border-gray-100 bg-white px-4 py-16">
-          <div className="mx-auto max-w-3xl">
-            <SuggestionBox page="/" />
-          </div>
-        </section>
-
-        {/* 12. The app — a working miniature of the real UI, not a dead frame */}
+        {/* 9. The app — a working miniature of the real UI, not a dead frame */}
         <section className="relative overflow-hidden bg-[#14213d] px-4 py-24 text-[#f6f1e8]">
           <style>{`
             @keyframes app-float { 0%,100% { transform: rotate(-5deg) translateY(0); } 50% { transform: rotate(-5deg) translateY(-10px); } }
@@ -609,7 +687,7 @@ export default async function HomePage() {
   );
 }
 
-/** One heading shape for every section, so eleven sections read as one page.
+/** One heading shape for every section, so nine sections read as one page.
  *  `bare` drops the wrapper margin for headings that sit inside a flex row. */
 function SectionHead({
   title,

@@ -1,9 +1,18 @@
 // ============================================================================
 // Source: components/business/business-card.tsx
-// Version: 1.0.0 — 2026-08-27
+// Version: 1.1.0 — 2026-09-09
 // Why: One card, used by every listing surface. They were being written inline
 //      per section, which is how three sections end up with three different
 //      information densities and three different call-to-action labels.
+//
+//      v1.1: the category line no longer falls back to the raw slug. It did,
+//      and on 9 Sep the live home page printed «digital-it» on six cards
+//      (a truncated label map — fixed in app/page.tsx v3) and «retail» on a
+//      seventh, which is a `businesses.category` value with no row in
+//      `categories` at all. A lowercase English slug is not a category name to
+//      a Persian reader; it is our internal identifier leaking onto the card.
+//      Where no human label exists the line is simply absent — the same rule
+//      the verification badge follows.
 // Env / Identity: Client-safe. Takes a row, does no IO.
 // ============================================================================
 "use client";
@@ -35,6 +44,18 @@ export interface BusinessCardData extends VerifiableBusiness {
   [key: string]: unknown;
 }
 
+/**
+ * The raw `businesses.category` value, but only when it is something a reader
+ * can read. A value that is nothing but lowercase ASCII, digits and dashes is
+ * one of our slugs («digital-it», «retail»); anything else — a Persian name
+ * typed by an owner, say — is shown as written.
+ */
+function humanCategory(raw?: string | null): string | null {
+  const v = raw?.trim();
+  if (!v) return null;
+  return /^[a-z0-9][a-z0-9._-]*$/.test(v) ? null : v;
+}
+
 export function BusinessCard({
   business,
   showViews = false,
@@ -43,7 +64,7 @@ export function BusinessCard({
 }: {
   business: BusinessCardData;
   showViews?: boolean;
-  /** Human label for business.category; falls back to the raw slug. */
+  /** Human label for business.category. Without one, no category line. */
   categoryLabel?: string | null;
   /** For a rail, where every card in the row has to be the same height. */
   className?: string;
@@ -92,9 +113,11 @@ export function BusinessCard({
             <h3 className="truncate text-base font-bold text-[#14213d] group-hover:text-[#7A1831]">
               {business.name}
             </h3>
-            {business.category && (
-              <p className="truncate text-xs text-[#5f6472]">{categoryLabel ?? business.category}</p>
-            )}
+            {categoryLabel || humanCategory(business.category) ? (
+              <p className="truncate text-xs text-[#5f6472]">
+                {categoryLabel || humanCategory(business.category)}
+              </p>
+            ) : null}
           </div>
         </div>
 

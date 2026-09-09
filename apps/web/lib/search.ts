@@ -1,8 +1,16 @@
 // ============================================================================
 // Source: lib/search.ts
-// Version: 1.0.0 — 2026-08-15
+// Version: 1.1.0 — 2026-09-09
 // Why: One way to search businesses on the web — the search_businesses RPC
 //      (Persian-aware, trigram, ranked, RLS-respecting) plus the query log.
+//
+//      v1.1 adds topSearches(): the aggregate the home hero's «پرجستجو:» chips
+//      were asserting without asking. search_queries stays admin-read only, so
+//      the aggregate comes from the top_searches() SECURITY DEFINER function
+//      (migration 20260909100000). Fails soft to null while that migration is
+//      unapplied, and the hero relabels its chips «مثلاً:» when it gets null —
+//      a hard-coded list under a "most searched" label is a claim no state
+//      backs.
 // Env / Identity: Works with the server client (RLS applies).
 // ============================================================================
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -110,4 +118,31 @@ export async function logSearch(
     source: p.source ?? "web",
     user_id: p.userId ?? null,
   });
+}
+
+export type TopSearch = { term: string; hits: number };
+
+/**
+ * The genuinely most-searched terms, or null when we cannot know.
+ *
+ * null and [] mean different things and callers must treat them differently:
+ * null is "the aggregate is unavailable" (migration pending, RPC error) and
+ * the caller must stop claiming these are popular; [] is "asked, and nothing
+ * clears the floor yet", which is the same instruction.
+ */
+export async function topSearches(
+  supabase: SupabaseClient,
+  limit = 6
+): Promise<TopSearch[] | null> {
+  const { data, error } = await supabase.rpc("top_searches", { p_limit: limit });
+  if (error) {
+    // Expected until 20260909100000_top_searches.sql is applied; anything
+    // else deserves a log line.
+    if (!/function .*top_searches/i.test(error.message ?? "")) {
+      console.error("top_searches:", error);
+    }
+    return null;
+  }
+  const rows = (data ?? []) as { term: string; hits: number }[];
+  return rows.map((r) => ({ term: String(r.term), hits: Number(r.hits) })).filter((r) => r.term);
 }

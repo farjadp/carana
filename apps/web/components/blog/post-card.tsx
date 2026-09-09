@@ -32,7 +32,12 @@ export function PostCard({ post, categoryName, featured = false, className = "" 
         </div>
         <h3 className={`font-black leading-snug text-[color:var(--text)] ${featured ? "text-2xl md:text-3xl" : "text-lg"}`}>{post.title}</h3>
         {post.excerpt ? <p className={`mt-2 text-sm leading-7 text-[color:var(--muted-text)] ${featured ? "" : "line-clamp-3"}`}>{post.excerpt}</p> : null}
-        {post.title_en ? <p className="mt-auto pt-3 text-[11px] text-[color:var(--muted-text)]/80" dir="ltr">{post.title_en}</p> : null}
+        {/* The English title used to print here. On a Persian RTL card it is
+            a second headline in the wrong script that no reader needs, and on
+            the home page's rail of ten it was the bulk of the visible text.
+            It still appears where it earns its place: the article page itself
+            (app/blog/[slug]) shows it under the Persian title and puts it in
+            the JSON-LD as alternativeHeadline, so nothing is lost to search. */}
       </div>
     </Link>
   );

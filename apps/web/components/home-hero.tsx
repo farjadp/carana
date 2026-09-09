@@ -1,37 +1,57 @@
 // ============================================================================
 // Source: components/home-hero.tsx
-// Version: 2.0.0 — 2026-08-16
+// Version: 3.0.0 — 2026-09-09
 // Why: The first screen every visitor sees. Brand-first: annabi → navy wash,
 //      the Hidden Č as a faint watermark, a Persepolis merlon parapet, and a
 //      search that actually goes somewhere. The numbers are live counts passed
 //      from the server — facts, never claims.
 //
-//      v2 is a redesign around one job: **find a business**. What changed:
-//        • Centred, single-column. The old 7/5 split put a 2×2 grid of large
-//          stat cards level with the search box, so the page's primary action
-//          competed with four numbers nobody came for. Search is now the
-//          widest, highest-contrast thing on the screen — the standard shape
-//          for a directory (and what the mobile layout already collapsed to).
-//        • Stats demoted to one thin strip beneath the search. Same four real
-//          counts, ~a quarter of the vertical space, still counting up.
-//        • The owner CTA is gone from here. It appeared three times on the
-//          old homepage — hero, sticky header, and the dedicated owner
-//          section further down. The header carries it on every page; the
-//          owner section explains it properly. This one was the redundant
-//          copy.
-// Env / Identity: Client component (animation + form). No data fetching.
+//      v2 (16 Aug) rebuilt it around one job: find a business. Centred single
+//      column, search widest and highest-contrast, stats demoted to one strip,
+//      the owner CTA removed as the third copy of itself.
+//
+//      v3 (9 Sep) fixes what a UX read of the live page found — three things,
+//      all of them the same mistake in different clothes: the screen was
+//      making claims the data did not support.
+//
+//        1. THE GOLD NUMBER WAS AN ADMISSION. The strip put «۱۷ مالکیت
+//           احرازشده» in gold beside «۹۶۹۳ کسب‌وکار» — every number true, and
+//           the first fact a stranger learned was that 0.17 % of the directory
+//           is proven. `verified` is a good number where it is a tool: the
+//           search page's «فقط احرازشده» filter, which already exists. Its
+//           slot here goes to `updatedThisWeek` (211 on the day of the change)
+//           — the question a returning visitor actually has, "is this alive".
+//           `created_at` was the obvious alternative and is useless: the
+//           imports mean every row was created inside the last 30 days.
+//
+//        2. «پرجستجو:» OVER A HARD-CODED ARRAY. Six chips asserted what people
+//           search for; the list was a const in this file. Every search has
+//           been logged since 30 Aug, so the question was answerable. It now
+//           takes real terms when the server can read them and relabels itself
+//           «مثلاً:» when it cannot — the label always describes the list.
+//
+//        3. ENGLISH CITY NAMES ON AN RTL PERSIAN PAGE. The dropdown listed the
+//           raw `businesses.city` values ("Richmond Hill", "North York") while
+//           the city cards further down said «ریچموندهیل». Cities now arrive
+//           as Persian labels with their listing counts, from the same geo
+//           index the city pages use, and the box starts on the visitor's own
+//           city when the edge tells us one we have listings for.
+//
+//      Search itself moved to components/search/search-box.tsx — one control,
+//      with suggestions, shared with the results page.
+// Env / Identity: Client component (count-up animation). No data fetching.
 // ============================================================================
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, BadgeCheck, Building2, MapPin, Search, Store } from "lucide-react";
+import { Building2, Clock3, MapPin, Store } from "lucide-react";
 
 import { brand } from "@goplaza/core";
 
 import { BrandMark } from "@/components/brand-mark";
-import { faDigits as fa } from "@goplaza/core";
-
+import { SearchBox, type CityOption } from "@/components/search/search-box";
+import { faNumber } from "@goplaza/core";
 
 function useCountUp(target: number, ms = 1400) {
   // Server render shows the real number (no layout jump, correct for crawlers);
@@ -57,30 +77,39 @@ function useCountUp(target: number, ms = 1400) {
   return v;
 }
 
-const SUGGESTIONS = ["وکیل مهاجرت", "دندانپزشک", "رستوران", "حسابدار", "آرایشگاه", "املاک"];
+/**
+ * The fallback chips, used ONLY under the «مثلاً:» label. They are examples of
+ * how to phrase a query, which is a true thing to say about them. They are not
+ * what anyone searched for, and nothing here may present them as such.
+ */
+const EXAMPLE_QUERIES = ["وکیل مهاجرت", "دندانپزشک", "رستوران", "حسابدار", "آرایشگاه", "املاک"];
 
 export function HomeHero({
   stats,
   cities,
+  detectedCity,
+  topSearches,
 }: {
-  stats: { total: number; verified: number; cities: number; categories: number };
-  cities: string[];
+  stats: { total: number; cities: number; categories: number; updatedThisWeek: number };
+  cities: CityOption[];
+  /** The visitor's own city, when the edge named one we have listings for. */
+  detectedCity?: string | null;
+  /**
+   * Genuinely most-searched terms, or null when the aggregate is unavailable.
+   * null is not "empty" — it changes the label, because with null we do not
+   * know what is popular and must not say we do.
+   */
+  topSearches?: string[] | null;
 }) {
   const router = useRouter();
-  const [q, setQ] = useState("");
-  const [city, setCity] = useState("");
   const total = useCountUp(stats.total);
-  const verified = useCountUp(stats.verified, 1100);
+  const fresh = useCountUp(stats.updatedThisWeek, 1100);
   const cityN = useCountUp(stats.cities, 900);
   const catN = useCountUp(stats.categories, 700);
 
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    const sp = new URLSearchParams();
-    if (q.trim()) sp.set("q", q.trim());
-    if (city) sp.set("city", city);
-    router.push(`/search${sp.toString() ? `?${sp}` : ""}`);
-  };
+  const realTerms = topSearches && topSearches.length >= 3 ? topSearches.slice(0, 6) : null;
+  const chips = realTerms ?? EXAMPLE_QUERIES;
+  const chipLabel = realTerms ? "پرجستجو:" : "مثلاً:";
 
   return (
     <section className="relative overflow-hidden bg-[#5A1124]" dir="rtl">
@@ -107,43 +136,18 @@ export function HomeHero({
           </span>
         </h1>
 
-        <form
-          onSubmit={submit}
-          className="mx-auto mt-9 flex flex-col gap-2 rounded-2xl bg-white p-2 text-right shadow-[0_24px_60px_rgba(0,0,0,0.35)] md:flex-row"
-        >
-          <label className="flex flex-1 items-center gap-2 px-3">
-            <Search size={18} className="shrink-0 text-[color:var(--annabi)]" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="دنبال چه کسی می‌گردی؟ مثلاً وکیل مهاجرت"
-              className="w-full bg-transparent py-3.5 text-[15px] text-[color:var(--text)] outline-none placeholder:text-[color:var(--muted-text)]"
-              aria-label="جستجو"
-            />
-          </label>
-          <label className="flex items-center gap-2 px-3 md:w-52 md:border-r md:border-[color:var(--line)]">
-            <MapPin size={18} className="shrink-0 text-[color:var(--lajvard)]" />
-            <select
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              className="w-full bg-transparent py-3.5 text-[15px] text-[color:var(--text)] outline-none"
-              aria-label="شهر"
-            >
-              <option value="">همه‌ی شهرها</option>
-              {cities.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </label>
-          <button
-            type="submit"
-            className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[color:var(--annabi)] font-bold text-[#f6f1e8] transition hover:bg-[#5A1124] md:px-8"
-          >
-            جستجو <ArrowLeft size={16} />
-          </button>
-        </form>
+        <div className="mt-9">
+          <SearchBox
+            cities={cities}
+            defaultCity={detectedCity ?? ""}
+            cityWasDetected={!!detectedCity}
+            tone="light"
+          />
+        </div>
 
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
-          <span className="text-[#f6f1e8]/55">پرجستجو:</span>
-          {SUGGESTIONS.map((s) => (
+          <span className="text-[#f6f1e8]/55">{chipLabel}</span>
+          {chips.map((s) => (
             <button
               key={s}
               type="button"
@@ -158,10 +162,10 @@ export function HomeHero({
         {/* Live counts — one strip, not four cards. Every number is a real
             query result; the line below says so and means it. */}
         <dl className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-x-4 gap-y-5 border-t border-white/10 pt-7 sm:grid-cols-4">
-          <Stat icon={<Store size={14} />} value={fa(total)} label="کسب‌وکار" />
-          <Stat icon={<BadgeCheck size={14} />} value={fa(verified)} label="مالکیت احرازشده" gold />
-          <Stat icon={<MapPin size={14} />} value={fa(cityN)} label="شهر" />
-          <Stat icon={<Building2 size={14} />} value={fa(catN)} label="دسته‌بندی" />
+          <Stat icon={<Store size={14} />} value={faNumber(total)} label="کسب‌وکار" />
+          <Stat icon={<MapPin size={14} />} value={faNumber(cityN)} label="شهر" />
+          <Stat icon={<Building2 size={14} />} value={faNumber(catN)} label="دسته‌بندی" />
+          <Stat icon={<Clock3 size={14} />} value={faNumber(fresh)} label="به‌روزرسانی این هفته" gold />
         </dl>
         <p className="mt-4 text-[11px] text-[#f6f1e8]/50">
           اعداد زنده از پایگاه‌داده — هر چه می‌بینی همین حالا واقعی است.

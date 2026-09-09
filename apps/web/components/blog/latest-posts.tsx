@@ -1,12 +1,16 @@
 // ============================================================================
 // Source: components/blog/latest-posts.tsx
-// Version: 1.0.0 — 2026-08-24
+// Version: 1.1.0 — 2026-09-09
 // Why: The blog was reachable from one link inside one dropdown, so nothing
 //      that gets written is ever seen. Two server components put it in front
 //      of people:
-//        • HomeLatestPosts — the band on the home page: the latest ten
-//          posts as a horizontal rail, 3–4 in view at a time (Farjad's spec,
-//          24 Aug), with category chips beneath.
+//        • HomeLatestPosts — the band on the home page: the latest six posts
+//          as a horizontal rail, 3–4 in view at a time. Ten (Farjad's spec,
+//          24 Aug) plus each card's Persian title, excerpt AND English title
+//          made this the largest block of text on the home page — more of it
+//          than the hero, the categories and the featured band together. The
+//          category chip row went with it: the blog's own index is one click
+//          away and already lists them.
 //        • LatestPostsStrip — three cards at the foot of every inner page
 //          (business, category, city, province, job).
 //      Both fetch their own rows, so a page only has to drop the tag in.
@@ -23,10 +27,10 @@ import { PostsRail } from "@/components/blog/posts-rail";
 import { latestPosts, listCategories } from "@/lib/blog/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-/** The home page band: ten posts on a horizontal rail; absent when nothing is published. */
+/** The home page band: six posts on a horizontal rail; absent when nothing is published. */
 export async function HomeLatestPosts() {
   const supabase = await createSupabaseServerClient();
-  const [posts, cats] = await Promise.all([latestPosts(supabase, 10), listCategories(supabase)]);
+  const [posts, cats] = await Promise.all([latestPosts(supabase, 6), listCategories(supabase)]);
   if (posts.length === 0) return null;
 
   const catName = new Map(cats.map((c) => [c.slug, c.name]));
@@ -59,7 +63,7 @@ export async function HomeLatestPosts() {
           </Link>
         </div>
 
-        {/* Ten posts, 3–4 in view. Card widths: ~1.2 on a phone so the cut-off
+        {/* Six posts, 3–4 in view. Card widths: ~1.2 on a phone so the cut-off
             edge advertises that the rail scrolls, two on a tablet, four on a
             desktop 7xl container. */}
         <PostsRail>
@@ -70,19 +74,6 @@ export async function HomeLatestPosts() {
           ))}
         </PostsRail>
 
-        {cats.length ? (
-          <nav className="mt-6 flex flex-wrap gap-2" aria-label="دسته‌های وبلاگ">
-            {cats.slice(0, 6).map((c) => (
-              <Link
-                key={c.slug}
-                href={`/blog/category/${c.slug}`}
-                className="rounded-full border border-[color:var(--line)] bg-white px-3.5 py-1.5 text-xs font-bold text-[color:var(--muted-text)] transition hover:border-[color:var(--annabi)]/40 hover:text-[color:var(--annabi)]"
-              >
-                {c.name}
-              </Link>
-            ))}
-          </nav>
-        ) : null}
       </div>
     </section>
   );

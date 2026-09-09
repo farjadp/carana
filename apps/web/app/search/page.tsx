@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/search/page.tsx
-// Version: 2.0.0 — 2026-08-19
+// Version: 2.1.0 — 2026-09-09
 // Why: The search results page — the P0 that was open since launch. Reads
 //      q / city / category / verified from the URL so results are shareable,
 //      calls the ranked Persian-aware RPC, logs every query (zero-result ones
@@ -18,12 +18,22 @@
 //        Its block is visibly labelled as interpretation («جستجوی هوشمند»)
 //        and its reason line never claims a business stocks anything —
 //        related, not confirmed. Both layers fail soft to plain lexical.
+//
+//      v2.1 swaps the inline <form> for the shared SearchBox, so the results
+//      page gets the same typeahead as the home hero and the same Persian city
+//      labels. The dropdown here used to list the raw English
+//      `businesses.city` values — "Richmond Hill", "North York" — inside an
+//      RTL Persian page; the labels now come from the geo index, ranked by
+//      listings and captioned with the count, so the option a visitor picks
+//      says how many results it leads to before they pick it. Category and
+//      «فقط احرازشده» ride along in extraParams rather than as hidden inputs,
+//      so a new search from this page keeps the filters that were already on.
 // Env / Identity: Server component; RLS applies.
 // ============================================================================
 import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
-import { ArrowLeft, BadgeCheck, MapPin, Megaphone, Search as SearchIcon, SlidersHorizontal, Sparkles, Wand2 } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Megaphone, Search as SearchIcon, SlidersHorizontal, Sparkles, Wand2 } from "lucide-react";
 
 import { PageShell } from "@/components/page-shell";
 import { BusinessCard } from "@/components/business/business-card";
@@ -33,7 +43,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCategoryDetail } from "@/lib/data/category-details";
 import { cleanQuery, logSearch, searchAnnouncements, searchBusinesses, type AnnouncementHit, type SearchHit } from "@/lib/search";
 import { expandQuery, type SmartExpansion } from "@/lib/search/smart";
-import { isPlaceholderCity } from "@/lib/seo/geo-index";
+import { cityNameFa, getGeoIndex, isPlaceholderCity } from "@/lib/seo/geo-index";
+import { SearchBox } from "@/components/search/search-box";
 import { faDigits as fa } from "@goplaza/core";
 
 const PAGE = 24;
@@ -53,7 +64,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
   const supabase = await createSupabaseServerClient();
-  const [first, { data: categories }, cityRows] = await Promise.all([
+  const [first, { data: categories }, cityRows, geo] = await Promise.all([
     q || city || category ? searchBusinesses(supabase, { q, city, category, verifiedOnly, limit: PAGE, offset: (page - 1) * PAGE }) : Promise.resolve({ hits: [], total: 0 }),
     supabase.from("categories").select("slug, name").eq("is_active", true).order("display_order"),
     // Paginated: unbounded, PostgREST stops at 1,000 of the ~10,700 published
@@ -62,6 +73,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     fetchAllRows<{ city: string | null }>(() =>
       supabase.from("businesses").select("city").in("status", PUBLIC_STATUSES).not("city", "is", null).order("id")
     ),
+    getGeoIndex(),
   ]);
   // A city filter that finds nothing should not be a dead end: rerun without
   // it and say so. The query is still logged with the city, so the demand
@@ -138,6 +150,17 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   // an admin cleanup queue, not a place a visitor can filter by.
   for (const r of cityRows ?? []) { const c = String(r.city).trim(); if (c && !isPlaceholderCity(c)) cityFreq.set(c, (cityFreq.get(c) ?? 0) + 1); }
   const cities = [...cityFreq.entries()].sort((a, b) => b[1] - a[1]).map(([c]) => c).slice(0, 30);
+  // Persian labels with counts for the dropdown, from the same index the city
+  // pages use. Falls back to the raw value for a city the index does not know,
+  // which is better than dropping it from the filter altogether.
+  // The heading and the "we widened your search" notice print the city too,
+  // and they were printing the raw English value on a Persian page.
+  const cityFa = city ? cityNameFa(geo, city) ?? city : null;
+  const cityOptions = geo.cities.slice(0, 40).map(({ config, count }) => ({
+    value: config.nameEn,
+    label: config.nameFa || config.nameEn,
+    count,
+  }));
 
   if (q && page === 1) {
     const { data: { user } } = await supabase.auth.getUser();
@@ -156,23 +179,17 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   return (
     <PageShell currentPath="/search" currentSection="business">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 md:py-10" dir="rtl">
-        {/* Search bar */}
-        <form action="/search" method="get" className="bg-white rounded-2xl p-2 shadow-[0_18px_50px_rgba(20,33,61,0.10)] border border-[color:var(--line)] flex flex-col md:flex-row gap-2">
-          <label className="flex-1 flex items-center gap-2 px-3">
-            <SearchIcon size={18} className="text-[color:var(--annabi)] shrink-0" />
-            <input name="q" defaultValue={q} placeholder="نام کسب‌وکار، خدمت، دسته یا شهر…" className="h-12 w-full bg-transparent outline-none text-[15px] text-[color:var(--text)]" autoFocus={!q} />
-          </label>
-          <label className="md:w-52 flex items-center gap-2 px-3 md:border-r md:border-[color:var(--line)]">
-            <MapPin size={18} className="text-[color:var(--lajvard)] shrink-0" />
-            <select name="city" defaultValue={city ?? ""} className="h-12 w-full bg-transparent outline-none text-[15px] text-[color:var(--text)]">
-              <option value="">همه‌ی شهرها</option>
-              {cities.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </label>
-          {category ? <input type="hidden" name="category" value={category} /> : null}
-          {verifiedOnly ? <input type="hidden" name="verified" value="1" /> : null}
-          <button type="submit" className="h-12 md:px-7 rounded-xl bg-[color:var(--annabi)] hover:bg-[#5A1124] text-[#f6f1e8] font-bold transition">جستجو</button>
-        </form>
+        {/* Search bar — the shared control, so this page and the home hero
+            suggest identically and cannot drift apart again. */}
+        <SearchBox
+          cities={cityOptions}
+          defaultQuery={q}
+          defaultCity={city ?? ""}
+          placeholder="نام کسب‌وکار، خدمت، دسته یا شهر…"
+          autoFocus={!q}
+          tone="plain"
+          extraParams={{ category, verified: verifiedOnly ? "1" : null }}
+        />
 
         {/* Filters */}
         <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
@@ -191,14 +208,14 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         <div className="mt-6 flex items-end justify-between gap-4">
           <div>
             <h1 className="text-xl md:text-2xl font-black text-[color:var(--text)]">
-              {q ? <>نتایج برای «{q}»</> : city || category ? <>{[category ? catLabel.get(category) : null, city].filter(Boolean).join(" در ")}</> : "جستجو در پلازا"}
+              {q ? <>نتایج برای «{q}»</> : city || category ? <>{[category ? catLabel.get(category) : null, cityFa].filter(Boolean).join(" در ")}</> : "جستجو در پلازا"}
             </h1>
             <p className="text-sm text-[color:var(--muted-text)] mt-1">
-              {q || city || category ? <>{fa(total)} کسب‌وکار{city && !widened ? ` در ${city}` : ""}{verifiedOnly ? " · فقط احرازشده" : ""}</> : "نام، خدمت، دسته یا شهر را بنویس — فارسی یا انگلیسی، فرقی نمی‌کند."}
+              {q || city || category ? <>{fa(total)} کسب‌وکار{cityFa && !widened ? ` در ${cityFa}` : ""}{verifiedOnly ? " · فقط احرازشده" : ""}</> : "نام، خدمت، دسته یا شهر را بنویس — فارسی یا انگلیسی، فرقی نمی‌کند."}
             </p>
             {widened ? (
               <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-[color:var(--gold)]/15 px-3 py-1 text-xs font-bold text-[color:var(--text)]">
-                در {city} چیزی برای «{q}» نبود — این‌ها از همه‌ی کاناداست.
+                در {cityFa} چیزی برای «{q}» نبود — این‌ها از همه‌ی کاناداست.
                 <Link href={href({ city: null })} className="text-[color:var(--lajvard)] underline-offset-4 hover:underline">حذف فیلتر شهر</Link>
               </p>
             ) : null}
