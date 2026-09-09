@@ -1,3 +1,93 @@
+# 2026-09-09 — the home page, read instead of remembered
+
+Asked, in Persian: let's do the home page — what would you improve, as a
+UI/UX specialist? Brainstorm only. Then, after ten findings: «همرو بزن» —
+do all of them — and keep Notion current.
+
+## How the findings were produced
+
+By fetching goplaza.ca and reading the rendered text, not by reading
+`app/page.tsx`. Six of the ten were invisible in the source: they were
+properties of the *data on the day* — two cards in a three-column grid, one
+announcement in another, view counts of 46 and 11 under a «پربازدیدترین»
+heading, three of the eight above-the-fold businesses belonging to the
+founder. The one outright bug (six cards printing «digital-it») was in the
+source, but only findable by knowing there are 12 categories and the query
+asked for 10.
+
+## What shipped (`1517032`)
+
+**Three honesty violations.** «۱۷ مالکیت احرازشده» in gold beside «۹۶۹۳
+کسب‌وکار» → `verified` moved to the search filter that already existed and the
+fourth stat is `updatedThisWeek` (211). «پرجستجو:» over a hard-coded array →
+real terms from `search_queries` via a new SECURITY DEFINER `top_searches()`,
+with the label itself derived from whether the data arrived. «دسته‌بندی‌های
+پرجستجوی پلازا» over `display_order` → «دسته‌بندی‌های اصلی پلازا».
+
+**One shipped bug.** `.limit(10)` on the categories query truncated the label
+map. Fixed at the query, and `BusinessCard` stopped falling back to a slug at
+all — which also caught the one row whose `category` («retail») has no row in
+`categories` to be truncated from.
+
+**Twelve sections → nine, 6,424px at 1440 wide.** Featured and announcements
+merged into «همین حالا در پلازا», each block sizing its grid from its own
+length and the band's subtitle naming only what is under it. جدیدترین and
+پربازدیدترین merged into one tabbed rail, view counts no longer printed. Blog
+rail 10 → 6, English titles off the cards, category chips gone. The home
+page's own suggestion box removed — it is already on the zero-result search
+page, which is where someone has just discovered something is missing.
+
+**Search.** `/api/suggest` and one shared `SearchBox` for the hero and
+`/search`, suggesting in three groups over the same RPC the results page runs.
+City dropdowns became Persian labels with real counts; the results heading now
+says «در تورنتو» instead of «در Toronto».
+
+**Place.** City cards come from the geo index, so Richmond Hill (1,108),
+North York (467) and Thornhill (402) appear for the first time — they had been
+excluded by an eight-card hard-coded list while `topCities` was fetched and
+thrown away. Plus category × city links with real counts.
+
+**Our own listings.** ashavid, visa-roads, farjad-pourmohammad, verixa and
+contivo are out of the two promotional slots and unchanged everywhere else.
+With them out no outside business holds the paid slot, so the «ویژه» block is
+currently absent — which is the correct rendering of "nobody has bought it".
+
+## Said wrongly, and corrected
+
+The brainstorm proposed a «نزدیک من» button and a results map as two of the
+ten items. Both were asserted before checking the schema. `businesses` has no
+latitude or longitude column, so neither is buildable: there is no distance to
+sort by and no marker to place. What shipped instead is the edge's own
+`x-vercel-ip-city`, used only when it names a city we have listings for, and
+shown as a removable chip rather than a silent filter.
+
+The brainstorm also proposed an «باز است الان» filter. Six of the 9,693
+published rows have any `working_hours`; the rest are `{}`. It was not shipped
+— a filter that is true and searches 0.06 % of the directory is worse than no
+filter — and the data gap is filed in `05-open-tasks` instead. The evaluation
+side (`openState`, `timezoneForProvince`) was already done in
+`@goplaza/core`, which is what made the gap look smaller than it was from
+the code alone.
+
+Three of the ten items were therefore checked against the database before
+being built, and two of those three did not survive it.
+
+## Verification
+
+Ran the app. Typeahead driven with real keystrokes (category first, then
+businesses with city hints); the tab switch confirmed through the DOM
+(`aria-selected` flips, subtitle changes, and the founder's listings are
+absent from پربازدیدترین); mobile at 375px; no console errors. `tsc`, `eslint`
+and `check:brand` clean. One lint error was introduced and fixed on the way —
+`setState` inside an effect body, which became a term-tagged result object
+that also removed the stale-suggestion race it was there to prevent.
+
+**Not verified:** the «پرجستجو:» label over real terms, because
+`20260909100000_top_searches.sql` is unapplied. What was verified is the
+fallback — the chips read «مثلاً:» today, which is the honest branch.
+
+---
+
 # 2026-09-08 — a scrape ceiling, and two tests that proved nothing
 
 Asked, in Persian: is there a way to stop bots scraping the site? The honest

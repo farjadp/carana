@@ -2,6 +2,62 @@
 
 All notable changes to this project are tracked here.
 
+## 2.3.0 - 2026-09-09
+
+### Changed — home page v3
+
+A UX pass over the *rendered* home page rather than its source. Six of the ten
+findings were properties of the data on the day and were invisible in the code.
+
+- **Honesty.** The hero's gold stat was «۱۷ مالکیت احرازشده» beside «۹۶۹۳
+  کسب‌وکار» — every figure true, and the loudest fact on the first screen was
+  that 0.17 % of the directory is proven. `verified` moves to the «فقط
+  احرازشده» filter on `/search`, which already existed; the fourth stat is now
+  `updatedThisWeek`. The «پرجستجو:» chips were a hard-coded array and now come
+  from the search log, with the label derived from whether the data arrived
+  («مثلاً:» when it did not). «دسته‌بندی‌های پرجستجوی پلازا» was captioning
+  rows ordered by `display_order`.
+- **Fixed a shipped label bug.** The categories query carried `.limit(10)` and
+  its rows were also the slug → name map for every card, so the two categories
+  past the limit had no label and six live cards printed «digital-it».
+  `BusinessCard` additionally stops falling back to the raw slug, which covers
+  a row whose `category` has no entry in `categories` at all.
+- **Twelve sections to nine** (6,424px at 1440 wide). «ویژه» and
+  «تازه‌ترین اعلان‌ها» — two cards and one card, each in a three-column grid —
+  merged into one band that sizes its grids from their own length and captions
+  itself with what is actually below. «جدیدترین» and «پربازدیدترین» merged into
+  one tabbed rail; the view counts (46 down to 11) are no longer printed. Blog
+  rail 10 → 6 posts, English titles off the cards. The home page's suggestion
+  box was dropped — it is already on the zero-result search page.
+- **Our own listings** (`lib/data/internal-businesses.ts`) no longer take the
+  home page's promotional slots; they held both «ویژه» cards and three of the
+  six «پربازدیدترین» ones. Unchanged in search, category, city and sitemap.
+- **City affordances.** City cards now come from the geo index, so Richmond
+  Hill (1,108), North York (467) and Thornhill (402) appear for the first time.
+  New category × city links carrying the count of the page they lead to.
+
+### Added
+
+- `GET /api/suggest` — typeahead over the same `search_businesses` RPC the
+  results page runs, returning businesses, categories and cities with counts.
+  Nothing is logged: one row per keystroke would turn the query log into a
+  keylogger and the demand signal into noise.
+- `components/search/search-box.tsx` — one search control for the home hero and
+  `/search`, with keyboard navigation and combobox semantics. City dropdowns
+  are Persian labels with real counts instead of the raw English
+  `businesses.city` values they had been showing on an RTL page.
+- `lib/geo/visitor-city.ts` — the search box starts on the visitor's own city
+  when the edge names one we have listings for, shown as a removable chip. A
+  true «نزدیک من» is not possible: `businesses` has no lat/lng column.
+- `supabase/migrations/20260909100000_top_searches.sql` — a SECURITY DEFINER
+  aggregate over the admin-only `search_queries`, returning terms and counts
+  only. **Not applied yet**; the hero fails soft until it is.
+
+### Not shipped
+
+- An «باز است الان» filter. Six of 9,693 published rows have any
+  `working_hours`. Filed in `docs/05-open-tasks.md`.
+
 ## 2.2.0 - 2026-09-08
 
 ### Security

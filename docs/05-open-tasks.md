@@ -1,8 +1,51 @@
 # Open tasks
 
-**Updated:** 2026-09-08 — a scrape ceiling shipped in the proxy; **the other
-half of it is a Vercel dashboard rule and is Farjad's**, listed immediately
-below. The 27 Aug sweep follows unchanged.
+**Updated:** 2026-09-09 — home page v3 shipped; **one migration needs a
+human**, listed first. The scrape-ceiling items from 8 Sep and the 27 Aug
+sweep follow unchanged.
+
+## Home page v3 (9 Sep, `1517032`)
+
+**FARJAD — run `supabase/migrations/20260909100000_top_searches.sql` in the
+SQL editor.** It adds a SECURITY DEFINER `top_searches(limit, days, min_hits)`
+over `search_queries`, which stays admin-read-only: the function returns terms
+and counts only, never a row, an IP, a user id or a timestamp, and it drops
+zero-result queries and anything searched by fewer than three rows-worth of
+sessions. Until it is applied the hero's chips fail soft — `topSearches()`
+returns null and the label reads «مثلاً:» over the example list instead of
+«پرجستجو:» over real terms. Nothing is broken while it waits; the chips are
+just examples, and they say so. (`db push` refuses on this project — see
+`06-gotchas`.)
+
+**BLOCKED ON DATA — the «باز است الان» filter.** Deliberately not shipped.
+Six of the 9,693 published rows have any `working_hours`; every other row is
+`{}`. `openState()` and `timezoneForProvince()` already exist in
+`packages/core/src/hours.ts`, so the evaluation side is done and the blocker
+is purely collection. Options worth weighing: whether the scrapers discarded
+hours we could have kept, Google Places (the Maps key is already in
+`.env.local` — check the licence before storing anything), and why the owner
+dashboard's hours editor is going unused. Whatever is built, gate the filter
+on a real floor so it appears only once enough rows have hours, the same way
+`HomeChannels` and the featured band already degrade.
+
+**NOT POSSIBLE YET — a map, or a real «نزدیک من».** `businesses` has no
+latitude/longitude column, so there is no distance to sort by and no marker to
+place. What shipped instead is `lib/geo/visitor-city.ts`: the edge already
+names the visitor's city (`x-vercel-ip-city`), and when it is a city we have
+listings for, the search box starts there and says so in a removable chip.
+Geocoding the directory is the prerequisite for anything more.
+
+**SMALL — one orphan category value.** One published row has
+`category = "retail"`, which has no row in `categories` at all. `BusinessCard`
+now hides an unlabelable category rather than printing the slug, so nothing
+looks broken, but the row should be moved into a real category. Worth a
+`select distinct category` sweep for others of the same shape.
+
+**SMALL — two names for the same category.** `categories.name` says «پزشک و
+کلینیک»; `CATEGORY_DETAILS` says «پزشکی، دندانپزشکی و سلامت». The home grid
+uses the first and the new search suggestions use the second, so a visitor can
+see both names for one destination. Pre-existing, not introduced here, but now
+visible in two places at once.
 
 ## Anti-scraping (8 Sep) — one thing needs the dashboard, one needs data
 

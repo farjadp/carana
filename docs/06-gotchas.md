@@ -4,6 +4,83 @@ Every one of these cost real time. Read before debugging anything similar.
 
 ---
 
+## A `.limit()` on the rows that were also the label map
+
+**Symptom.** Six business cards on the live home page printed «digital-it»
+where the category name belongs. Nothing in the logs, nothing in typecheck,
+nothing in the card component — `BusinessCard` was doing exactly what its
+prop said.
+
+**Cause.** One query served two purposes. `app/page.tsx` fetched categories
+for the 10-tile grid with `.limit(10)`, and the same rows built
+`catLabel`, the slug → name map handed to every card on the page. There are
+12 active categories. The two the limit cut off had no entry in the map, so
+`categoryLabel` arrived `undefined` and the card fell back to
+`business.category` — the slug.
+
+**Fix.** Fetch all the categories; `.slice(0, 10)` for the grid. And
+`BusinessCard` no longer falls back to the raw value at all: a value that is
+nothing but lowercase ASCII and dashes is one of our identifiers, not a label
+a Persian reader can use, so the line is simply absent. That second half also
+covered a case the first could not — one row carries
+`category = "retail"`, which has no row in `categories` to be truncated from.
+
+**Lesson.** A list that is displayed and a lookup that must be complete are
+two different queries even when they read the same table. When one `.limit()`
+serves both, the display looks right and the lookup silently lies — and it
+lies about the rows nobody scrolled to during review.
+
+---
+
+## The honest number in the wrong slot
+
+**Symptom.** Not a bug. The home hero's stat strip read «۹۶۹۳ کسب‌وکار» beside
+«۱۷ مالکیت احرازشده», with the 17 in gold — the highest-contrast number on the
+first screen. Every figure was a real count from a real query. The house rule
+was satisfied and the page still made the worst possible first argument: 0.17 %
+of this directory is proven.
+
+**Cause.** Honesty had been treated as a property of each number in isolation.
+It is also a property of which number gets the emphasis. `verified` is a good
+number where it is a *tool* — the «فقط احرازشده» filter on `/search`, which
+already existed — and a confession where it is a headline.
+
+**Fix.** The fourth stat is `updatedThisWeek` (211 on the day). `created_at`
+was the obvious alternative and is useless here: the imports mean every row in
+the directory was created inside the last 30 days, so «تازه در ۳۰ روز» would
+have read 9,693.
+
+**Lesson.** "Is it true?" is the floor, not the ceiling. Before shipping a
+number, also ask what a stranger concludes from seeing that one and not
+another — and check the alternative against the data before assuming it is
+better.
+
+---
+
+## Labels that assert an aggregate nobody computed
+
+**Symptom.** «پرجستجو:» over six chips, and «دسته‌بندی‌های پرجستجوی پلازا»
+over ten category tiles. Both read as findings from the search log.
+
+**Cause.** The chips were a `const SUGGESTIONS` array in
+`components/home-hero.tsx`. The tiles were ordered by `display_order`. Neither
+had ever touched `search_queries` — which has been logging every query since
+30 Aug, so the claim was answerable and simply was not being asked.
+
+**Fix.** The tiles are relabelled «دسته‌بندی‌های اصلی پلازا», which is what
+they are. The chips call a new `top_searches()` RPC and — this is the part
+worth copying — the LABEL is chosen from whether the data arrived:
+`topSearches()` returns `null` when the aggregate is unavailable, and null
+gets «مثلاً:» over the example list, not «پرجستجو:». The same file therefore
+cannot make the claim while the migration is unapplied.
+
+**Lesson.** A caption is a claim. When a component can render with or without
+its evidence, the caption has to be derived from the evidence, not written
+beside it — otherwise the honest version only exists on the day someone
+remembers to check.
+
+---
+
 ## A count that promised a slot the cap refused
 
 **Symptom.** On `/profile`, «شماره‌های تماس» read «۲ از ۳» while the add
