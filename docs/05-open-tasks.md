@@ -20,9 +20,38 @@ of demand, and would have frozen the chip row on those six for ever. The web
 app now writes `source` as `chip` / `smart` / `web` (verified against the
 table, three rows, one of each). **The ~10 days of rows written before this
 cannot be relabelled** — a chip click and a typed «وکیل مهاجرت» are identical
-in the table — so they keep counting until they age out of the 90-day window,
-around 9 Dec 2026. If that is too slow, `top_searches(6, 30)` reaches clean
-data in a month.
+in the table — so they keep counting until they age out of the window.
+`app/page.tsx` now asks for **30 days** rather than the function's 90, so that
+is around **10 Oct 2026** instead of 9 Dec.
+
+The same migration also raises the term-length floor from 2 characters to 4,
+and the reason is worth reading before anyone lowers it again. Checking whether
+30 days would help showed it would not — 90 and 30 return identical rows,
+because the whole log is younger than 30 days — but the 7-day window showed
+what sits underneath the seeded terms:
+
+> ۲۸ کت · ۲۷ نور · ۲۰ هل · ۱۵ جو · ۱۵ زمین · ۱۵ گل
+
+**Those are what the chips would show once the seeded terms age out.** The floor
+is justified by the chip's job, not by guessing at their origin: a chip has to
+be a usable starting query, and below four characters a Persian term rarely is
+(«وکیل» is 4, «رستوران» is 7, «جو» and «کت» are 2). It costs us «گل» as a
+florist query — a real search and a poor chip. With the floor applied, the same
+7 days give «آموزش، ساخت و ساز، وگان، خدمات طراحی، زبان، خرید», which are
+suggestions someone can actually use.
+
+**OPEN — where do ~3,000 searches a day come from?** Counted 10 Sep with the
+service key: `search_queries` holds **31,547 rows**, and the last six 24-hour
+windows are 3,957 / 2,963 / 3,181 / 3,175 / 2,748 / 2,425. For a directory at
+this stage that is a lot of searching, and the short-fragment queries above are
+anonymous, carry no city filter and are spread evenly around the clock (21:03,
+22:23, 23:19, 00:25, 01:18, 05:58, 09:33, 14:25). **This is an observation, not
+a diagnosis** — nothing here identifies a client, and the table holds no user
+agent. Worth knowing: the 8 Sep scrape ceiling covers `/businesses/*`, and
+`/search` is a page too, so a script walking the directory through the search
+box is neither throttled nor distinguishable from a visitor. If these are real
+people, the traffic numbers elsewhere should agree; if they are not, both the
+ceiling and this log need to know.
 
 **DONE (applied 10 Sep) — `supabase/migrations/20260909100000_top_searches.sql`.** Added the SECURITY DEFINER `top_searches(limit, days,
 min_hits)` over `search_queries`, which stays admin-read-only: the function

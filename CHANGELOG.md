@@ -19,7 +19,15 @@ All notable changes to this project are tracked here.
     `?from=smart`, and `/search` logs the source it was given. Only an absent
     `?from=` — a query someone typed — is recorded as `web`.
   - `supabase/migrations/20260910100000_top_searches_typed_only.sql` makes the
-    function count `source = 'web'` alone. **Not applied yet.**
+    function count `source = 'web'` alone, and raises the term-length floor
+    from 2 characters to 4. **Not applied yet.**
+  - The home page now asks for a **30-day** window instead of the function's
+    90, so the contaminated history clears around 10 Oct rather than 9 Dec.
+  - The length floor came from checking that: 90 and 30 days return identical
+    rows (the whole log is younger than 30 days), but 7 days showed «کت، نور،
+    هل، جو، زمین، گل» — two- and three-character fragments that would become
+    the chips once the seeded terms age out. A chip has to be a usable starting
+    query; below four characters a Persian term rarely is.
   - The ~10 days of rows written before this cannot be relabelled (a chip click
     and a typed «وکیل مهاجرت» are identical in the table), so they age out of
     the 90-day window rather than being guessed at.

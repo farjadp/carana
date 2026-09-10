@@ -28,8 +28,31 @@
 --      table, and guessing would be inventing data. They keep counting until
 --      they age out of the 90-day window, so the chip row stays partly seeded
 --      until roughly 9 Dec 2026 and then becomes real on its own. Lowering
---      p_days is the lever if that is too slow — top_searches(6, 30) reaches
---      clean data in a month.
+--      p_days is the lever, and app/page.tsx now asks for 30 — clean by
+--      ~10 Oct 2026 rather than ~9 Dec.
+--
+--      SECOND THING, found while checking that a 30-day window would help.
+--      It did not — 90 days and 30 days return identical rows, because the
+--      whole log is younger than 30 days — but the 7-day window showed what
+--      is underneath the seeded terms:
+--
+--        ۲۸ کت · ۲۷ نور · ۲۰ هل · ۱۵ جو · ۱۵ زمین · ۱۵ گل
+--
+--      Two- and three-character fragments, anonymous, no city filter, spread
+--      evenly around the clock (21:03, 22:23, 23:19, 00:25, 01:18, 05:58,
+--      09:33, 14:25). Whatever is producing them, **they are what the chips
+--      will show once the seeded terms age out**, and «جو» is not a suggestion
+--      that helps anybody start a search.
+--
+--      So the length floor goes from 2 to 4. The justification is the chip's
+--      job, not bot-detection: a chip has to be a usable starting query, and
+--      below four characters a Persian term rarely is («وکیل» is 4, «رستوران»
+--      is 7, «جو» and «کت» are 2). This costs us «گل» as a florist query,
+--      which is a real search and a poor chip.
+--
+--      Where those ~3,000 searches a day come from is a separate question and
+--      is in `05-open-tasks` — the 8 Sep scrape ceiling covers `/businesses/*`,
+--      and `/search` is a page too.
 -- ============================================================================
 
 create or replace function public.top_searches(
@@ -50,7 +73,9 @@ as $$
     -- Typed queries only. 'chip' and 'smart' are things we put in front of the
     -- visitor; counting them would make this function a mirror.
     and source = 'web'
-    and char_length(btrim(q_norm)) between 2 and 40
+    -- Four, not two: a chip has to be a usable starting query. See the note
+    -- above — «جو» and «کت» top the recent log and neither helps anyone.
+    and char_length(btrim(q_norm)) between 4 and 40
   group by q_norm
   having count(*) >= greatest(1, p_min_hits)
   order by count(*) desc, q_norm asc

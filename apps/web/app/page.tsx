@@ -188,7 +188,14 @@ export default async function HomePage() {
   const [directory, geo, popularTerms] = await Promise.all([
     getDirectoryStats(),
     getGeoIndex(),
-    topSearches(supabase, 6),
+    // 30 days, not the function's 90. The chips seeded their own log until
+    // 10 Sep (see components/home-hero.tsx v3.1) and those rows cannot be
+    // told apart from typed queries after the fact, so the only way to be rid
+    // of them is to let them fall out of the window. A month does that by
+    // ~10 Oct instead of ~9 Dec, and a month is a better read of what people
+    // want from a directory anyway — «شب یلدا» should not still be ranking in
+    // February. Widen it once the history is clean and the traffic supports it.
+    topSearches(supabase, 6, 30),
   ]);
   // Must follow getGeoIndex(): a city is only offered once we know we have
   // listings there.

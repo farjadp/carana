@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: lib/search.ts
-// Version: 1.1.0 — 2026-09-09
+// Version: 1.2.0 — 2026-09-10
 // Why: One way to search businesses on the web — the search_businesses RPC
 //      (Persian-aware, trigram, ranked, RLS-respecting) plus the query log.
 //
@@ -11,6 +11,14 @@
 //      unapplied, and the hero relabels its chips «مثلاً:» when it gets null —
 //      a hard-coded list under a "most searched" label is a claim no state
 //      backs.
+//
+//      v1.2 exposes the window. It matters because of what the first real
+//      reading showed (10 Sep): every top term was one we had suggested, so
+//      the chips had been seeding their own log. The instrumentation fix marks
+//      chip clicks from now on, but the rows already written cannot be
+//      relabelled — they can only age out. The window is therefore the dial
+//      that decides how long the contaminated history keeps counting, which
+//      makes it a caller's decision, not a default buried in SQL.
 // Env / Identity: Works with the server client (RLS applies).
 // ============================================================================
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -132,9 +140,11 @@ export type TopSearch = { term: string; hits: number };
  */
 export async function topSearches(
   supabase: SupabaseClient,
-  limit = 6
+  limit = 6,
+  /** Days of history to count. Shorter = fresher, and drops old rows sooner. */
+  days = 90
 ): Promise<TopSearch[] | null> {
-  const { data, error } = await supabase.rpc("top_searches", { p_limit: limit });
+  const { data, error } = await supabase.rpc("top_searches", { p_limit: limit, p_days: days });
   if (error) {
     // Expected until 20260909100000_top_searches.sql is applied; anything
     // else deserves a log line.
