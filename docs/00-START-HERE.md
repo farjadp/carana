@@ -1,6 +1,6 @@
 # GOPLAZA — Engineering Handover
 
-**Written:** 2026-08-24 · **Updated:** 2026-09-09 (home page v3 — a UX pass over the live page: three honesty violations, one shipped label bug, twelve sections down to nine, and search typeahead) · **Docs version:** 3.24
+**Written:** 2026-08-24 · **Updated:** 2026-09-10 (home page v3 is live and its search-terms migration is applied — which immediately showed the chips were reading a log they had themselves seeded; instrumentation fixed, a second one-line migration is waiting) · **Docs version:** 3.25
 **Repo:** https://github.com/farjadp/carana — branch `main`, all work pushed
 **Live:** https://goplaza.ca (**rebranded from čārana on 2026-08-18** — branch `rebrand/goplaza`; the domain, Supabase URLs, Resend and Stripe still need the dashboard steps in `REBRAND_EXTERNAL_ACTIONS.md` before this is true in production. Until then charana.ca is what resolves.)
 **Local:** `/Users/farjad/Downloads/Work-Studio/Charana`

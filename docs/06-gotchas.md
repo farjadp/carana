@@ -4,6 +4,42 @@ Every one of these cost real time. Read before debugging anything similar.
 
 ---
 
+## A suggestion that becomes its own evidence
+
+**Symptom.** The day `top_searches()` was applied, the home page's «پرجستجو:»
+chips came back «وکیل مهاجرت (۳۴۷)، املاک (۹۱)، رستوران ایرانی (۴۳)، حسابدار
+(۳۸)، دندانپزشک (۳۵)، مکانیک (۳۱)» — six real terms with real counts, and every
+one of them already a hard-coded chip on the hero or in the `/search` empty
+state. The top seven were 7-for-7.
+
+**Cause.** A chip click navigates to `/search`, and `/search` logs every query
+it serves. So for the ten days between the log being written and the aggregate
+being read, the chips were seeding the table they would later read from. The
+label was not false: those queries genuinely were run the most. It was
+measuring our own suggestion rather than anyone's demand — and it was a ratchet,
+because each impression bought more clicks which bought more impressions.
+
+**Fix.** `search_queries.source` already existed and every row said `'web'`.
+Chip links now carry `?from=chip` (and the smart block's related terms
+`?from=smart`), the results page logs the source it was given, and
+`top_searches()` counts `source = 'web'` alone. The ~10 days of existing rows
+cannot be relabelled — a chip click and a typed «وکیل مهاجرت» are byte-identical
+in the table — so they age out of the 90-day window instead.
+
+**Lesson.** Whenever a surface both *suggests* an input and *measures* that
+input, the measurement is contaminated from the first day, and it is
+contaminated in the direction that looks like success. Ask, before shipping any
+"most X" element: **can this element cause the thing it reports?** If it can,
+the instrumentation to separate the two has to ship in the same change, not
+after — the history written in between is unrecoverable.
+
+Note the shape of the miss: the previous session had checked that the label was
+derived from the data. It never asked where the data came from. A caption
+being *true* and a caption being *informative* are different tests, and the
+first one passing is what stops you running the second.
+
+---
+
 ## A `.limit()` on the rows that were also the label map
 
 **Symptom.** Six business cards on the live home page printed «digital-it»

@@ -1,21 +1,35 @@
 # Open tasks
 
-**Updated:** 2026-09-09 — home page v3 shipped; **one migration needs a
-human**, listed first. The scrape-ceiling items from 8 Sep and the 27 Aug
+**Updated:** 2026-09-10 — home page v3 shipped and its first migration is
+applied; reading the numbers it returned found a feedback loop, so **a second
+migration needs a human**, listed first. The scrape-ceiling items from 8 Sep and the 27 Aug
 sweep follow unchanged.
 
 ## Home page v3 (9 Sep, `1517032`)
 
-**FARJAD — run `supabase/migrations/20260909100000_top_searches.sql` in the
-SQL editor.** It adds a SECURITY DEFINER `top_searches(limit, days, min_hits)`
-over `search_queries`, which stays admin-read-only: the function returns terms
-and counts only, never a row, an IP, a user id or a timestamp, and it drops
-zero-result queries and anything searched by fewer than three rows-worth of
-sessions. Until it is applied the hero's chips fail soft — `topSearches()`
-returns null and the label reads «مثلاً:» over the example list instead of
-«پرجستجو:» over real terms. Nothing is broken while it waits; the chips are
-just examples, and they say so. (`db push` refuses on this project — see
-`06-gotchas`.)
+**FARJAD — run `supabase/migrations/20260910100000_top_searches_typed_only.sql`
+in the SQL editor.** One line changes: `top_searches()` now counts
+`source = 'web'` only. The first migration (below) is applied and working; what
+it returned was circular. Every one of the top seven terms — «وکیل مهاجرت»
+(۳۴۷), «املاک» (۹۱), «رستوران ایرانی» (۴۳), «حسابدار» (۳۸), «دندانپزشک» (۳۵),
+«مکانیک» (۳۱), «سوپرمارکت ایرانی» (۳۰) — was already a hard-coded chip on the
+home hero or in the `/search` empty state. A chip click navigates to `/search`,
+which logs every query it serves, so the chips had been seeding the log they
+now read from. Nothing was false; it was measuring our own suggestion instead
+of demand, and would have frozen the chip row on those six for ever. The web
+app now writes `source` as `chip` / `smart` / `web` (verified against the
+table, three rows, one of each). **The ~10 days of rows written before this
+cannot be relabelled** — a chip click and a typed «وکیل مهاجرت» are identical
+in the table — so they keep counting until they age out of the 90-day window,
+around 9 Dec 2026. If that is too slow, `top_searches(6, 30)` reaches clean
+data in a month.
+
+**DONE (applied 10 Sep) — `supabase/migrations/20260909100000_top_searches.sql`.** Added the SECURITY DEFINER `top_searches(limit, days,
+min_hits)` over `search_queries`, which stays admin-read-only: the function
+returns terms and counts only, never a row, an IP, a user id or a timestamp.
+Verified as anon against production, and `search_queries` itself still returns
+`[]` to an anon read. The chips on goplaza.ca now say «پرجستجو:» over real
+terms. (`db push` refuses on this project — see `06-gotchas`.)
 
 **BLOCKED ON DATA — the «باز است الان» filter.** Deliberately not shipped.
 Six of the 9,693 published rows have any `working_hours`; every other row is

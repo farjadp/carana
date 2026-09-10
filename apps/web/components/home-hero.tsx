@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: components/home-hero.tsx
-// Version: 3.0.0 — 2026-09-09
+// Version: 3.1.0 — 2026-09-10
 // Why: The first screen every visitor sees. Brand-first: annabi → navy wash,
 //      the Hidden Č as a faint watermark, a Persepolis merlon parapet, and a
 //      search that actually goes somewhere. The numbers are live counts passed
@@ -36,6 +36,18 @@
 //           as Persian labels with their listing counts, from the same geo
 //           index the city pages use, and the box starts on the visitor's own
 //           city when the edge tells us one we have listings for.
+//
+//      v3.1 (10 Sep) closes a loop that v3 created. The migration was applied
+//      and the chips came back «وکیل مهاجرت، املاک، رستوران ایرانی، حسابدار،
+//      دندانپزشک، مکانیک» — six terms, every one of which was already a
+//      hard-coded chip on this page or on /search. Clicking a chip navigates to
+//      /search, and /search logs every query, so the chips had been seeding the
+//      log they now read from: «پرجستجو» was measuring our own suggestion, not
+//      demand, and would have stayed frozen on those six for ever. Chip clicks
+//      now carry ?from=chip and are logged under their own source, so only a
+//      typed search counts. Nothing about the label was false — those queries
+//      really were run — which is why it took looking at the numbers rather
+//      than at the code to see it.
 //
 //      Search itself moved to components/search/search-box.tsx — one control,
 //      with suggestions, shared with the results page.
@@ -151,7 +163,9 @@ export function HomeHero({
             <button
               key={s}
               type="button"
-              onClick={() => router.push(`/search?q=${encodeURIComponent(s)}`)}
+              // from=chip so this click is logged as a suggestion followed,
+              // never as a search someone thought of. See v3.1 above.
+              onClick={() => router.push(`/search?q=${encodeURIComponent(s)}&from=chip`)}
               className="rounded-full bg-white/10 px-2.5 py-1 text-[#f6f1e8]/90 transition hover:bg-white/20"
             >
               {s}

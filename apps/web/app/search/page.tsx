@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/search/page.tsx
-// Version: 2.1.0 — 2026-09-09
+// Version: 2.2.0 — 2026-09-10
 // Why: The search results page — the P0 that was open since launch. Reads
 //      q / city / category / verified from the URL so results are shareable,
 //      calls the ranked Persian-aware RPC, logs every query (zero-result ones
@@ -28,6 +28,15 @@
 //      says how many results it leads to before they pick it. Category and
 //      «فقط احرازشده» ride along in extraParams rather than as hidden inputs,
 //      so a new search from this page keeps the filters that were already on.
+//
+//      v2.2 records WHERE a query came from. Every chip on this page and on the
+//      home hero navigates here, and this is the only place that writes to
+//      search_queries — so the log had been counting our own suggestions
+//      alongside typed queries, and the home page's «پرجستجو» chips (live 10
+//      Sep) read back the six terms they had themselves seeded. `?from=` now
+//      separates them: `chip` for a suggestion followed, `smart` for one of the
+//      model's expanded terms, and the absent case — a query someone typed —
+//      stays `web`. Only `web` feeds top_searches().
 // Env / Identity: Server component; RLS applies.
 // ============================================================================
 import type { Metadata } from "next";
@@ -61,6 +70,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const city = cleanQuery(sp.city) || null;
   const category = cleanQuery(sp.category) || null;
   const verifiedOnly = sp.verified === "1";
+  // Where this query came from. Anything we did not put in front of the
+  // visitor is "web" — a term they thought of — and only that is demand.
+  const querySource = sp.from === "chip" ? "chip" : sp.from === "smart" ? "smart" : "web";
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
   const supabase = await createSupabaseServerClient();
@@ -164,7 +176,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   if (q && page === 1) {
     const { data: { user } } = await supabase.auth.getUser();
-    void logSearch(supabase, { q, city, category, resultCount: total, source: "web", userId: user?.id });
+    void logSearch(supabase, { q, city, category, resultCount: total, source: querySource, userId: user?.id });
   }
 
   const href = (patch: Record<string, string | null | undefined>) => {
@@ -294,7 +306,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         ) : !(q || city || category) ? (
           <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {["وکیل مهاجرت", "دندانپزشک", "رستوران ایرانی", "حسابدار", "املاک", "آرایشگاه", "سوپرمارکت ایرانی", "مکانیک"].map((s) => (
-              <Link key={s} href={`/search?q=${encodeURIComponent(s)}`} className="rounded-2xl bg-white border border-[color:var(--line)] px-4 py-3 font-bold text-[color:var(--text)] hover:shadow-[0_14px_36px_rgba(20,33,61,0.10)] transition inline-flex items-center justify-between">
+              <Link key={s} href={`/search?q=${encodeURIComponent(s)}&from=chip`} className="rounded-2xl bg-white border border-[color:var(--line)] px-4 py-3 font-bold text-[color:var(--text)] hover:shadow-[0_14px_36px_rgba(20,33,61,0.10)] transition inline-flex items-center justify-between">
                 {s} <ArrowLeft size={14} className="text-[color:var(--muted-text)]" />
               </Link>
             ))}
@@ -321,7 +333,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                   <span className="text-[color:var(--muted-text)]">جستجوهای مرتبط:</span>
                   {smart.terms.map((t) => (
-                    <Link key={t} href={`/search?q=${encodeURIComponent(t)}`} className="rounded-full border border-[color:var(--lajvard)]/30 bg-white px-3 py-1.5 font-bold text-[color:var(--lajvard)] transition hover:bg-[color:var(--lajvard)] hover:text-white">
+                    <Link key={t} href={`/search?q=${encodeURIComponent(t)}&from=smart`} className="rounded-full border border-[color:var(--lajvard)]/30 bg-white px-3 py-1.5 font-bold text-[color:var(--lajvard)] transition hover:bg-[color:var(--lajvard)] hover:text-white">
                       {t}
                     </Link>
                   ))}

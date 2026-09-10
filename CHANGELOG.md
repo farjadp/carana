@@ -2,6 +2,28 @@
 
 All notable changes to this project are tracked here.
 
+## 2.3.1 - 2026-09-10
+
+### Fixed
+
+- **«پرجستجو» was measuring its own suggestions.** `top_searches()` went live
+  and returned «وکیل مهاجرت» (347), «املاک» (91), «رستوران ایرانی» (43),
+  «حسابدار» (38), «دندانپزشک» (35), «مکانیک» (31) — the top seven all being
+  terms that were already hard-coded chips on the home hero or in the `/search`
+  empty state. A chip click navigates to `/search`, which logs every query it
+  serves, so the chips had been seeding the log they now read from. Nothing was
+  false and it was not informative: left alone, the chip row would have frozen
+  on those six permanently, each impression buying the clicks that justified
+  the next impression.
+  - Chip links now carry `?from=chip`, the smart block's related terms
+    `?from=smart`, and `/search` logs the source it was given. Only an absent
+    `?from=` — a query someone typed — is recorded as `web`.
+  - `supabase/migrations/20260910100000_top_searches_typed_only.sql` makes the
+    function count `source = 'web'` alone. **Not applied yet.**
+  - The ~10 days of rows written before this cannot be relabelled (a chip click
+    and a typed «وکیل مهاجرت» are identical in the table), so they age out of
+    the 90-day window rather than being guessed at.
+
 ## 2.3.0 - 2026-09-09
 
 ### Changed — home page v3
