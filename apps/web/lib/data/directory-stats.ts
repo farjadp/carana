@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: apps/web/lib/data/directory-stats.ts
-// Version: 1.1.0 — 2026-09-09
+// Version: 1.2.0 — 2026-10-02
 // Why: One place that counts the directory, so every surface that shows a
 //      number shows the same real number. Extracted from app/page.tsx when the
 //      auth panel was found claiming "۲۰,۰۰۰+ کسب‌وکار ثبت‌شده" against a
@@ -15,12 +15,24 @@
 //      tool instead of a confession: the search page's «فقط احرازشده» filter.
 //      What replaces it is a count that grows — rows touched in the last
 //      seven days — which is the question a returning visitor actually has.
-// Env / Identity: Server-only; reads public rows through the request client.
+//
+//      v1.2 caches the result for ten minutes. The home page and all five auth
+//      pages called this on every render, and the city list inside it pages
+//      through the whole table — ~11 round trips each time. That query ran
+//      2.9 million times and was the second-largest load on the database
+//      while search was timing out. The numbers are counts of a directory
+//      that changes by a few rows an hour; ten minutes old is still true.
+// Env / Identity: Server-only. Builds its own anon client, because a cached
+//      scope may not read cookies — and an anon reader is the right one
+//      anyway: these are public counts, and the request client would have
+//      shown an admin a different total from everyone else.
 // ============================================================================
+import { unstable_cache } from "next/cache";
+import { createClient } from "@supabase/supabase-js";
 import { PUBLIC_STATUSES } from "@goplaza/core";
 
 import { UNKNOWN_CITY } from "@/lib/data/geography";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { env } from "@/lib/env";
 import { fetchAllRows } from "@/lib/supabase/fetch-all";
 
 export type DirectoryStats = {
@@ -39,11 +51,24 @@ export type DirectoryStats = {
 };
 
 /**
- * Every field is a count, never a claim. A failed query yields 0, which reads
- * as "we don't know" rather than inventing a floor.
+ * Every field is a count, never a claim.
+ *
+ * A failed query throws rather than yielding 0. Before the cache a 0 was a
+ * one-render glitch; inside it, «۰ کسب‌وکار» would be served for ten
+ * minutes. Throwing keeps a failure out of the cache: once a value exists, a
+ * failed background refresh leaves the last good one in place, and only a
+ * cold cache can surface the error — as it always could.
  */
-export async function getDirectoryStats(): Promise<DirectoryStats> {
-  const supabase = await createSupabaseServerClient();
+export const getDirectoryStats = unstable_cache(
+  async (): Promise<DirectoryStats> => countDirectory(),
+  ["directory-stats-v1"],
+  { revalidate: 600, tags: ["directory-stats"] }
+);
+
+async function countDirectory(): Promise<DirectoryStats> {
+  const supabase = createClient(env.supabaseUrl, env.supabasePublishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
   const nowIso = new Date().toISOString();
   const statuses = [...PUBLIC_STATUSES];
 
@@ -52,7 +77,7 @@ export async function getDirectoryStats(): Promise<DirectoryStats> {
   // and the "top cities" list were computed from a fifth of the directory.
   const weekAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [{ count: totalCount }, { count: verifiedCount }, cityRows, { count: categoryCount }, { count: freshCount }] =
+  const [totalRes, verifiedRes, cityRows, categoryRes, freshRes] =
     await Promise.all([
       supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", statuses),
       supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", statuses).gt("verified_until", nowIso),
@@ -62,6 +87,12 @@ export async function getDirectoryStats(): Promise<DirectoryStats> {
       supabase.from("categories").select("id", { count: "exact", head: true }).eq("is_active", true),
       supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", statuses).gte("updated_at", weekAgoIso),
     ]);
+
+  for (const res of [totalRes, verifiedRes, categoryRes, freshRes]) if (res.error) throw res.error;
+  const totalCount = totalRes.count;
+  const verifiedCount = verifiedRes.count;
+  const categoryCount = categoryRes.count;
+  const freshCount = freshRes.count;
 
   // "نامشخص" is the placeholder 409 imported listings carry, not a city. It
   // had been inflating the home hero's city count and would have shown up as
