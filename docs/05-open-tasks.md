@@ -4,6 +4,41 @@
 applied; reading the numbers it returned found a feedback loop, so **a second
 migration needs a human**, listed first. The scrape-ceiling items from 8 Sep and the 27 Aug
 sweep follow unchanged.
+## Live-bug sweep (2 Oct) — one SQL Editor paste, then three checks
+
+**FARJAD — paste `supabase/migrations/20261002100000_search_uses_its_indexes.sql`
+into the SQL Editor and run it.** This is the fix for the search timeouts
+(6,261 since 25 Aug). It replaces `search_businesses` (same signature, same
+ranking) and adds one index on `search_queries`. The session tried to apply it
+and was refused. Rollback, if anything looks wrong: paste
+`supabase/rollbacks/20261002100000_search_uses_its_indexes.sql`. Until it
+runs, the code half is still correct — a timed-out search now says
+«جستجو این بار جواب نداد» instead of «چیزی پیدا نشد» — but searches still
+time out.
+
+**AFTER THE PASTE — measure, don't assume.** In the SQL Editor, as anon:
+`set local role anon; explain analyze select * from search_businesses('وکیل', null, null, false, 24, 0);`
+should show `Bitmap Index Scan` and well under 300 ms (it was a `Seq Scan`
+at 1,131 ms). Then `get_runtime_errors` for the `57014` group a few days
+later should be near zero.
+
+**LATER — read the `[search-agent]` log lines.** `/search` now logs the
+family of every non-browser user agent (never the address). The 2 Oct
+crawler could not be named because runtime logs carry no user agent. If it
+was a search engine, robots.txt has already stopped it; if it is something
+else, those lines say what.
+
+**LATER — `/claim` got 3,124 renders a week.** Probably link prefetch from
+every listing (two `<Link>`s per profile), now off. Recheck the count in a
+week; if it has not dropped, it is a crawler.
+
+**KNOWN, NOT FIXED — the chip log is contaminated a second way.** Until this
+deploy, a crawler following the category chips logged each query again under
+every category as `source='web'`, so `top_searches()` counts are inflated
+(«مو», «نت», «ون» were on the home page on 2 Oct). New rows are clean
+(`from=filter` is not logged). Old rows age out of the 30-day window, or can
+be deleted by a human: `source='web' and category is not null and
+result_count = 0` is the obvious slice, but check it before deleting.
 
 ## Home page v3 (9 Sep, `1517032`)
 

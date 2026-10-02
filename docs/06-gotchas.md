@@ -4,6 +4,52 @@ Every one of these cost real time. Read before debugging anything similar.
 
 ---
 
+## RLS silently turns off your trigram indexes
+
+**Symptom.** `search_businesses` timed out for real visitors (6,261 times,
+~7% of /search) while every `explain analyze` run from the SQL editor looked
+fine. The GIN trigram indexes existed, were valid, and were used — when
+*we* ran the query.
+
+**Cause.** The function was SECURITY INVOKER, so for a visitor it ran as
+`anon` under the `businesses_public_read` policy. Postgres will not evaluate
+a non-LEAKPROOF predicate ahead of an RLS qual, and pg_trgm's `LIKE`/`%`
+operators are not leakproof — so under RLS they cannot be index conditions,
+and the planner falls back to a sequential scan with similarity() on every
+row. The editor runs as `postgres`, which bypasses RLS, so it never saw it.
+Measured: 1,131 ms as anon, 261 ms bypassing RLS, same query.
+
+Two follow-on traps in the fix: a SECURITY DEFINER **SQL** function is never
+inlined, so it is planned with `q` as an opaque parameter and still chose
+the scan (1,002 ms) — it had to become plpgsql with
+`plan_cache_mode = force_custom_plan`. And the keyboard-swap of a Persian
+word («وکیل» → `,;dg`) is punctuation with almost no trigrams, which makes a
+whole OR-arm unindexable on its own.
+
+**Fix.** `20261002100000_search_uses_its_indexes.sql`: SECURITY DEFINER with
+the status filter the body already had, plpgsql + forced custom plans, the
+swap arm only when it is letters and spaces.
+
+**Lesson.** Time a query **as the role that runs it**:
+`set local role anon;` before `explain analyze`. Any read that is fast in the
+editor and slow in production, on a table with RLS, is this until proven
+otherwise.
+
+## A failure that renders as an answer
+
+**Symptom.** A search timeout showed «چیزی پیدا نشد», was logged as a
+zero-result query, and then fired the city-widening rerun and the AI smart
+expansion — five more searches against a database that had just timed out.
+
+**Cause.** `searchBusinesses()` mapped any error to `{hits: [], total: 0}`,
+the same shape as a real empty result.
+
+**Fix.** It returns `failed: true`; the page says the search did not
+complete, offers a retry, and neither widens, expands nor logs.
+
+**Lesson.** "Fail soft" is only honest if the soft value cannot be mistaken
+for a real one. An empty list is a claim — that nothing exists.
+
 ## A suggestion that becomes its own evidence
 
 **Symptom.** The day `top_searches()` was applied, the home page's «پرجستجو:»
