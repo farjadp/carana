@@ -6,8 +6,14 @@ migration needs a human**, listed first. The scrape-ceiling items from 8 Sep and
 sweep follow unchanged.
 ## Live-bug sweep (2 Oct) — one SQL Editor paste, then three checks
 
-**FARJAD — paste `supabase/migrations/20261002100000_search_uses_its_indexes.sql`
-into the SQL Editor and run it.** This is the fix for the search timeouts
+**DONE 3 Oct 18:45 UTC — `20261002100000_search_uses_its_indexes.sql` applied
+by Farjad; PR #1 merged as `fe775b1`.** Measured after, as anon: «وکیل» 297 ms
+cold, ~100 ms per query warm (was a 1,131 ms seq scan); `یثدفشم` still finds
+the same 180 as `dental`. No timeout in the DB log since the apply — minutes
+old when checked, so the recheck below stands. Original note follows.
+
+~~**FARJAD — paste `supabase/migrations/20261002100000_search_uses_its_indexes.sql`
+into the SQL Editor and run it.**~~ This is the fix for the search timeouts
 (6,261 since 25 Aug). It replaces `search_businesses` (same signature, same
 ranking) and adds one index on `search_queries`. The session tried to apply it
 and was refused. Rollback, if anything looks wrong: paste
@@ -31,6 +37,16 @@ else, those lines say what.
 **LATER — `/claim` got 3,124 renders a week.** Probably link prefetch from
 every listing (two `<Link>`s per profile), now off. Recheck the count in a
 week; if it has not dropped, it is a crawler.
+
+**FARJAD — paste `supabase/migrations/20260910100000_top_searches_typed_only.sql`.**
+Checked 3 Oct: never applied. The live `top_searches()` still floors at 2
+characters (the file says 4), which is why «مو», «نت», «ون» are on the home
+page chips.
+
+**FIRST CRAWLER NAMED — Bytespider.** The first `[search-agent]` line after
+the deploy (3 Oct 18:46 UTC) was ByteDance's crawler, which is known to ignore
+robots.txt. The Vercel Firewall rule (still absent — `get_firewall_config`:
+config not found) is the place to block or limit it.
 
 **KNOWN, NOT FIXED — the chip log is contaminated a second way.** Until this
 deploy, a crawler following the category chips logged each query again under
