@@ -1,11 +1,17 @@
 // ============================================================================
 // Source: app/about/page.tsx
-// Version: 2.0.0 — 2026-08-15
+// Version: 2.1.0 — 2026-10-02
 // Why: The real "about" page. Replaces the placeholder that literally said
 //      "this section is waiting for your data" with the actual story: why
 //      GOPLAZA exists, who builds it (Ashavid Inc., founded by Farjad
 //      Pourmohammad), the four brand principles from the brand book, how the
 //      product works, and the numbers — live from the database, never claims.
+//
+//      v2.1: the numbers come from getDirectoryStats(), like every other page.
+//      The city count here was read from an unpaginated select, which
+//      PostgREST stops at 1,000 rows without an error — so on 2 Oct /about
+//      said «۴۶ شهر در کانادا» while /auth/login, counting the whole table,
+//      said ۹۳. It also counted the «نامشخص» placeholder as a city.
 // Env / Identity: Server component; public reads only.
 // ============================================================================
 import type { Metadata } from "next";
@@ -16,7 +22,7 @@ import { brand } from "@goplaza/core";
 import { InnerPage } from "@/components/inner-page";
 import { BrandMark } from "@/components/brand-mark";
 import { company } from "@/lib/data/company";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getDirectoryStats } from "@/lib/data/directory-stats";
 import { faDigits as fa } from "@goplaza/core";
 
 export const metadata: Metadata = {
@@ -41,15 +47,7 @@ const HOW = [
 ];
 
 export default async function AboutPage() {
-  const supabase = await createSupabaseServerClient();
-  const nowIso = new Date().toISOString();
-  const [{ count: total }, { count: verified }, { data: cityRows }, { count: categories }] = await Promise.all([
-    supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", ["APPROVED", "PUBLISHED"]),
-    supabase.from("businesses").select("id", { count: "exact", head: true }).in("status", ["APPROVED", "PUBLISHED"]).gt("verified_until", nowIso),
-    supabase.from("businesses").select("city").in("status", ["APPROVED", "PUBLISHED"]).not("city", "is", null),
-    supabase.from("categories").select("id", { count: "exact", head: true }).eq("is_active", true),
-  ]);
-  const cities = new Set((cityRows ?? []).map((r) => String(r.city).trim().toLowerCase()).filter(Boolean)).size;
+  const { total, verified, cities, categories } = await getDirectoryStats();
 
   return (
     <InnerPage
@@ -62,10 +60,10 @@ export default async function AboutPage() {
       {/* Numbers */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3" dir="rtl">
         {[
-          { icon: Store, v: fa(total ?? 0), l: "کسب‌وکار منتشرشده" },
-          { icon: BadgeCheck, v: fa(verified ?? 0), l: "مالکیت احرازشده", gold: true },
+          { icon: Store, v: fa(total), l: "کسب‌وکار منتشرشده" },
+          { icon: BadgeCheck, v: fa(verified), l: "مالکیت احرازشده", gold: true },
           { icon: MapPin, v: fa(cities), l: "شهر در کانادا" },
-          { icon: Sparkles, v: fa(categories ?? 0), l: "دسته‌بندی" },
+          { icon: Sparkles, v: fa(categories), l: "دسته‌بندی" },
         ].map(({ icon: Icon, v, l, gold }) => (
           <div key={l} className={`rounded-2xl p-4 border ${gold ? "bg-[color:var(--gold)]/10 border-[color:var(--gold)]/30" : "bg-white border-[color:var(--line)]"}`}>
             <div className="flex items-center gap-1.5 text-xs text-[color:var(--muted-text)]"><Icon size={14} className={gold ? "text-[color:var(--gold)]" : "text-[color:var(--annabi)]"} />{l}</div>

@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: app/search/page.tsx
-// Version: 2.2.0 — 2026-09-10
+// Version: 2.3.0 — 2026-10-02
 // Why: The search results page — the P0 that was open since launch. Reads
 //      q / city / category / verified from the URL so results are shareable,
 //      calls the ranked Persian-aware RPC, logs every query (zero-result ones
@@ -37,6 +37,23 @@
 //      separates them: `chip` for a suggestion followed, `smart` for one of the
 //      model's expanded terms, and the absent case — a query someone typed —
 //      stays `web`. Only `web` feeds top_searches().
+//
+//      v2.3 — what the live logs showed on 2 Oct:
+//      · A timed-out search rendered «چیزی پیدا نشد» and was logged as a
+//        zero-result query. Worse, the empty answer then triggered the
+//        city-widening rerun and the smart expansion (an AI call plus four
+//        more searches) against a database that had just timed out. A failed
+//        search now says so, offers a retry, and is neither widened,
+//        expanded nor logged.
+//      · Every render paginated the city column of the whole table (~11
+//        round trips, 2.9M calls) into a `cities` list nothing read. The
+//        dropdown has come from the cached geo index since v2.1. Removed.
+//      · Every filter chip and pager link is a fresh /search URL, so a
+//        crawler following them walks q × category × verified × page
+//        forever — the log held «کوتاهی مو» under digital-it and «خورشت مرغ»
+//        under real-estate, one fetch an hour, around the clock. The page is
+//        already noindex; the links are now nofollow and robots.txt
+//        disallows /search (app/robots.ts).
 // Env / Identity: Server component; RLS applies.
 // ============================================================================
 import type { Metadata } from "next";
@@ -47,12 +64,11 @@ import { ArrowLeft, BadgeCheck, Megaphone, Search as SearchIcon, SlidersHorizont
 import { PageShell } from "@/components/page-shell";
 import { BusinessCard } from "@/components/business/business-card";
 import { SuggestionBox } from "@/components/suggestion-box";
-import { PUBLIC_STATUSES, fetchAllRows } from "@goplaza/core";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCategoryDetail } from "@/lib/data/category-details";
 import { cleanQuery, logSearch, searchAnnouncements, searchBusinesses, type AnnouncementHit, type SearchHit } from "@/lib/search";
 import { expandQuery, type SmartExpansion } from "@/lib/search/smart";
-import { cityNameFa, getGeoIndex, isPlaceholderCity } from "@/lib/seo/geo-index";
+import { cityNameFa, getGeoIndex } from "@/lib/seo/geo-index";
 import { SearchBox } from "@/components/search/search-box";
 import { faDigits as fa } from "@goplaza/core";
 
@@ -72,33 +88,36 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const verifiedOnly = sp.verified === "1";
   // Where this query came from. Anything we did not put in front of the
   // visitor is "web" — a term they thought of — and only that is demand.
-  const querySource = sp.from === "chip" ? "chip" : sp.from === "smart" ? "smart" : "web";
+  // `filter` is a chip or pager link on this page: the same query, refined.
+  // It is navigation, not a new search, and is never logged — a crawler
+  // following the 20 category chips was multiplying every term twentyfold.
+  const querySource =
+    sp.from === "chip" ? "chip" : sp.from === "smart" ? "smart" : sp.from === "filter" ? "filter" : "web";
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
   const supabase = await createSupabaseServerClient();
-  const [first, { data: categories }, cityRows, geo] = await Promise.all([
-    q || city || category ? searchBusinesses(supabase, { q, city, category, verifiedOnly, limit: PAGE, offset: (page - 1) * PAGE }) : Promise.resolve({ hits: [], total: 0 }),
+  const [first, { data: categories }, geo] = await Promise.all([
+    q || city || category
+      ? searchBusinesses(supabase, { q, city, category, verifiedOnly, limit: PAGE, offset: (page - 1) * PAGE })
+      : Promise.resolve({ hits: [], total: 0, failed: false }),
     supabase.from("categories").select("slug, name").eq("is_active", true).order("display_order"),
-    // Paginated: unbounded, PostgREST stops at 1,000 of the ~10,700 published
-    // rows without an error, and the "top 30 cities" filter below would be a
-    // frequency ranking over a 9% sample in whatever order the page came back.
-    fetchAllRows<{ city: string | null }>(() =>
-      supabase.from("businesses").select("city").in("status", PUBLIC_STATUSES).not("city", "is", null).order("id")
-    ),
     getGeoIndex(),
   ]);
+  // The search did not run to completion. Nothing below may treat the empty
+  // result as an answer: no widening, no smart expansion, no log row.
+  const failed = first.failed;
   // A city filter that finds nothing should not be a dead end: rerun without
   // it and say so. The query is still logged with the city, so the demand
   // signal ("رستوران in Toronto") is not lost.
   let { hits, total } = first;
   let widened = false;
-  if (q && city && total === 0) {
+  if (!failed && q && city && total === 0) {
     const wide = await searchBusinesses(supabase, { q, category, verifiedOnly, limit: PAGE, offset: (page - 1) * PAGE });
     if (wide.total > 0) { hits = wide.hits; total = wide.total; widened = true; }
   }
 
   // ── Layer 2: live announcements matching the literal query ──────────────
-  let announcementHits: AnnouncementHit[] = q ? await searchAnnouncements(supabase, q, 6) : [];
+  let announcementHits: AnnouncementHit[] = q && !failed ? await searchAnnouncements(supabase, q, 6) : [];
 
   // ── Layer 3: smart expansion, only when lexical came back thin ──────────
   // First page only — the block does not paginate, repeating it on page 2
@@ -106,7 +125,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   let smart: SmartExpansion | null = null;
   let smartHits: (SearchHit & { via: string })[] = [];
   let smartCategoryPicks: { slug: string; name: string; count: number }[] = [];
-  if (q && page === 1 && total < 5) {
+  if (!failed && q && page === 1 && total < 5) {
     const hdrs = await headers();
     const ip = (hdrs.get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
     smart = await expandQuery(q, ip);
@@ -156,12 +175,6 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     }
   }
   const catLabel = new Map((categories ?? []).map((c) => [c.slug as string, c.name as string]));
-  const cityFreq = new Map<string, number>();
-  // Placeholder values («نامشخص» &c.) skipped: now that the count runs over
-  // the full table instead of a 1,000-row sample, «نامشخص» ranks 7th — it is
-  // an admin cleanup queue, not a place a visitor can filter by.
-  for (const r of cityRows ?? []) { const c = String(r.city).trim(); if (c && !isPlaceholderCity(c)) cityFreq.set(c, (cityFreq.get(c) ?? 0) + 1); }
-  const cities = [...cityFreq.entries()].sort((a, b) => b[1] - a[1]).map(([c]) => c).slice(0, 30);
   // Persian labels with counts for the dropdown, from the same index the city
   // pages use. Falls back to the raw value for a city the index does not know,
   // which is better than dropping it from the filter altogether.
@@ -174,14 +187,14 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     count,
   }));
 
-  if (q && page === 1) {
+  if (q && page === 1 && !failed && querySource !== "filter") {
     const { data: { user } } = await supabase.auth.getUser();
     void logSearch(supabase, { q, city, category, resultCount: total, source: querySource, userId: user?.id });
   }
 
   const href = (patch: Record<string, string | null | undefined>) => {
     const u = new URLSearchParams();
-    const merged = { q, city, category, verified: verifiedOnly ? "1" : null, ...patch };
+    const merged = { q, city, category, verified: verifiedOnly ? "1" : null, from: "filter", ...patch };
     for (const [k, v] of Object.entries(merged)) if (v) u.set(k, v);
     const s = u.toString();
     return `/search${s ? `?${s}` : ""}`;
@@ -206,13 +219,13 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         {/* Filters */}
         <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
           <span className="text-[color:var(--muted-text)] inline-flex items-center gap-1"><SlidersHorizontal size={13} /> فیلتر:</span>
-          <Link href={href({ verified: verifiedOnly ? null : "1" })} className={`px-3 py-1.5 rounded-full border transition inline-flex items-center gap-1 ${verifiedOnly ? "bg-[color:var(--annabi)] border-transparent text-[#f6f1e8]" : "bg-white border-[color:var(--line)] text-[color:var(--text)] hover:bg-[color:var(--bg)]"}`}>
+          <Link href={href({ verified: verifiedOnly ? null : "1" })} rel="nofollow" prefetch={false} className={`px-3 py-1.5 rounded-full border transition inline-flex items-center gap-1 ${verifiedOnly ? "bg-[color:var(--annabi)] border-transparent text-[#f6f1e8]" : "bg-white border-[color:var(--line)] text-[color:var(--text)] hover:bg-[color:var(--bg)]"}`}>
             <BadgeCheck size={12} /> فقط احرازشده
           </Link>
           <span className="w-px h-4 bg-[color:var(--line)] mx-1" />
-          <Link href={href({ category: null })} className={`px-3 py-1.5 rounded-full border transition ${!category ? "bg-[color:var(--text)] border-transparent text-[#f6f1e8]" : "bg-white border-[color:var(--line)] text-[color:var(--text)] hover:bg-[color:var(--bg)]"}`}>همه‌ی دسته‌ها</Link>
+          <Link href={href({ category: null })} rel="nofollow" prefetch={false} className={`px-3 py-1.5 rounded-full border transition ${!category ? "bg-[color:var(--text)] border-transparent text-[#f6f1e8]" : "bg-white border-[color:var(--line)] text-[color:var(--text)] hover:bg-[color:var(--bg)]"}`}>همه‌ی دسته‌ها</Link>
           {(categories ?? []).map((c) => (
-            <Link key={c.slug} href={href({ category: category === c.slug ? null : c.slug })} className={`px-3 py-1.5 rounded-full border transition ${category === c.slug ? "bg-[color:var(--text)] border-transparent text-[#f6f1e8]" : "bg-white border-[color:var(--line)] text-[color:var(--text)] hover:bg-[color:var(--bg)]"}`}>{c.name}</Link>
+            <Link key={c.slug} href={href({ category: category === c.slug ? null : c.slug })} rel="nofollow" prefetch={false} className={`px-3 py-1.5 rounded-full border transition ${category === c.slug ? "bg-[color:var(--text)] border-transparent text-[#f6f1e8]" : "bg-white border-[color:var(--line)] text-[color:var(--text)] hover:bg-[color:var(--bg)]"}`}>{c.name}</Link>
           ))}
         </div>
 
@@ -223,12 +236,12 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               {q ? <>نتایج برای «{q}»</> : city || category ? <>{[category ? catLabel.get(category) : null, cityFa].filter(Boolean).join(" در ")}</> : "جستجو در پلازا"}
             </h1>
             <p className="text-sm text-[color:var(--muted-text)] mt-1">
-              {q || city || category ? <>{fa(total)} کسب‌وکار{cityFa && !widened ? ` در ${cityFa}` : ""}{verifiedOnly ? " · فقط احرازشده" : ""}</> : "نام، خدمت، دسته یا شهر را بنویس — فارسی یا انگلیسی، فرقی نمی‌کند."}
+              {failed ? "جستجو کامل نشد." : q || city || category ? <>{fa(total)} کسب‌وکار{cityFa && !widened ? ` در ${cityFa}` : ""}{verifiedOnly ? " · فقط احرازشده" : ""}</> : "نام، خدمت، دسته یا شهر را بنویس — فارسی یا انگلیسی، فرقی نمی‌کند."}
             </p>
             {widened ? (
               <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-[color:var(--gold)]/15 px-3 py-1 text-xs font-bold text-[color:var(--text)]">
                 در {cityFa} چیزی برای «{q}» نبود — این‌ها از همه‌ی کاناداست.
-                <Link href={href({ city: null })} className="text-[color:var(--lajvard)] underline-offset-4 hover:underline">حذف فیلتر شهر</Link>
+                <Link href={href({ city: null })} rel="nofollow" prefetch={false} className="text-[color:var(--lajvard)] underline-offset-4 hover:underline">حذف فیلتر شهر</Link>
               </p>
             ) : null}
           </div>
@@ -267,16 +280,31 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         ) : null}
 
         {/* Results */}
-        {hits.length ? (
+        {failed ? (
+          // Not «چیزی پیدا نشد»: we do not know that. The search timed out or
+          // errored, and the honest thing is to say exactly that and hand back
+          // the same query to try again.
+          <div className="mt-8 rounded-3xl bg-white border border-[color:var(--line)] p-8 text-center" role="alert">
+            <div className="w-14 h-14 rounded-2xl bg-[color:var(--bg)] text-[color:var(--annabi)] flex items-center justify-center mx-auto mb-3"><SearchIcon size={24} /></div>
+            <div className="text-lg font-black text-[color:var(--text)]">جستجو این بار جواب نداد</div>
+            <p className="text-sm text-[color:var(--muted-text)] mt-1 max-w-md mx-auto leading-relaxed">
+              مشکل از سمت ماست، نه از جستجوی تو — نتیجه‌ای که نشان ندادیم به این معنی نیست که چیزی وجود ندارد. چند ثانیه بعد دوباره امتحان کن.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2 justify-center text-sm">
+              <Link href={href({ page: page > 1 ? String(page) : null, from: querySource === "web" ? null : querySource })} rel="nofollow" prefetch={false} className="px-4 py-2 rounded-xl bg-[color:var(--text)] text-[#f6f1e8] font-bold">دوباره امتحان کن</Link>
+              <Link href="/categories" className="px-4 py-2 rounded-xl bg-white border border-[color:var(--line)] font-bold text-[color:var(--text)]">مرور دسته‌ها</Link>
+            </div>
+          </div>
+        ) : hits.length ? (
           <>
             <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
               {hits.map((h) => <BusinessCard key={h.id} business={h as any} categoryLabel={h.category ? catLabel.get(h.category) : null} />)}
             </div>
             {totalPages > 1 ? (
               <nav className="mt-8 flex items-center justify-center gap-2 text-sm">
-                {page > 1 ? <Link href={href({ page: String(page - 1) })} className="px-3 py-1.5 rounded-lg bg-white border border-[color:var(--line)]">قبلی</Link> : null}
+                {page > 1 ? <Link href={href({ page: String(page - 1) })} rel="nofollow" prefetch={false} className="px-3 py-1.5 rounded-lg bg-white border border-[color:var(--line)]">قبلی</Link> : null}
                 <span className="text-[color:var(--muted-text)]">صفحه‌ی {fa(page)} از {fa(totalPages)}</span>
-                {page < totalPages ? <Link href={href({ page: String(page + 1) })} className="px-3 py-1.5 rounded-lg bg-white border border-[color:var(--line)]">بعدی</Link> : null}
+                {page < totalPages ? <Link href={href({ page: String(page + 1) })} rel="nofollow" prefetch={false} className="px-3 py-1.5 rounded-lg bg-white border border-[color:var(--line)]">بعدی</Link> : null}
               </nav>
             ) : null}
           </>
@@ -288,7 +316,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               {city || category || verifiedOnly ? "فیلترها را کم کن، " : ""}املا را عوض کن، یا کلی‌تر بنویس (مثلاً «دندان» به‌جای «دندانپزشکی زیبایی»). این جستجو را ثبت کردیم — اگر کسب‌وکاری برای آن ثبت شود، اینجا ظاهر می‌شود.
             </p>
             <div className="mt-4 flex flex-wrap gap-2 justify-center text-sm">
-              {city || category || verifiedOnly ? <Link href={href({ city: null, category: null, verified: null })} className="px-4 py-2 rounded-xl bg-[color:var(--text)] text-[#f6f1e8] font-bold">حذف فیلترها</Link> : null}
+              {city || category || verifiedOnly ? <Link href={href({ city: null, category: null, verified: null })} rel="nofollow" prefetch={false} className="px-4 py-2 rounded-xl bg-[color:var(--text)] text-[#f6f1e8] font-bold">حذف فیلترها</Link> : null}
               <Link href="/categories" className="px-4 py-2 rounded-xl bg-white border border-[color:var(--line)] font-bold text-[color:var(--text)]">مرور دسته‌ها</Link>
               <Link href="/dashboard/business/new" className="px-4 py-2 rounded-xl bg-[color:var(--annabi)]/8 text-[color:var(--annabi)] font-bold inline-flex items-center gap-1"><Sparkles size={14} /> این کسب‌وکار مال من است — ثبتش کنم</Link>
             </div>
@@ -306,7 +334,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         ) : !(q || city || category) ? (
           <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {["وکیل مهاجرت", "دندانپزشک", "رستوران ایرانی", "حسابدار", "املاک", "آرایشگاه", "سوپرمارکت ایرانی", "مکانیک"].map((s) => (
-              <Link key={s} href={`/search?q=${encodeURIComponent(s)}&from=chip`} className="rounded-2xl bg-white border border-[color:var(--line)] px-4 py-3 font-bold text-[color:var(--text)] hover:shadow-[0_14px_36px_rgba(20,33,61,0.10)] transition inline-flex items-center justify-between">
+              <Link key={s} href={`/search?q=${encodeURIComponent(s)}&from=chip`} rel="nofollow" prefetch={false} className="rounded-2xl bg-white border border-[color:var(--line)] px-4 py-3 font-bold text-[color:var(--text)] hover:shadow-[0_14px_36px_rgba(20,33,61,0.10)] transition inline-flex items-center justify-between">
                 {s} <ArrowLeft size={14} className="text-[color:var(--muted-text)]" />
               </Link>
             ))}

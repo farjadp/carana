@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: lib/security/throttle.ts
-// Version: 1.0.0 — 2026-09-08
+// Version: 1.1.0 — 2026-10-02
 // Why: Make bulk scraping of the directory expensive without any real visitor
 //      ever noticing. The listings are the product; the contact details on
 //      them are the part with resale value, and until now a single script
@@ -26,6 +26,16 @@
 //      A shared store was considered and rejected: it would add a network
 //      round-trip to every page view, which is a real cost to every real
 //      visitor to catch a rarer class of abuser.
+//      v1.1 adds a second, much lower ceiling for /search alone. A listing
+//      page is ISR and costs a CDN hit; a search costs a ranked query over
+//      the whole table, and on 2 Oct a patient crawler walking the filter
+//      chips (q × 20 categories × verified × page, one fetch at a time,
+//      around the clock) was a large share of the load that pushed real
+//      searches into the 3 s timeout. robots.txt now disallows /search, so a
+//      compliant crawler stops on its own; this ceiling is for the rest.
+//      Search engines get no exemption on /search — the page is noindex and
+//      disallowed, so a "Googlebot" there is either forged or ignoring
+//      robots, and costs the index nothing to slow down.
 // Env / Identity: Request-scoped. Reads platform geo/IP headers. Keeps no IP
 //      — the address is folded into a bucket key and never stored or logged.
 // ============================================================================
@@ -66,6 +76,22 @@ const AWAY_PER_MINUTE = 200;
 const AWAY_PER_HOUR = 1500;
 
 /**
+ * The /search ceiling. A person refining a search — typing, switching a
+ * category, paging — does a handful a minute; thirty is several times that.
+ * The hourly figure is the one that matters for the crawler seen on 2 Oct:
+ * ~19k searches a week is ~115 an hour, so an hourly ceiling above that
+ * would never have touched it. 120 an hour is two a minute, every minute,
+ * for an hour — not a pace anyone keeps up by hand.
+ * The filter chips no longer prefetch (app/search/page.tsx v2.3), so this
+ * counts navigations, not links scrolled past. Typeahead goes to
+ * /api/suggest, which is not counted here and has its own limit.
+ */
+const SEARCH_PER_MINUTE = 30;
+const SEARCH_PER_HOUR = 120;
+const AWAY_SEARCH_PER_MINUTE = 15;
+const AWAY_SEARCH_PER_HOUR = 60;
+
+/**
  * Search engines are exempt. Throttling Googlebot would deindex the site,
  * which is a far larger loss than any scrape.
  *
@@ -77,6 +103,16 @@ const AWAY_PER_HOUR = 1500;
  */
 const GOOD_BOT_RE =
   /googlebot|google-inspectiontool|bingbot|applebot|duckduckbot|yandexbot|baiduspider|slurp|petalbot|gptbot|oai-searchbot|chatgpt-user|claudebot|perplexitybot|facebookexternalhit|twitterbot|telegrambot|whatsapp|linkedinbot|vercel/i;
+
+/** User agents that announce themselves as software rather than a browser. */
+const AUTOMATED_RE = /bot|crawl|spider|slurp|curl|wget|python|httpx|aiohttp|go-http|java\/|okhttp|axios|node-fetch|headless|phantom|scrapy|libwww|^$/i;
+
+/** The first product token, e.g. "Googlebot/2.1" or "python-requests/2.32". */
+function agentFamily(userAgent: string): string {
+  if (!userAgent) return "(empty)";
+  const named = userAgent.match(/[a-z0-9_.-]*(?:bot|crawler|spider)[a-z0-9_.-]*(?:\/[\d.]+)?/i);
+  return (named?.[0] ?? userAgent.split(/\s+/)[0]).slice(0, 60);
+}
 
 /**
  * Paths that are never counted. Assets and internals are not the thing being
@@ -175,18 +211,30 @@ export function checkThrottle(request: NextRequest): ThrottleVerdict {
   if (!isCountable(pathname)) return { exceeded: false };
 
   const userAgent = request.headers.get("user-agent") ?? "";
-  if (GOOD_BOT_RE.test(userAgent)) return { exceeded: false };
   if (isSignedIn(request)) return { exceeded: false };
 
   const country = request.headers.get("x-vercel-ip-country")?.toUpperCase() ?? "";
   // An unknown country means local development or a self-hosted run, not a
   // suspicious visitor. Give it the generous ceiling rather than the strict one.
   const home = country === "" || HOME_COUNTRIES.has(country);
-  const perMinute = home ? PER_MINUTE : AWAY_PER_MINUTE;
-  const perHour = home ? PER_HOUR : AWAY_PER_HOUR;
-
   const key = `${clientAddress(request)}|${fold(userAgent)}`;
   const now = Date.now();
+
+  // Before the search-engine exemption on purpose — see v1.1 in the header.
+  if (pathname === "/search") {
+    // On 2 Oct the logs could not say who the crawler was: runtime logs
+    // carry no user agent. Name the non-browser ones so the next reading can.
+    // The agent family only — never the address.
+    if (AUTOMATED_RE.test(userAgent)) console.log("[search-agent]", agentFamily(userAgent));
+    const searchMinute = over(minuteBuckets, `search|${key}`, home ? SEARCH_PER_MINUTE : AWAY_SEARCH_PER_MINUTE, 60_000, now);
+    if (searchMinute.exceeded) return { exceeded: true, retryAfterSeconds: searchMinute.retryAfter };
+    const searchHour = over(hourBuckets, `search|${key}`, home ? SEARCH_PER_HOUR : AWAY_SEARCH_PER_HOUR, 3_600_000, now);
+    if (searchHour.exceeded) return { exceeded: true, retryAfterSeconds: searchHour.retryAfter };
+  }
+
+  if (GOOD_BOT_RE.test(userAgent)) return { exceeded: false };
+  const perMinute = home ? PER_MINUTE : AWAY_PER_MINUTE;
+  const perHour = home ? PER_HOUR : AWAY_PER_HOUR;
 
   const minute = over(minuteBuckets, key, perMinute, 60_000, now);
   if (minute.exceeded) return { exceeded: true, retryAfterSeconds: minute.retryAfter };

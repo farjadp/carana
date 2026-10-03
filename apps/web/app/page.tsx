@@ -79,7 +79,7 @@ import { HomeChannels } from "@/components/channels/home-channels";
 import { withoutInternal } from "@/lib/data/internal-businesses";
 import { detectVisitorCity } from "@/lib/geo/visitor-city";
 import { cityCategoryCount, getGeoIndex } from "@/lib/seo/geo-index";
-import { topSearches } from "@/lib/search";
+import { cachedTopSearches } from "@/lib/search";
 import { STORES } from "@/lib/data/releases";
 import { faDigits as fa, faNumber } from "@goplaza/core";
 
@@ -195,7 +195,7 @@ export default async function HomePage() {
     // ~10 Oct instead of ~9 Dec, and a month is a better read of what people
     // want from a directory anyway — «شب یلدا» should not still be ranking in
     // February. Widen it once the history is clean and the traffic supports it.
-    topSearches(supabase, 6, 30),
+    cachedTopSearches(6, 30),
   ]);
   // Must follow getGeoIndex(): a city is only offered once we know we have
   // listings there.

@@ -1,3 +1,54 @@
+# 2026-10-02 — live-bug sweep: search timeouts, a crawler, two wrong numbers
+
+Asked, in Persian: check the live project, read the bugs, report. Then:
+«همرو به ترتیب و با دقت درست کن» — fix all of them, in order, carefully —
+and implement crawler limiting, because someone may be scraping.
+
+## How the findings were produced
+
+From production signals, not the code: Vercel `get_runtime_errors` (7 days),
+runtime-log counts by status and route, `pg_stat_statements`, and
+`explain analyze` run **as anon**. Then the live pages, fetched.
+
+## What was found and done (`fix/live-bugs`)
+
+1. **Search timeouts — 6,261 since 25 Aug, ~7% of /search.** RLS made the
+   trigram indexes unusable (see `06-gotchas`). Migration written, checked
+   against the 12 top terms, **not applied** — the session's apply was
+   refused; it is the first item in `05-open-tasks`.
+2. **A timeout rendered as «چیزی پیدا نشد»**, was logged as demand, and
+   triggered five more searches. Now an honest failure state.
+3. **Dead full-table scans.** `/search` paged the whole city column into a
+   variable nothing read (2.9M calls). Removed. `getDirectoryStats()` (home
+   + five auth pages) and `top_searches()` (home) cached ten minutes.
+4. **/about said 46 cities, /auth/login said 93.** /about read an
+   unpaginated select capped at 1,000 rows. Now uses the shared stats.
+5. **A crawler on /search** — ~19k searches/week, 91% empty, permutations
+   like «خورشت مرغ» under real-estate, one fetch about an hour apart. robots
+   disallows /search and /claim?, filter links are nofollow + no prefetch +
+   not logged, and /search has its own ceiling (30/min, 120/hr) that does
+   not exempt search-engine user agents.
+
+Verified locally against production data: search renders, the forced
+failure renders the new state with one RPC call and no widening, every
+filter link is nofollow + `from=filter`, /about reads 93, robots.txt lists
+both new rules, typecheck clean, six throttle tests pass.
+
+## Said wrongly, and corrected
+
+- **The first report said the fix was "build a GIN trigram index".** The
+  indexes already existed and were valid. The real cause — RLS blocking
+  non-leakproof operators — only showed up when the query was timed as
+  `anon`. The editor's own timings (as postgres) were misleading.
+- **The first report called the crawler "probably a bot" from the
+  zero-result rate alone.** Prefetch of the filter chips was the other
+  candidate; the timestamps (one row per term per ~hour, never a burst)
+  ruled prefetch out. Who it is is still unknown — no user agent in the logs —
+  which is why `[search-agent]` logging was added.
+- **The SECURITY DEFINER SQL version was expected to be enough.** It was
+  measured at 1,002 ms before being applied; that is what led to plpgsql
+  with forced custom plans (174 ms).
+
 # 2026-09-09 — the home page, read instead of remembered
 
 Asked, in Persian: let's do the home page — what would you improve, as a

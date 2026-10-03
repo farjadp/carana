@@ -1,8 +1,8 @@
 // ============================================================================
 // Source: lib/search.ts
-// Version: 1.2.0 — 2026-09-10
+// Version: 1.3.0 — 2026-10-02
 // Why: One way to search businesses on the web — the search_businesses RPC
-//      (Persian-aware, trigram, ranked, RLS-respecting) plus the query log.
+//      (Persian-aware, trigram, ranked, public rows only) plus the query log.
 //
 //      v1.1 adds topSearches(): the aggregate the home hero's «پرجستجو:» chips
 //      were asserting without asking. search_queries stays admin-read only, so
@@ -19,9 +19,19 @@
 //      relabelled — they can only age out. The window is therefore the dial
 //      that decides how long the contaminated history keeps counting, which
 //      makes it a caller's decision, not a default buried in SQL.
+//
+//      v1.3 makes a failed search say so. searchBusinesses() used to turn any
+//      RPC error into {hits: [], total: 0}, and a statement timeout — 6,261 of
+//      them between 25 Aug and 2 Oct — rendered as «چیزی پیدا نشد» and was
+//      logged as a zero-result query: a false answer to the visitor and a
+//      false demand signal in the log. It now returns `failed: true`, and the
+//      caller decides what an honest failure looks like.
 // Env / Identity: Works with the server client (RLS applies).
 // ============================================================================
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+import { env } from "@/lib/env";
 
 export type SearchHit = {
   id: string; ref_no: number; slug: string | null; name: string; name_en: string | null;
@@ -47,10 +57,21 @@ export function cleanQuery(raw: string | null | undefined): string {
   return (raw ?? "").replace(/\s+/g, " ").trim().slice(0, 100);
 }
 
+export type SearchResult = {
+  hits: SearchHit[];
+  total: number;
+  /**
+   * True when the RPC errored (most often the 3 s anon statement timeout).
+   * hits/total are then empty because we do not know, not because nothing
+   * matched — never render or log them as "no results".
+   */
+  failed: boolean;
+};
+
 export async function searchBusinesses(
   supabase: SupabaseClient,
   p: SearchParams
-): Promise<{ hits: SearchHit[]; total: number }> {
+): Promise<SearchResult> {
   const q = cleanQuery(p.q);
   const { data, error } = await supabase.rpc("search_businesses", {
     q,
@@ -62,10 +83,10 @@ export async function searchBusinesses(
   });
   if (error) {
     console.error("search_businesses:", error);
-    return { hits: [], total: 0 };
+    return { hits: [], total: 0, failed: true };
   }
   const hits = (data ?? []) as SearchHit[];
-  return { hits, total: hits[0]?.total_count ?? 0 };
+  return { hits, total: hits[0]?.total_count ?? 0, failed: false };
 }
 
 export type AnnouncementHit = {
@@ -155,4 +176,36 @@ export async function topSearches(
   }
   const rows = (data ?? []) as { term: string; hits: number }[];
   return rows.map((r) => ({ term: String(r.term), hits: Number(r.hits) })).filter((r) => r.term);
+}
+
+/**
+ * topSearches() for the home page, cached for ten minutes.
+ *
+ * The home page is dynamic (it reads the visitor's city), so without this the
+ * aggregate ran on every view: 10,653 calls averaging 935 ms, 60 of them cut
+ * off by the statement timeout. The terms move over days, not minutes.
+ *
+ * An error throws inside the cache so it is never stored — a cached null
+ * would relabel the chips «مثلاً:» for ten minutes over one slow query — and
+ * is turned back into null here, which is what the caller already handles.
+ */
+const loadTopSearches = unstable_cache(
+  async (limit: number, days: number): Promise<TopSearch[]> => {
+    const supabase = createClient(env.supabaseUrl, env.supabasePublishableKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const rows = await topSearches(supabase, limit, days);
+    if (rows === null) throw new Error("top_searches unavailable");
+    return rows;
+  },
+  ["top-searches-v1"],
+  { revalidate: 600, tags: ["top-searches"] }
+);
+
+export async function cachedTopSearches(limit = 6, days = 90): Promise<TopSearch[] | null> {
+  try {
+    return await loadTopSearches(limit, days);
+  } catch {
+    return null;
+  }
 }

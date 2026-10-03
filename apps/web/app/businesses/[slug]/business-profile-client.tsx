@@ -285,7 +285,7 @@ export default function BusinessProfileClient({
                 {isOwnerOrAdmin ? (
                   <Link href={`/dashboard/business/${business.id}/edit`} className="inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--text)] bg-[color:var(--bg)] hover:bg-[color:var(--line)] px-3 py-1.5 rounded-full transition"><Edit3 size={13} /> ویرایش پروفایل</Link>
                 ) : verification.state === "unverified" ? (
-                  <Link href={`/claim?businessId=${business.id}`} className="inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--annabi)] bg-[color:var(--annabi)]/6 hover:bg-[color:var(--annabi)]/10 px-3 py-1.5 rounded-full transition"><BadgeCheck size={13} /> صاحب این کسب‌وکار هستید؟</Link>
+                  <Link href={`/claim?businessId=${business.id}`} prefetch={false} rel="nofollow" className="inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--annabi)] bg-[color:var(--annabi)]/6 hover:bg-[color:var(--annabi)]/10 px-3 py-1.5 rounded-full transition"><BadgeCheck size={13} /> صاحب این کسب‌وکار هستید؟</Link>
                 ) : null}
               </div>
             </div>
@@ -639,7 +639,7 @@ export default function BusinessProfileClient({
               <div className="text-xs space-y-3">
                 <VerificationDetail status={verification} audience="public" />
                 {verification.state === "unverified" ? (
-                  <Link href={`/claim?businessId=${business.id}`} className="block rounded-xl bg-[color:var(--annabi)]/6 p-2.5 text-center font-bold text-[color:var(--annabi)] hover:bg-[color:var(--annabi)]/10 transition">
+                  <Link href={`/claim?businessId=${business.id}`} prefetch={false} rel="nofollow" className="block rounded-xl bg-[color:var(--annabi)]/6 p-2.5 text-center font-bold text-[color:var(--annabi)] hover:bg-[color:var(--annabi)]/10 transition">
                     صاحب این کسب‌وکار هستید؟ مالکیتش را احراز کنید
                   </Link>
                 ) : null}
