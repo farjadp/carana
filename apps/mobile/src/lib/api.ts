@@ -132,3 +132,11 @@ export function importFromWebsite(url: string, categories: { value: string; labe
     categories,
   });
 }
+
+/**
+ * Deletes the signed-in account — App Store Guideline 5.1.1(v). The server
+ * runs the website's own deletion code; `confirmation` must be "DELETE".
+ */
+export function deleteAccount(confirmation: string) {
+  return post<Record<string, never>>("/api/mobile/account/delete", { confirmation });
+}

@@ -10,6 +10,14 @@
 // ============================================================================
 
 /**
+ * The system profile that owns every imported row (`created_by`). Also where a
+ * self-registered listing goes when its creator deletes their account:
+ * `businesses.created_by` is NOT NULL and ON DELETE RESTRICT, so the row needs
+ * an owner that is not a person before the person can be removed.
+ */
+export const IMPORTS_SYSTEM_EMAIL = "imports@charana.ca";
+
+/**
  * Which profile is the person behind a listing — or null when nobody is.
  *
  * The two routes mirror the two verification methods exactly:

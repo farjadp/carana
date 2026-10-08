@@ -13,7 +13,10 @@
 // ============================================================================
 import { NextResponse } from "next/server";
 
-const APPLE_TEAM_ID = process.env.APPLE_TEAM_ID ?? "TEAMID";
+// Ashavid's team (Oct 2026). Public — it is in every signed binary. The env
+// var still overrides it; until this default existed the file said "TEAMID",
+// which no device would ever match.
+const APPLE_TEAM_ID = process.env.APPLE_TEAM_ID ?? "JN57DU6B4M";
 // Deliberately unchanged by the 2026-08 rebrand: the bundle id is the installed
 // app's identity. Changing it here without changing the app breaks link opening.
 const BUNDLE_ID = "ca.charana.app";

@@ -14,10 +14,14 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
  * fails outright when the entitlement is present, so it is added only once a
  * team ID is configured — locally in .env.local, and in EAS for real builds.
  */
-const hasPaidAppleAccount = Boolean(process.env.APPLE_TEAM_ID);
+// ios.appleTeamId in app.json is Ashavid's team (JN57DU6B4M, paid, since Oct
+// 2026); the env var still overrides it for a one-off personal-team build.
+const appleTeamId = process.env.APPLE_TEAM_ID ?? "";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   const ios = { ...config.ios };
+  if (appleTeamId) ios.appleTeamId = appleTeamId;
+  const hasPaidAppleAccount = Boolean(ios.appleTeamId);
 
   if (!hasPaidAppleAccount) {
     delete ios.associatedDomains;
