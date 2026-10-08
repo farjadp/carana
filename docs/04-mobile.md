@@ -95,6 +95,38 @@ Three of these — channels, standing, GPLZ Link — already have their rules in
 the package: see `charana-mobile-lags-web`. A fix that lives in `apps/web` is
 a fix in one app.
 
+**7 Oct — 1.5.0, and the download that had been dead for a month.** EAS
+*preview* (internal-distribution) artifacts expire **14 days** after the
+build. 1.4.0's expired on 7 Sep; `/download` and the home page kept linking
+it, so for a month the site offered a 404. `eas build:list --json` shows
+`expirationDate` on every build — all five (1.0.0–1.4.0) were gone.
+
+1.5.0 (EAS `86ca066f`, `d98b983`) changes three things beyond the source it
+was cut from:
+
+- **arm64-v8a only** — `ORG_GRADLE_PROJECT_reactNativeArchitectures` in the
+  `preview` profile's `env`. Native libraries for four ABIs were 62 MB of a
+  110 MB file; x86/x86_64 only serve emulators. 110 → 48 MB. `production`
+  is untouched: an AAB is split by Play itself. Cost: 32-bit-only phones
+  cannot install the sideload APK.
+- **versionCode now increments** (`autoIncrement` on `preview`). Every APK
+  so far had been versionCode 1.
+- **Two more review promises removed.** 3e06a6c fixed the signed-out account
+  card, but the 1.5.0 bundle still said «ثبت نظر» on the login subtitle and
+  as a plain feature on the Features screen. Found by searching the built
+  bundle, not the source.
+
+Verified: credentials and the new strings present in the Hermes bundle
+(non-ASCII strings are UTF-16 in Hermes bytecode — a plain `grep` misses
+them); installed on the Android emulator over the previous build; home with
+live counts, a business profile, the account tab and the login screen seen
+on screen. **Not exercised:** sign-in, search input, the register flow.
+
+The APK is meant to live at
+`/storage/v1/object/public/releases/goplaza-1.5.0.apk` (bucket `releases`,
+public, APK mime only). New file per version; never overwrite a published
+one.
+
 **Shipped versions are a separate question from source, and today they agree.**
 `app.json` is `1.4.0`, the APK `/download` serves is `1.4.0` (EAS build
 `6f8b7259`, 24 Aug, 110 MB), and `APP_VERSION` in `lib/data/releases.ts` is
@@ -241,8 +273,10 @@ It now uses a no-op storage when `typeof window === "undefined"`.
 | Privacy policy URL | done — goplaza.ca/privacy |
 | Support URL | done — goplaza.ca/support |
 | Account deletion (Guideline 5.1.1(v)) | done — goplaza.ca/account/delete |
-| Apple Developer account | blocked on D-U-N-S |
-| Google Play account | blocked on D-U-N-S |
+| Apple Developer account | **done** — Ashavid organisation live (D-U-N-S approved; calendar app published 6 Oct) |
+| Google Play account | D-U-N-S no longer blocks it; whether the Play organisation exists is not confirmed |
+| App Store Connect record for GOPLAZA | not created |
+| iOS / production build | none has ever been made |
 | Store screenshots | not done |
 | `APPLE_TEAM_ID` in apple-app-site-association | pending the account |
 | `ANDROID_SHA256_FINGERPRINT` in assetlinks.json | pending first EAS build |

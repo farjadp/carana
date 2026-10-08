@@ -1,5 +1,21 @@
 # Open tasks
 
+## APK 1.5.0 — one dashboard setting, then upload (7 Oct)
+
+**FARJAD — Supabase → project «Carana» → Storage → Settings → raise the
+upload file size limit to 200 MB.** The APK is 50.26 MB; the project cap is
+50,000,000 bytes, so the upload returns 413. Then: raise bucket `releases`
+to the same limit, upload `goplaza-1.5.0.apk`, confirm the public URL's
+SHA-256 matches the build, and only then merge the PR that points
+`releases.ts` at it. Until the upload exists the PR must not merge — it
+would replace one 404 with another.
+
+**Store publishing is unblocked** (D-U-N-S approved; Ashavid's calendar app
+is on the App Store). Next, in order: App Store Connect record for
+`ca.charana.app` → `APPLE_TEAM_ID` into EAS and into
+`apple-app-site-association` (still `TEAMID`) → first iOS production build →
+TestFlight → screenshots. Confirm whether the Play organisation exists.
+
 **Updated:** 2026-09-10 — home page v3 shipped and its first migration is
 applied; reading the numbers it returned found a feedback loop, so **a second
 migration needs a human**, listed first. The scrape-ceiling items from 8 Sep and the 27 Aug
@@ -1247,8 +1263,7 @@ Still open:
 
 ## Blocked on something external
 
-- D-U-N-S for Ashavid Inc. → Apple Developer and Google Play organisations →
-  App Store / TestFlight → store screenshots
+- ~~D-U-N-S for Ashavid Inc.~~ — **approved (7 Oct)**; the Apple organisation is live. What remains is ours: App Store Connect record → TestFlight → store screenshots
 
 ## Code — next slices, in order
 

@@ -1,3 +1,37 @@
+# 2026-10-07 — the app report, and a download that had been dead for a month
+
+Asked, in Persian, for a complete report on the apps. Then «برو مورد ۱ رو
+شروع کن» — rebuild the APK and fix the download — with the news that D-U-N-S
+is approved and Ashavid's calendar app shipped on the App Store yesterday.
+
+## How the findings were produced
+
+git history of `apps/mobile`, the docs, `eas build:list --json`, and the live
+site fetched — not the docs alone. The docs said `/download` served 1.4.0.
+`curl -L` said 404.
+
+## What was found and done (`mobile/apk-1.5.0`)
+
+- Every APK ever built (1.0.0–1.4.0) had expired on EAS; 1.4.0 on 7 Sep.
+  The site had offered a dead link for a month.
+- Five mobile commits sat in source and in no binary — including the
+  26 Aug fix for the app selling review writing it does not have.
+- Built 1.5.0 twice: once universal (110 MB), then arm64-only (48 MB)
+  after the storage cap ruled out hosting the universal file. versionCode
+  now increments (it had been 1 on every build).
+- Searching the built bundle found two more «ثبت نظر» promises the 26 Aug
+  fix missed (login subtitle, Features screen). Fixed in the second build.
+- Run on the Android emulator: fresh install, then upgrade over it.
+- Created public bucket `releases`. Upload blocked by the 50 MB project
+  cap — a dashboard setting. `releases.ts` updated in the PR, not merged.
+
+## Said wrongly, and corrected
+
+- The first report called the docs' mobile picture current; the download
+  claim in it was a month stale. Checked live before acting on it.
+- First drafted a 1.5.0 highlight about broken logos that had not been
+  verified on a device; removed before commit.
+
 # 2026-10-02 — live-bug sweep: search timeouts, a crawler, two wrong numbers
 
 Asked, in Persian: check the live project, read the bugs, report. Then:
