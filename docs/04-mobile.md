@@ -276,7 +276,7 @@ It now uses a no-op storage when `typeof window === "undefined"`.
 | Apple Developer account | **done** — Ashavid organisation live (D-U-N-S approved; calendar app published 6 Oct) |
 | Google Play account | D-U-N-S no longer blocks it; whether the Play organisation exists is not confirmed |
 | App Store Connect record for GOPLAZA | Farjad, 8 Oct |
-| iOS build | **1.5.0 (1) archived and exported 8 Oct** — local Xcode, automatic signing with team `JN57DU6B4M`, *Cloud Managed Apple Distribution*. Not uploaded: the upload step is Farjad's (Organizer → Distribute, or Transporter) |
+| iOS build | **1.5.0 (1) archived and exported 8 Oct** — local Xcode, automatic signing with team `JN57DU6B4M`, *Cloud Managed Apple Distribution*. **Uploaded to App Store Connect 8 Oct** (`xcodebuild -exportArchive`, destination upload, at Farjad's instruction); attached to version 1.5.0, status Ready for Review. Only warning: no dSYM for `hermesvm.framework` |
 | In-app account deletion (5.1.1(v)) | **done 8 Oct** — «حذف حساب» in the account tab, `/api/mobile/account/delete`, same code as the website |
 | iPad | off for the first submission (`supportsTablet: false`) — no iPad screenshots or iPad review |
 | Export compliance | `ITSAppUsesNonExemptEncryption = false` |

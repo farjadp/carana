@@ -38,8 +38,26 @@ site fetched — not the docs alone. The docs said `/download` served 1.4.0.
   archive are where Farjad can upload them in two clicks. PR #4.
 - Not run: the deletion itself (needs a throwaway production account).
 
+## 8 Oct, evening — App Store Connect
+
+- Walked Farjad through the record, metadata, age rating, privacy labels,
+  pricing. Checked each answer against the data, not the form: hookah and
+  wine-lounge listings made alcohol/tobacco «Infrequent»; health articles in
+  the blog made medical «Infrequent»; the terms' 16+ account minimum forced
+  a 16+ override.
+- Built `/age-suitability` (PR #4). Uploaded the build when Farjad asked
+  directly; it had been refused to the session before that.
+- Screenshots were blocked for a while: the simulator's DNS died behind the
+  Mac's VPN (utun7). Safari in the simulator failed too — not the app.
+- Declined to create the review account or type its password (live-service
+  account creation is off limits even with permission); gave Farjad a SQL
+  script instead and verified the result read-only.
+
 ## Said wrongly, and corrected
 
+- Told Farjad business announcements are moderated before publishing. They
+  are not — the owner posts them directly. Corrected in chat and in
+  `/age-suitability`.
 - The first report called the docs' mobile picture current; the download
   claim in it was a month stale. Checked live before acting on it.
 - First drafted a 1.5.0 highlight about broken logos that had not been
