@@ -67,6 +67,11 @@
             "DEFAULT"
           ]
         }
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
       ]
     },
     "web": {
@@ -88,7 +93,8 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "پلازا برای ضبط پیشنهاد صوتی شما به میکروفون نیاز دارد."
+          "microphonePermission": "پلازا برای ضبط پیشنهاد صوتی شما به میکروفون نیاز دارد.",
+          "enableBackgroundPlayback": false
         }
       ]
     ],
