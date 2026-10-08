@@ -7,20 +7,30 @@ match; `goplaza-1.5.0.apk` uploaded. The public URL returns 200, 50,261,767
 bytes, SHA-256 `9fd5305a…ceede76` identical to the EAS build, and the
 downloaded file installs and launches on the Android emulator.
 
-**iOS 1.5.0 (8 Oct) — archived, signed, not uploaded.** Upload was refused
-to the session as a production deploy. Farjad: Xcode → Window → Organizer →
-«GOPLAZA 1.5.0» → Distribute App → App Store Connect → Upload (or drag
-`~/Desktop/GOPLAZA-iOS/GOPLAZA-1.5.0.ipa` into Transporter). **Merge PR #4
-before submitting for review** — the app's account deletion calls a route
-that only exists after it deploys. Then delete one test account from the app
-and one from the website: the business-owner case has never been run.
-Review notes will need a demo login.
+## App Store — 1.5.0 (1) ready for review (8 Oct)
 
-**Store publishing is unblocked** (D-U-N-S approved; Ashavid's calendar app
-is on the App Store). Next, in order: App Store Connect record for
-`ca.charana.app` → `APPLE_TEAM_ID` into EAS and into
-`apple-app-site-association` (still `TEAMID`) → first iOS production build →
-TestFlight → screenshots. Confirm whether the Play organisation exists.
+Done 8 Oct: App Store Connect record «GO PLAZA» (`ca.charana.app`, SKU
+`goplaza-ios`, primary language English (Canada)); build 1.5.0 (1) uploaded
+by the session at Farjad's instruction and attached; metadata, 6 screenshots
+(1206×2622 JPEG, `~/Desktop/GOPLAZA-iOS/screenshots-6.3in`), App Privacy
+published (9 data types, no tracking), age rating **16+** (terms set 16 as
+the account minimum), age-suitability URL, price Free, all territories but
+China mainland, Mac and Vision Pro availability off, Manual release.
+Demo account `appreview@ashavid.ca` created by Farjad and checked
+(confirmed, profile row, one successful sign-in).
+
+**Open:**
+1. **Farjad — Submit for Review** in the draft-submission panel, if not done.
+2. **Delete one throwaway account from the app and one from the website.**
+   Account deletion has never run end to end; the business-owner path is the
+   one fixed in PR #4. Never use the review demo account for this.
+3. When Apple approves: release manually, then set `STORES.appStore` in
+   `apps/web/lib/data/releases.ts` — and only then, the page is a promise.
+4. Data seen in the location tab while taking screenshots: «Everett» (a US
+   city) under Ontario; «Toronto GTA», «York», «Richmond» beside Toronto and
+   Richmond Hill. Not shown in the store screenshots; a cleanup task.
+5. **Google Play** — next, in its own session. Play organisation status still
+   unconfirmed.
 
 **Updated:** 2026-09-10 — home page v3 shipped and its first migration is
 applied; reading the numbers it returned found a feedback loop, so **a second
