@@ -45,6 +45,7 @@ const STATIC_PATHS = [
   "/terms",
   "/privacy",
   "/disclaimer",
+  "/age-suitability",
   "/support",
   "/complaint",
   "/pricing",
