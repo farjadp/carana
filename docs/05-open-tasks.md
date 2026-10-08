@@ -7,6 +7,15 @@ match; `goplaza-1.5.0.apk` uploaded. The public URL returns 200, 50,261,767
 bytes, SHA-256 `9fd5305a…ceede76` identical to the EAS build, and the
 downloaded file installs and launches on the Android emulator.
 
+**iOS 1.5.0 (8 Oct) — archived, signed, not uploaded.** Upload was refused
+to the session as a production deploy. Farjad: Xcode → Window → Organizer →
+«GOPLAZA 1.5.0» → Distribute App → App Store Connect → Upload (or drag
+`~/Desktop/GOPLAZA-iOS/GOPLAZA-1.5.0.ipa` into Transporter). **Merge PR #4
+before submitting for review** — the app's account deletion calls a route
+that only exists after it deploys. Then delete one test account from the app
+and one from the website: the business-owner case has never been run.
+Review notes will need a demo login.
+
 **Store publishing is unblocked** (D-U-N-S approved; Ashavid's calendar app
 is on the App Store). Next, in order: App Store Connect record for
 `ca.charana.app` → `APPLE_TEAM_ID` into EAS and into

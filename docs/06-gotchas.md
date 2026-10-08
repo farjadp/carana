@@ -4,6 +4,25 @@ Every one of these cost real time. Read before debugging anything similar.
 
 ---
 
+## Deleting an account failed for everyone who had registered a business
+
+**Symptom.** `/account/delete` answered «حذف حساب انجام نشد» — but only for
+some people, so it was never seen in testing with a fresh account.
+
+**Cause.** `businesses.created_by` is `NOT NULL` and references `profiles`
+with `ON DELETE RESTRICT`. Deleting the auth user cascades to `profiles`,
+which the restrict refuses. The old action set the listings to DRAFT and
+left `created_by` pointing at the person.
+
+**Fix.** `lib/account/delete.ts` moves those rows to the imports system
+profile (`IMPORTS_SYSTEM_EMAIL` in `@goplaza/core`) before deleting. Web and
+app both call it.
+
+**Lesson.** Read the FK actions (`pg_get_constraintdef`) before writing any
+delete path; a cascade you assumed is not a cascade you have.
+
+---
+
 ## An expo.dev APK link dies after 14 days
 
 **Symptom.** `/download` and the home page offered APK 1.4.0 for a month

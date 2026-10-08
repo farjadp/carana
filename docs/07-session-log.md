@@ -25,6 +25,19 @@ site fetched — not the docs alone. The docs said `/download` served 1.4.0.
 - Created public bucket `releases`. Upload blocked by the 50 MB project
   cap — a dashboard setting. `releases.ts` updated in the PR, not merged.
 
+## 8 Oct — iOS
+
+- Xcode on this Mac is signed into Ashavid's team (`JN57DU6B4M`, the
+  calendar's), so the build is local: prebuild → archive → export, automatic
+  signing, Cloud Managed Apple Distribution. No password typed anywhere.
+- Apple would have rejected it: the app creates accounts and could not
+  delete one. Added, sharing the website's code — and reading the FKs for
+  that found deletion had never worked for business owners (06-gotchas).
+- AASA had served the literal `TEAMID` since August.
+- Upload to App Store Connect was refused to the session; the IPA and the
+  archive are where Farjad can upload them in two clicks. PR #4.
+- Not run: the deletion itself (needs a throwaway production account).
+
 ## Said wrongly, and corrected
 
 - The first report called the docs' mobile picture current; the download
