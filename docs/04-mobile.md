@@ -122,7 +122,7 @@ them); installed on the Android emulator over the previous build; home with
 live counts, a business profile, the account tab and the login screen seen
 on screen. **Not exercised:** sign-in, search input, the register flow.
 
-The APK is meant to live at
+The APK lives at (uploaded 8 Oct, hash checked against the build)
 `/storage/v1/object/public/releases/goplaza-1.5.0.apk` (bucket `releases`,
 public, APK mime only). New file per version; never overwrite a published
 one.

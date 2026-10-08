@@ -1,14 +1,11 @@
 # Open tasks
 
-## APK 1.5.0 — one dashboard setting, then upload (7 Oct)
+## ~~APK 1.5.0 upload~~ — done 8 Oct
 
-**FARJAD — Supabase → project «Carana» → Storage → Settings → raise the
-upload file size limit to 200 MB.** The APK is 50.26 MB; the project cap is
-50,000,000 bytes, so the upload returns 413. Then: raise bucket `releases`
-to the same limit, upload `goplaza-1.5.0.apk`, confirm the public URL's
-SHA-256 matches the build, and only then merge the PR that points
-`releases.ts` at it. Until the upload exists the PR must not merge — it
-would replace one 404 with another.
+Farjad raised the project upload cap to 200 MB; bucket `releases` raised to
+match; `goplaza-1.5.0.apk` uploaded. The public URL returns 200, 50,261,767
+bytes, SHA-256 `9fd5305a…ceede76` identical to the EAS build, and the
+downloaded file installs and launches on the Android emulator.
 
 **Store publishing is unblocked** (D-U-N-S approved; Ashavid's calendar app
 is on the App Store). Next, in order: App Store Connect record for
