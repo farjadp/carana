@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: lib/data/releases.ts
-// Version: 1.3.0 — 2026-08-24
+// Version: 1.4.0 — 2026-10-07
 // Why: One source of truth for "where do I get the app" and "what changed".
 //      The download page, the releases page and the home app section all read
 //      this. Store URLs are empty until the listings exist — the UI must say
@@ -24,18 +24,22 @@
  * bump one without the others — this page is a download promise, not a
  * changelog of intent.
  */
-export const APP_VERSION = "1.4.0";
+export const APP_VERSION = "1.5.0";
 
 export const STORES = {
   /** Fill when the App Store listing is live (blocked on the paid Apple account / D-U-N-S). */
   appStore: "",
   /** Fill when the Play listing is live. */
   playStore: "",
-  /** Direct APK — Android only, sideload. Latest preview build from EAS. */
-  apkDirect: "https://expo.dev/artifacts/eas/ftzaPxtSp95XjWZLX0Jp7V5uGvirtJHN1wnGngmRLEQ.apk",
-  apkVersion: "1.4.0",
-  apkSizeMb: 110,
-  apkBuiltAt: "2026-08-24",
+  /**
+   * Direct APK — Android only, sideload, arm64-v8a. Hosted in our own storage,
+   * never an expo.dev artifact URL: those expire 14 days after the build.
+   * Upload a new file under a new name; never overwrite a published one.
+   */
+  apkDirect: "https://flrpuzmqsqgrfutzoyop.supabase.co/storage/v1/object/public/releases/goplaza-1.5.0.apk",
+  apkVersion: "1.5.0",
+  apkSizeMb: 48,
+  apkBuiltAt: "2026-10-07",
   /** iOS TestFlight invite — empty until the Apple organisation account exists. */
   testFlight: "",
 } as const;
@@ -50,6 +54,20 @@ export type Release = {
 
 /** Newest first. Keep in step with git tags / EAS builds. */
 export const RELEASES: Release[] = [
+  {
+    version: "1.5.0",
+    date: "2026-10-07",
+    title: "اپ دوباره قابل دانلود است، و فقط چیزی را وعده می‌دهد که دارد",
+    // Each line checked in the 1.5.0 bundle itself, not only in the source.
+    highlights: [
+      "لینک دانلود دوباره کار می‌کند — فایل حالا روی سرور خود پلازا است، نه لینکی که بعد از دو هفته از کار می‌افتد",
+      "حجم دانلود از ۱۱۰ به حدود ۴۸ مگابایت رسید",
+      "نام فارسی اپ «پلازا» شد",
+      "اپ دیگر برای «ثبت نظر» حساب نمی‌خواهد — نوشتن نظر هنوز فقط در وب‌سایت است و اپ همین را می‌گوید",
+      "شمار بازدید هر مقاله، یکی با وب‌سایت",
+    ],
+    platforms: ["android"],
+  },
   {
     version: "1.4.0",
     date: "2026-08-24",
@@ -133,7 +151,7 @@ export const ROADMAP: { when: string; items: { title: string; body: string; done
     items: [
       { title: "ایمیل و یادآور آگهی استخدام", body: "نتیجه‌ی بررسی به آگهی‌دهنده، و یادآوری سه روز مانده به انقضا.", done: false },
       { title: "پاکسازی شهرها", body: "لیستینگ‌های بدون شهر روی نقشه‌ی شهر خودشان.", done: false },
-      { title: "انتشار در استورها", body: "App Store و Google Play — پشت ثبت سازمانی Ashavid.", done: false },
+      { title: "انتشار در استورها", body: "App Store و Google Play — ثبت سازمانی Ashavid تأیید شده؛ مانده ساخت نسخه‌ی استور و بررسی اپل و گوگل.", done: false },
     ],
   },
   {

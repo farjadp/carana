@@ -1,5 +1,18 @@
 # Open tasks
 
+## ~~APK 1.5.0 upload~~ — done 8 Oct
+
+Farjad raised the project upload cap to 200 MB; bucket `releases` raised to
+match; `goplaza-1.5.0.apk` uploaded. The public URL returns 200, 50,261,767
+bytes, SHA-256 `9fd5305a…ceede76` identical to the EAS build, and the
+downloaded file installs and launches on the Android emulator.
+
+**Store publishing is unblocked** (D-U-N-S approved; Ashavid's calendar app
+is on the App Store). Next, in order: App Store Connect record for
+`ca.charana.app` → `APPLE_TEAM_ID` into EAS and into
+`apple-app-site-association` (still `TEAMID`) → first iOS production build →
+TestFlight → screenshots. Confirm whether the Play organisation exists.
+
 **Updated:** 2026-09-10 — home page v3 shipped and its first migration is
 applied; reading the numbers it returned found a feedback loop, so **a second
 migration needs a human**, listed first. The scrape-ceiling items from 8 Sep and the 27 Aug
@@ -1247,8 +1260,7 @@ Still open:
 
 ## Blocked on something external
 
-- D-U-N-S for Ashavid Inc. → Apple Developer and Google Play organisations →
-  App Store / TestFlight → store screenshots
+- ~~D-U-N-S for Ashavid Inc.~~ — **approved (7 Oct)**; the Apple organisation is live. What remains is ours: App Store Connect record → TestFlight → store screenshots
 
 ## Code — next slices, in order
 

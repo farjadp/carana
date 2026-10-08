@@ -69,7 +69,9 @@ const VISITOR_FREE: Row[] = [
 const VISITOR_ACCOUNT: Row[] = [
   { title: "ذخیره و لیست «می‌خواهم بروم»", body: "از تب حساب من دوباره پیدایشان کن." },
   { title: "یادداشت خصوصی", body: "فقط خودت می‌بینی. نه صاحب کسب‌وکار، نه بقیه." },
-  { title: "ثبت نظر عمومی", body: "بعد از بررسی مدیر منتشر می‌شود." },
+  // Review writing is web-only: the app has no review screen (submitReview()
+  // has no caller). Same honesty as the job-posting row below.
+  { title: "ثبت نظر عمومی", body: "بعد از بررسی مدیر منتشر می‌شود. ثبت نظر فعلاً از وب‌سایت انجام می‌شود." },
   { title: "«باخبرم کن» برای هر کسب‌وکار", body: "اعلان تازه‌اش را ایمیل می‌گیری و در تب حساب من جمع می‌شود. ذخیره‌کردن به‌تنهایی این کار را نمی‌کند." },
 ];
 

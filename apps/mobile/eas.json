@@ -12,8 +12,16 @@
     "preview": {
       "distribution": "internal",
       "channel": "preview",
-      "android": { "buildType": "apk" },
-      "ios": { "simulator": true }
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
+      },
+      "autoIncrement": true,
+      "env": {
+        "ORG_GRADLE_PROJECT_reactNativeArchitectures": "arm64-v8a"
+      }
     },
     "production": {
       "channel": "production",

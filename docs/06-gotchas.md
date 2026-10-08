@@ -4,6 +4,29 @@ Every one of these cost real time. Read before debugging anything similar.
 
 ---
 
+## An expo.dev APK link dies after 14 days
+
+**Symptom.** `/download` and the home page offered APK 1.4.0 for a month
+after the file was gone: the link 307s to a signed storage URL that 404s.
+Nothing in the repo changed, so nothing in review could catch it.
+
+**Cause.** EAS internal-distribution (preview) artifacts expire 14 days
+after the build. `eas build:list --json` shows `expirationDate`. 1.4.0 was
+built 24 Aug and expired 7 Sep.
+
+**Fix.** Host the APK ourselves (Supabase Storage bucket `releases`, from
+1.5.0). Two traps on the way: the **project-wide** upload cap is 50 MB
+(decimal — 50,000,000 bytes) even on Pro, and a bucket's
+`file_size_limit` cannot exceed it — `POST /storage/v1/bucket` with 200 MB
+returns a misleading 413 "object exceeded". Raising it is a dashboard
+setting (Storage → Settings). And a universal APK carries four ABIs; arm64
+alone halves it.
+
+**Lesson.** A URL in source is a claim about something outside source.
+Check `curl -L` on the download link whenever mobile status is reported.
+
+---
+
 ## RLS silently turns off your trigram indexes
 
 **Symptom.** `search_businesses` timed out for real visitors (6,261 times,
