@@ -76,7 +76,7 @@ export default function LoginScreen() {
           <Text style={styles.brand}>GOPLAZA</Text>
           <Text style={styles.title}>ورود به حساب</Text>
           <Text style={styles.subtitle}>
-            برای ذخیره کسب‌وکارها، یادداشت خصوصی و ثبت نظر وارد شوید.
+            برای ذخیره کسب‌وکارها، یادداشت خصوصی و «باخبرم کن» وارد شوید.
           </Text>
 
           <View style={styles.form}>
