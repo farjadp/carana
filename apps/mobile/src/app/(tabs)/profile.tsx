@@ -19,16 +19,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  Bell,
-  Bookmark,
-  ChevronLeft,
-  FileText,
-  LifeBuoy,
-  LogOut,
-  Shield,
-  Store,
-  UserRound, Newspaper, Sparkles, Briefcase } from "lucide-react-native";
+import { Bell, Bookmark, Briefcase, ChevronLeft, FileText, LifeBuoy, LogOut, Newspaper, Shield, Sparkles, Store, UserRound, UserX } from "lucide-react-native";
 
 import { BrandLoading, BrandMark } from "../../components/brand-mark";
 import { PrimaryButton } from "../../components/ui";
@@ -195,6 +186,7 @@ export default function ProfileScreen() {
           <InternalRow icon={<Newspaper size={17} color={colors.annabi} />} label="وبلاگ پلازا" onPress={() => router.push("/blog")} />
           <ExternalRow icon={<LifeBuoy size={17} color={colors.mutedText} />} label="پشتیبانی" url={`${WEB}/support`} />
           <ExternalRow icon={<Shield size={17} color={colors.mutedText} />} label="حریم خصوصی" url={`${WEB}/privacy`} />
+          <InternalRow icon={<UserX size={17} color={colors.mutedText} />} label="حذف حساب" onPress={() => router.push("/account/delete")} />
         </Section>
 
         <Pressable style={styles.signOut} onPress={signOut}>
