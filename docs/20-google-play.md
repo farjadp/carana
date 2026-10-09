@@ -114,7 +114,7 @@ declares tablet support in the listing, and we do not.
 | Government app | No | |
 | Data safety | See §5 | |
 | Account deletion URL | `https://goplaza.ca/privacy#s16` — **not** `/account/delete`, which 307s a signed-out reviewer to the login form. §16 lists the steps (app and web), what is deleted, what is kept and for how long | In-app «حذف حساب» and the web page share `/api/mobile/account/delete`'s code |
-| Partial deletion without deleting the account | **Yes** | Notes, ratings and saves are removed in the app one by one; anything else by mail to the privacy address (privacy §15) |
+| Partial deletion without deleting the account | **Yes**, URL `https://goplaza.ca/privacy#s16` | §16 now lists the in-app steps (save, notify, note/rating, profile fields) and the mail route, 30 days, for the rest |
 | Foreground service permissions | Should not be asked | PR #6 removed the playback service. If Play asks, the AAB is from before PR #6 — rebuild |
 | Advertising ID | **No** | No ad SDK, no `AD_ID` permission in the manifest |
 
