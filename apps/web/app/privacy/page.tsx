@@ -528,6 +528,20 @@ export default function PrivacyPage() {
         </LegalSection>
 
         <LegalSection id="s16" title="۱۶. حذف حساب — دقیقاً چه اتفاقی می‌افتد">
+          {/* Google Play's account-deletion URL points here, not at
+              /account/delete: that page requires sign-in, so a reviewer
+              would only ever see the login form. Keep the steps in sync
+              with (tabs)/profile.tsx and account/delete.tsx in the app. */}
+          <p>
+            حذف حساب را خودتان و بدون تماس با پشتیبانی انجام می‌دهید:
+          </p>
+          <LegalList
+            items={[
+              "در اپ موبایل: وارد حسابتان شوید، به زبانه‌ی «حساب من» بروید، «حذف حساب» را بزنید، برای تایید DELETE را بنویسید و حذف را تایید کنید.",
+              "در وب‌سایت: وارد حسابتان شوید و به goplaza.ca/account/delete بروید، یا از صفحه‌ی پروفایل گزینه‌ی حذف حساب را بزنید و همان تایید را انجام دهید.",
+              `اگر به حسابتان دسترسی ندارید، از نشانی ایمیلی که با آن ثبت‌نام کرده‌اید به ${company.email.privacy} بنویسید تا حساب را حذف کنیم.`,
+            ]}
+          />
           <p>
             حذف حساب برگشت‌ناپذیر است. وقتی آن را تایید می‌کنید:
           </p>
