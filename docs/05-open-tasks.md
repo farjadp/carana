@@ -7,6 +7,38 @@ match; `goplaza-1.5.0.apk` uploaded. The public URL returns 200, 50,261,767
 bytes, SHA-256 `9fd5305a…ceede76` identical to the EAS build, and the
 downloaded file installs and launches on the Android emulator.
 
+## Google Play — 1.5.0 (7) in review (8 Oct)
+
+Done 8 Oct: AAB from EAS `f91cccdd` (versionCode 7) uploaded to Production,
+full rollout, 178 countries. Store listing (Persian), icon, feature graphic,
+five screenshots, Data safety, content rating, sign-in details, ads (yes),
+target audience, advertising ID (no) — every answer and the code it came
+from is in `20-google-play.md`; the Data safety answers are also
+`play-store/data-safety.csv` for re-import. PR #6 merged: manifest without
+the background-playback service, and privacy §16 with the deletion steps
+Play's two deletion URLs point at (verified live).
+
+**Open:**
+1. **Wait for review.** If rejected, the reason decides the next step; do
+   not resubmit blind.
+2. **After approval — Farjad:** copy the SHA-256 of the *app signing* key
+   (Setup → App signing) into `ANDROID_SHA256_FINGERPRINT` in Vercel, or
+   `goplaza.ca/businesses/*` links never open the app.
+3. **After approval — code:** `STORES.playStore` in
+   `apps/web/lib/data/releases.ts`; the Features screen line «این اپ روی
+   App Store و Google Play (فعلاً فقط دانلود مستقیم اندروید)»
+   (`apps/mobile/src/app/features.tsx:126`) becomes false the day the app
+   is live. Decide whether `/download` keeps the sideload APK: it is signed
+   with the upload key, so it and the Play build cannot update each other —
+   a sideload user must uninstall once.
+4. **Digits seen while taking screenshots:** search prints «17 نتیجه»
+   (Latin digits) and the home hero «۹,۶۹۴» (Latin comma). Small, real.
+5. **Later, not for 1.5.0:** R8/minify (Play flags DEX optimisation as
+   low, 49 MB uncompressed DEX) and `expo-updates` (OTA) — both need a full
+   re-test, so each is its own release.
+6. Jobs board has one active posting (Ashavid's own). Kept out of the store
+   screenshots, and the listing text does not lean on it.
+
 ## App Store — 1.5.0 (1) ready for review (8 Oct)
 
 Done 8 Oct: App Store Connect record «GO PLAZA» (`ca.charana.app`, SKU
@@ -29,8 +61,7 @@ Demo account `appreview@ashavid.ca` created by Farjad and checked
 4. Data seen in the location tab while taking screenshots: «Everett» (a US
    city) under Ontario; «Toronto GTA», «York», «Richmond» beside Toronto and
    Richmond Hill. Not shown in the store screenshots; a cleanup task.
-5. **Google Play** — next, in its own session. Play organisation status still
-   unconfirmed.
+5. ~~**Google Play**~~ — submitted 8 Oct; see the section above.
 
 **Updated:** 2026-09-10 — home page v3 shipped and its first migration is
 applied; reading the numbers it returned found a feedback loop, so **a second

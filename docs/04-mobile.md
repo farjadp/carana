@@ -274,7 +274,8 @@ It now uses a no-op storage when `typeof window === "undefined"`.
 | Support URL | done — goplaza.ca/support |
 | Account deletion (Guideline 5.1.1(v)) | done — goplaza.ca/account/delete |
 | Apple Developer account | **done** — Ashavid organisation live (D-U-N-S approved; calendar app published 6 Oct) |
-| Google Play account | D-U-N-S no longer blocks it; whether the Play organisation exists is not confirmed |
+| Google Play account | **done** — AshaVid organisation (`7669166066468425161`); record «GO PLAZA», `ca.charana.app` |
+| Google Play build | **1.5.0 (7) in review since 8 Oct** — EAS `f91cccdd`, production profile, AAB, Google-generated app signing key (EAS keystore is the upload key). Answers and sources: `20-google-play.md` |
 | App Store Connect record for GOPLAZA | Farjad, 8 Oct |
 | iOS build | **1.5.0 (1) archived and exported 8 Oct** — local Xcode, automatic signing with team `JN57DU6B4M`, *Cloud Managed Apple Distribution*. **Uploaded to App Store Connect 8 Oct** (`xcodebuild -exportArchive`, destination upload, at Farjad's instruction); attached to version 1.5.0, status Ready for Review. Only warning: no dSYM for `hermesvm.framework` |
 | In-app account deletion (5.1.1(v)) | **done 8 Oct** — «حذف حساب» in the account tab, `/api/mobile/account/delete`, same code as the website |
@@ -282,7 +283,7 @@ It now uses a no-op storage when `typeof window === "undefined"`.
 | Export compliance | `ITSAppUsesNonExemptEncryption = false` |
 | Store screenshots | not done |
 | `APPLE_TEAM_ID` in apple-app-site-association | `JN57DU6B4M`, default in the route since 8 Oct (live once PR #4 deploys) |
-| `ANDROID_SHA256_FINGERPRINT` in assetlinks.json | pending first EAS build |
+| `ANDROID_SHA256_FINGERPRINT` in assetlinks.json | pending — must be the Play **app signing** key (Setup → App signing), not the upload key, because Play re-signs |
 
 **In-app purchase does not apply.** Featured listings and advertising are sold
 to business owners — a B2B advertising service consumed outside the app, the

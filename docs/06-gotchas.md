@@ -4,6 +4,66 @@ Every one of these cost real time. Read before debugging anything similar.
 
 ---
 
+## A plugin default puts a foreground service in the Android manifest
+
+**Symptom.** The first production AAB for Play would have shipped
+`FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_MEDIA_PLAYBACK` and a playback
+service. Play makes that a declaration with a demo video; the app never
+plays audio in the background, so the honest answer is "no" and the binary
+contradicts it.
+
+**Cause.** `expo-audio`'s config plugin defaults `enableBackgroundPlayback`
+to **true**. Only `microphonePermission` was set in `app.json`, so the
+default won. The APKs sideloaded since August carried it too; nobody looked
+because nothing reviews a sideload.
+
+**Fix.** `enableBackgroundPlayback: false` on the plugin, and
+`android.blockedPermissions` for the template's storage and overlay
+permissions (PR #6). Check with `npx expo prebuild -p android --no-install
+--clean` and read `AndroidManifest.xml`, then `strings` the built AAB's
+`base/manifest/AndroidManifest.xml`.
+
+**Lesson.** Before a store submission, read the merged manifest of the
+artifact, not `app.json`. Every permission in it is an answer on a Play form.
+
+---
+
+## EAS's `expo-updates` prompt rewrites `app.json`
+
+**Symptom.** `eas build --profile production` asked to install
+`expo-updates`; Enter (default **Y**) installed it, then the build stopped
+with "Command must be re-run". `app.json` now had every deep-link entry
+twice and the plugins' Android permissions written in as literals.
+
+**Cause.** The `production` profile set `"channel": "production"` with no
+`expo-updates` installed. The prompt's configure step writes the
+*resolved* config (from `app.config.ts` + plugins) back over `app.json`.
+
+**Fix.** Revert the three files (`app.json`, `package.json`,
+`pnpm-lock.yaml`), `pnpm install`, and drop `channel` from the profile
+until OTA is a deliberate decision (PR #6).
+
+**Lesson.** "Answer n" is not an instruction when Enter means yes. Remove
+the thing that asks.
+
+---
+
+## A deletion URL behind sign-in shows the reviewer a login form
+
+**Symptom.** Play's account-deletion and data-deletion fields need a page
+that shows the steps. `/account/delete` 307s a signed-out visitor to
+`/auth/login`, so a reviewer sees no steps at all.
+
+**Fix.** Point both fields at `https://goplaza.ca/privacy#s16`, which now
+lists the steps (app, web, no access), what is deleted, what is kept and
+for how long, and partial deletion. Each step there is one the code
+performs.
+
+**Lesson.** A URL given to a reviewer has to be read signed out:
+`curl -s -o /dev/null -w "%{http_code} %{redirect_url}"`.
+
+---
+
 ## Deleting an account failed for everyone who had registered a business
 
 **Symptom.** `/account/delete` answered «حذف حساب انجام نشد» — but only for
