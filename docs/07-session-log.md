@@ -53,7 +53,43 @@ site fetched — not the docs alone. The docs said `/download` served 1.4.0.
   account creation is off limits even with permission); gave Farjad a SQL
   script instead and verified the result read-only.
 
+## 8 Oct, night — Google Play
+
+- Farjad confirmed the AshaVid Play organisation exists (screenshot). An
+  organisation account skips the 12-tester/14-day closed test.
+- The session's own `eas build --profile production` was refused (classed
+  as a production deploy); Farjad ran it in the terminal from a `/tmp`
+  worktree of `main`, because the shared checkout was on another branch with
+  someone else's uncommitted work.
+- The `expo-updates` prompt (06-gotchas) twice; reverted both times, then
+  removed `channel` so it cannot ask.
+- Reading the expo-audio plugin found the background-playback service
+  (06-gotchas). Cancelled build `0fad146d`, fixed in PR #6, rebuilt
+  `f91cccdd`; the downloaded AAB's manifest and inlined Supabase URL checked
+  before handing it over.
+- Listing, Data safety, IARC, sign-in details: every answer derived from
+  `apps/mobile/src` and the live DB (hookah and wine-lounge listings →
+  Controlled Substance «references», not focus). Farjad's Data safety
+  export had nine wrong ticks; returned a corrected CSV for import.
+- Screenshots from 1.5.0 on the `taghvim36` emulator at a temporary
+  1080×1920 (`wm size`; 1080×2400 is over Play's 2:1), demo-mode status bar.
+  Feature graphic rendered with headless Chrome from the brand geometry and
+  a real screenshot — no drawn illustration.
+- Privacy §16 gained the deletion steps; PR #6 merged by Farjad and the
+  steps verified live. Release 1.5.0 (7) submitted, in review.
+
 ## Said wrongly, and corrected
+
+- Wrote `/account/delete` into the Play doc as the deletion URL before
+  checking it signed out — it redirects to login. Caught before Farjad
+  entered it; §16 is the URL.
+- Told Farjad to "answer n" to a prompt whose default is yes; the second
+  build went the same way. Should have removed the trigger the first time.
+- Flagged the Play name «GO PLAZA» as off-brand without first reading that
+  the App Store record had already been named that way on purpose.
+- Caught, not mine: the sign-in details text Farjad drafted said the app has
+  "no links to buy"; the Features screen opens `/pricing`. Rewritten.
+
 
 - Told Farjad business announcements are moderated before publishing. They
   are not — the owner posts them directly. Corrected in chat and in
