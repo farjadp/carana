@@ -38,13 +38,14 @@ import {
   formatCad,
   intervalsFor,
   type PlanId,
+  faNumber,
 } from "@goplaza/core";
 
 import { MerlonRow } from "../components/brand-mark";
 import { colors, fonts, radius, space } from "../theme";
 
 const WEB = brand.url;
-const fa = (n: number) => n.toLocaleString("fa-IR");
+const fa = faNumber;
 /** `null` in the limits table means unlimited. */
 const qty = (n: number | null) => (n === null ? "نامحدود" : fa(n));
 
@@ -54,7 +55,7 @@ const A = ANNOUNCEMENT_LIMITS;
 type Row = { title: string; body: string };
 
 /** «چهار» today, and correct on its own the day a fifth tier is added. */
-const PLANS_COUNT_FA = (PAID_PLANS.length + 1).toLocaleString("fa-IR");
+const PLANS_COUNT_FA = faNumber(PAID_PLANS.length + 1);
 
 const VISITOR_FREE: Row[] = [
   { title: "جستجوی فارسی که اشتباه تایپ را می‌بخشد", body: "اگر کیبورد روی فارسی مانده باشد و به‌جای dental بنویسی «یثدفشم»، باز هم پیدایش می‌کند." },

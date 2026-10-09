@@ -19,12 +19,12 @@
 // ============================================================================
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { formatTehranDate, formatTehranTime, nowInTehran } from "@goplaza/core";
+import { formatTehranDate, formatTehranTime, nowInTehran, faNumber } from "@goplaza/core";
 
 import { fetchExchangeRates, type ExchangeRates, type Rate } from "../lib/exchange-rates";
 import { colors, fonts, radius, space } from "../theme";
 
-const fa = (n: number) => n.toLocaleString("fa-IR", { maximumFractionDigits: 0 });
+const fa = (n: number) => faNumber(Math.round(n));
 
 const CURRENCIES: { key: keyof ExchangeRates; label: string }[] = [
   { key: "usd", label: "دلار" },

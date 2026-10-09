@@ -1,6 +1,6 @@
 // ============================================================================
 // Source: packages/core/src/digits.ts
-// Version: 1.0.0 — 2026-08-25
+// Version: 1.1.0 — 2026-10-09 (faNumber no longer trusts the JS engine's Intl)
 // Why: The app forces RTL, so the keyboard opens in Persian and people type
 //      Persian (۰-۹) or Arabic-Indic (٠-٩) digits into fields that are then
 //      parsed as ASCII. This has already broken sign-in and phone
@@ -45,7 +45,20 @@ export function faDigits(value: string | number): string {
  * Locale-formatted Persian number — Persian digits WITH the Persian
  * thousands separator («۶٬۱۵۵»). Not interchangeable with faDigits: a year
  * or a phone fragment wants faDigits; a count wants this.
+ *
+ * Built by hand, not with toLocaleString("fa-IR"): Hermes on Android
+ * returned «۹,۶۹۴» — Persian digits, Latin comma — for the home hero, while
+ * V8 on the web returns «۹٬۶۹۴». The output here matches V8 exactly
+ * (U+066C grouping, U+066B decimal, up to 3 fraction digits, LRM + U+2212
+ * for negatives) so moving a web call site onto it changes nothing.
  */
 export function faNumber(n: number): string {
-  return n.toLocaleString("fa-IR");
+  if (!Number.isFinite(n)) return String(n);
+  const rounded = Math.round(Math.abs(n) * 1000) / 1000;
+  // String() never groups and has no locale; it only switches to exponent
+  // notation at 1e21, far beyond any count this app shows.
+  const [int, frac] = String(rounded).split(".");
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, "\u066C");
+  const body = faDigits(frac ? `${grouped}\u066B${frac}` : grouped);
+  return n < 0 && rounded !== 0 ? `\u200E\u2212${body}` : body;
 }

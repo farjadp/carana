@@ -31,6 +31,7 @@ import {
   jobDaysRemaining,
   languageRequirementFa,
   normalizeJobMarkdown,
+  faNumber,
 } from "@goplaza/core";
 
 import { BrandLoading } from "../../components/brand-mark";
@@ -39,7 +40,7 @@ import { trackEvent } from "../../lib/analytics";
 import { getJob, type JobPost } from "../../lib/jobs";
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
+const fa = faNumber;
 
 export default function JobScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();

@@ -6,6 +6,7 @@
 //      field-by-field preview with از سایت / بازبینی badges → apply → form.
 // Env / Identity: Calls /api/mobile/business/import with the user's token.
 // ============================================================================
+import { faNumber } from "@goplaza/core";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 import {
@@ -48,10 +49,10 @@ const STAGES = [
 
 function preview(key: string, value: unknown): string {
   if (value == null || value === "") return "";
-  if (Array.isArray(value)) return key === "services" ? `${value.length.toLocaleString("fa-IR")} مورد` : value.join("، ");
+  if (Array.isArray(value)) return key === "services" ? `${faNumber(value.length)} مورد` : value.join("، ");
   if (typeof value === "object") {
     const n = Object.values(value as object).filter(Boolean).length;
-    return n ? `${n.toLocaleString("fa-IR")} روز` : "";
+    return n ? `${faNumber(n)} روز` : "";
   }
   if (typeof value === "boolean") return value ? "بله" : "خیر";
   const s = String(value);
@@ -202,7 +203,7 @@ function Preview({
           <CheckCircle2 size={22} color={colors.success} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>{found.length} مورد از سایت شما پیدا شد</Text>
+          <Text style={styles.title}>{faNumber(found.length)} مورد از سایت شما پیدا شد</Text>
           <Text style={styles.subtitle}>
             {pagesRead} صفحه خوانده شد. این‌ها فقط پیشنهادند — در مراحل بعد همه را می‌بینید و هر چه لازم بود
             همان‌جا اصلاح می‌کنید. تا خودتان تایید نکنید چیزی ثبت نمی‌شود.

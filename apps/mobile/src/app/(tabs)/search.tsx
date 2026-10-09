@@ -16,6 +16,7 @@
 //      and it is asked for at all only when the literal search came back
 //      thin — the cheapest gate is not making the call.
 // ============================================================================
+import { faNumber } from "@goplaza/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -207,7 +208,7 @@ export default function SearchScreen() {
                   ))}
                 </View>
               ) : null}
-              <Text style={styles.resultCount}>{results.length} نتیجه</Text>
+              <Text style={styles.resultCount}>{faNumber(results.length)} نتیجه</Text>
             </>
           }
           ListFooterComponent={

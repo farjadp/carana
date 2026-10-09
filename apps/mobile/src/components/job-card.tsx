@@ -17,12 +17,13 @@ import {
   jobDaysRemaining,
   languageRequirementFa,
   realImageUrl,
+  faNumber,
 } from "@goplaza/core";
 
 import type { JobPost } from "../lib/jobs";
 import { colors, fonts, radius, shadow, space, type } from "../theme";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
+const fa = faNumber;
 
 export function JobCard({
   job,

@@ -13,7 +13,7 @@
 // Env / Identity: Presentational. Links open in the system browser; internal
 //      /businesses/... and /cities/... links route inside the app.
 // ============================================================================
-import { brand } from "@goplaza/core";
+import { brand, faNumber } from "@goplaza/core";
 import { Fragment } from "react";
 import { Image, Linking, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
@@ -162,7 +162,7 @@ export function Markdown({ source }: { source: string }) {
               <View key={i} style={{ gap: 6 }}>
                 {b.items.map((it, j) => (
                   <View key={j} style={styles.li}>
-                    <Text style={styles.bullet}>{b.kind === "ol" ? `${(j + 1).toLocaleString("fa-IR")}.` : "•"}</Text>
+                    <Text style={styles.bullet}>{b.kind === "ol" ? `${faNumber((j + 1))}.` : "•"}</Text>
                     <Inline text={it} style={[styles.p, { flex: 1 }] as unknown as object} />
                   </View>
                 ))}

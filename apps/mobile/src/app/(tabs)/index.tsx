@@ -38,7 +38,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, BadgeCheck, Briefcase, ChevronLeft, Clock3, Megaphone, Search, Store } from "lucide-react-native";
-import { brand, getVerificationStatus , realImageUrl } from "@goplaza/core";
+import { brand, getVerificationStatus , realImageUrl, faNumber } from "@goplaza/core";
 
 import { BrandLoading, BrandMark, MerlonGlyph, MerlonRow } from "../../components/brand-mark";
 import { BusinessCardView } from "../../components/business-card";
@@ -65,7 +65,7 @@ import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
 const WEB = brand.url;
 const { width: SCREEN_W } = Dimensions.get("window");
-const fa = (n: number) => n.toLocaleString("fa-IR");
+const fa = faNumber;
 
 /** Cities with generated art on the website. Others render as chips. */
 const CITY_ART: Record<string, { slug: string; fa: string }> = {

@@ -10,7 +10,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "check": "npx tsx src/link.check.mts"
+    "check": "npx tsx src/link.check.mts && npx tsx src/digits.check.mts"
   },
   "dependencies": {
     "zod": "^4.4.3"
