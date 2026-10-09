@@ -6,7 +6,7 @@
 // Env / Identity: Reads the session from AuthProvider. Every query here is
 //      restricted to the caller's own rows by RLS.
 // ============================================================================
-import { brand } from "@goplaza/core";
+import { brand, faNumber } from "@goplaza/core";
 import { useCallback, useState } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 import {
@@ -215,7 +215,7 @@ function Benefit({ icon, title, body }: { icon: React.ReactNode; title: string; 
 function Stat({ value, label }: { value: number; label: string }) {
   return (
     <View style={styles.stat}>
-      <Text style={styles.statValue}>{value.toLocaleString("fa-IR")}</Text>
+      <Text style={styles.statValue}>{faNumber(value)}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   );

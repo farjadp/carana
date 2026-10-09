@@ -11,7 +11,7 @@
 //      four times by treating "web first, mobile later" as a plan.
 // Env / Identity: Public reads; RLS serves published rows only.
 // ============================================================================
-import { brand } from "@goplaza/core";
+import { brand, faNumber } from "@goplaza/core";
 import { useCallback, useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from "react-native";
@@ -25,7 +25,7 @@ import { faDate, getPost, incrementPostView, listBlogCategories, relatedPosts, t
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
 const WEB = brand.url;
-const fa = (n: number) => n.toLocaleString("fa-IR");
+const fa = faNumber;
 
 export default function BlogPostScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();

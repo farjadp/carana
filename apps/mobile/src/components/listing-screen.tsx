@@ -11,6 +11,7 @@
 //      order is the shared weighted shuffle, so the «ویژه» chip on
 //      BusinessCardView is doing real work here.
 // ============================================================================
+import { faNumber } from "@goplaza/core";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -29,7 +30,7 @@ import {
 import { colors, fonts, radius, shadow, space, type } from "../theme";
 
 const PAGE = 100;
-const fa = (n: number) => n.toLocaleString("fa-IR");
+const fa = faNumber;
 
 export function ListingScreen({
   title,

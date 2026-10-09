@@ -24,6 +24,7 @@ import { CheckCircle2, ChevronLeft, ChevronRight, PlusCircle, Trash2 } from "luc
 import {
   step1Schema, step2Schema, step3Schema, step4Schema, step5Schema, step6Schema,
   PROVINCES, type BusinessFormData,
+  faNumber,
 } from "@goplaza/core";
 
 import { BrandMark } from "../../components/brand-mark";
@@ -297,7 +298,7 @@ export default function RegisterFormScreen() {
                 <Row k="نام انگلیسی" v={data.name_en} ltr />
                 <Row k="دسته‌بندی" v={cats.find((c) => c.value === data.category)?.label ?? data.category} />
                 <Row k="توضیح کوتاه" v={data.short_description} />
-                <Row k="خدمات" v={services.length ? `${services.length.toLocaleString("fa-IR")} مورد` : ""} />
+                <Row k="خدمات" v={services.length ? `${faNumber(services.length)} مورد` : ""} />
               </ReviewGroup>
               <ReviewGroup title="موقعیت" onEdit={() => setStep(2)}>
                 <Row k="استان / شهر" v={[data.province, data.city].filter(Boolean).join(" / ")} ltr />
@@ -311,7 +312,7 @@ export default function RegisterFormScreen() {
                 <Row k="اینستاگرام" v={data.instagram} ltr />
               </ReviewGroup>
               <ReviewGroup title="ساعات کاری" onEdit={() => setStep(6)}>
-                <Row k="روزهای ثبت‌شده" v={Object.keys(data.working_hours ?? {}).length ? Object.keys(data.working_hours ?? {}).length.toLocaleString("fa-IR") : ""} />
+                <Row k="روزهای ثبت‌شده" v={Object.keys(data.working_hours ?? {}).length ? faNumber(Object.keys(data.working_hours ?? {}).length) : ""} />
                 <Row k="نوبت‌دهی" v={data.accepts_appointments ? "بله" : "خیر"} />
               </ReviewGroup>
 

@@ -31,6 +31,7 @@ import {
   activeBusyStatus, brand, getVerificationStatus, OWNER_SECTION_NOTE, OWNER_SECTION_TITLE,
   PROVINCES, type PublicOwner,
   realImageUrl,
+  faNumber,
 } from "@goplaza/core";
 import { fetchBusinessOwner } from "../../lib/business-owner";
 
@@ -234,7 +235,7 @@ export default function BusinessScreen() {
               title comes from the rows themselves, and the section is absent
               entirely when there are none. Same rule as the website. */}
           {jobs.length ? (
-            <Section title={`${jobs.length.toLocaleString("fa-IR")} فرصت شغلی`}>
+            <Section title={`${faNumber(jobs.length)} فرصت شغلی`}>
               <View style={{ gap: space.sm }}>
                 {jobs.map((j) => (
                   <JobCard key={j.id} job={j} showBusiness={false} />

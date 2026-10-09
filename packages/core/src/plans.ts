@@ -63,6 +63,7 @@
 //      it returns undefined in the Expo bundle, which is correct, because
 //      mobile never starts a checkout.
 // ============================================================================
+import { faNumber } from "./digits";
 
 export type PlanId = "free" | "pro" | "featured" | "platinum";
 export type BillingInterval = "month" | "year" | "2year" | "quarter";
@@ -273,4 +274,4 @@ export function priceIdFor(plan: PlanId, interval: BillingInterval): string | un
 }
 
 export const formatCad = (cents: number) =>
-  `${(cents / 100).toLocaleString("fa-IR", { maximumFractionDigits: 0 })} دلار کانادا`;
+  `${faNumber(Math.round(cents / 100))} دلار کانادا`;

@@ -14,6 +14,7 @@
 //      is wrong even when it happens to give the right answer today.
 // Env / Identity: Pure. No IO, no Supabase — safe on both server and client.
 // ============================================================================
+import { faNumber } from "./digits";
 
 export type ChannelPlatform = "telegram" | "whatsapp";
 export type ChannelKind = "channel" | "group";
@@ -441,10 +442,10 @@ export function relativeDayFa(iso: string | null | undefined, now = new Date()):
   if (days < 0) return "همین حالا";
   if (days === 0) return "امروز";
   if (days === 1) return "دیروز";
-  if (days < 30) return `${days.toLocaleString("fa-IR")} روز پیش`;
+  if (days < 30) return `${faNumber(days)} روز پیش`;
   const months = Math.floor(days / 30);
-  if (months < 12) return `${months.toLocaleString("fa-IR")} ماه پیش`;
-  return `${Math.floor(months / 12).toLocaleString("fa-IR")} سال پیش`;
+  if (months < 12) return `${faNumber(months)} ماه پیش`;
+  return `${faNumber(Math.floor(months / 12))} سال پیش`;
 }
 
 /**
@@ -458,7 +459,7 @@ export function relativeDayFa(iso: string | null | undefined, now = new Date()):
 export function memberLineFa(channel: MetricJudgeableChannel, now = new Date()): string | null {
   if (!hasMeasuredMembers(channel)) return null;
   const checked = relativeDayFa(channel.metrics_checked_at, now);
-  const n = (channel.member_count as number).toLocaleString("fa-IR");
+  const n = faNumber(channel.member_count as number);
   return checked ? `${n} عضو · بررسی‌شده ${checked}` : `${n} عضو`;
 }
 

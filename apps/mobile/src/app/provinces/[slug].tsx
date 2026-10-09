@@ -9,7 +9,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronRight } from "lucide-react-native";
 
-import { getProvinceBySlug } from "@goplaza/core";
+import { getProvinceBySlug, faNumber } from "@goplaza/core";
 import { BusinessCardView } from "../../components/business-card";
 import {
   listBusinessesByProvince,
@@ -57,7 +57,7 @@ export default function ProvinceScreen() {
         </Pressable>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>{province?.name ?? "استان"}</Text>
-          <Text style={styles.subtitle}>{items.length} کسب‌وکار</Text>
+          <Text style={styles.subtitle}>{faNumber(items.length)} کسب‌وکار</Text>
         </View>
       </View>
 

@@ -6,6 +6,7 @@
 //      (later) mobile must agree, and they only agree if they read this file.
 // Env / Identity: Pure. No IO, no Supabase — safe on both server and client.
 // ============================================================================
+import { faNumber } from "./digits";
 
 export type EmploymentType = "full_time" | "part_time" | "contract" | "casual" | "internship";
 export type WorkplaceType = "on_site" | "hybrid" | "remote";
@@ -123,7 +124,7 @@ export function formatSalaryFa(job: SalaryShape): string {
   const period = job.salary_period && job.salary_period in SALARY_PERIOD_LABELS_FA
     ? SALARY_PERIOD_LABELS_FA[job.salary_period as SalaryPeriod]
     : "";
-  const fa = (n: number) => n.toLocaleString("fa-IR");
+  const fa = faNumber;
   const range = job.salary_max && job.salary_max > job.salary_min
     ? `${fa(job.salary_min)} تا ${fa(job.salary_max)}`
     : `از ${fa(job.salary_min)}`;

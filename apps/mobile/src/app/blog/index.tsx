@@ -5,6 +5,7 @@
 //      from Supabase (RLS returns published only).
 // Env / Identity: Public reads.
 // ============================================================================
+import { faNumber } from "@goplaza/core";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { FlatList, Image, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
@@ -15,7 +16,7 @@ import { BrandLoading, MerlonGlyph } from "../../components/brand-mark";
 import { faDate, listBlogCategories, listPosts, type BlogCategory, type PostCard } from "../../lib/blog";
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
+const fa = faNumber;
 
 export default function BlogListScreen() {
   const router = useRouter();

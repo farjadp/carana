@@ -16,14 +16,14 @@ import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "rea
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Briefcase, ChevronRight } from "lucide-react-native";
 
-import { EMPLOYMENT_TYPES, EMPLOYMENT_TYPE_LABELS_FA, type EmploymentType } from "@goplaza/core";
+import { EMPLOYMENT_TYPES, EMPLOYMENT_TYPE_LABELS_FA, type EmploymentType, faNumber } from "@goplaza/core";
 
 import { BrandLoading, MerlonGlyph } from "../../components/brand-mark";
 import { JobCard } from "../../components/job-card";
 import { listJobs, type JobPost } from "../../lib/jobs";
 import { colors, fonts, radius, shadow, space, type } from "../../theme";
 
-const fa = (n: number) => n.toLocaleString("fa-IR");
+const fa = faNumber;
 
 export default function JobsScreen() {
   const router = useRouter();
