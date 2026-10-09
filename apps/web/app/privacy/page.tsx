@@ -528,6 +528,20 @@ export default function PrivacyPage() {
         </LegalSection>
 
         <LegalSection id="s16" title="۱۶. حذف حساب — دقیقاً چه اتفاقی می‌افتد">
+          {/* Google Play's account-deletion URL points here, not at
+              /account/delete: that page requires sign-in, so a reviewer
+              would only ever see the login form. Keep the steps in sync
+              with (tabs)/profile.tsx and account/delete.tsx in the app. */}
+          <p>
+            حذف حساب را خودتان و بدون تماس با پشتیبانی انجام می‌دهید:
+          </p>
+          <LegalList
+            items={[
+              "در اپ موبایل: وارد حسابتان شوید، به زبانه‌ی «حساب من» بروید، «حذف حساب» را بزنید، برای تایید DELETE را بنویسید و حذف را تایید کنید.",
+              "در وب‌سایت: وارد حسابتان شوید و به goplaza.ca/account/delete بروید، یا از صفحه‌ی پروفایل گزینه‌ی حذف حساب را بزنید و همان تایید را انجام دهید.",
+              `اگر به حسابتان دسترسی ندارید، از نشانی ایمیلی که با آن ثبت‌نام کرده‌اید به ${company.email.privacy} بنویسید تا حساب را حذف کنیم.`,
+            ]}
+          />
           <p>
             حذف حساب برگشت‌ناپذیر است. وقتی آن را تایید می‌کنید:
           </p>
@@ -544,6 +558,28 @@ export default function PrivacyPage() {
             پیش از حذف حساب به{" "}
             <a href={`mailto:${company.email.support}`}>{company.email.support}</a>{" "}
             بنویسید.
+          </p>
+          {/* Play's second link ("delete some or all data without deleting
+              the account") also points at #s16. Every step below exists in
+              interaction-bar.tsx and account/edit.tsx — keep it that way. */}
+          <p>
+            <strong>حذف بخشی از اطلاعات، بدون حذف حساب.</strong> این موارد را
+            خودتان در اپ یا وب‌سایت پاک می‌کنید و بلافاصله حذف می‌شوند:
+          </p>
+          <LegalList
+            items={[
+              "نشان‌شده: در صفحه‌ی کسب‌وکار دوباره «ذخیره» را بزنید.",
+              "«باخبرم کن»: در صفحه‌ی کسب‌وکار دوباره همان دکمه را بزنید تا ایمیل اطلاعیه‌ها قطع شود.",
+              "یادداشت و امتیاز خصوصی: «یادداشت» را باز کنید، متن را پاک کنید، روی ستاره‌ی انتخاب‌شده دوباره بزنید و ذخیره کنید.",
+              "نام، شماره موبایل و معرفی کوتاه: از صفحه‌ی ویرایش حساب پاک یا عوض کنید.",
+            ]}
+          />
+          <p>
+            برای هر داده‌ی دیگری، مثل نظر منتشرشده، گزارش یا پیشنهاد متنی و
+            صوتی، از نشانی ایمیل حسابتان به{" "}
+            <a href={`mailto:${company.email.privacy}`}>{company.email.privacy}</a>{" "}
+            بنویسید و بگویید کدام داده حذف شود. ظرف حداکثر ۳۰ روز آن را حذف
+            می‌کنیم و نتیجه را خبر می‌دهیم؛ بقیه‌ی حساب دست‌نخورده می‌ماند.
           </p>
         </LegalSection>
 

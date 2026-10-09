@@ -1,0 +1,30 @@
+<!doctype html>
+<!-- Source for play-store/feature-graphic.png (1024x500). Mark geometry is
+     copied from scripts/generate-brand-assets.mjs; the phone is a real
+     screenshot (screenshots/01-home.png). Rebuild:
+     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless \
+       --window-size=1024,500 --hide-scrollbars \
+       --screenshot=play-store/feature-graphic.png play-store/src/feature-graphic.html -->
+<html lang="fa" dir="rtl"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:V;src:url(Vazirmatn_800ExtraBold.ttf);font-weight:800}
+@font-face{font-family:V;src:url(Vazirmatn_500Medium.ttf);font-weight:500}
+html,body{margin:0;width:1024px;height:500px;overflow:hidden;background:#7A1831;font-family:V}
+.wrap{position:relative;width:1024px;height:500px}
+.ghost{position:absolute;left:-120px;top:-60px;width:620px;height:620px;opacity:.07}
+.text{position:absolute;right:72px;top:0;bottom:0;width:520px;display:flex;flex-direction:column;justify-content:center;color:#F6F1E8}
+.brand{display:flex;align-items:center;gap:18px;direction:ltr;justify-content:flex-end}
+.brand svg{width:64px;height:64px}
+.brand span{font-weight:800;font-size:52px;letter-spacing:2px}
+h1{font-weight:800;font-size:46px;line-height:1.35;margin:34px 0 14px}
+p{font-weight:500;font-size:24px;margin:0;color:#C9A24B}
+.phone{position:absolute;left:96px;top:56px;width:270px;border-radius:30px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.35);border:8px solid #14213D}
+.phone img{display:block;width:100%}
+</style></head><body><div class="wrap">
+<svg class="ghost" viewBox="0 0 1000 1000"><path fill="#F6F1E8" d="M 813 176 A 450 450 0 1 0 711 897 L 627 738 A 270 270 0 1 1 643 271 Z"/><path fill="#F6F1E8" d="M 470 410 H 920 V 900 H 836 L 730 774 V 590 H 470 Z"/></svg>
+<div class="phone"><img src="../screenshots/01-home.png"></div>
+<div class="text">
+  <div class="brand"><svg viewBox="0 0 1000 1000"><path fill="#F6F1E8" d="M 813 176 A 450 450 0 1 0 711 897 L 627 738 A 270 270 0 1 1 643 271 Z"/><path fill="#F6F1E8" d="M 470 410 H 920 V 900 H 836 L 730 774 V 590 H 470 Z"/></svg><span>GOPLAZA</span></div>
+  <h1>کسب‌وکارهای ایرانیان کانادا،<br>به زبان خودت</h1>
+  <p>جست‌وجو کن، تماس بگیر، مسیر را پیدا کن</p>
+</div></div></body></html>
