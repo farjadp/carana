@@ -25,7 +25,8 @@
       "appleTeamId": "JN57DU6B4M",
       "config": {
         "usesNonExemptEncryption": false
-      }
+      },
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
