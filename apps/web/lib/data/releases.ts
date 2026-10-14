@@ -27,10 +27,10 @@
 export const APP_VERSION = "1.5.0";
 
 export const STORES = {
-  /** Fill when the App Store listing is live (blocked on the paid Apple account / D-U-N-S). */
-  appStore: "",
-  /** Fill when the Play listing is live. */
-  playStore: "",
+  /** Live since Oct 2026 (1.5.0). iPhone only — the listing says so. */
+  appStore: "https://apps.apple.com/us/app/go-plaza/id6820723786",
+  /** Live since Oct 2026 (1.5.0). */
+  playStore: "https://play.google.com/store/apps/details?id=ca.charana.app",
   /**
    * Direct APK — Android only, sideload, arm64-v8a. Hosted in our own storage,
    * never an expo.dev artifact URL: those expire 14 days after the build.

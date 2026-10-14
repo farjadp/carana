@@ -36,7 +36,7 @@ export default function DownloadPage() {
         <StoreCard
           icon={<Apple size={26} />}
           name="App Store"
-          sub="iPhone و iPad"
+          sub="iPhone"
           href={STORES.appStore}
           comingNote="در انتظار تایید حساب سازمانی اپل. به‌زودی."
         />
@@ -69,12 +69,12 @@ export default function DownloadPage() {
             <li>وقتی دانلود تمام شد روی فایل بزن. اندروید می‌پرسد «نصب از این منبع؟» — یک‌بار اجازه بده.</li>
             <li>نصب کن و باز کن. با همان حساب سایت وارد شو.</li>
           </ol>
-          <p className="text-xs text-[color:var(--muted-text)] mt-3">این هشدار برای هر اپی خارج از Play Store طبیعی است؛ فایل مستقیم از سرور بیلد Expo زیر حساب Ashavid می‌آید.</p>
+          <p className="text-xs text-[color:var(--muted-text)] mt-3">این هشدار برای هر اپی خارج از Play Store طبیعی است؛ فایل از سرور خود پلازا دانلود می‌شود. اگر Google Play دارید، نصب از استور ساده‌تر است و به‌روزرسانی خودکار دارد.</p>
         </div>
         <div className="rounded-2xl bg-white border border-[color:var(--line)] p-5">
           <div className="font-black text-[color:var(--text)] flex items-center gap-2 mb-2"><ShieldCheck size={18} className="text-[color:var(--annabi)]" /> iPhone دارم — الان چه؟</div>
           <p className="text-sm text-[color:var(--text)]/80 leading-relaxed">
-            نسخه‌ی iOS ساخته شده و روی دستگاه اجرا می‌شود؛ انتشار عمومی و TestFlight پشت تایید حساب سازمانی اپل است. تا آن موقع، سایت روی سافاری همه‌ی امکانات را دارد — می‌توانی از منوی اشتراک، «Add to Home Screen» بزنی تا مثل اپ باز شود.
+            پلازا را از App Store نصب کن. اپ برای iPhone ساخته شده؛ روی iPad هم نصب می‌شود ولی در اندازه‌ی iPhone باز می‌شود.
           </p>
           <Link href="/releases" className="inline-flex items-center gap-1 text-sm font-bold text-[color:var(--lajvard)] mt-3">تغییرات هر نسخه <ArrowLeft size={14} /></Link>
         </div>
