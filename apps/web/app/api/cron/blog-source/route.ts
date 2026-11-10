@@ -6,7 +6,11 @@
 //      `?n=` for a different count, `?dry=1` to skip the image spend, or
 //      `?publish=1` to go straight live instead of into the review queue.
 //
-//      The schedule in vercel.json calls this as `?n=2&publish=1` (Farjad,
+//      Not scheduled since 9 Nov 2026: Farjad cut output to three articles a
+//      week, and blog-generate (Mon/Wed/Fri) is the writer that always
+//      delivers its number. Still callable by an admin by hand.
+//
+//      Before that, the schedule in vercel.json called this as `?n=2&publish=1` (Farjad,
 //      5 Sep): two articles a day, straight live. Two rather than three
 //      because this writer refuses more than it writes — the originality
 //      gate turned down enough that it delivered 1–4 a day over the ten days
