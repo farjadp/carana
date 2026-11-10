@@ -7,11 +7,7 @@
     },
     {
       "path": "/api/cron/blog-generate?n=1&publish=1",
-      "schedule": "0 11 * * *"
-    },
-    {
-      "path": "/api/cron/blog-source?n=2&publish=1",
-      "schedule": "0 12 * * *"
+      "schedule": "0 11 * * 1,3,5"
     },
     {
       "path": "/api/cron/blog-syndicate",
