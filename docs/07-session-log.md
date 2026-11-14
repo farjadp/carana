@@ -1,3 +1,61 @@
+# 2026-11-13 — the admin home, from three counts to the live picture
+
+Farjad (Persian): the admin dashboard is too quiet, show live stats.
+
+## What was built (`admin-live-dashboard`)
+
+- `lib/admin/dashboard-stats.ts`: one section per panel, each from a query
+  against production. A section that fails renders «خواندن ناموفق» with the
+  error, never 0. Row reads go through `fetchAllRows`; counts are exact.
+- `/admin` page v2: KPI row (published listings, users, MRR, items awaiting a
+  decision), then panels for businesses, review queues (each linking to its
+  queue), users, revenue, typed searches, blog + Telegram, and AI calls. Three
+  30-day column charts (new listings, sign-ups, typed searches) with hover and a
+  table view. Re-rendered every 60 s with `router.refresh()`, paused while the
+  tab is hidden; the time shown is when the server read the numbers.
+- Layout header: the hard-coded «امروز ۲۱ مرداد ۱۴۰۵ - مانیتورینگ زنده فعال
+  است» is now the real Toronto date; the bell with a permanently lit dot and
+  no handler is gone; the profile chip says admin or moderator, whichever is true.
+
+## What the first real reading showed (13 Nov)
+
+- Revenue: `subscriptions` and `invoices` are both **empty**. Six businesses
+  hold an in-force paid plan (4 Starter, 1 Premium, 1 Platinum) with no
+  Stripe subscription behind any of them, so all six were granted by hand. MRR reads $0 and the
+  panel says why instead of counting `plan`.
+- `ai_usage` is empty, and its `tokens` column is never written. The panel shows a call
+  count and says the blog pipeline's model calls are not in that table.
+- 33 `request_error` rows in `system_errors` in 24 h. Not investigated here.
+- Typed searches: 33 in 30 days, 11 with zero results (33%).
+
+## Left out on purpose
+
+Vercel Web Analytics and Search Console: no credential readable from server
+code (the Search Console token is a local gcloud ADC). No tile for either.
+
+## Verified
+
+Ran `getDashboardStats()` against production with tsx; every figure matched
+a direct SQL count (listed 9,693, drafts 995, claimed 16, users 41, active
+6, errors 33, typed 33/zero 11, published 30d 56, snippets 7d 12).
+Typecheck, eslint and `check:brand` clean. Creating a disposable admin in
+production was refused to the session; Farjad then signed in on
+`localhost:3417` in Chrome and the page was checked there.
+
+The rendered page found five defects reading had not:
+- The title read «داشبورد | GOPLAZA | GOPLAZA»: the root template already adds the brand.
+- `.admin-layout { margin: 0 -20px }` offset a body padding that no longer
+  exists, so **every admin page in production** was 20px wider than the window.
+- Global `section { margin-bottom: 72px }` beat Tailwind's layered `m-0`
+  and opened 72px holes between panel rows. The panels are now `div`s.
+- The sidebar is fixed at full window height with overflow visible: its last items spilled
+  cream-on-cream past the dark panel (also live). Now `overflow-y: auto`.
+- The fa-IR full date read «۱۴۰۵ آبان ۲۲, جمعه»; it is now built from parts.
+Auto-refresh was watched advancing 21:16:05 → 21:17:07. The hover value on
+the sign-up chart (6 Aban: 2) matched SQL.
+Turbopack dev in a second worktree failed on `next/font/google`
+(«queries have exactly one entry»); `next dev --webpack` worked.
+
 # 2026-10-07 — the app report, and a download that had been dead for a month
 
 Asked, in Persian, for a complete report on the apps. Then «برو مورد ۱ رو

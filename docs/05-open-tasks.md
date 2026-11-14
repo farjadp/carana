@@ -1,5 +1,18 @@
 # Open tasks
 
+## Admin home v2 — live dashboard (13 Nov, PR open)
+
+Branch `admin-live-dashboard`. **Open:**
+1. ~~Screenshot signed in as admin~~ — done 13 Nov in Chrome on localhost.
+2. Revenue reads $0 because `subscriptions`/`invoices` are empty: the six paid
+   plans in force were granted by hand. When the first real checkout lands,
+   check the MRR tile against the Stripe dashboard.
+3. `ai_usage.tokens` is never written, so AI spend is a call count. A dollar
+   figure needs the blog pipeline and every AI endpoint to record usage.
+4. Traffic tiles need a server-side credential: a Search Console service
+   account in Vercel env, or the Vercel Analytics API token.
+5. 33 `request_error` in 24 h on 13 Nov. See `/admin/health`.
+
 ## ~~APK 1.5.0 upload~~ — done 8 Oct
 
 Farjad raised the project upload cap to 200 MB; bucket `releases` raised to

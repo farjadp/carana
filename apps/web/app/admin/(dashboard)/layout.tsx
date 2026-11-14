@@ -1,16 +1,14 @@
 // ============================================================================
 // Source: app/admin/(dashboard)/layout.tsx
-// Version: 1.1.0 — 2026-08-12
+// Version: 1.2.0 — 2026-11-13 (real date, no fake bell, role-true label)
 // Why: Shared layout shell for all admin dashboard pages, including sidebar and header.
 // Env / Identity: Server-side check using admin client to read profile role.
 // ============================================================================
 import Link from "next/link";
 import { BrandMark } from "@/components/brand-mark";
 import { redirect } from "next/navigation";
-import {
-  LogOut,
-  Bell,
-} from "lucide-react";
+import { LogOut } from "lucide-react";
+import { brand } from "@goplaza/core";
 
 import { getOptionalUser } from "@/lib/auth/session";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -62,6 +60,20 @@ export default async function AdminDashboardLayout({
         .gte("created_at", hoursAgoIso(24))
     ),
   ]);
+  // Built from parts: the fa-IR whole-date string comes out as «۱۴۰۵ آبان ۲۲, جمعه»
+  // — year first and a Latin comma. Persian reads weekday، day month year.
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("fa-IR", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      timeZone: "America/Toronto",
+    })
+      .formatToParts(new Date())
+      .map((p) => [p.type, p.value])
+  );
+  const todayFa = `${parts.weekday}، ${parts.day} ${parts.month} ${parts.year}`;
   const counts: AdminCounts = { claims, reviews, suggestions, blog, reports, unknownCity, jobs, channels, errors24h };
 
   return (
@@ -71,7 +83,7 @@ export default async function AdminDashboardLayout({
         <div className="admin-sidebar-header">
           <span className="brand-mark"><BrandMark size={28} color="#fff" /></span>
           <div className="brand-copy">
-            <strong>GOPLAZA</strong>
+            <strong>{brand.name}</strong>
             <span>پنل مدیریت و امنیت</span>
           </div>
         </div>
@@ -94,17 +106,17 @@ export default async function AdminDashboardLayout({
         <header className="admin-header">
           <div className="admin-header-title">
             <h1>خلاصه وضعیت سیستم</h1>
-            <p>خوش آمدید. امروز ۲۱ مرداد ۱۴۰۵ - مانیتورینگ زنده فعال است.</p>
+            {/* Was a hard-coded «امروز ۲۱ مرداد ۱۴۰۵ - مانیتورینگ زنده فعال است»
+                until 13 Nov: a date that was true once and a claim nothing backed. */}
+            <p>امروز {todayFa}</p>
           </div>
 
           <div className="admin-header-actions">
-            <button className="icon-notification-btn" aria-label="اعلان‌ها">
-              <Bell size={20} />
-              <span className="notification-dot" />
-            </button>
+            {/* A bell with a permanently lit dot and no handler stood here —
+                no notification system exists behind it. Removed 13 Nov. */}
             <div className="admin-user-profile">
-              <div className="profile-avatar">مدیر</div>
-              <span>مدیریت کل سیستم</span>
+              <div className="profile-avatar">{profile.role === "admin" ? "مدیر" : "ناظر"}</div>
+              <span>{profile.role === "admin" ? "مدیر کل" : "ناظر محتوا"}</span>
             </div>
           </div>
         </header>
