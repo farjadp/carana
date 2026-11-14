@@ -3,7 +3,7 @@
 ## Admin home v2 — live dashboard (13 Nov, PR open)
 
 Branch `admin-live-dashboard`. **Open:**
-1. Screenshot `/admin` signed in as admin (the session could not sign in).
+1. ~~Screenshot signed in as admin~~ — done 13 Nov in Chrome on localhost.
 2. Revenue reads $0 because `subscriptions`/`invoices` are empty: the six paid
    plans in force were granted by hand. When the first real checkout lands,
    check the MRR tile against the Stripe dashboard.

@@ -31,7 +31,7 @@ import {
   Search,
   Users,
 } from "lucide-react";
-import { brand, faNumber as fa, formatCad, PLANS, type PlanId } from "@goplaza/core";
+import { faNumber as fa, formatCad, PLANS, type PlanId } from "@goplaza/core";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { getDashboardStats, type Section } from "@/lib/admin/dashboard-stats";
@@ -40,7 +40,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AutoRefresh } from "./_dashboard/auto-refresh";
 import { TrendChart } from "./_dashboard/trend-chart";
 
-export const metadata: Metadata = { title: `داشبورد | ${brand.name}` };
+// The root layout's title template appends the brand already.
+export const metadata: Metadata = { title: "داشبورد ادمین" };
 export const dynamic = "force-dynamic";
 
 const when = (iso: string) =>
@@ -51,6 +52,9 @@ const when = (iso: string) =>
     minute: "2-digit",
     timeZone: "America/Toronto",
   });
+
+/** Whole dollars in Persian digits; the label carries the currency, so the figure fits a narrow column. */
+const dollars = (cents: number) => fa(Math.round(cents / 100));
 
 const planName = (key: string) =>
   key === "link_pro" ? "GPLZ Link Pro" : (PLANS[key as PlanId]?.name ?? key);
@@ -75,7 +79,9 @@ function Panel({
   className?: string;
 }) {
   return (
-    <section className={`flex flex-col gap-4 rounded-2xl border border-(--line) bg-white p-5 ${className}`}>
+    // A div, not <section>: globals.css gives every section a 72px bottom
+    // margin, and unlayered CSS beats Tailwind's layered m-0.
+    <div role="region" aria-label={title} className={`flex flex-col gap-4 rounded-2xl border border-(--line) bg-white p-5 ${className}`}>
       <header className="flex items-center justify-between gap-3">
         <h2 className="m-0 flex items-center gap-2 text-base font-extrabold text-(--text)">
           <span className="text-(--lajvard)">{icon}</span>
@@ -89,7 +95,7 @@ function Panel({
         )}
       </header>
       {children}
-    </section>
+    </div>
   );
 }
 
@@ -114,7 +120,7 @@ function Stat({ label, value, sub, tone }: { label: string; value: string; sub?:
   return (
     <div className="flex min-w-0 flex-col gap-0.5">
       <span className="text-xs font-semibold text-(--muted-text)">{label}</span>
-      <span className={`text-2xl font-extrabold leading-tight ${tone === "warn" ? "text-(--annabi)" : "text-(--text)"}`}>
+      <span className={`whitespace-nowrap text-2xl font-extrabold leading-tight ${tone === "warn" ? "text-(--annabi)" : "text-(--text)"}`}>
         {value}
       </span>
       {sub && <span className="text-xs text-(--muted-text)">{sub}</span>}
@@ -189,8 +195,8 @@ export default async function AdminDashboardPage() {
 
       {/* KPI row: the four numbers the page leads with. */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Kpi icon={<Building2 size={18} />} label="کسب‌وکارهای منتشرشده" s={s.businesses} value={(d) => fa(d.listed)} sub={(d) => `+${fa(d.new7d)} در ۷ روز`} />
-        <Kpi icon={<Users size={18} />} label="کاربران" s={s.users} value={(d) => fa(d.total)} sub={(d) => `+${fa(d.d7)} در ۷ روز · ${fa(d.today)} امروز`} />
+        <Kpi icon={<Building2 size={18} />} label="کسب‌وکارهای منتشرشده" s={s.businesses} value={(d) => fa(d.listed)} sub={(d) => `${fa(d.new7d)} افزوده در ۷ روز`} />
+        <Kpi icon={<Users size={18} />} label="کاربران" s={s.users} value={(d) => fa(d.total)} sub={(d) => `${fa(d.d7)} ثبت‌نام در ۷ روز · ${fa(d.today)} امروز`} />
         <Kpi icon={<CircleDollarSign size={18} />} label="درآمد ماهانهٔ تکرارشونده" s={s.revenue} value={(d) => formatCad(d.mrrCents)} sub={(d) => `${fa(d.activeSubs)} اشتراک فعال Stripe`} />
         <Kpi
           icon={<Inbox size={18} />}
@@ -276,8 +282,8 @@ export default async function AdminDashboardPage() {
             {(d) => (
               <>
                 <StatRow>
-                  <Stat label="MRR" value={formatCad(d.mrrCents)} sub="از اشتراک‌های Stripe" />
-                  <Stat label="دریافتی این ماه" value={formatCad(d.paidThisMonthCents)} sub="فاکتورهای پرداخت‌شده" />
+                  <Stat label="MRR (دلار کانادا)" value={dollars(d.mrrCents)} sub="از اشتراک‌های Stripe" />
+                  <Stat label="دریافتی این ماه (دلار)" value={dollars(d.paidThisMonthCents)} sub="فاکتورهای پرداخت‌شده" />
                   <Stat label="اشتراک جدید" value={fa(d.newThisMonth)} sub="این ماه" />
                   <Stat label="لغو شده" value={fa(d.cancelledThisMonth)} sub="این ماه" />
                 </StatRow>

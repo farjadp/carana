@@ -2653,3 +2653,13 @@ CSS. The same Next 16.3.0 runs fine in the main checkout.
 **Fix.** `next dev --webpack` in the worktree. Typecheck and lint are unaffected.
 **Lesson.** When a fresh worktree 500s on a font, check the bundler before
 the diff. The changed code was never reached.
+
+## `section { margin-bottom: 72px }` in globals.css beats Tailwind's `m-0`
+
+**Symptom.** A `<section>` laid out with Tailwind keeps a 72px gap below it, whatever classes it has.
+**Cause.** `globals.css` has an unlayered `section` rule. Tailwind v4 utilities
+live in `@layer utilities`, and unlayered CSS wins over any layer.
+**Fix.** Use a `div` (with `role="region"` if it needs the landmark), or
+override in unlayered CSS.
+**Lesson.** The same holds for every element rule in globals.css. Before
+fighting a utility class, check computed styles for a bare-element rule.

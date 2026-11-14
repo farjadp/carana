@@ -38,9 +38,21 @@ code (the Search Console token is a local gcloud ADC). No tile for either.
 Ran `getDashboardStats()` against production with tsx; every figure matched
 a direct SQL count (listed 9,693, drafts 995, claimed 16, users 41, active
 6, errors 33, typed 33/zero 11, published 30d 56, snippets 7d 12).
-Typecheck, eslint and `check:brand` clean. **Not done:** the screenshot
-signed in as admin. Creating a disposable admin in production was refused
-to the session, and the preview pane had no admin session.
+Typecheck, eslint and `check:brand` clean. Creating a disposable admin in
+production was refused to the session; Farjad then signed in on
+`localhost:3417` in Chrome and the page was checked there.
+
+The rendered page found five defects reading had not:
+- The title read «داشبورد | GOPLAZA | GOPLAZA»: the root template already adds the brand.
+- `.admin-layout { margin: 0 -20px }` offset a body padding that no longer
+  exists, so **every admin page in production** was 20px wider than the window.
+- Global `section { margin-bottom: 72px }` beat Tailwind's layered `m-0`
+  and opened 72px holes between panel rows. The panels are now `div`s.
+- The sidebar is fixed at full window height with overflow visible: its last items spilled
+  cream-on-cream past the dark panel (also live). Now `overflow-y: auto`.
+- The fa-IR full date read «۱۴۰۵ آبان ۲۲, جمعه»; it is now built from parts.
+Auto-refresh was watched advancing 21:16:05 → 21:17:07. The hover value on
+the sign-up chart (6 Aban: 2) matched SQL.
 Turbopack dev in a second worktree failed on `next/font/google`
 («queries have exactly one entry»); `next dev --webpack` worked.
 

@@ -60,13 +60,20 @@ export default async function AdminDashboardLayout({
         .gte("created_at", hoursAgoIso(24))
     ),
   ]);
-  const todayFa = new Date().toLocaleDateString("fa-IR", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: "America/Toronto",
-  });
+  // Built from parts: the fa-IR whole-date string comes out as «۱۴۰۵ آبان ۲۲, جمعه»
+  // — year first and a Latin comma. Persian reads weekday، day month year.
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("fa-IR", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      timeZone: "America/Toronto",
+    })
+      .formatToParts(new Date())
+      .map((p) => [p.type, p.value])
+  );
+  const todayFa = `${parts.weekday}، ${parts.day} ${parts.month} ${parts.year}`;
   const counts: AdminCounts = { claims, reviews, suggestions, blog, reports, unknownCity, jobs, channels, errors24h };
 
   return (

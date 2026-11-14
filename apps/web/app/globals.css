@@ -1379,7 +1379,9 @@ section {
   display: flex;
   min-height: 100vh;
   background: #fcfbf7;
-  margin: 0 -20px;
+  /* Was margin: 0 -20px, offsetting a body padding that no longer exists —
+     it made every admin page 20px wider than the window (13 Nov). */
+  margin: 0;
 }
 
 .admin-sidebar {
@@ -1395,6 +1397,9 @@ section {
   position: sticky;
   top: 0;
   height: 100vh;
+  /* The nav is taller than a laptop window; without this the last items
+     spilled past the dark panel, cream on cream (13 Nov). */
+  overflow-y: auto;
 }
 
 .admin-sidebar-header {
