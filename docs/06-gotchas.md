@@ -2642,3 +2642,14 @@ inside the component that needed it. A rule with four spellings is a rule that
 will grow a fifth, and the surfaces that never got a copy are invisible until
 someone loads the page. When you find yourself copying a predicate, move it to
 `@goplaza/core` and change the call sites — see also `mobile lags web`.
+
+## `next dev` (Turbopack) 500s in a second git worktree — `next/font/google queries have exactly one entry`
+
+**Symptom.** 13 Nov: every page in a fresh worktree (`../Charana-admin-dash`,
+`node-linker=hoisted` install) returned 500, and the log showed `Can't resolve
+'@vercel/turbopack-next/internal/font/google/font'`, pointing at the Manrope
+CSS. The same Next 16.3.0 runs fine in the main checkout.
+**Cause.** Not established. It happens in Turbopack's Google-font resolver, not in app code.
+**Fix.** `next dev --webpack` in the worktree. Typecheck and lint are unaffected.
+**Lesson.** When a fresh worktree 500s on a font, check the bundler before
+the diff. The changed code was never reached.
