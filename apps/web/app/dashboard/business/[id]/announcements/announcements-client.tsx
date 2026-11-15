@@ -110,7 +110,6 @@ export function AnnouncementsClient({
                 <option value="7">۷ روز</option>
                 <option value="14">۱۴ روز</option>
                 <option value="30">۳۰ روز</option>
-                <option value="">تا حذف دستی</option>
               </select>
             </div>
             <Button type="button" onClick={submit} disabled={pending || !title.trim()} className="rounded-xl">
