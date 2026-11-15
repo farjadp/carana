@@ -92,3 +92,6 @@ export * from "./loyalty";
 // profile may carry, with the one rule for what may be stored. Shared because
 // the cap and the digit fold must not differ between the site and the app.
 export * from "./contacts";
+
+// How long a business announcement stays public; never forever.
+export * from "./announcements";

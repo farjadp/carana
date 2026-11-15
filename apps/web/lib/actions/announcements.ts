@@ -17,6 +17,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseActionClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { entitlementsFor } from "@/lib/billing/entitlements";
 import { sendEmail } from "@/lib/email/send";
+import { announcementExpiresAt } from "@goplaza/core";
 import { newAnnouncementEmail } from "@/lib/email/templates";
 
 const THIRTY_DAYS_MS = 30 * 24 * 3600_000;
@@ -70,7 +71,9 @@ export async function createAnnouncement(
       business_id: businessId,
       title,
       body,
-      expires_at: data.expiresInDays ? new Date(Date.now() + data.expiresInDays * 86_400_000).toISOString() : null,
+      // Always an end date, at most 30 days out: null meant "forever" to every
+      // reader, and a sale from August sat on the home page into November.
+      expires_at: announcementExpiresAt(data.expiresInDays),
     });
     if (error) throw error;
 
